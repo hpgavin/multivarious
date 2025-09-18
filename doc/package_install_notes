@@ -1,0 +1,44 @@
+https://linuxvox.com/blog/install-pipx-linux/#listing-installed-applications
+https://medium.com/@ebimsv/building-python-packages-07fbfbb959a9
+https://packaging.python.org/en/latest/tutorials/packaging-projects/
+
+in main .py file ========================================
+
+import numpy as np
+import matplotlib.pyplot as plt
+import multivarious as m
+
+time, x, x_drv, y = m.ode4u( earth_sys_1 , time, x_init , u , c )
+
+
+in multivarious directory ============================
+
+file __init__.py -------------------------------
+
+# __init__.py
+print("Initializing multivarious")
+
+from .ode4u import *
+# from .lsym  import *
+# from .abcd_dim import *
+
+
+file setup.py  ------------------------------
+
+from setuptools import setup, find_packages
+
+setup(
+    name='multivarious',
+    version='0.1',
+    packages=find_packages(),
+    install_requires=[])
+
+
+
+in console -----------------------------------
+
+sudo apt install pipx
+cd multivarious/
+python3 setup.py sdist bdist_wheel
+pipx install -e .
+
