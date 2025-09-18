@@ -1,2 +1,2 @@
 # multivarious
-multitude of various .py functions for multivarialbe things like ODE's, linear systems, probability distributions, and optimization
+multitude of various .py modules for multivarialbe things like ODE's, linear systems, probability distributions, and optimization
