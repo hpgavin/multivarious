@@ -1,0 +1,13 @@
+LICENSE
+README.md
+pyproject.toml
+src/multivarious/__init__.py
+src/multivarious.egg-info/PKG-INFO
+src/multivarious.egg-info/SOURCES.txt
+src/multivarious.egg-info/dependency_links.txt
+src/multivarious.egg-info/top_level.txt
+src/multivarious/distributions/__init__.py
+src/multivarious/distributions/triangular.py
+src/multivarious/optimization/__init__.py
+src/multivarious/utils/__init__.py
+tests/test_triangular_translation.py
