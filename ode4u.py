@@ -7,28 +7,22 @@ def ode4u(odefun, time, x0, u=None, c=None):
 
     Parameters:
         odefun : function (t, x, u, c) -> (dxdt, y)
-            Function that returns state derivative and output.
-        time : array-like, shape (p,)
-            Time values at which the solution is computed.
-        x0 : array-like, shape (n,)
-            Initial state at time[0].
-        u : array-like, shape (m, p), optional
-            System forcing input sampled at each time step.
-        c : any
-            Optional constants passed to odefun.
+                 returns state derivative and output as arrays
+        time   : time values at which the solution is computed.
+                 p-dimensional array 
+        x0     : n-dimensional array, state at time[0].
+        u      : (m x p) dimensional array
+                 optional input sampled at each time step.
+        c      : optional constants passed to odefun.
 
     Returns:
-        time  : ndarray, shape (1, p)
-        x_sol : ndarray, shape (n, p)
-        x_drv : ndarray, shape (n, p)
-        y_sol : ndarray, shape (m, p)
+        time   : ndarray, shape (1, p)
+        x  : ndarray, shape (n, p)
+        x_dot  : ndarray, shape (n, p)
+        y  : ndarray, shape (m, p)
     """
 
-    time = np.asarray(time)
-    x0 = np.asarray(x0).flatten()
-    points = len(time) # the total number of time steps
-
-# create defaults if not provided
+    # create defaults if not provided
     if c is None:
         c = 0
     if u is None:
@@ -36,7 +30,17 @@ def ode4u(odefun, time, x0, u=None, c=None):
     else:
         u = np.asarray(u)
 
-# verify inputs recieved are in 2D array shape
+    time   = np.asarray(time)
+    x0     = np.asarray(x0).flatten()
+    points = len(time) # the total number of time steps
+
+    # state derivitives and outputs at time[0]
+    dxdt0, y0 = odefun(time[0], x0, u[:, 0], c)
+
+    n = x0.size                 # number of states
+    m = np.asarray(y0).size     # nuber of outputs
+
+    # verify inputs recieved are in 2D array shape
     if u.ndim == 1:
         u = u[np.newaxis, :]
 
@@ -44,50 +48,52 @@ def ode4u(odefun, time, x0, u=None, c=None):
         pad_width = points - u.shape[1]
         u = np.pad(u, ((0, 0), (0, pad_width)), mode='constant')
 
-    # Initial output
-    # odefun is the user defined derivitive
-    # give us np.array(dxdt), np.array([fi]) from the function above
-    # dxdt is the first deriviative and y is an array containing other outputs 
-    dxdt1, y1 = odefun(time[0], x0, u[:, 0], c)
+    # allocate memory
+    x = np.ones([n, points])*np.nan
+    x_dot = np.ones([n, points])*np.nan
+    y = np.ones([m, points])*np.nan
 
-# set up arrays
-    n = x0.size
-    m = np.asarray(y1).size
+    x[:, 0]     = x0    # states
+    x_dot[:, 0] = dxdt0 # state derivitives
+    y[:, 0]     = y0    # outputs
 
-    x_sol = np.full((n, points), np.nan)
-    x_drv = np.full((n, points), np.nan)
-    y_sol = np.full((m, points), np.nan)
-
-    x_sol[:, 0] = x0    # states
-    x_drv[:, 0] = dxdt1 # state derivitivs
-    y_sol[:, 0] = y1    # outputs
-
-# time steping loop and main integration
-    for p in range(points - 1):
-# get pieces needed for rk4
+    for p in range(points - 1):  # time stepping loop and main integration
         t = time[p]
         dt = time[p + 1] - t
         dt2 = dt / 2.0
 
         u_mid = (u[:, p] + u[:, p + 1]) / 2.0
 
-# compute rk4 intermediate dervitives
+        # intermediate dervitives
+        dxdt1, _ = odefun(t + dt2, x0 + dxdt0 * dt2, u_mid, c)
         dxdt2, _ = odefun(t + dt2, x0 + dxdt1 * dt2, u_mid, c)
-        dxdt3, _ = odefun(t + dt2, x0 + dxdt2 * dt2, u_mid, c)
-        dxdt4, _ = odefun(t + dt,  x0 + dxdt3 * dt, u[:, p + 1], c)
+        dxdt3, _ = odefun(t + dt,  x0 + dxdt2 * dt, u[:, p + 1], c)
 
-# update the state using the intermediate derivities to get a more accurate result than just one derv
-        x0 = x0 + (dxdt1 + 2 * (dxdt2 + dxdt3) + dxdt4) * dt / 6.0
-# next level
-# this gives us the next output from the provided differencial equation
-        dxdt1, y1 = odefun(time[p + 1], x0, u[:, p + 1], c)
+        # state update using the intermediate derivities 
+        x0 = x0 + ( dxdt0 + 2 * (dxdt1 + dxdt2) + dxdt3 ) * dt / 6.0
 
-# then we put it into the array
-        x_sol[:, p+1] = x0    # state
-        x_drv[:, p+1] = dxdt1 # state derivitives 
-        y_sol[:, p+1] = y1    # output
-# safety - incase NaN or Inf
+        # state derivitives and outputs at start of time (p+1)
+        dxdt0, y0 = odefun(time[p + 1], x0, u[:, p + 1], c)
+
+        # save states (solution), state derivitives, and outputs
+        x[:, p+1]     = x0    # state  solution
+        x_dot[:, p+1] = dxdt1 #  rate  solution
+        y[:, p+1]     = y0    # output solution
+
+        # safety - incase NaN or Inf
+#       if not np.all(np.abs(x0) > 1e12):
         if not np.all(np.isfinite(x0)):
             break
 
-    return time, x_sol, x_drv, y_sol
+    return time, x, x_dot, y
+
+#  References
+#
+#  Press, W.H., Teukolsky, S.A., Vetterling, W.T., and Flannery, B.P.,
+#  Numerical Recipes in C, Cambridge Univ Press, 1992, (ISBN 0-521-43108-5)
+#  Section 16.1-16.2
+#  http://www.nrbook.com/
+
+# ODE4U -----------------------------------------------------------------------  
+# 2014, 2022-04-29, 2023-01-21, 2025-02-28, 2025-10-06
+
