@@ -1,12 +1,18 @@
 import numpy as np
-from multivarious.distributions import (
-    normal_pdf,
-    normal_cdf,
-    normal_inv
+
+from lognormal import (
+    lognormal_pdf,
+    lognormal_cdf,
+    lognormal_inv
 )
 
-def load(file):
-    return np.loadtxt(file)
+import os
+
+def load(filename):
+    # Force the load from this script's folder
+    here = os.path.dirname(__file__)
+    return np.loadtxt(os.path.join(here, filename))
+
 
 # Load MATLAB reference outputs
 x_vals = load("x_vals_normal.txt")

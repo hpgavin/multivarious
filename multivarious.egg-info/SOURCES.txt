@@ -1,0 +1,11 @@
+LICENSE
+README.md
+pyproject.toml
+setup.py
+multivarious.egg-info/PKG-INFO
+multivarious.egg-info/SOURCES.txt
+multivarious.egg-info/dependency_links.txt
+multivarious.egg-info/top_level.txt
+tests/test_normal_translation.py
+tests/test_triangular_translation.py
+tests/test_uniform_translation.py

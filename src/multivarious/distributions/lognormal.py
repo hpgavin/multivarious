@@ -1,103 +1,178 @@
 import numpy as np
-from scipy.stats import norm
+from scipy.special import erf, erfinv
 
-# ------------------------------------------------------
-# LOGNORMAL DISTRIBUTION (Custom Parameterization)
-# ------------------------------------------------------
-# This implementation uses:
-# - medX: median of the lognormal variable X
-# - covX: coefficient of variation of X (std(X) / mean(X))
+
+# -------------------------------------------------------------------------
+# PDF: lognormal_pdf
 #
-# MATLAB version uses this parameterization instead of shape/scale.
-# ------------------------------------------------------
-
-def _convert_med_cov_to_log_params(medX, covX):
-    """
-    Convert (medX, covX) to parameters of the underlying normal distribution.
-
-    Returns:
-    - mu_lnX : mean of log(X)
-    - sigma_lnX : std dev of log(X)
-    """
-    sigma_lnX = np.sqrt(np.log(1 + covX**2))  # log-space std dev
-    mu_lnX = np.log(medX)                     # log-space mean is log(median)
-    return mu_lnX, sigma_lnX
-
-# ------------------------------------------------------
-# PDF: Probability Density Function
-# ------------------------------------------------------
+# Computes the Probability Density Function (PDF) of the lognormal distribution.
+#
+# INPUTS:
+#   x     = evaluation points. Must be > 0 since lognormal is defined for x > 0.
+#   medX  = median of the lognormal distribution (X = exp(Y), where Y is normal)
+#   covX  = coefficient of variation of X: (covX = std(X) / mean(X))
+#
+# OUTPUT:
+#   f     = values of the PDF at each point in x
+#
+# FORMULAS:
+#   Variance log(x): V_lnX = log(1 + covX²), then:
+#
+# If X ~ Lognormal(medX, covX), then log(X) ~ Normal(mean = log(medX), var = log(1 + covX²)).
+#
+# Reference: https://en.wikipedia.org/wiki/Log-normal_distribution
+# -------------------------------------------------------------------------
 def lognormal_pdf(x, medX, covX):
-    """
-    Compute PDF of lognormal distribution from median and cov.
+    x = np.asarray(x, dtype=float)
 
-    Parameters:
-    - x : values to evaluate (scalar or array)
-    - medX : median of X
-    - covX : coefficient of variation of X
+    # Store size (as in MATLAB)
+    r_x, c_x = x.shape if x.ndim == 2 else (x.size, 1)
 
-    Returns:
-    - pdf : evaluated PDF values
-    """
-    mu, sigma = _convert_med_cov_to_log_params(medX, covX)
-    with np.errstate(divide='ignore'):
-        pdf = (1 / (x * sigma * np.sqrt(2 * np.pi))) * np.exp(-(np.log(x) - mu)**2 / (2 * sigma**2))
-    pdf[x <= 0] = 0  # ensure support is x > 0
-    return pdf
+    # Replace invalid x <= 0 with small positive constant to avoid log(0)
+    x = np.where(x <= 0, 0.01, x)
 
-# ------------------------------------------------------
-# CDF: Cumulative Distribution Function
-# ------------------------------------------------------
-def lognormal_cdf(x, medX, covX):
-    """
-    Compute CDF of lognormal distribution.
+    # Compute variance of log(X)
+    VlnX = np.log(1 + covX**2)
 
-    Parameters:
-    - x : values to evaluate (scalar or array)
-    - medX : median of X
-    - covX : coefficient of variation of X
+    # Compute the PDF using the lognormal formula
+    f = (1 / np.sqrt(2 * np.pi * VlnX)) * (1 / x) * np.exp(-0.5 * (np.log(x / medX))**2 / VlnX)
 
-    Returns:
-    - cdf : evaluated CDF values
-    """
-    mu, sigma = _convert_med_cov_to_log_params(medX, covX)
-    cdf = norm.cdf((np.log(x) - mu) / sigma)
-    cdf[x <= 0] = 0  # CDF is 0 for x <= 0
-    return cdf
+    return f
 
-# ------------------------------------------------------
-# INV: Inverse CDF (Quantile Function)
-# ------------------------------------------------------
-def lognormal_inv(p, medX, covX):
-    """
-    Compute inverse CDF (quantile) of lognormal distribution.
 
-    Parameters:
-    - p : probabilities in [0, 1]
-    - medX : median of X
-    - covX : coefficient of variation of X
+# -------------------------------------------------------------------------
+# CDF: lognormal_cdf
+#
+# Returns the CDF of a lognormal distribution with:
+#   - median = medX
+#   - coefficient of variation = covX
+#
+# INPUTS:
+#   x      = points at which to evaluate the CDF
+#   params = [medX, covX], a vector where:
+#              medX  = median of X
+#              covX  = coefficient of variation of X
+#
+# OUTPUT:
+#   F             = values of the CDF at each point in x
+#   ll (optional) = log-likelihood of x under lognormal(medX, covX)
+#
+# FORMULA:
+#   lognormal CDF F(x) = (1 + erf((log(x) - log(medX)) / sqrt(2V))) / 2
+# -------------------------------------------------------------------------
+def lognormal_cdf(x, params, return_ll=False):  # return_ll if True returns log-likelihood
+    x = np.asarray(x, dtype=float)
+    medX = params[0]
+    covX = params[1]
 
-    Returns:
-    - quantiles corresponding to p
-    """
-    mu, sigma = _convert_med_cov_to_log_params(medX, covX)
-    return np.exp(mu + sigma * norm.ppf(p))
+    # Store shape (as in MATLAB)
+    r_x, c_x = x.shape if x.ndim == 2 else (x.size, 1)
 
-# ------------------------------------------------------
-# RND: Random Variates from Lognormal Distribution
-# ------------------------------------------------------
-def lognormal_rnd(medX, covX, size=(1,), seed=None):
-    """
-    Generate random samples from lognormal distribution.
+    # Avoid log(0) or log of negatives
+    x = np.where(x <= 0, 0.01, x)
 
-    Parameters:
-    - medX : median of X
-    - covX : coefficient of variation of X
-    - size : tuple indicating shape of output
-    - seed : random seed or generator
+    VlnX = np.log(1 + covX**2)
+    F = 0.5 * (1 + erf((np.log(x) - np.log(medX)) / np.sqrt(2 * VlnX)))
 
-    Returns:
-    - samples : array of shape `size`
-    """
-    mu, sigma = _convert_med_cov_to_log_params(medX, covX)
-    rng = np.random.default_rng(seed)
-    return rng.lognormal(mean=mu, sigma=sigma, size=size)
+    if return_ll:
+        ll = np.sum(np.log(lognormal_pdf(x, medX, covX)))
+        return F, ll
+
+    return F
+
+
+# -------------------------------------------------------------------------
+# INV: lognormal_inv
+#
+# Computes the inverse CDF (also called quantile function) for lognormal.
+#
+# INPUTS:
+#   p     = probability values (scalar or array), must be in (0,1)
+#   medX  = median of the lognormal distribution
+#   covX  = coefficient of variation
+#
+# OUTPUT:
+#   x     = quantile values, such that P(X <= x) = p
+#
+# FORMULA:
+#   If V_lnX = log(1 + covX²), then:
+#     x = exp( log(medX) + sqrt(2V_lnX) * erfinv(2p - 1) )
+# -------------------------------------------------------------------------
+def lognormal_inv(P, medX, covX):
+    '''
+    Instead of calculating P(X <= x) = p, this function finds x such that
+    P(X <= x) = p
+    In other words, what number x has a cumulative probability p?
+    '''
+    P = np.asarray(P, dtype=float)
+    
+    # Avoid invalid probabilities: clip to machine epsilon
+    eps = np.finfo(float).eps     # smallest positive float
+    P = np.clip(P, eps, 1 - eps)  # restrict P to (0, 1)
+
+    # Compute lognormal quantile using inverse CDF formula
+    VlnX = np.log(1 + covX**2)  # Variance of log(X)
+    x = np.exp(np.log(medX) + np.sqrt(2 * VlnX) * erfinv(2 * P - 1)) 
+
+    return x
+
+
+# -------------------------------------------------------------------------
+# lognormal_rnd
+#
+# Returns random samples from a lognormal distribution defined by:
+#   - median = medX
+#   - coefficient of variation = covX
+#
+# INPUTS:
+#   medX  = median of the lognormal distribution (scalar or array)
+#   covX  = coefficient of variation of the lognormal distribution
+#   r     = number of rows in output (default 1)
+#   c     = number of columns in output (default 1)
+#   z     = optional standard normal samples (r × c), possibly correlated
+#   seed  = optional random seed or Generator (used if z is None)
+#
+# OUTPUT:
+#   x     = (r × c) array of lognormal random samples
+#
+#   If X is a lognormal random variable, then the log of X is normally 
+#   distributed with a mean of  log(medX) and a variance of log(1+covX^2)
+# FORMULA:
+#   V_lnX = log(1 + covX²)
+#   x = exp( log(medX) + z * sqrt(V) )
+# -------------------------------------------------------------------------
+def lognormal_rnd(medX, covX, r=1, c=1, z=None, seed=None):
+    # Input checks
+    if np.any(np.asarray(medX) <= 0):
+        raise ValueError("medX must be greater than zero")
+    if np.any(np.asarray(covX) <= 0):
+        raise ValueError("covX must be greater than zero")
+
+    # Case 1: z is provided (e.g., for correlated samples)
+    if z is not None:
+        z = np.asarray(z)
+        r, c = z.shape
+    else:
+        # Case 2: generate z ~ N(0, 1)
+        rng = np.random.default_rng(seed)
+        z = rng.standard_normal((r, c))
+
+    # Expand medX and covX to (r, c) if they are scalars
+    medX = np.broadcast_to(medX, (r, c))
+    covX = np.broadcast_to(covX, (r, c))
+
+    # Compute variance of log(X)
+    VlnX = np.log(1 + covX**2)
+
+    # Apply lognormal transformation
+    x = np.exp(np.log(medX) + z * np.sqrt(VlnX))
+    return x
+
+
+if __name__ == "__main__":
+    x = 1.5
+    medX = 1.0
+    covX = 0.5
+
+    f = lognormal_pdf(x, medX, covX)
+    print("PDF at x = 1.5:", f)
