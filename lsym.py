@@ -1,90 +1,100 @@
-# lsym
-
-def lsym(A,B,C,D,u,t,x0, ntrp) 
-
 import numpy as np
+from scipy.linalg import expm
+from abcddim import abcddim
 
-'''
- y = lsym ( A, B, C, D, u, t, x0, ntrp )
- transient response of a continuous-time linear system to arbitrary inputs.
-		      dx/dt = Ax + Bu
-			y   = Cx + Du
-
-	A    :     dynamics    matrix				 (n by n)
-    B    :     input       matrix 				 (n by r)
- 	C    :     output      matrix				 (m by n)
- 	D    :     feedthrough matrix				 (m by r)
- 	u    :     matrix of sampled inputs			 (r by p)
- 	t    :     vector of uniformly spaced points in time	 (1 by p)
- 	x0   :     vector of states at the first point in time   (n by 1)
-    ntrp :     "zoh" zero order hold, "foh" first order hold (default)
- 	y    :     matrix of the system outputs		 (m by p)
-'''
-
-    if (nargin < 8) , ntrp = 'foh' end
-
-     n, r, m = abcd_dim(A,B,C,D)       %  matrix dimensions and compatability check 
-
-    points = size(u,2)		   % number of data points 
-
-    dt =  t[2] - t[1]                % uniform time-step value
-
-# continuous-time to discrte-time conversion ...
-    if strcmp(lower(ntrp),'zoh')      % zero-order hold on inputs
-        M    = [ A B  zeros(r,n+r) ]
-    else                              % first-order hold on inputs
-        M    = [ A B zeros(n,r)  zeros(r,n+r) eye(r)  zeros(r,n+2*r) ]
+def lsym(A, B, C, D, u, t, x0=None, ntrp='foh'):
+    """
+    Transient response of a continuous-time linear system to arbitrary inputs.
     
-    eMdt = expm(M*dt)                % matrix exponential
-    Ad   = eMdt[1:n,1:n]             % discrete-time dynamics matrix
-    Bd   = eMdt[1:n,n+1:n+r]         % discrete-time input matrix
-    if strcmp(lower(ntrp),'zoh')
-        Bd0  = Bd
-        Bd1  = zeros(n,r)  
-    else 
-        Bd_  = eMdt(1:n,n+r+1:n+2*r)   % discrete-time input matrix
-        Bd0  = Bd  -  Bd_ / dt         % discrete-time input matrix for time p
-        Bd1  = Bd_ / dt                % discrete-time input matrix for time p+1
- 
-#   B and D for discrete time system
-#   Bd_bar = Bd0 + Ad*Bd1
-#   D_bar  = D   + C*Bd1
+    State-space system:
+        dx/dt = Ax + Bu
+        y     = Cx + Du
+    
+    Parameters:
+        A    : dynamics matrix (n x n)
+        B    : input matrix (n x r)
+        C    : output matrix (m x n)
+        D    : feedthrough matrix (m x r)
+        u    : matrix of sampled inputs (r x p)
+        t    : vector of uniformly spaced points in time (1 x p)
+        x0   : vector of states at the first point in time (n x 1)
+               default: zeros
+        ntrp : interpolation method
+               'zoh' = zero order hold
+               'foh' = first order hold (default)
+    
+    Returns:
+        y    : matrix of the system outputs (m x p)
+    """
+    
+    # Get matrix dimensions and verify compatibility
+    n, r, m = abcddim(A, B, C, D)
+    
+    # Convert to numpy arrays
+    A = np.asarray(A)
+    B = np.asarray(B)
+    C = np.asarray(C)
+    D = np.asarray(D)
+    u = np.asarray(u)
+    t = np.asarray(t)
+    
+    if u.ndim == 1:
+        u = u[np.newaxis, :]
+    
+    points = u.shape[1]  # number of data points
+    
+    dt = t[1] - t[0]  # uniform time-step value
+    
+    # Continuous-time to discrete-time conversion
+    if ntrp.lower() == 'zoh':  # zero-order hold on inputs
+        M = np.block([
+            [A, B],
+            [np.zeros((r, n+r))]
+        ])
+    else:  # first-order hold on inputs (foh)
+        M = np.block([
+            [A, B, np.zeros((n, r))],
+            [np.zeros((r, n+r)), np.eye(r)],
+            [np.zeros((r, n+2*r))]
+        ])
+    
+    eMdt = expm(M * dt)  # matrix exponential
+    Ad = eMdt[:n, :n]    # discrete-time dynamics matrix
+    Bd = eMdt[:n, n:n+r] # discrete-time input matrix
+    
+    if ntrp.lower() == 'zoh':
+        Bd0 = Bd
+        Bd1 = np.zeros((n, r))
+    else:  # foh
+        Bd_ = eMdt[:n, n+r:n+2*r]  # discrete-time input matrix
+        Bd0 = Bd - Bd_ / dt         # discrete-time input matrix for time p
+        Bd1 = Bd_ / dt              # discrete-time input matrix for time p+1
+    
+    # Initial conditions
+    if x0 is None:
+        x0 = np.zeros(n)
+    else:
+        x0 = np.asarray(x0).flatten()
+    
+    # Memory allocation for the output
+    y = np.zeros((m, points))
+    
+    # State at t[0] ... Kjell Ahlin
+    x = x0 + Bd1 @ u[:, 0]
+    
+    # Output for the initial condition
+    y[:, 0] = C @ x + D @ u[:, 0]
+    
+    # Time-stepping loop
+    for p in range(1, points):
+        x = Ad @ x + Bd0 @ u[:, p-1] + Bd1 @ u[:, p]
+        y[:, p] = C @ x + D @ u[:, p]
+    
+    # Strip out round-off imaginary parts
+    if np.max(np.abs(np.imag(y))) < 1e-12:
+        y = np.real(y)
+    
+    return y
 
-# Markov parameters for the discrete time system with ZOH
-#   Y0 = D_bar
-#   Y1 = C * Bd_bar
-#   Y2 = C * Ad * Bd_bar
-#   Y3 = C * Ad^2 * Bd_bar
-
-# initial conditions are zero unless specified 
-
-    if nargin < 7
-        x0 = zeros(n,1)                % initial conditions are zero
-
-    y = zeros(m,points)              % memory allocation for the output
-
-    x = x0 + Bd1 * u[:,1]            % state at t(1) ... Kjell Ahlin
-
-    y[:,1] = C * x  +  D * u[:,1]    % output for the initial condition
-
-    for p = 2:points
-
-        x      = Ad * x  +  Bd0 * u(:,p-1)  +  Bd1 * u(:,p)
-
-        y(:,p) = C  * x  +  D * u(:,p)
-
-
-    if max(max(abs(imag(y)))) < 1e-12
-        y = real(y)  end  % strip out round-off
 
 # ----------------------------------------------------------------- LSYM
-
-#   w= logspace(-1,log10(100*pi/dt),200)
-#   m1 = mimoBode( Ad, (Bd0+Ad*Bd1), C, (D+C*Bd1),  w, dt)
-#   m2 = mimoBode( A, B, C, D,  w)
-#   figure(111) loglog(w/2/pi, m1, w/2/pi,m2)
-#   
-#   pp = eig(Ad)
-#   zz= syszeros ( Ad, (Bd0+Ad*Bd1), C, (D+C*Bd1) )
-#   pz_plot(pp,zz,110,dt)
-
