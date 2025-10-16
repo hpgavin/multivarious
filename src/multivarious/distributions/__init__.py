@@ -80,6 +80,29 @@ from .quadratic import (
     quadratic_rnd
 )
 
+from .gev import (
+    gev_pdf,
+    gev_cdf,
+    gev_inv,
+    gev_rnd
+)
+
+from .extreme_value_I import (
+    extI_pdf,
+    extI_cdf,
+    extI_inv,
+    extI_rnd
+)
+
+from .extreme_value_II import (
+    extII_pdf,
+    extII_cdf,
+    extII_inv,
+    extII_rnd
+)
+
+
+
 __all__ = [
     "triangular_pdf", "triangular_cdf", "triangular_inv", "triangular_rnd",
     "uniform_pdf", "uniform_cdf", "uniform_inv", "uniform_rnd",
@@ -92,5 +115,10 @@ __all__ = [
     "gamma_pdf", "gamma_cdf", "gamma_inv", "gamma_rnd",
     "chi2_pdf", "chi2_cdf", "chi2_inv", "chi2_rnd",
     "t_pdf", "t_cdf", "t_inv", "t_rnd",
-    "quadratic_pdf", "quadratic_cdf", "quadratic_inv", "quadratic_rnd"
+    "quadratic_pdf", "quadratic_cdf", "quadratic_inv", "quadratic_rnd",
+    "gev_pdf", "gev_cdf", "gev_inv", "gev_rnd",
+    "extI_pdf", "extI_cdf", "extI_inv", "extI_rnd",
+    "extII_pdf", "extII_cdf", "extII_inv", "extII_rnd"
+
+
 ]
