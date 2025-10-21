@@ -3,7 +3,7 @@ import matplotlib.pyplot as plt
 from scipy import signal
 from scipy.stats import chi2
 
-def mimoFRF(u, y, Fs, nfft, figNo=0):
+def mimo_tfe(u, y, Fs, nfft, figNo=0):
     """
     Frequency response function of MIMO system from discrete-time I/O data.
     
@@ -259,12 +259,12 @@ def mimoFRF(u, y, Fs, nfft, figNo=0):
     return Hv, f, Puu, Pyy, Pyu, coh, Sv
 
 
-# ------------------------------------------------------------------- mimoFRF
+# ------------------------------------------------------------------- mimo_tfe
 # H.P. Gavin 2017-12-03
 
 # Example usage
 if __name__ == "__main__":
-    print("Testing mimoFRF: MIMO Frequency Response Function Estimation\n")
+    print("Testing mimo_tfe: MIMO Frequency Response Function Estimation\n")
     
     # Generate test data: simple 2-input, 2-output system
     Fs = 1000  # sampling frequency
@@ -291,9 +291,9 @@ if __name__ == "__main__":
     
     y = np.vstack([y1, y2])
     
-    # Estimate FRF
+    # Estimate frequency response function
     nfft = 512
-    Hv, f, Puu, Pyy, Pyu, coh, Sv = mimoFRF(u, y, Fs, nfft, figNo=1)
+    Hv, f, Puu, Pyy, Pyu, coh, Sv = mimo_tfe(u, y, Fs, nfft, figNo=1)
     
     print(f"Hv shape: {Hv.shape}")
     print(f"Frequency vector shape: {f.shape}")
