@@ -10,7 +10,7 @@ This repository is under development.  Updates to this README lag the addition o
 
 ### dsp . digitial signal processing
 
-* **accel2displ** . remove some bias and drift from acceleration data and compute displacement 
+* **accel2displ** . acceleration, velocity and displacement without much bias or drift from acceleration 
 
 ### lti . linear time invariant systems
 
