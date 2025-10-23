@@ -1,43 +1,72 @@
 # multivarious
 
 A multitude of various .py modules for multivariable things like digital signal processing, linear time invariant systems, optimization, ordinary differential equations and random variables. 
-This repository is under development.  Explanations in this README lags the addition of code.  
 
-Stay tuned!!! 
+This repository is under development.  Updates to this README lag the addition of code.  Stay tuned!!! 
 
----------------------------------
 
-## libraries 
 
-### dsp - digitial signal processing
+## dsp . digitial signal processing
 
-* accel2displ - remove some bias and drift from acceleration data and compute displacement 
+To generate, transform, and plot multivariate discrete time sequences 
 
-### lti - linear time invariant systems
+| module | description |
+| ------ | ------------ |
+| **accel2displ** | acceleration, velocity and displacement without much bias or drift from acceleration |
 
-* abcd_dim - check dimensions of an LTI realization
-* blk_hankel - form a block Hankel matrix from a matrix-valued time series
-* blk_toeplitz - form a block Toeplitz matrix from a matrix-valued time series
-* con2dis - transform a continuous time LTI system to a discrete time LTI system with the matrix exponential
-* damp - analyze eigenvalues of a dynamics matrix
-* dis2con - transform a discrete time LTI system to a continuous time LTI system with the matrix exponential
-* dliap - solve the Liapunov equation for a discrete time LTI system
-* dlsym - simulate the response of a discrete time LTI system
-* kalman_decomp - transform an LTI state-space realization into Kalman canonical form
-* lsym - simulate the response of a continuous time LTI system
-* mimo_bode - compute the Bode spectrum of a MIMO LTI system
-* mimo_tfe - estimate the frequency response function matrix from MIMO data
-* pz_plot - pole-zero plot
-* syszero - MIMO system, invariant, transmissions, and decoupling zeros from (A,B,C,D)
-* wiener_filter - Wiener Filter identification of Markov parameters and simulation 
+## lti . linear time invariant systems
 
-### ode - ordinary differential equations
+To analyze and transform linear time invariant systems
+defined by 
+linear differential equations, _d**x**_/_dt_ = _**A x**_(_t_) + _**B u**_(_t_)
+or linear difference equations,  **x**(_k_+1) = _**A x**_(_k_) + _**B u**_(_k_)
+and corresponding system outputs, _**y**_ = _**C x**_ + _**D u**_
 
-* ode4u - a fixed-time step, 4th order ODE solver
-* ode45u - the adaptive time step, 4th-5th solver ODE solver by Cash and Karp 
-* odef.py - a library of multivariable ordinary differential equations, for testing
-* ode_test - a library of tests for ordinary differential equations  
+| module | description |
+| ------ | ----------- |
+| **abcd_dim** | dimensions of an LTI realization |
+| **blk_hankel** | a block Hankel matrix from a matrix-valued time series |
+| **blk_toeplitz** | a block Toeplitz matrix from a matrix-valued time series |
+| **con2dis** | a discrete time LTI system from a continuous time LTI system  |
+| **damp** | natural frequencies and damping ratios of a dynamics matrix  |
+| **dis2con** | a continuous time LTI system from a discrete time LTI system  |
+| **dlsym** | the response of a discrete time LTI system |
+| **kalman_decomp** | Kalman canonical form from an LTI state-space realization  |
+| **lsym** | the response of a continuous time LTI system |
+| **mimo_bode** | the Bode spectrum of a MIMO LTI system |
+| **mimo_tfe** | the estimate of a frequency response matrix from MIMO data |
+| **pz_plot** | a plot of the poles and zeros on the complex plane  |
+| **sys_zero** | MIMO system, invariant, transmissions, and decoupling zeros from (A,B,C,D) |
+| **wiener_filter** | Markov parameters from time series: identification and simulation  |
 
-### rvs - random variables
+## ode . ordinary differential equations
 
----------------------------------
+To solve systems of ordinary differential equations _d**x**_/_dt_ = _f_(_t_,_**x**_,_**u**_,_c_) where 
+_t_ is time, _**x**_ is a state vector, _**u**_ is a time series of exogeneous inputs, and _c_ contains a set of system constants. 
+
+| module | description |
+| ------ | ----------- |
+| **ode4u** | the ODE solution via a fixed-time step, 4th order method  |
+| **ode45u** | the ODE solution via the adaptive time step, 4th-5th method by Cash and Karp  |
+| **odef.py** | a library of multivariable ordinary differential equations, for testing |
+| **ode_test** | a library of tests for ode4u and ode45u  |
+
+## opt . optimization 
+
+To minimize a function of multiple variables subject to a set of inequality constraints:
+minimize _f_(_**v**_) such that _**g**_(_**v**_) < **0**,
+where _**v**_ is a vector of design variables,
+_f_(_**v**_) is a scalar-valued objective function, and
+_**g**_(_**v**_) is a vector of inequality constraints. 
+
+| module | description |
+| ------ | ----------- |
+
+## rvs . random variables
+
+To provide the probability density function, the cumulative distribution function, the inverse cumulative distribution function, and a random sample of various probabiity distributions.  
+Correlated random samples of certain multivariate random variables as well.  
+
+| module | description |
+| ------ | ----------- |
+
