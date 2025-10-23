@@ -19,8 +19,8 @@ To generate, transform, and plot multivariate discrete time sequences
 ### lti . linear time invariant systems
 
 To analyze and transform a system of linear time invariant system defined by 
-linear ordinary differential equations, _dx_/_dt_ = _A x_(_t_) + _B u_(_t_)
-and corresponding system outputs, _y_(_t_) = _C x_(_t_) + _D u_(_t_) 
+linear ordinary differential equations, _d**x**_/_dt_ = _*A x*_(_t_) + _*B u*_(_t_)
+and corresponding system outputs, _*y*_(_t_) = _*C x*_(_t_) + _*D u*_(_t_) 
 
 | module       | description |
 | ------------ | ------------ |
