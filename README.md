@@ -1,6 +1,6 @@
 # multivarious
 
-A multitude of various .py modules for multivariable things like digital signal processing, linear time invariant systems, optimization, ordinary differential equations and random variables. 
+A multitude of various Python modules for multivariable things like digital signal processing, linear time invariant systems, optimization, ordinary differential equations and random variables. 
 
 This repository is under development.  Updates to this README lag the addition of code.  Stay tuned!!! 
 
@@ -48,7 +48,7 @@ _t_ is time, _**x**_ is a state vector, _**u**_ is a time series of exogeneous i
 | ------ | ----------- |
 | **ode4u** | the ODE solution via a fixed-time step, 4th order method  |
 | **ode45u** | the ODE solution via the adaptive time step, 4th-5th method by Cash and Karp  |
-| **odef.py** | a library of multivariable ordinary differential equations, for testing |
+| **odef** | a library of multivariable ordinary differential equations, for testing |
 | **ode_test** | a library of tests for ode4u and ode45u  |
 
 ## opt . optimization 
