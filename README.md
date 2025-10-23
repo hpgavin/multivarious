@@ -6,9 +6,8 @@ This repository is under development.  Updates to this README lag the addition o
 
 ---------------------------------
 
-## libraries 
 
-### dsp . digitial signal processing
+## dsp . digitial signal processing
 
 To generate, transform, and plot multivariate discrete time sequences 
 
@@ -16,14 +15,14 @@ To generate, transform, and plot multivariate discrete time sequences
 | ------------ | ------------ |
 | **accel2displ** | acceleration, velocity and displacement without much bias or drift from acceleration |
 
-### lti . linear time invariant systems
+## lti . linear time invariant systems
 
-To analyze and transform a system of linear time invariant system defined by 
+To analyze and transform a linear time invariant system defined by 
 linear ordinary differential equations, _d**x**_/_dt_ = _**A x**_(_t_) + _**B u**_(_t_)
 and corresponding system outputs, _**y**_(_t_) = _**C x**_(_t_) + _**D u**_(_t_) 
 
 | module       | description |
-| ------------ | ------------ |
+| ------------ | ----------- |
 | **abcd_dim** | dimensions of an LTI realization |
 | **blk_hankel** | a block Hankel matrix from a matrix-valued time series |
 | **blk_toeplitz** | a block Toeplitz matrix from a matrix-valued time series |
@@ -39,19 +38,19 @@ and corresponding system outputs, _**y**_(_t_) = _**C x**_(_t_) + _**D u**_(_t_)
 | **sys_zero** | MIMO system, invariant, transmissions, and decoupling zeros from (A,B,C,D) |
 | **wiener_filter** | Markov parameters from time series: identification and simulation  |
 
-### ode . ordinary differential equations
+## ode . ordinary differential equations
 
 To solve a system of ordinary differential equations _d**x**_/_dt_ = _f_(_t_,_**x**_,_**u**_,_c_) where 
 _t_ is time, _**x**_ is a state vector, _**u**_ is a time series of exogeneous inputs, and _c_ contains a set of system constants. 
 
 | module       | description |
-| ------------ | ------------ |
+| ------------ | ----------- |
 | **ode4u** | the ODE solution via a fixed-time step, 4th order method  |
 | **ode45u** | the ODE solution via the adaptive time step, 4th-5th method by Cash and Karp  |
 | **odef.py** | a library of multivariable ordinary differential equations, for testing |
 | **ode_test** | a library of tests for ode4u and ode45u  |
 
-### opt . optimization 
+## opt . optimization 
 
 To minimize a function of multiple variables subject to a set of inequality constraints:
 minimize _f_(_**v**_) such that _**g**_(_**v**_) < **0**,
@@ -60,14 +59,14 @@ _f_(_**v**_) is a scalar-valued objective function, and
 _**g**_(_**v**_) is a vector of inequality constraints. 
 
 | module       | description |
-| ------------ | ------------ |
+| ------------ | ----------- |
 
-### rvs . random variables
+## rvs . random variables
 
 To provide the probability density function, the cumulative distribution function, the inverse cumulative distribution function, and a random sample of various probabiity distributions.  
 Correlated random samples of certain multivariate random variables as well.  
 
 | module       | description |
-| ------------ | ------------ |
+| ------------ | ----------- |
 
 ---------------------------------
