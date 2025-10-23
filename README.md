@@ -18,8 +18,8 @@ To generate, transform, and plot multivariate discrete time sequences
 
 To analyze and transform a linear time invariant system defined by 
 linear differential equations, _d**x**_/_dt_ = _**A x**_(_t_) + _**B u**_(_t_)
-or linear difference equations,  **x**(_k_+1)_ = _**A x**_(_k_) + _**B u**_(_k_)
-and corresponding system outputs, _**y**_ = _**C x**+ _**D u**_
+or linear difference equations,  **x**(_k_+1) = _**A x**_(_k_) + _**B u**_(_k_)
+and corresponding system outputs, _**y**_ = _**C x**_ + _**D u**_
 
 | module       | description |
 | ------------ | ----------- |
