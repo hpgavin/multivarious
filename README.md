@@ -10,11 +10,17 @@ This repository is under development.  Updates to this README lag the addition o
 
 ### dsp . digitial signal processing
 
+To generate, transform, and plot multivariate discrete time sequences 
+
 | module       | description |
 | ------------ | ------------ |
 | **accel2displ** | acceleration, velocity and displacement without much bias or drift from acceleration |
 
 ### lti . linear time invariant systems
+
+To analyze and transform a system of linear time invariant system defined by 
+linear ordinary differential equations, _dx_/_dt_ = _A x_(_t_) + _B u_(_t_)
+and corresponding system outputs, _y_(_t_) = _C x_(_t_) + _D u_(_t_) 
 
 | module       | description |
 | ------------ | ------------ |
@@ -35,6 +41,9 @@ This repository is under development.  Updates to this README lag the addition o
 
 ### ode . ordinary differential equations
 
+To solve a system of ordinary differential equations _dx_/_dt_ = _f_(_t_,_x_,_u_,_c_) where 
+_t_ is time, _x_ is a state vector, _u_ is a time series of exogeneous inputs, and _c_ contains a set of system constants. 
+
 | module       | description |
 | ------------ | ------------ |
 | **ode4u** | the ODE solution via a fixed-time step, 4th order method  |
@@ -42,12 +51,19 @@ This repository is under development.  Updates to this README lag the addition o
 | **odef.py** | a library of multivariable ordinary differential equations, for testing |
 | **ode_test** | a library of tests for ode4u and ode45u  |
 
-### opt . constrained nonlinear optimization 
+### opt . optimization 
+
+To minimize a function of several variables subject to a set of inequality constraints:
+minimize _f_(_v_) such that _g_(_v_) < 0,
+where _v_ is a vector of design variables, _f_(_v_) is a scalar-valued objective function, and _g_(_x_) is a vector of inequality constraints. 
 
 | module       | description |
 | ------------ | ------------ |
 
 ### rvs . random variables
+
+To provide the probability density function, the cumulative distribution function, the inverse cumulative distribution function, and a random sample of various probabiity distributions.  
+Correlated random samples of certain multivariate random variables as well.  
 
 | module       | description |
 | ------------ | ------------ |
