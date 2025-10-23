@@ -18,9 +18,9 @@ Stay tuned!!!
 * **abcd_dim** . check dimensions of an LTI realization
 * **blk_hankel** . form a block Hankel matrix from a matrix-valued time series
 * **blk_toeplitz** . form a block Toeplitz matrix from a matrix-valued time series
-* **con2dis** . transform a continuous time LTI system to a discrete time LTI system with the matrix exponential
+* **con2dis** . transform a continuous time LTI system to a discrete time LTI system 
 * **damp** . analyze eigenvalues of a dynamics matrix
-* **dis2con** . transform a discrete time LTI system to a continuous time LTI system with the matrix exponential
+* **dis2con** . transform a discrete time LTI system to a continuous time LTI system 
 * **dliap** . solve the Liapunov equation for a discrete time LTI system
 * **dlsym** . simulate the response of a discrete time LTI system
 * **kalman_decomp** . transform an LTI state-space realization into Kalman canonical form
