@@ -14,6 +14,7 @@ This repository is under development.  Updates to this README lag the addition o
 
 ### lti . linear time invariant systems
 
+| module       | description |
 | ------------ | ------------ |
 | **abcd_dim** | dimensions of an LTI realization |
 | **blk_hankel** | a block Hankel matrix from a matrix-valued time series |
