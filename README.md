@@ -10,6 +10,8 @@ This repository is under development.  Updates to this README lag the addition o
 
 ### dsp . digitial signal processing
 
+| module       | description |
+| ------------ | ------------ |
 | **accel2displ** | acceleration, velocity and displacement without much bias or drift from acceleration |
 
 ### lti . linear time invariant systems
@@ -33,11 +35,21 @@ This repository is under development.  Updates to this README lag the addition o
 
 ### ode . ordinary differential equations
 
+| module       | description |
+| ------------ | ------------ |
 | **ode4u** | the ODE solution via a fixed-time step, 4th order method  |
 | **ode45u** | the ODE solution via the adaptive time step, 4th-5th method by Cash and Karp  |
 | **odef.py** | a library of multivariable ordinary differential equations, for testing |
 | **ode_test** | a library of tests for ode4u and ode45u  |
 
+### opt . constrained nonlinear optimization 
+
+| module       | description |
+| ------------ | ------------ |
+
 ### rvs . random variables
+
+| module       | description |
+| ------------ | ------------ |
 
 ---------------------------------
