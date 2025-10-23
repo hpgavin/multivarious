@@ -21,7 +21,6 @@ Stay tuned!!!
 * **con2dis** . transform a continuous time LTI system to a discrete time LTI system 
 * **damp** . analyze eigenvalues of a dynamics matrix
 * **dis2con** . transform a discrete time LTI system to a continuous time LTI system 
-* **dliap** . solve the Liapunov equation for a discrete time LTI system
 * **dlsym** . simulate the response of a discrete time LTI system
 * **kalman_decomp** . transform an LTI state-space realization into Kalman canonical form
 * **lsym** . simulate the response of a continuous time LTI system
