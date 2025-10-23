@@ -19,8 +19,8 @@ To generate, transform, and plot multivariate discrete time sequences
 ### lti . linear time invariant systems
 
 To analyze and transform a system of linear time invariant system defined by 
-linear ordinary differential equations, _d**x**_/_dt_ = _*A x*_(_t_) + _*B u*_(_t_)
-and corresponding system outputs, _*y*_(_t_) = _*C x*_(_t_) + _*D u*_(_t_) 
+linear ordinary differential equations, _d**x**_/_dt_ = _**A x**_(_t_) + _**B u**_(_t_)
+and corresponding system outputs, _**y**_(_t_) = _**C x**_(_t_) + _**D u**_(_t_) 
 
 | module       | description |
 | ------------ | ------------ |
@@ -41,8 +41,8 @@ and corresponding system outputs, _*y*_(_t_) = _*C x*_(_t_) + _*D u*_(_t_)
 
 ### ode . ordinary differential equations
 
-To solve a system of ordinary differential equations _dx_/_dt_ = _f_(_t_,_x_,_u_,_c_) where 
-_t_ is time, _x_ is a state vector, _u_ is a time series of exogeneous inputs, and _c_ contains a set of system constants. 
+To solve a system of ordinary differential equations _d**x**_/_dt_ = _f_(_t_,_**x**_,_**u**_,_c_) where 
+_t_ is time, _**x**_ is a state vector, _**u**_ is a time series of exogeneous inputs, and _c_ contains a set of system constants. 
 
 | module       | description |
 | ------------ | ------------ |
@@ -54,10 +54,10 @@ _t_ is time, _x_ is a state vector, _u_ is a time series of exogeneous inputs, a
 ### opt . optimization 
 
 To minimize a function of multiple variables subject to a set of inequality constraints:
-minimize _f_(_v_) such that _g_(_v_) < 0,
-where _v_ is a vector of design variables,
-_f_(_v_) is a scalar-valued objective function, and
-_g_(_v_) is a vector of inequality constraints. 
+minimize _f_(_**v**_) such that _**g**_(_**v**_) < **0**,
+where _**v**_ is a vector of design variables,
+_f_(_**v**_) is a scalar-valued objective function, and
+_**g**_(_**v**_) is a vector of inequality constraints. 
 
 | module       | description |
 | ------------ | ------------ |
