@@ -1,6 +1,6 @@
 import numpy as np
 
-def abcddim(A, B, C, D):
+def abcd_dim(A, B, C, D):
     """
     Check for compatibility of the dimensions of the matrices defining
     the linear system (A, B, C, D).
@@ -33,38 +33,38 @@ def abcddim(A, B, C, D):
     
     # Ensure all inputs are 2D
     if A.ndim != 2:
-        raise ValueError('abcddim: A must be a 2D array')
+        raise ValueError('abcd_dim: A must be a 2D array')
     if B.ndim != 2:
-        raise ValueError('abcddim: B must be a 2D array')
+        raise ValueError('abcd_dim: B must be a 2D array')
     if C.ndim != 2:
-        raise ValueError('abcddim: C must be a 2D array')
+        raise ValueError('abcd_dim: C must be a 2D array')
     if D.ndim != 2:
-        raise ValueError('abcddim: D must be a 2D array')
+        raise ValueError('abcd_dim: D must be a 2D array')
     
     an, am = A.shape
     if an != am:
-        raise ValueError('abcddim: A is not square')
+        raise ValueError('abcd_dim: A is not square')
     
     bn, br = B.shape
     if bn != an:
         raise ValueError(
-            f'abcddim: A and B are not compatible, A:({am}x{an}) B:({bn}x{br})'
+            f'abcd_dim: A and B are not compatible, A:({am}x{an}) B:({bn}x{br})'
         )
     
     cm, cn = C.shape
     if cn != an:
         raise ValueError(
-            f'abcddim: A and C are not compatible, A:({am}x{an}) C:({cm}x{cn})'
+            f'abcd_dim: A and C are not compatible, A:({am}x{an}) C:({cm}x{cn})'
         )
     
     dm, dr = D.shape
     if cm != dm:
         raise ValueError(
-            f'abcddim: C and D are not compatible, C:({cm}x{cn}) D:({dm}x{dr})'
+            f'abcd_dim: C and D are not compatible, C:({cm}x{cn}) D:({dm}x{dr})'
         )
     if br != dr:
         raise ValueError(
-            f'abcddim: B and D are not compatible, B:({bn}x{br}) D:({dm}x{dr})'
+            f'abcd_dim: B and D are not compatible, B:({bn}x{br}) D:({dm}x{dr})'
         )
     
     n = an
@@ -74,4 +74,4 @@ def abcddim(A, B, C, D):
     return n, r, m
 
 
-# -------------------------------------------------------------- abcddim.py
+# -------------------------------------------------------------- abcd_dim.py
