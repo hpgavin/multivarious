@@ -1,8 +1,8 @@
 import numpy as np
 from scipy.linalg import eig
-from abcddim import abcddim
+from abcd_dim import abcd_dim
 
-def syszero(A, B, C, D, tol=1e-6):
+def sys_zero(A, B, C, D, tol=1e-6):
     """
     Invariant and decoupling zeros of a continuous-time LTI system.
     
@@ -38,7 +38,7 @@ def syszero(A, B, C, D, tol=1e-6):
     C = np.asarray(C)
     D = np.asarray(D)
     
-    nn, rr, mm = abcddim(A, B, C, D)
+    nn, rr, mm = abcd_dim(A, B, C, D)
     
     # Make the system square by padding
     re = mm - rr  # excess outputs
@@ -198,7 +198,7 @@ def unique_cols(X, tol):
     return X
 
 
-def syszero_scipy(A, B, C, D):
+def sys_zero_scipy(A, B, C, D):
     """
     Alternative implementation using scipy.signal.ss2zpk.
     
@@ -229,7 +229,7 @@ def syszero_scipy(A, B, C, D):
 
 # Example usage and test
 if __name__ == "__main__":
-    print("Testing syszero: System Zeros Computation\n")
+    print("Testing sys_zero: System Zeros Computation\n")
     print("="*60)
     
     # Example 1: Simple SISO system
@@ -254,7 +254,7 @@ if __name__ == "__main__":
     print(f"Poles: {poles}")
     print(f"Expected zero: -2\n")
     
-    zeros1 = syszero(A1, B1, C1, D1)
+    zeros1 = sys_zero(A1, B1, C1, D1)
     print(f"\nComputed zeros: {zeros1}\n")
     
     # Example 2: MIMO system
@@ -274,7 +274,7 @@ if __name__ == "__main__":
     poles2 = np.linalg.eigvals(A2)
     print(f"Poles: {poles2}\n")
     
-    zeros2 = syszero(A2, B2, C2, D2)
+    zeros2 = sys_zero(A2, B2, C2, D2)
     print(f"\nComputed zeros: {zeros2}\n")
     
     # Try scipy version for comparison (SISO only)
@@ -282,7 +282,7 @@ if __name__ == "__main__":
     print("Comparison with scipy.signal.ss2zpk (SISO only)")
     print("="*60 + "\n")
     
-    zeros_scipy = syszero_scipy(A1, B1, C1, D1)
+    zeros_scipy = sys_zero_scipy(A1, B1, C1, D1)
     if zeros_scipy is not None:
         print(f"SciPy zeros: {zeros_scipy}")
         print(f"Our zeros: {zeros1}")
