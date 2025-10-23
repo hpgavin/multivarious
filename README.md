@@ -53,9 +53,11 @@ _t_ is time, _x_ is a state vector, _u_ is a time series of exogeneous inputs, a
 
 ### opt . optimization 
 
-To minimize a function of several variables subject to a set of inequality constraints:
+To minimize a function of multiple variables subject to a set of inequality constraints:
 minimize _f_(_v_) such that _g_(_v_) < 0,
-where _v_ is a vector of design variables, _f_(_v_) is a scalar-valued objective function, and _g_(_x_) is a vector of inequality constraints. 
+where _v_ is a vector of design variables,
+_f_(_v_) is a scalar-valued objective function, and
+_g_(_v_) is a vector of inequality constraints. 
 
 | module       | description |
 | ------------ | ------------ |
