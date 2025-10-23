@@ -10,19 +10,20 @@ This repository is under development.  Updates to this README lag the addition o
 
 To generate, transform, and plot multivariate discrete time sequences 
 
-| module       | description |
-| ------------ | ------------ |
+| module | description |
+| ------ | ------------ |
 | **accel2displ** | acceleration, velocity and displacement without much bias or drift from acceleration |
 
 ## lti . linear time invariant systems
 
-To analyze and transform a linear time invariant system defined by 
+To analyze and transform linear time invariant systems
+defined by 
 linear differential equations, _d**x**_/_dt_ = _**A x**_(_t_) + _**B u**_(_t_)
 or linear difference equations,  **x**(_k_+1) = _**A x**_(_k_) + _**B u**_(_k_)
 and corresponding system outputs, _**y**_ = _**C x**_ + _**D u**_
 
-| module       | description |
-| ------------ | ----------- |
+| module | description |
+| ------ | ----------- |
 | **abcd_dim** | dimensions of an LTI realization |
 | **blk_hankel** | a block Hankel matrix from a matrix-valued time series |
 | **blk_toeplitz** | a block Toeplitz matrix from a matrix-valued time series |
@@ -40,11 +41,11 @@ and corresponding system outputs, _**y**_ = _**C x**_ + _**D u**_
 
 ## ode . ordinary differential equations
 
-To solve a system of ordinary differential equations _d**x**_/_dt_ = _f_(_t_,_**x**_,_**u**_,_c_) where 
+To solve systems of ordinary differential equations _d**x**_/_dt_ = _f_(_t_,_**x**_,_**u**_,_c_) where 
 _t_ is time, _**x**_ is a state vector, _**u**_ is a time series of exogeneous inputs, and _c_ contains a set of system constants. 
 
-| module       | description |
-| ------------ | ----------- |
+| module | description |
+| ------ | ----------- |
 | **ode4u** | the ODE solution via a fixed-time step, 4th order method  |
 | **ode45u** | the ODE solution via the adaptive time step, 4th-5th method by Cash and Karp  |
 | **odef.py** | a library of multivariable ordinary differential equations, for testing |
@@ -58,14 +59,14 @@ where _**v**_ is a vector of design variables,
 _f_(_**v**_) is a scalar-valued objective function, and
 _**g**_(_**v**_) is a vector of inequality constraints. 
 
-| module       | description |
-| ------------ | ----------- |
+| module | description |
+| ------ | ----------- |
 
 ## rvs . random variables
 
 To provide the probability density function, the cumulative distribution function, the inverse cumulative distribution function, and a random sample of various probabiity distributions.  
 Correlated random samples of certain multivariate random variables as well.  
 
-| module       | description |
-| ------------ | ----------- |
+| module | description |
+| ------ | ----------- |
 
