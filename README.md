@@ -1,7 +1,7 @@
 # multivarious
 
 A multitude of various .py modules for multivariable things like digital signal processing, linear time invariant systems, optimization, ordinary differential equations and random variables. 
-This repository is under development.  Explanations in this README lags the addition of code.  
+This repository is under development.  Updates to this README lag the addition of code.  
 
 Stay tuned!!! 
 
