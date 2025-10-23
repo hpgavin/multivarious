@@ -14,27 +14,27 @@ This repository is under development.  Updates to this README lag the addition o
 
 ### lti . linear time invariant systems
 
-* **abcd_dim** . check dimensions of an LTI realization
-* **blk_hankel** . form a block Hankel matrix from a matrix-valued time series
-* **blk_toeplitz** . form a block Toeplitz matrix from a matrix-valued time series
-* **con2dis** . transform a continuous time LTI system to a discrete time LTI system 
-* **damp** . analyze eigenvalues of a dynamics matrix
-* **dis2con** . transform a discrete time LTI system to a continuous time LTI system 
-* **dlsym** . simulate the response of a discrete time LTI system
-* **kalman_decomp** . transform an LTI state-space realization into Kalman canonical form
-* **lsym** . simulate the response of a continuous time LTI system
-* **mimo_bode** . compute the Bode spectrum of a MIMO LTI system
-* **mimo_tfe** . estimate the frequency response function matrix from MIMO data
-* **pz_plot** . pole-zero plot
+* **abcd_dim** . dimensions of an LTI realization
+* **blk_hankel** . a block Hankel matrix from a matrix-valued time series
+* **blk_toeplitz** . a block Toeplitz matrix from a matrix-valued time series
+* **con2dis** . a discrete time LTI system from a continuous time LTI system 
+* **damp** . natural frequencies and damping ratios of a dynamics matrix 
+* **dis2con** . a continuous time LTI system from a discrete time LTI system 
+* **dlsym** . the response of a discrete time LTI system
+* **kalman_decomp** . Kalman canonical form from an LTI state-space realization 
+* **lsym** . the response of a continuous time LTI system
+* **mimo_bode** . the Bode spectrum of a MIMO LTI system
+* **mimo_tfe** . the estimate of a frequency response matrix from MIMO data
+* **pz_plot** . a plot of the poles and zeros on the complex plane 
 * **sys_zero** . MIMO system, invariant, transmissions, and decoupling zeros from (A,B,C,D)
-* **wiener_filter** . Wiener Filter identification of Markov parameters and simulation 
+* **wiener_filter** . Markov parameters from time series: identification and simulation 
 
 ### ode . ordinary differential equations
 
-* **ode4u** . a fixed-time step, 4th order ODE solver
-* **ode45u** . the adaptive time step, 4th-5th solver ODE solver by Cash and Karp 
+* **ode4u** . the ODE solution via a fixed-time step, 4th order method 
+* **ode45u** . the ODE solution via the adaptive time step, 4th-5th method by Cash and Karp 
 * **odef.py** . a library of multivariable ordinary differential equations, for testing
-* **ode_test** . a library of tests for ordinary differential equations  
+* **ode_test** . a library of tests for ode4u and ode45u 
 
 ### rvs . random variables
 
