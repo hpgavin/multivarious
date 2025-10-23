@@ -4,7 +4,6 @@ A multitude of various .py modules for multivariable things like digital signal 
 
 This repository is under development.  Updates to this README lag the addition of code.  Stay tuned!!! 
 
----------------------------------
 
 
 ## dsp . digitial signal processing
@@ -69,4 +68,3 @@ Correlated random samples of certain multivariate random variables as well.
 | module       | description |
 | ------------ | ----------- |
 
----------------------------------
