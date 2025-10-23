@@ -26,7 +26,7 @@ This repository is under development.  Updates to this README lag the addition o
 * **mimo_bode** . compute the Bode spectrum of a MIMO LTI system
 * **mimo_tfe** . estimate the frequency response function matrix from MIMO data
 * **pz_plot** . pole-zero plot
-* **syszero** . MIMO system, invariant, transmissions, and decoupling zeros from (A,B,C,D)
+* **sys_zero** . MIMO system, invariant, transmissions, and decoupling zeros from (A,B,C,D)
 * **wiener_filter** . Wiener Filter identification of Markov parameters and simulation 
 
 ### ode . ordinary differential equations
