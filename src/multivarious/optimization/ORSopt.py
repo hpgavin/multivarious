@@ -9,9 +9,10 @@ from __future__ import annotations
 import time
 import numpy as np
 
-from .optim_options import optim_options
-from .box_constraint import box_constraint
-from .avg_cov_func import avg_cov_func
+from multivarious.utils.optim_options import optim_options
+from multivarious.utils.box_constraint import box_constraint
+from multivarious.utils.avg_cov_func import avg_cov_func
+
 
 
 def orsopt(func, x_init, x_lb=None, x_ub=None, options_in=None, consts=1.0):
@@ -241,3 +242,4 @@ def orsopt(func, x_init, x_lb=None, x_ub=None, options_in=None, consts=1.0):
         out_hist[-1, -1] = out_hist[-1, max(0, k-2)]
 
     return x_opt_out, f_opt, g_opt, out_hist
+

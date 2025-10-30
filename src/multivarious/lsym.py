@@ -1,6 +1,6 @@
 # lsym
 
-def lsym(A,B,C,D,u,t,x0, ntrp) 
+def lsym(A,B,C,D,u,t,x0, ntrp): 
 
 import numpy as np
 

@@ -1,7 +1,10 @@
 import numpy as np
-from multivarious.optimization.ORSopt import orsopt
 from multivarious.utils.optim_options import optim_options
+from multivarious.utils.box_constraint import box_constraint
+from multivarious.utils.avg_cov_func import avg_cov_func
 
+
+from multivarious.optimization.ORSopt import orsopt
 
 # toy constrained quadratic: f = ||x||^2, g1 = x0 + x1 - 0.5  (want g<0)
 def toy_func(x, consts):
