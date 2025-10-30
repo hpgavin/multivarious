@@ -17,7 +17,7 @@ from scipy.special import beta as beta_func  # scipy's beta function
 # OUTPUT:
 #   f = PDF evaluated at x
 # -------------------------------------------------------------------------
-def beta_pdf(x, a, b, q, p):
+def pdf(x, a, b, q, p):
     x = np.asarray(x, dtype=float)
     
     # Initialize PDF output as zeros
@@ -46,7 +46,7 @@ from scipy.special import betainc
 #   F(x) = I_{(x - a) / (b - a)} (q, p)
 # where I is the regularized incomplete beta function.
 # -------------------------------------------------------------------------
-def beta_cdf(x, abqp):
+def cdf(x, abqp):
     x = np.asarray(x, dtype=float)
 
     # Unpack the parameters
@@ -71,7 +71,7 @@ def beta_cdf(x, abqp):
 # CDF: beta_inv
 # -------------------------------------------------------------------------
 from scipy.special import betaincinv  # Inverse of the regularized incomplete beta function
-def beta_inv(F, a, b, q, p):
+def inv(F, a, b, q, p):
     """
     Compute the inverse CDF (quantile function) of the beta distribution,
     given parameters a (min), b (max), q and p (shape parameters).
@@ -109,7 +109,7 @@ def beta_inv(F, a, b, q, p):
 # -------------------------------------------------------------------------
 # CDF: beta_rnd
 # -------------------------------------------------------------------------
-def beta_rnd(a, b, q, p, M, N):
+def rnd(a, b, q, p, M, N):
     """
     Generate a sample matrix from a Beta distribution defined by:
     min = a, max = b, shape parameters q and p.

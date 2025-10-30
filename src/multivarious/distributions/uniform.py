@@ -7,7 +7,7 @@ from scipy.stats import uniform as scipy_uniform
 # -------------------------------
 # Uniform Probability Density Function (PDF)
 # -------------------------------
-def uniform_pdf(x, a, b):
+def pdf(x, a, b):
     """
     Compute the PDF of the uniform distribution on [a, b].
 
@@ -26,7 +26,7 @@ def uniform_pdf(x, a, b):
 # -------------------------------
 # Uniform Cumulative Distribution Function (CDF)
 # -------------------------------
-def uniform_cdf(x, a, b):
+def cdf(x, a, b):
     """
     Compute the CDF of the uniform distribution on [a, b].
 
@@ -45,7 +45,7 @@ def uniform_cdf(x, a, b):
 # -------------------------------
 # Uniform Inverse CDF (Quantile Function)
 # -------------------------------
-def uniform_inv(p, a, b):
+def inv(p, a, b):
     """
     Compute the inverse CDF (quantile function) for the uniform distribution on [a, b].
 
@@ -64,7 +64,7 @@ def uniform_inv(p, a, b):
 # -------------------------------
 # Uniform Random Variable Generator
 # -------------------------------
-def uniform_rnd(a, b, size=(1,), seed=None):
+def rnd(a, b, size=(1,), seed=None):
     """
     Generate random samples from a uniform distribution on [a, b].
 

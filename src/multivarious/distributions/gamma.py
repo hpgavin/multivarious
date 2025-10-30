@@ -15,7 +15,7 @@ from scipy.special import gamma as gamma_func  # gamma function from scipy
 # OUTPUT:
 #   f = PDF values evaluated at x
 # -------------------------------------------------------------------------
-def gamma_pdf(x, m, c):
+def pdf(x, m, c):
     x = np.asarray(x, dtype=float)
 
     k = 1.0 / c**2            # shape parameter
@@ -47,7 +47,7 @@ from scipy.special import gammainc  # Regularized lower incomplete gamma functio
 # OUTPUT:
 #   F = cumulative probability evaluated at x
 # -------------------------------------------------------------------------
-def gamma_cdf(x, params):
+def cdf(x, params):
     x = np.asarray(x, dtype=float)
 
     m, c = params
@@ -90,7 +90,7 @@ def gamma_cdf(x, params):
 #   x : array-like
 #       Quantiles such that Prob[X ≤ x] = P
 # -------------------------------------------------------------------------
-def gamma_inv(P, m, c):
+def inv(P, m, c):
     P = np.asarray(P, dtype=float)
 
     if np.any(c < 0.5):
@@ -107,8 +107,8 @@ def gamma_inv(P, m, c):
 
     for _ in range(MaxIter):
         # Evaluate function value and derivative
-        F_x = gamma_cdf(x_old, [m, c])
-        f_x = gamma_pdf(x_old, m, c)
+        F_x = cdf(x_old, [m, c])
+        f_x = pdf(x_old, m, c)
         h = (F_x - P) / f_x
 
         x_new = x_old - h
@@ -145,7 +145,7 @@ def gamma_inv(P, m, c):
 # OUTPUT:
 #   x = random samples from Gamma(m, c), shape (R, C)
 # -------------------------------------------------------------------------
-def gamma_rnd(m, c, R, C):
+def rnd(m, c, R, C):
     
     k = 1.0 / c**2          # shape parameter
     theta = c**2 * m        # scale parameter

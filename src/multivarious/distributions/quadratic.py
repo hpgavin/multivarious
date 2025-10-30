@@ -1,7 +1,7 @@
 import numpy as np
 from numpy.polynomial.polynomial import Polynomial
 
-def quadratic_pdf(x, a, b):
+def pdf(x, a, b):
     """
     PDF of the quadratic distribution defined on the interval (a, b)
     """
@@ -12,7 +12,7 @@ def quadratic_pdf(x, a, b):
     return f
 
 
-def quadratic_cdf(x, a, b):
+def cdf(x, a, b):
     """
     CDF of the quadratic distribution defined on the interval (a, b)
     """
@@ -24,7 +24,7 @@ def quadratic_cdf(x, a, b):
     return F
 
 
-def quadratic_inv(a, b, r, c):
+def inv(a, b, r, c):
     """
     Inverse CDF (quantile sampling) of the quadratic distribution via solving a cubic equation
     """
@@ -50,8 +50,8 @@ def quadratic_inv(a, b, r, c):
     return x
 
 
-def quadratic_rnd(a, b, r, c):
+def rnd(a, b, r, c):
     """
     Generates r × c samples from the quadratic distribution using inverse transform sampling.
     """
-    return quadratic_inv(a, b, r, c)
+    return inv(a, b, r, c)

@@ -22,7 +22,7 @@ from scipy.special import erf, erfinv
 #
 # Reference: https://en.wikipedia.org/wiki/Log-normal_distribution
 # -------------------------------------------------------------------------
-def lognormal_pdf(x, medX, covX):
+def pdf(x, medX, covX):
     x = np.asarray(x, dtype=float)
 
     # Store size (as in MATLAB)
@@ -60,7 +60,7 @@ def lognormal_pdf(x, medX, covX):
 # FORMULA:
 #   lognormal CDF F(x) = (1 + erf((log(x) - log(medX)) / sqrt(2V))) / 2
 # -------------------------------------------------------------------------
-def lognormal_cdf(x, params, return_ll=False):  # return_ll if True returns log-likelihood
+def cdf(x, params, return_ll=False):  # return_ll if True returns log-likelihood
     x = np.asarray(x, dtype=float)
     medX = params[0]
     covX = params[1]
@@ -75,7 +75,7 @@ def lognormal_cdf(x, params, return_ll=False):  # return_ll if True returns log-
     F = 0.5 * (1 + erf((np.log(x) - np.log(medX)) / np.sqrt(2 * VlnX)))
 
     if return_ll:
-        ll = np.sum(np.log(lognormal_pdf(x, medX, covX)))
+        ll = np.sum(np.log(pdf(x, medX, covX)))
         return F, ll
 
     return F
@@ -98,7 +98,7 @@ def lognormal_cdf(x, params, return_ll=False):  # return_ll if True returns log-
 #   If V_lnX = log(1 + covX²), then:
 #     x = exp( log(medX) + sqrt(2V_lnX) * erfinv(2p - 1) )
 # -------------------------------------------------------------------------
-def lognormal_inv(P, medX, covX):
+def inv(P, medX, covX):
     '''
     Instead of calculating P(X <= x) = p, this function finds x such that
     P(X <= x) = p
@@ -141,7 +141,7 @@ def lognormal_inv(P, medX, covX):
 #   V_lnX = log(1 + covX²)
 #   x = exp( log(medX) + z * sqrt(V) )
 # -------------------------------------------------------------------------
-def lognormal_rnd(medX, covX, r=1, c=1, z=None, seed=None):
+def rnd(medX, covX, r=1, c=1, z=None, seed=None):
     # Input checks
     if np.any(np.asarray(medX) <= 0):
         raise ValueError("medX must be greater than zero")
@@ -174,5 +174,5 @@ if __name__ == "__main__":
     medX = 1.0
     covX = 0.5
 
-    f = lognormal_pdf(x, medX, covX)
+    f = pdf(x, medX, covX)
     print("PDF at x = 1.5:", f)

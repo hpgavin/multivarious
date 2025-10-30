@@ -17,7 +17,7 @@ from scipy.stats import norm
 #   f : array-like
 #       Approximate PDF values at x
 # -------------------------------------------------------------------------
-def chi2_pdf(x, k):
+def pdf(x, k):
     x = np.asarray(x, dtype=float)
     
     # Wilson-Hilferty transformation parameters
@@ -45,7 +45,7 @@ def chi2_pdf(x, k):
 # OUTPUT:
 #   F = approximate cumulative probability evaluated at x
 # -------------------------------------------------------------------------
-def chi2_cdf(x, k):
+def cdf(x, k):
     x = np.asarray(x, dtype=float)
     if k <= 0:
         raise ValueError("Degrees of freedom k must be > 0")
@@ -76,7 +76,7 @@ def chi2_cdf(x, k):
 # OUTPUT:
 #   x = quantile values such that Prob[X ≤ x] = p
 # -------------------------------------------------------------------------
-def chi2_inv(p, k):
+def inv(p, k):
     p = np.asarray(p, dtype=float)
     if k <= 0:
         raise ValueError("Degrees of freedom k must be > 0")
@@ -108,7 +108,7 @@ def chi2_inv(p, k):
 # OUTPUT:
 #   X = random samples from Chi-squared(k), shape (R, C)
 # -------------------------------------------------------------------------
-def chi2_rnd(k, R, C):
+def rnd(k, R, C):
     if k <= 0:
         raise ValueError("Degrees of freedom k must be > 0")
 

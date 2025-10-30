@@ -13,7 +13,7 @@ from scipy.special import beta as beta_func, betaincinv, betainc
 # OUTPUT:
 #   f : PDF evaluated at t
 # -------------------------------------------------------------------------
-def t_pdf(t, k):
+def pdf(t, k):
     t = np.asarray(t, dtype=float)
 
     # Compute the PDF using the known closed-form
@@ -42,7 +42,7 @@ from scipy.stats import norm
 # Mirrors the MATLAB implementation using the Wilson-Hilferty approximation
 # and piecewise handling for degrees of freedom k = 1, 2, and k > 2.
 # -------------------------------------------------------------------------
-def t_cdf(t, k):
+def cdf(t, k):
     t = np.asarray(t, dtype=float)
 
     if k == 1:
@@ -78,7 +78,7 @@ def t_cdf(t, k):
 # Mirrors the MATLAB implementation using the Wilson-Hilferty approximation
 # -------------------------------------------------------------------------
 from scipy.special import betaincinv
-def t_inv(p, k):
+def inv(p, k):
     p = np.asarray(p)
     z = betaincinv(k / 2.0, 0.5, 2 * np.minimum(p, 1 - p))
     x = np.sign(p - 0.5) * np.sqrt(k * (1 / z - 1))

@@ -15,7 +15,7 @@ import numpy as np
 # FORMULA:
 #   f(x) = (1/muX) * exp(-x / muX), for x >= 0
 # -------------------------------------------------------------------------
-def exp_pdf(x, muX):
+def pdf(x, muX):
     x = np.asarray(x, dtype=float)
 
     # Prevent negative or zero values (log not defined)
@@ -40,7 +40,7 @@ def exp_pdf(x, muX):
 # FORMULA:
 #   F(x) = 1 - exp(-x / muX), for x >= 0
 # -------------------------------------------------------------------------
-def exp_cdf(x, muX):
+def cdf(x, muX):
     x = np.asarray(x, dtype=float)
 
     # Prevent issues with x <= 0
@@ -65,7 +65,7 @@ def exp_cdf(x, muX):
 # FORMULA:
 #   X = -muX * log(1 - P)
 # -------------------------------------------------------------------------
-def exp_inv(P, muX):
+def inv(P, muX):
     P = np.asarray(P, dtype=float)
 
     # Clip invalid P values just like in MATLAB
@@ -92,7 +92,7 @@ def exp_inv(P, muX):
 # METHOD:
 #   Use inverse CDF method: x = -muX * log(U), where U ~ Uniform(0,1)
 # -------------------------------------------------------------------------
-def exp_rnd(muX, r, c):
+def rnd(muX, r, c):
     """
     Generate random samples from an exponential distribution with mean muX.
 

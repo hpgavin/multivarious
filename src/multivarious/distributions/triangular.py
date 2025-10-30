@@ -1,6 +1,6 @@
 import numpy as np
 
-def triangular_pdf(x, a, b, c):
+def pdf(x, a, b, c):
     """
     Probability Density Function of the triangular distribution on [a, b] with mode c.
     Parameters are a, b, c where a < c < b
@@ -23,7 +23,7 @@ def triangular_pdf(x, a, b, c):
     return pdf
 
 
-def triangular_cdf(x, a, b, c):
+def cdf(x, a, b, c):
     """
     Cumulative Distribution Function of the triangular distribution on [a, b] with mode c.
     """
@@ -41,7 +41,7 @@ def triangular_cdf(x, a, b, c):
 
     return cdf
 
-def triangular_inv(p, a, b, c):
+def inv(p, a, b, c):
     """
     Inverse CDF (Quantile Function) of the triangular distribution on [a, b] with mode c.
     """
@@ -59,7 +59,7 @@ def triangular_inv(p, a, b, c):
 
     return x
 
-def triangular_rnd(a, b, c, size=(1,), seed=None):
+def rnd(a, b, c, size=(1,), seed=None):
     """
     Generate random samples from a triangular distribution.
 
@@ -77,4 +77,4 @@ def triangular_rnd(a, b, c, size=(1,), seed=None):
         rng = seed  # assume user passed Generator
 
     u = rng.random(size)
-    return triangular_inv(u, a, b, c)
+    return inv(u, a, b, c)

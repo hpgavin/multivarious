@@ -4,7 +4,7 @@ from scipy.stats import norm as scipy_norm
 # --------------------------------
 # Normal Probability Density Function (PDF)
 # --------------------------------
-def normal_pdf(x, mu, sigma):
+def pdf(x, mu, sigma):
     """
     Compute the PDF of the normal distribution N(mu, sigma^2).
 
@@ -22,7 +22,7 @@ def normal_pdf(x, mu, sigma):
 # --------------------------------
 # Normal Cumulative Distribution Function (CDF)
 # --------------------------------
-def normal_cdf(x, mu, sigma):
+def cdf(x, mu, sigma):
     """
     Compute the CDF of the normal distribution N(mu, sigma^2).
 
@@ -40,7 +40,7 @@ def normal_cdf(x, mu, sigma):
 # --------------------------------
 # Normal Inverse CDF (Quantile Function)
 # --------------------------------
-def normal_inv(p, mu, sigma):
+def inv(p, mu, sigma):
     """
     Compute the inverse CDF (quantile function) for N(mu, sigma^2).
 
@@ -58,7 +58,7 @@ def normal_inv(p, mu, sigma):
 # --------------------------------
 # Normal Random Variable Generator
 # --------------------------------
-def normal_rnd(mu, sigma, size=(1,), seed=None):
+def rnd(mu, sigma, size=(1,), seed=None):
     """
     Generate random samples from a normal distribution N(mu, sigma^2).
 

@@ -2,7 +2,7 @@
 
 import numpy as np
 
-def gev_pdf(x, param):
+def pdf(x, param):
     """
     Compute the PDF of the generalized extreme value distribution.
     Parameters:
@@ -19,7 +19,7 @@ def gev_pdf(x, param):
     return np.real(f)
 
 
-def gev_cdf(x, param):
+def cdf(x, param):
     """
     Compute the CDF of the generalized extreme value distribution.
     Parameters:
@@ -36,7 +36,7 @@ def gev_cdf(x, param):
     return np.real(F)
 
 
-def gev_inv(p, param):
+def inv(p, param):
     """
     Compute the inverse CDF (quantile function) of the GEV distribution.
     Parameters:
@@ -50,7 +50,7 @@ def gev_inv(p, param):
     return x
 
 
-def gev_rnd(param, r, c=None):
+def rnd(param, r, c=None):
     """
     Generate random samples from the GEV distribution.
     Parameters:

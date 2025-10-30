@@ -16,7 +16,7 @@ import numpy as np
 # FORMULA:
 #   f(x) = (1 / (sqrt(2) * sigmaX)) * exp(-sqrt(2) * |x - muX| / sigmaX)
 # -------------------------------------------------------------------------
-def laplace_pdf(x, muX, sigmaX):
+def pdf(x, muX, sigmaX):
     x = np.asarray(x, dtype=float)
     sr2 = np.sqrt(2)
 
@@ -41,7 +41,7 @@ def laplace_pdf(x, muX, sigmaX):
 #   For x <= mu: F(x) = 0.5 * exp( (x - mu) / (sigma / sqrt(2)) )
 #   For x >  mu: F(x) = 1 - 0.5 * exp( -(x - mu) / (sigma / sqrt(2)) )
 # -------------------------------------------------------------------------
-def laplace_cdf(x, params):
+def cdf(x, params):
     x = np.asarray(x, dtype=float)
     muX = params[0]
     sigmaX = params[1]
@@ -79,7 +79,7 @@ import numpy as np
 #
 # Reference: https://en.wikipedia.org/wiki/Laplace_distribution
 # -------------------------------------------------------------------------
-def laplace_inv(P, muX, sigmaX):
+def inv(P, muX, sigmaX):
     P = np.asarray(P, dtype=float)
     sr2 = np.sqrt(2)
 
@@ -114,7 +114,7 @@ def laplace_inv(P, muX, sigmaX):
 # -------------------------------------------------------------------------
 import numpy as np
 
-def laplace_rnd(mX, sX, r, c, z=None):
+def rnd(mX, sX, r, c, z=None):
     """
     Generate Laplace-distributed random samples.
 

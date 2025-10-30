@@ -13,7 +13,7 @@ import numpy as np
 # OUTPUT:
 #   f    = PDF values evaluated at X
 # -------------------------------------------------------------------------
-def rayleigh_pdf(X, muX):
+def pdf(X, muX):
     X = np.asarray(X, dtype=float)
 
     # Convert mean to mode: modeX = muX * sqrt(2 / pi)
@@ -41,7 +41,7 @@ def rayleigh_pdf(X, muX):
 # OUTPUT:
 #   F    = CDF values at each point in X
 # -------------------------------------------------------------------------
-def rayleigh_cdf(X, muX):
+def cdf(X, muX):
     X = np.asarray(X, dtype=float)
     
     # Replace X <= 0 with small positive number (to match MATLAB behavior)
@@ -71,7 +71,7 @@ import numpy as np
 # OUTPUT:
 #   x     = inverse CDF values (same shape as P)
 # -------------------------------------------------------------------------
-def rayleigh_inv(P, muX):
+def inv(P, muX):
     P = np.asarray(P, dtype=float)
 
     # Clamp values: ensure P stays in [0, 1] just like MATLAB does
@@ -87,7 +87,7 @@ def rayleigh_inv(P, muX):
     return x
 
 
-def rayleigh_rnd(muX, r, c=None):
+def rnd(muX, r, c=None):
     """
     Generate samples from the Rayleigh distribution using either:
     (1) muX, and a custom matrix of uniform samples (r = matrix, c=None)

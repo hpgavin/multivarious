@@ -13,7 +13,7 @@ def _mu_cv_to_loc_scale(mu, cv):
     return loc, scale
 
 
-def extI_pdf(x, mu, cv):
+def pdf(x, mu, cv):
     """
     PDF of Extreme Value Type I (Gumbel) distribution, param'd by (mu, cv).
     """
@@ -23,7 +23,7 @@ def extI_pdf(x, mu, cv):
     return exp_z * np.exp(-exp_z) / scale
 
 
-def extI_cdf(x, params):
+def cdf(x, params):
     """
     CDF of Extreme Value Type I (Gumbel) distribution, param'd by [mu, cv].
     """
@@ -33,7 +33,7 @@ def extI_cdf(x, params):
     return np.exp(-np.exp(-z))
 
 
-def extI_inv(p, mu, sigma):
+def inv(p, mu, sigma):
     """
     Inverse CDF (quantile) of Extreme Value Type I (Gumbel) distribution.
     """
@@ -42,7 +42,7 @@ def extI_inv(p, mu, sigma):
     return loc - scale * np.log(-np.log(p))
 
 
-def extI_rnd(muX, cvX, r, c=None):
+def rnd(muX, cvX, r, c=None):
     """
     Generate samples from the Extreme Value Type I distribution.
 

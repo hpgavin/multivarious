@@ -16,7 +16,7 @@ from math import exp, factorial
 # FORMULA:
 #   P(N = n) = (L^n / n!) * exp(-L)
 # -------------------------------------------------------------------------
-def poisson_pmf(n, L):
+def pmf(n, L):
     '''
     The Poisson distribution models the number of times an event occurs in a 
     fixed interval of time or space.
@@ -47,7 +47,7 @@ def poisson_pmf(n, L):
 # FORMULA:
 #   F(n; L) = sum_{k=0}^{n} (L^k / k!) * exp(-L)
 # -------------------------------------------------------------------------
-def poisson_cdf(n, L):
+def cdf(n, L):
 
     n = np.round(n).astype(int)            # Ensure n is integer-valued
     n = np.atleast_1d(n)                   # Support scalar and array inputs
@@ -77,7 +77,7 @@ def poisson_cdf(n, L):
 #   Uses the waiting time method (multiplicative) similar to Knuth's algorithm.
 #   See: https://en.wikipedia.org/wiki/Poisson_distribution#Generating_Poisson-distributed_random_variables
 # -------------------------------------------------------------------------
-def poisson_rnd(T, r, c):
+def rnd(T, r, c):
 
     # Infer r, c if not explicitly passed
     if r is None or c is None:
