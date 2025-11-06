@@ -127,7 +127,7 @@ def test_L1_comparison():
         plt.grid(True, alpha=0.3)
     
     plt.tight_layout()
-    plt.savefig('/mnt/user-data/outputs/L1_alpha_comparison.png', dpi=150)
+    plt.savefig('L1_alpha_comparison.png', dpi=150)
     print("\nPlot saved: L1_alpha_comparison.png")
 
 
@@ -175,7 +175,7 @@ def test_L1_weighting():
         plt.grid(True, alpha=0.3)
     
     plt.tight_layout()
-    plt.savefig('/mnt/user-data/outputs/L1_weighting_comparison.png', dpi=150)
+    plt.savefig('L1_weighting_comparison.png', dpi=150)
     print("\nPlot saved: L1_weighting_comparison.png")
 
 

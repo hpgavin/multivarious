@@ -200,13 +200,13 @@ if __name__ == '__main__':
     
     # Save figures
     plt.figure(10)
-    plt.savefig('/mnt/user-data/outputs/L1_coefficients.png', dpi=150, bbox_inches='tight')
+    plt.savefig('L1_coefficients.png', dpi=150, bbox_inches='tight')
     
     plt.figure(11)
-    plt.savefig('/mnt/user-data/outputs/L1_fit_comparison.png', dpi=150, bbox_inches='tight')
+    plt.savefig('L1_fit_comparison.png', dpi=150, bbox_inches='tight')
     
     plt.figure(12)
-    plt.savefig('/mnt/user-data/outputs/L1_convergence.png', dpi=150, bbox_inches='tight')
+    plt.savefig('L1_convergence.png', dpi=150, bbox_inches='tight')
     
     print("\nPlots saved:")
     print("  - L1_coefficients.png")

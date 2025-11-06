@@ -112,27 +112,27 @@ def test_poly_fit():
         print("Saving figures...")
         
         plt.figure(figNo_A)
-        plt.savefig('/mnt/user-data/outputs/poly_fit_testA_fit.png', 
+        plt.savefig('poly_fit_testA_fit.png', 
                     dpi=150, bbox_inches='tight')
         
         plt.figure(figNo_A + 1)
-        plt.savefig('/mnt/user-data/outputs/poly_fit_testA_hist.png', 
+        plt.savefig('poly_fit_testA_hist.png', 
                     dpi=150, bbox_inches='tight')
         
         plt.figure(figNo_A + 2)
-        plt.savefig('/mnt/user-data/outputs/poly_fit_testA_cdf.png', 
+        plt.savefig('poly_fit_testA_cdf.png', 
                     dpi=150, bbox_inches='tight')
         
         plt.figure(figNo_B)
-        plt.savefig('/mnt/user-data/outputs/poly_fit_testB_fit.png', 
+        plt.savefig('poly_fit_testB_fit.png', 
                     dpi=150, bbox_inches='tight')
         
         plt.figure(figNo_B + 1)
-        plt.savefig('/mnt/user-data/outputs/poly_fit_testB_hist.png', 
+        plt.savefig('poly_fit_testB_hist.png', 
                     dpi=150, bbox_inches='tight')
         
         plt.figure(figNo_B + 2)
-        plt.savefig('/mnt/user-data/outputs/poly_fit_testB_cdf.png', 
+        plt.savefig('poly_fit_testB_cdf.png', 
                     dpi=150, bbox_inches='tight')
         
         print("Figures saved:")
@@ -216,7 +216,7 @@ def test_fractional_powers():
     print(f"  Should be close to [2.0, 1.5, -0.8, 0.3]")
     
     plt.figure(30)
-    plt.savefig('/mnt/user-data/outputs/poly_fit_fractional.png', 
+    plt.savefig('poly_fit_fractional.png', 
                 dpi=150, bbox_inches='tight')
     print("  Figure saved: poly_fit_fractional.png")
 
@@ -261,11 +261,11 @@ def test_weighted_fit():
     print("\n✓ Weighted fit gives more accurate estimates when errors vary!")
     
     plt.figure(40)
-    plt.savefig('/mnt/user-data/outputs/poly_fit_unweighted.png', 
+    plt.savefig('poly_fit_unweighted.png', 
                 dpi=150, bbox_inches='tight')
     
     plt.figure(50)
-    plt.savefig('/mnt/user-data/outputs/poly_fit_weighted.png', 
+    plt.savefig('poly_fit_weighted.png', 
                 dpi=150, bbox_inches='tight')
 
 

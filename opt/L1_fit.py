@@ -298,7 +298,7 @@ if __name__ == '__main__':
     plt.grid(True, alpha=0.3)
     
     plt.tight_layout()
-    plt.savefig('/mnt/user-data/outputs/L1_fit_test_python.png', dpi=150)
+    plt.savefig('L1_fit_test_python.png', dpi=150)
     print("\nPlot saved to: L1_fit_test_python.png")
     
     print("\n" + "=" * 70)
