@@ -1,5 +1,5 @@
-function [c,x_fit,y_fit,Sc,Sy_fit,Rc,R2,Vr,AIC,condNo] = mypolyfit(x,y,p,figNo,Sy,rof,b)
-% [c,x_fit,y_fit,Sc,Sy_fit,Rc,R2,Vr,AIC,condNo] = mypolyfit(x,y,p,figNo,Sy,rof,b)
+function [c,x_fit,y_fit,Sc,Sy_fit,Rc,R2,Vr,AIC,condNo] = poly_fit(x,y,p,figNo,Sy,rof,b)
+% [c,x_fit,y_fit,Sc,Sy_fit,Rc,R2,Vr,AIC,condNo] = poly_fit(x,y,p,figNo,Sy,rof,b)
 %
 % fit a power-polynomial, y_fit(x;a) to data pairs (x,y) where
 %
@@ -185,4 +185,4 @@ if figNo % Plots ---------------------------------------
 
 end % ------------------------------------------------------- Plots
 
-% ------------------------------------------------------------------ mypolyfit
+% ------------------------------------------------------------------ poly_fit

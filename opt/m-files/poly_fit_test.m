@@ -1,5 +1,5 @@
-% mypolyfit_test.m
-% test the mypolyfit function for least squares data fitting and error analysis
+% poly_fit_test.m
+% test the poly_fit function for least squares data fitting and error analysis
 
 % ----------------------------------------------------------
 % first generate some (x,y) data with measrument errors in y
@@ -23,34 +23,34 @@ p = [ 0 1 2 3 4 ];              % powers involved in the fit
 
 figNoA = 10;                    % figure number for plotting
 
-[c, x_fit, y_fit, Sc, Sy_fit, Rc, R2, Vr, AIC, condNo] = mypolyfit(x,y,p,figNoA);
+[c, x_fit, y_fit, Sc, Sy_fit, Rc, R2, Vr, AIC, condNo] = poly_fit(x,y,p,figNoA);
 
 p = [ 0   2 3 4 ];              % powers involved in the fit
 
 figNoB = 20;                    % figure number for plotting
 
-[c, x_fit, y_fit, Sc, Sy_fit, Rc, R2, Vr, AIC, condNo] = mypolyfit(x,y,p,figNoB);
+[c, x_fit, y_fit, Sc, Sy_fit, Rc, R2, Vr, AIC, condNo] = poly_fit(x,y,p,figNoB);
 
-% ----------------------------------------------------------- mypolyfit_test.m 
+% ----------------------------------------------------------- poly_fit_test.m 
 
 pdfPlots = 1;
 if pdfPlots
 figure(figNoA)
   subplot(121)
   legend('location', 'south')
-  print('/home/hpgavin/Teaching/SystemID/CourseNotes/Figures/mypolyfit-1a.pdf','-dpdfcrop')
+  print('/home/hpgavin/Teaching/SystemID/CourseNotes/Figures/poly_fit-1a.pdf','-dpdfcrop')
 figure(figNoA+1)
-  print('/home/hpgavin/Teaching/SystemID/CourseNotes/Figures/mypolyfit-2a.pdf','-dpdfcrop')
+  print('/home/hpgavin/Teaching/SystemID/CourseNotes/Figures/poly_fit-2a.pdf','-dpdfcrop')
 figure(figNoA+2)
-  print('/home/hpgavin/Teaching/SystemID/CourseNotes/Figures/mypolyfit-3a.pdf','-dpdfcrop')
+  print('/home/hpgavin/Teaching/SystemID/CourseNotes/Figures/poly_fit-3a.pdf','-dpdfcrop')
 
 
 figure(figNoB)
   subplot(121)
   legend('location', 'south')
-  print('/home/hpgavin/Teaching/SystemID/CourseNotes/Figures/mypolyfit-1b.pdf','-dpdfcrop')
+  print('/home/hpgavin/Teaching/SystemID/CourseNotes/Figures/poly_fit-1b.pdf','-dpdfcrop')
 figure(figNoB+1)
-  print('/home/hpgavin/Teaching/SystemID/CourseNotes/Figures/mypolyfit-2b.pdf','-dpdfcrop')
+  print('/home/hpgavin/Teaching/SystemID/CourseNotes/Figures/poly_fit-2b.pdf','-dpdfcrop')
 figure(figNoB+2)
-  print('/home/hpgavin/Teaching/SystemID/CourseNotes/Figures/mypolyfit-3b.pdf','-dpdfcrop')
+  print('/home/hpgavin/Teaching/SystemID/CourseNotes/Figures/poly_fit-3b.pdf','-dpdfcrop')
 end % pdfPlots
