@@ -73,12 +73,29 @@ _**g**_(_**v**_) is a vector of inequality constraints.
 ## rvs . random variables
 
 To provide the probability density function, the cumulative distribution function, the inverse cumulative distribution function, and a random sample of various probabiity distributions.  
-Correlated random samples of certain multivariate random variables as well.  
+Correlated random samples of multivariate lognormal and beta random variables as well.  
+methods: distribution.pdf(), distribution.cdf(), distribution.inv(), distribution.rnd()
 
 | module | description |
 | ------ | ----------- |
-| **plot_CDF_ci** | plot the cumulative distribution function from data and its confidence interval |
-
+| **GEV**              | [Generalized Extreme Value](http://en.wikipedia.org/wiki/Generalized_extreme_value_distribution) |
+| **beta**             | [beta](http://en.wikipedia.org/wiki/Beta_distribution) |
+| **chi2**             | [chi-squared](http://en.wikipedia.org/wiki/Chi-squared_distribution) |
+| **exponential**      | [exponential](http://en.wikipedia.org/wiki/Exponential_distribution) |
+| **extreme_value_I**  | [type I extreme value]( ) |
+| **extreme_value_II** | [type II extreme value]( ) |
+| **gamma**            | [gamma](http://en.wikipedia.org/wiki/Gamma_distribution) |
+| **lognormal**        | [lognormal](http://en.wikipedia.org/wiki/Log-normal_distribution) |
+| **laplace**          | [Laplace](http://en.wikipedia.org/wiki/Laplace_distribution) |
+| **normal**           | [Gaussian](http://en.wikipedia.org/wiki/Normal_distribution) (normal) |
+| **plot_CDF_ci**      | plot the cumulative distribution function from data and its confidence interval |
+| **poisson**          | [Poisson](http://en.wikipedia.org/wiki/Poisson_distribution) |
+| **quadratic**        | [quadratic](http://en.wikipedia.org/wiki/Beta_distribution) (special case of the beta distribution) |
+| **rayleigh**         | [Rayleigh](http://en.wikipedia.org/wiki/Rayleigh_distribution) |
+| **students_t**       | [Student's t](https://en.wikipedia.org/wiki/Student%27s_t-distribution) |
+| **triangular**       | [triangular](http://en.wikipedia.org/wiki/Triangular_distribution) |
+| **uniform**          | [uniform](http://en.wikipedia.org/wiki/Uniform_distribution_(continuous)) |
+ 
 ## utl . utility functions 
 
 | module | description |

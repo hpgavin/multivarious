@@ -1,23 +1,23 @@
 import numpy as np
-
 from scipy.stats import norm
-# -------------------------------------------------------------------------
-# PDF: chi2_pdf
-#
-# Computes the PDF of the Chi-squared distribution using the 
-# Wilson-Hilferty transformation.
-#
-# INPUTS:
-#   x : array-like
-#       Points to evaluate the PDF
-#   k : float
-#       Degrees of freedom (must be positive)
-#
-# OUTPUT:
-#   f : array-like
-#       Approximate PDF values at x
-# -------------------------------------------------------------------------
-def chi2_pdf(x, k):
+
+def pdf(x, k):
+    '''
+    chi2.pdf
+
+    Computes the PDF of the Chi-squared distribution using the 
+    Wilson-Hilferty transformation.
+
+    INPUTS:
+      x : array-like
+          Points to evaluate the PDF
+      k : float
+          Degrees of freedom (must be positive)
+
+    OUTPUT:
+      f : array-like
+          Approximate PDF values at x
+    '''
     x = np.asarray(x, dtype=float)
     
     # Wilson-Hilferty transformation parameters
@@ -32,20 +32,20 @@ def chi2_pdf(x, k):
 
     return f
 
-# -------------------------------------------------------------------------
-# CDF: chi2_cdf
-#
-# Approximates the CDF of the chi-squared distribution using the
-# Wilson-Hilferty transformation, which maps chi2(k) into a normal distribution.
-#
-# INPUTS:
-#   x = evaluation points
-#   k = degrees of freedom (must be > 0)
-#
-# OUTPUT:
-#   F = approximate cumulative probability evaluated at x
-# -------------------------------------------------------------------------
-def chi2_cdf(x, k):
+def cdf(x, k):
+    '''
+    chi2.cdf
+
+    Approximates the CDF of the chi-squared distribution using the
+    Wilson-Hilferty transformation, which maps chi2(k) into a normal distribution.
+
+    INPUTS:
+      x = evaluation points
+      k = degrees of freedom (must be > 0)
+ 
+    OUTPUT:
+      F = approximate cumulative probability evaluated at x
+    '''
     x = np.asarray(x, dtype=float)
     if k <= 0:
         raise ValueError("Degrees of freedom k must be > 0")
@@ -63,20 +63,20 @@ def chi2_cdf(x, k):
     return F
 
 
-# -------------------------------------------------------------------------
-# INV: chi2_inv
-#
-# Approximates the inverse CDF (quantile function) of the chi-squared distribution
-# using the Wilson-Hilferty transformation.
-#
-# INPUTS:
-#   p = non-exceedance probabilities (values between 0 and 1)
-#   k = degrees of freedom (must be > 0)
-#
-# OUTPUT:
-#   x = quantile values such that Prob[X ≤ x] = p
-# -------------------------------------------------------------------------
-def chi2_inv(p, k):
+def inv(p, k):
+    '''
+    chi2.inv
+ 
+    Approximates the inverse CDF (quantile function) of the chi-squared distribution
+    using the Wilson-Hilferty transformation.
+ 
+    INPUTS:
+      p = non-exceedance probabilities (values between 0 and 1)
+      k = degrees of freedom (must be > 0)
+ 
+    OUTPUT:
+      x = quantile values such that Prob[X ≤ x] = p
+    '''
     p = np.asarray(p, dtype=float)
     if k <= 0:
         raise ValueError("Degrees of freedom k must be > 0")
@@ -94,21 +94,21 @@ def chi2_inv(p, k):
     return x
 
 
-# -------------------------------------------------------------------------
-# RND: chi2_rnd
-#
-# Generates random samples from a Chi-squared distribution using the
-# Wilson-Hilferty transformation (approximation).
-#
-# INPUTS:
-#   k = degrees of freedom (must be > 0)
-#   R = number of rows in output
-#   C = number of columns in output
-#
-# OUTPUT:
-#   X = random samples from Chi-squared(k), shape (R, C)
-# -------------------------------------------------------------------------
-def chi2_rnd(k, R, C):
+def rnd(k, R, C):
+    '''
+    chi2.rnd
+
+    Generates random samples from a Chi-squared distribution using the
+    Wilson-Hilferty transformation (approximation).
+
+    INPUTS:
+      k = degrees of freedom (must be > 0)
+      R = number of rows in output
+      C = number of columns in output
+ 
+    OUTPUT:
+      X = random samples from Chi-squared(k), shape (R, C)
+    '''
     if k <= 0:
         raise ValueError("Degrees of freedom k must be > 0")
 

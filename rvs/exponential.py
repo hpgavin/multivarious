@@ -1,21 +1,22 @@
+# exponential distribution
 import numpy as np
 
-# -------------------------------------------------------------------------
-# PDF: exp_pdf
-#
-# Computes the Probability Density Function (PDF) of the exponential distribution.
-#
-# INPUTS:
-#   x    = evaluation points (must be x >= 0)
-#   muX  = mean of the exponential distribution
-#
-# OUTPUT:
-#   f    = PDF evaluated at x
-#
-# FORMULA:
-#   f(x) = (1/muX) * exp(-x / muX), for x >= 0
-# -------------------------------------------------------------------------
-def exp_pdf(x, muX):
+def pdf(x, muX):
+    '''
+    exponential.pdf
+
+    Computes the Probability Density Function (PDF) of the exponential distribution.
+
+    INPUTS:
+      x    = evaluation points (must be x >= 0)
+      muX  = mean of the exponential distribution
+ 
+    OUTPUT:
+      f    = PDF evaluated at x
+ 
+    FORMULA:
+      f(x) = (1/muX) * exp(-x / muX), for x >= 0
+    '''
     x = np.asarray(x, dtype=float)
 
     # Prevent negative or zero values (log not defined)
@@ -25,22 +26,22 @@ def exp_pdf(x, muX):
     return f
 
 
-# -------------------------------------------------------------------------
-# CDF: exp_cdf
-#
-# Computes the Cumulative Distribution Function (CDF) of the exponential.
-#
-# INPUTS:
-#   x    = values at which to evaluate the CDF (x >= 0)
-#   muX  = mean of the exponential distribution
-#
-# OUTPUT:
-#   F    = CDF values at each x
-#
-# FORMULA:
-#   F(x) = 1 - exp(-x / muX), for x >= 0
-# -------------------------------------------------------------------------
-def exp_cdf(x, muX):
+def cdf(x, muX):
+    '''
+    exponential.cdf
+
+    Computes the Cumulative Distribution Function (CDF) of the exponential.
+
+    INPUTS:
+      x    = values at which to evaluate the CDF (x >= 0)
+      muX  = mean of the exponential distribution
+ 
+    OUTPUT:
+      F    = CDF values at each x
+ 
+    FORMULA:
+      F(x) = 1 - exp(-x / muX), for x >= 0
+    '''
     x = np.asarray(x, dtype=float)
 
     # Prevent issues with x <= 0
@@ -50,22 +51,22 @@ def exp_cdf(x, muX):
     return F
 
 
-# -------------------------------------------------------------------------
-# INV: exp_inv
-#
-# Computes the inverse CDF (quantile function) of the exponential distribution.
-#
-# INPUTS:
-#   P    = probability values (0 <= P <= 1)
-#   muX  = mean of the exponential distribution
-#
-# OUTPUT:
-#   X    = quantiles corresponding to P
-#
-# FORMULA:
-#   X = -muX * log(1 - P)
-# -------------------------------------------------------------------------
-def exp_inv(P, muX):
+def inv(P, muX):
+    '''
+    exponential.inv
+
+    Computes the inverse CDF (quantile function) of the exponential distribution.
+
+    INPUTS:
+      P    = probability values (0 <= P <= 1)
+      muX  = mean of the exponential distribution
+
+    OUTPUT:
+      X    = quantiles corresponding to P
+
+    FORMULA:
+      X = -muX * log(1 - P)
+    '''
     P = np.asarray(P, dtype=float)
 
     # Clip invalid P values just like in MATLAB
@@ -76,7 +77,7 @@ def exp_inv(P, muX):
     return X
 
 
-# -------------------------------------------------------------------------
+    '''
 # RND: exp_rnd
 #
 # Generate random samples from an exponential distribution with mean muX.
@@ -91,17 +92,19 @@ def exp_inv(P, muX):
 #
 # METHOD:
 #   Use inverse CDF method: x = -muX * log(U), where U ~ Uniform(0,1)
-# -------------------------------------------------------------------------
-def exp_rnd(muX, r, c):
+    '''
+
+
+def rnd(muX, r, c):
     """
     Generate random samples from an exponential distribution with mean muX.
 
     Parameters:
-    - muX : mean of the exponential distribution
-    - r, c : dimensions of the output matrix (rows × columns)
+        muX : mean of the exponential distribution
+        r, c : dimensions of the output matrix (rows × columns)
 
     Returns:
-    - x : (r × c) array of random values drawn from Exp(muX)
+        x : (r × c) array of random values drawn from Exp(muX)
     """
 
     # Step 1: Generate uniform random numbers in [0, 1] — shape (r × c)

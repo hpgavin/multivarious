@@ -2,15 +2,15 @@
 
 import numpy as np
 
-def gev_pdf(x, param):
-    """
+def pdf(x, param):
+    '''
     Compute the PDF of the generalized extreme value distribution.
     Parameters:
         x     : scalar or array-like
         param : list or array-like of [m, s, k]
     Returns:
         f     : same shape as x, PDF values
-    """
+    '''
     m, s, k = param
     z = (x - m) / s
     arg = 1 + k * z
@@ -19,15 +19,15 @@ def gev_pdf(x, param):
     return np.real(f)
 
 
-def gev_cdf(x, param):
-    """
+def cdf(x, param):
+    '''
     Compute the CDF of the generalized extreme value distribution.
     Parameters:
         x     : scalar or array-like
         param : list or array-like of [m, s, k]
     Returns:
         F     : same shape as x, CDF values
-    """
+    '''
     m, s, k = param
     z = (x - m) / s
     arg = 1 + k * z
@@ -36,22 +36,22 @@ def gev_cdf(x, param):
     return np.real(F)
 
 
-def gev_inv(p, param):
-    """
+def inv(p, param):
+    '''
     Compute the inverse CDF (quantile function) of the GEV distribution.
     Parameters:
         p     : scalar or array-like in (0,1)
         param : list or array-like of [m, s, k]
     Returns:
         x     : same shape as p, quantiles
-    """
+    '''
     m, s, k = param
     x = m + (s / k) * ((-np.log(p))**(-k) - 1)
     return x
 
 
-def gev_rnd(param, r, c=None):
-    """
+def rnd(param, r, c=None):
+    '''
     Generate random samples from the GEV distribution.
     Parameters:
         param : [m, s, k]
@@ -59,7 +59,7 @@ def gev_rnd(param, r, c=None):
         c     : cols (optional)
     Returns:
         x     : random matrix (r x c) or shape of r if r is array-like
-    """
+    '''
     m, s, k = param
 
     if c is None:

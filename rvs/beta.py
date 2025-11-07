@@ -1,23 +1,26 @@
 import numpy as np
 from scipy.special import beta as beta_func  # scipy's beta function
+from scipy.special import betainc
+from scipy.special import betaincinv  # Inverse of the regularized incomplete beta function
 
-# -------------------------------------------------------------------------
-# PDF: beta_pdf
-#
-# Computes the Probability Density Function (PDF) of the Beta distribution
-# with lower bound a, upper bound b, and shape parameters q and p.
-#
-# INPUTS:
-#   x = evaluation points
-#   a = minimum of the distribution
-#   b = maximum of the distribution (must be > a)
-#   q = first shape parameter
-#   p = second shape parameter
-#
-# OUTPUT:
-#   f = PDF evaluated at x
-# -------------------------------------------------------------------------
-def beta_pdf(x, a, b, q, p):
+
+def pdf(x, a, b, q, p):
+    '''
+    beta.pdf
+
+    Computes the Probability Density Function (PDF) of the Beta distribution
+    with lower bound a, upper bound b, and shape parameters q and p.
+
+    INPUTS:
+      x = evaluation points
+      a   = minimum of the distribution
+      b = maximum of the distribution (must be > a)
+      q = first shape parameter
+      p = second shape parameter
+ 
+    OUTPUT:
+      f = PDF evaluated at x
+    '''
     x = np.asarray(x, dtype=float)
     
     # Initialize PDF output as zeros
@@ -34,19 +37,17 @@ def beta_pdf(x, a, b, q, p):
     return f
 
 
+def cdf(x, abqp):
+    '''
+    beta.cdf
 
-from scipy.special import betainc
-# -------------------------------------------------------------------------
-# CDF: beta_cdf
-#
-# Computes the Cumulative Distribution Function (CDF) of the beta distribution
-# with parameters passed as a single vector: abqp = [a, b, q, p]
-#
-# Formula:
-#   F(x) = I_{(x - a) / (b - a)} (q, p)
-# where I is the regularized incomplete beta function.
-# -------------------------------------------------------------------------
-def beta_cdf(x, abqp):
+    Computes the Cumulative Distribution Function (CDF) of the beta distribution
+    with parameters passed as a single vector: abqp = [a, b, q, p]
+
+    Formula:
+      F(x) = I_{(x - a) / (b - a)} (q, p)
+    where I is the regularized incomplete beta function.
+    '''
     x = np.asarray(x, dtype=float)
 
     # Unpack the parameters
@@ -67,12 +68,15 @@ def beta_cdf(x, abqp):
     return F
 
 
-# -------------------------------------------------------------------------
+    '''------------------------------
 # CDF: beta_inv
-# -------------------------------------------------------------------------
-from scipy.special import betaincinv  # Inverse of the regularized incomplete beta function
-def beta_inv(F, a, b, q, p):
-    """
+    '''------------------------------
+
+
+def inv(F, a, b, q, p):
+    '''
+    beta.inv
+
     Compute the inverse CDF (quantile function) of the beta distribution,
     given parameters a (min), b (max), q and p (shape parameters).
 
@@ -91,7 +95,7 @@ def beta_inv(F, a, b, q, p):
     Returns:
         x : array-like
             Quantile values corresponding to input probabilities F.
-    """
+    '''
 
     # Check that a < b (valid interval)
     if b < a:
@@ -106,11 +110,15 @@ def beta_inv(F, a, b, q, p):
     return x
 
 
-# -------------------------------------------------------------------------
+    '''------------------------------
 # CDF: beta_rnd
-# -------------------------------------------------------------------------
-def beta_rnd(a, b, q, p, M, N):
-    """
+    '''------------------------------
+
+
+def rnd(a, b, q, p, M, N):
+    '''
+    beta.rnd
+
     Generate a sample matrix from a Beta distribution defined by:
     min = a, max = b, shape parameters q and p.
 
@@ -134,7 +142,7 @@ def beta_rnd(a, b, q, p, M, N):
     
     statistically, this makes sense becasue if X ~ Gamma(q, 1) and Y ~ Gamma(p, 1),
     then Z = X / (X + Y) follows a Beta(q, p) distribution on [0, 1].
-    """
+    '''
 
     if b < a:
         raise ValueError(f"beta_rnd: a = {a}, b = {b}; a must be less than b.")
