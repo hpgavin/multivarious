@@ -1,9 +1,12 @@
-# multivarious/distributions/gev.py
+# generalized extreme value distrubution
+# github.com/hpgavin/multivarious/rvs/gev.py
 
 import numpy as np
 
 def pdf(x, param):
     '''
+    gev.pdf
+
     Compute the PDF of the generalized extreme value distribution.
     Parameters:
         x     : scalar or array-like
@@ -21,6 +24,8 @@ def pdf(x, param):
 
 def cdf(x, param):
     '''
+    gev.cdf 
+
     Compute the CDF of the generalized extreme value distribution.
     Parameters:
         x     : scalar or array-like
@@ -38,6 +43,8 @@ def cdf(x, param):
 
 def inv(p, param):
     '''
+    gev.inv
+
     Compute the inverse CDF (quantile function) of the GEV distribution.
     Parameters:
         p     : scalar or array-like in (0,1)
@@ -52,6 +59,8 @@ def inv(p, param):
 
 def rnd(param, r, c=None):
     '''
+    gev.rnd
+
     Generate random samples from the GEV distribution.
     Parameters:
         param : [m, s, k]

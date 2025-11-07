@@ -1,3 +1,6 @@
+# chi-squared distribution
+# github.com/hpgavin/multivarious/rvs/chi2
+
 import numpy as np
 from scipy.stats import norm
 
@@ -31,6 +34,7 @@ def pdf(x, k):
     f = norm.pdf(z, m, s)
 
     return f
+
 
 def cdf(x, k):
     '''

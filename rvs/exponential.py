@@ -1,4 +1,6 @@
 # exponential distribution
+# github.com/hpgavin/multivarious/rvs/exponential
+
 import numpy as np
 
 def pdf(x, muX):
