@@ -78,15 +78,15 @@ methods: distribution.pdf(), distribution.cdf(), distribution.inv(), distributio
 
 | module | description |
 | ------ | ----------- |
-| **GEV**              | [Generalized Extreme Value](http://en.wikipedia.org/wiki/Generalized_extreme_value_distribution) |
 | **beta**             | [beta](http://en.wikipedia.org/wiki/Beta_distribution) |
 | **chi2**             | [chi-squared](http://en.wikipedia.org/wiki/Chi-squared_distribution) |
 | **exponential**      | [exponential](http://en.wikipedia.org/wiki/Exponential_distribution) |
 | **extreme_value_I**  | [type I extreme value]( ) |
 | **extreme_value_II** | [type II extreme value]( ) |
 | **gamma**            | [gamma](http://en.wikipedia.org/wiki/Gamma_distribution) |
-| **lognormal**        | [lognormal](http://en.wikipedia.org/wiki/Log-normal_distribution) |
+| **gev**              | [generalized extreme value](http://en.wikipedia.org/wiki/Generalized_extreme_value_distribution) |
 | **laplace**          | [Laplace](http://en.wikipedia.org/wiki/Laplace_distribution) |
+| **lognormal**        | [lognormal](http://en.wikipedia.org/wiki/Log-normal_distribution) |
 | **normal**           | [Gaussian](http://en.wikipedia.org/wiki/Normal_distribution) (normal) |
 | **plot_CDF_ci**      | plot the cumulative distribution function from data and its confidence interval |
 | **poisson**          | [Poisson](http://en.wikipedia.org/wiki/Poisson_distribution) |
