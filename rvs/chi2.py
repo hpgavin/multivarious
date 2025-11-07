@@ -1,5 +1,5 @@
 # chi-squared distribution
-# github.com/hpgavin/multivarious/rvs/chi2
+# github.com/hpgavin/multivarious ... rvs/chi2
 
 import numpy as np
 from scipy.stats import norm

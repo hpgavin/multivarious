@@ -1,5 +1,5 @@
 # exponential distribution
-# github.com/hpgavin/multivarious/rvs/exponential
+# github.com/hpgavin/multivarious ... rvs/exponential
 
 import numpy as np
 

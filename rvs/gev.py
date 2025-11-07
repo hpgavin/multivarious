@@ -1,5 +1,5 @@
 # generalized extreme value distrubution
-# github.com/hpgavin/multivarious/rvs/gev.py
+# github.com/hpgavin/multivarious ... rvs/gev.py
 
 import numpy as np
 

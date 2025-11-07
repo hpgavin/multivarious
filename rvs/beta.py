@@ -1,5 +1,5 @@
 # beta distribution
-# github.com/hpgavin/multivarious/rvs/beta
+# github.com/hpgavin/multivarious ... rvs/beta
 
 import numpy as np
 from scipy.special import beta as beta_func  # scipy's beta function
