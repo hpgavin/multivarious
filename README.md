@@ -10,8 +10,6 @@ This repository is under development.  Updates to this README lag the addition o
 
 To generate, transform, and plot multivariate discrete time sequences 
 
-| module | description |
-| ------ | ------------ |
 | **accel2displ** | acceleration, velocity and displacement without much bias or drift from acceleration |
 
 ## lti . linear time invariant systems
