@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 ''' ... from console 
-import importlib , example_usage
-importlib.reload(example_usage)     # to reload edits
+import importlib , mimoSHORSA_example
+importlib.reload(mimoSHORSA_example)     # to reload edits
 '''
 """
 Example usage of mimoSHORSA for polynomial response surface fitting
@@ -47,13 +47,19 @@ def example_1_simple_polynomial():
                    2.0 * dataX[0, :] + 
                    0.5 * dataX[1, :] ** 2 + 
                    0.3 * dataX[0, :] * dataX[1, :] + 
-                   0.2 * np.random.randn(mData))
+                   0.5 * np.random.randn(mData))
     
     # Fit model
     print("\nFitting model...")
     order, coeff, meanX, meanY, trfrmX, trfrmY, testModelY, testX, testY = \
-        mimoSHORSA(dataX, dataY, maxOrder=5, pTrain=70, pCull=40, 
-                   tol=0.10, scaling=1)
+        mimoSHORSA(dataX, dataY, 
+                   maxOrder=2,    # Maximum polynomial order
+                   pTrain=70,     # 70% training, 30% testing
+                   pCull=40,      # Will be set to 0 if L1_pnlty > 0
+                   tol=0.10,      # Maximum coefficient of variation
+                   scaling=2,     # Decorrelation scaling
+                   L1_pnlty=10,   # L1 regularization penalty
+                   basis_fctn='L') # 'H'=Hermite, 'L'=Legendre, 'P'=Power
     
     print("\n" + "-"*70)
     print("Final Model Summary:")
@@ -102,8 +108,14 @@ def example_2_multi_output():
     # Fit model
     print("\nFitting multi-output model...")
     order, coeff, meanX, meanY, trfrmX, trfrmY, testModelY, testX, testY = \
-        mimoSHORSA(dataX, dataY, maxOrder=3, pTrain=75, pCull=35, 
-                   tol=0.18, scaling=1)
+        mimoSHORSA(dataX, dataY,
+                   maxOrder=3,
+                   pTrain=75, 
+                   pCull=35,      # Ignored if L1_pnlty > 0
+                   tol=0.18, 
+                   scaling=1,
+                   L1_pnlty=10,   # Try L1 regularization
+                   basis_fctn='H') # Hermite basis
     
     print("\n" + "-"*70)
     print("Final Model Summary:")
@@ -149,8 +161,15 @@ def example_3_high_dimensional():
     # Fit model with lower maximum order due to curse of dimensionality
     print("\nFitting high-dimensional model...")
     order, coeff, meanX, meanY, trfrmX, trfrmY, testModelY, testX, testY = \
-        mimoSHORSA(dataX, dataY, maxOrder=2, pTrain=80, pCull=40, 
-                   tol=0.25, scaling=1)
+        mimoSHORSA(dataX, dataY,
+                   maxOrder=2,
+                   pTrain=80,
+                   pCull=40,
+                   tol=0.25,
+                   scaling=1,
+                   L1_pnlty=5,    # Light L1 regularization
+                   basis_fctn='P') # Power polynomial basis
+
     
     print("\n" + "-"*70)
     print("Final Model Summary:")
@@ -201,12 +220,183 @@ def example_4_with_scaling():
         
         try:
             order, coeff, *_ = mimoSHORSA(
-                dataX, dataY, maxOrder=2, pTrain=70, pCull=30, 
-                tol=0.25, scaling=scaling_option
+                dataX, dataY,
+                maxOrder=2,
+                pTrain=70,
+                pCull=30,
+                tol=0.25,
+                scaling=scaling_option,
+                L1_pnlty=10,      # Use L1 for all scaling tests
+                basis_fctn='L'    # Legendre basis
             )
             print(f"Successfully fitted with {order[0].shape[0]} terms")
         except Exception as e:
             print(f"Error: {e}")
+
+
+def example_5_basis_comparison():
+    """
+    Example 5: Compare different basis functions.
+
+    Demonstrates:
+    - Hermite basis (H)
+    - Legendre basis (L)
+    - Power polynomial basis (P)
+    """
+
+    print("\n" + "="*70)
+    print("Example 5: Basis Function Comparison")
+    print("="*70)
+
+    np.random.seed(999)
+
+    nInp = 2
+    nOut = 1
+    mData = 200
+
+    # Generate input data
+    dataX = 2 * np.random.randn(nInp, mData)
+
+    # Generate output: quadratic function
+    dataY = np.zeros((nOut, mData))
+    dataY[0, :] = (1.0 +
+                   2.0 * dataX[0, :] +
+                   0.5 * dataX[1, :] ** 2 +
+                   0.3 * dataX[0, :] * dataX[1, :] +
+                   0.2 * np.random.randn(mData))
+
+    basis_types = ['H', 'L', 'P']
+    basis_names = {
+        'H': 'Hermite functions',
+        'L': 'Legendre polynomials',
+        'P': 'Power polynomials'
+    }
+
+    results = {}
+
+    for basis in basis_types:
+        print(f"\n--- Testing {basis_names[basis]} ---")
+
+        order, coeff, meanX, meanY, trfrmX, trfrmY, testModelY, testX, testY = \
+            mimoSHORSA(dataX, dataY,
+                       maxOrder=3,
+                       pTrain=70,
+                       pCull=0,        # Not used with L1
+                       tol=0.20,
+                       scaling=2,      # Decorrelation
+                       L1_pnlty=20,    # L1 regularization
+                       basis_fctn=basis)
+
+        # Compute test correlation
+        corr = np.corrcoef(testY[0, :], testModelY[0, :])[0, 1]
+        n_terms = np.sum(np.abs(coeff[0]) > 1e-6)  # Count non-zero terms
+
+        results[basis] = {
+            'correlation': corr,
+            'n_terms': n_terms,
+            'order': order,
+            'coeff': coeff
+        }
+
+        print(f"  Number of terms: {n_terms}")
+        print(f"  Test correlation: {corr:.4f}")
+
+    # Summary comparison
+    print("\n" + "="*70)
+    print("Comparison Summary")
+    print("="*70)
+    print(f"{'Basis':<20} {'Terms':<10} {'Correlation':<15}")
+    print("-"*70)
+    for basis in basis_types:
+        print(f"{basis_names[basis]:<20} "
+              f"{results[basis]['n_terms']:<10} "
+              f"{results[basis]['correlation']:<15.4f}")
+
+    return results
+
+
+def example_6_L1_vs_COV():
+    """
+    Example 6: Compare L1 regularization vs COV culling.
+
+    Demonstrates the difference between:
+    - Traditional COV-based iterative culling (L1_pnlty = 0)
+    - L1 regularization (L1_pnlty > 0)
+    """
+
+    print("\n" + "="*70)
+    print("Example 6: L1 Regularization vs COV Culling")
+    print("="*70)
+
+    np.random.seed(123)
+
+    nInp = 3
+    nOut = 1
+    mData = 250
+
+    # Generate data
+    dataX = np.random.randn(nInp, mData)
+
+    # True model: sparse (only 4 terms)
+    dataY = np.zeros((nOut, mData))
+    dataY[0, :] = (1.0 +
+                   1.5 * dataX[0, :] +
+                   0.8 * dataX[1, :] ** 2 +
+                   0.4 * dataX[0, :] * dataX[2, :] +
+                   0.15 * np.random.randn(mData))
+
+    # Test 1: COV Culling (traditional method)
+    print("\n--- Method 1: COV-based Culling ---")
+    order1, coeff1, *_, testModelY1, testX1, testY1 = \
+        mimoSHORSA(dataX, dataY,
+                   maxOrder=3,
+                   pTrain=70,
+                   pCull=40,       # Enable culling
+                   tol=0.15,
+                   scaling=2,
+                   L1_pnlty=0,     # Disable L1 (use COV)
+                   basis_fctn='L')
+
+    corr1 = np.corrcoef(testY1[0, :], testModelY1[0, :])[0, 1]
+    n_terms1 = len(coeff1[0])
+
+    print(f"  Terms after culling: {n_terms1}")
+    print(f"  Test correlation: {corr1:.4f}")
+
+    # Test 2: L1 Regularization
+    print("\n--- Method 2: L1 Regularization ---")
+    order2, coeff2, *_, testModelY2, testX2, testY2 = \
+        mimoSHORSA(dataX, dataY,
+                   maxOrder=3,
+                   pTrain=70,
+                   pCull=0,        # No culling (automatic with L1)
+                   tol=0.15,
+                   scaling=2,
+                   L1_pnlty=10,    # Enable L1 regularization
+                   basis_fctn='L')
+
+    corr2 = np.corrcoef(testY2[0, :], testModelY2[0, :])[0, 1]
+    n_terms2 = np.sum(np.abs(coeff2[0]) > 1e-6)  # Count non-zero
+
+    print(f"  Non-zero terms: {n_terms2}")
+    print(f"  Test correlation: {corr2:.4f}")
+
+    # Comparison
+    print("\n" + "="*70)
+    print("Method Comparison")
+    print("="*70)
+    print(f"{'Method':<30} {'Terms':<10} {'Test �~A':<10}")
+    print("-"*70)
+    print(f"{'COV Culling':<30} {n_terms1:<10} {corr1:<10.4f}")
+    print(f"{'L1 Regularization':<30} {n_terms2:<10} {corr2:<10.4f}")
+    print(f"{'True model':<30} {4:<10} {'N/A':<10}")
+
+    print("\nKey observations:")
+    print("  - L1 tends to find sparser models")
+    print("  - L1 is faster (no iterative culling)")
+    print("  - COV culling decisions are irreversible")
+    print("  - L1 provides global optimization")
+
 
 
 def visualize_model_performance(testY, testModelY):
@@ -270,6 +460,12 @@ def main():
     
     # Example 4
     example_4_with_scaling()
+
+    # Example 5: Basis comparison
+    example_5_basis_comparison()
+
+    # Example 6: L1 vs COV comparison
+    example_6_L1_vs_COV()
     '''
     
     # Visualize one of the examples 

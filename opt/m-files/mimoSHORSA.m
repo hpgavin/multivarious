@@ -59,7 +59,7 @@ function [ order, coeff, meanX,meanY, trfrmX,trfrmY,  testModelY, testX,testY ] 
   fprintf('\n Multi-Input Multi-Output High Order Response Surface (mimoSHORSA)\n\n');
 
   if nargin < 2 , help mimoHOSRS; return; end
-  if nargin < 3 , max_order = 3;   else max_order = round(abs(max_order)); end
+  if nargin < 3 , max_order = 3;  else max_order = round(abs(max_order)); end
   if nargin < 4 , pTrain   = 0.5; else pTrain   = abs(pTrain)/100;     end
   if nargin < 5 , pCull    = 0.3; else pCull    = abs(pCull)/100;      end
   if nargin < 6 , tol      = 0.1; else tol      = abs(tol);            end
@@ -111,7 +111,7 @@ function [ order, coeff, meanX,meanY, trfrmX,trfrmY,  testModelY, testX,testY ] 
 
   max_order = max_order*ones(1,nInp);   % same maximum order for all variables
  
-  [ order, nTerm ] = mixed_term_powers( max_order, nInp, nOut ); 
+  [ order, nTerm ] = mixed_term_orders( max_order, nInp, nOut ); 
 
 % initialize variables
   maxCull = max(1,round(pCull*nTerm(1)));  % maximum number of terms to cull
@@ -454,14 +454,14 @@ function scatter_data(Data,S,figNo)
 end % =================================================== function scatter_data
 
 
-function [ order , nTerm ] = mixed_term_powers( max_order, nInp, nOut )
-% [ order , nTerm ] = mixed_term_powers( max_order, nInp, nOut )
+function [ order , nTerm ] = mixed_term_orders( max_order, nInp, nOut )
+% [ order , nTerm ] = mixed_term_orders( max_order, nInp, nOut )
 % specify the exponents on each input variable for every term in the model,
 % and the total number of terms, nTerm
 %
 % INPUT       DESCRIPTION                                           DIMENSION
 % --------    ---------------------------------------------------   ---------
-% max_order    maximum polynomial order of the model                   1 x 1
+% max_order   maximum polynomial order of the model                   1 x 1
 % nInp        number of input  (explanatory) variables                1 x 1
 % nOut        number of output  (dependent)  variables                1 x 1
 %
@@ -522,7 +522,7 @@ function [ order , nTerm ] = mixed_term_powers( max_order, nInp, nOut )
   fprintf('  Total Number of Terms: %3d\n', nTerm(1));
   fprintf('  Number of Mixed Terms: %3d\n\n', nTerm(1)-sum(max_order)-1);
 
-end % ============================================= function mixed_term_powers
+end % ============================================= function mxed_term_powers
 
 
 function psyProduct = polynomial_product( order, Zx, N, basis_fctn )
@@ -539,7 +539,7 @@ function psyProduct = polynomial_product( order, Zx, N, basis_fctn )
 %
 % OUTPUT      DESCRIPTION                                           DIMENSION
 % --------    ---------------------------------------------------  -----------
-% psyProduct  vector of product of polynomials               1 x mData 
+% psyProduct  vector of product of polynomials                      1 x mData 
  
   nInp = length(order);            % number of input (explanatory) variables
   psyProduct = ones(size(Zx,1),1); % initialze to vector of 1
@@ -555,11 +555,11 @@ function psyProduct = polynomial_product( order, Zx, N, basis_fctn )
     end
   end
 
-end % ================================================= function hermite_product
+end % ============================================ function polynomial_product
 
 
-function psy = hermite(order,z,N)
-% psy = hermite(order,z,n,N)
+function psy = hermite(n,z,N)
+% psy = hermite(n,z,N)
 % compute the shifted Hermite function of a given order (orders from 0 to 10)
 % for a vector of values of z 
 % https://en.wikipedia.org/wiki/Hermite_polynomials#Hermite_functions
@@ -571,7 +571,7 @@ function psy = hermite(order,z,N)
 %
 % INPUT       DESCRIPTION                                           DIMENSION
 % --------    ---------------------------------------------------  -----------
-%  order      the polynoimial order of a Hermite function            1 x 1
+%     n       the polynoimial order of a Hermite function            1 x 1
 %     z       vector of input (explanatory) variables                1 x mData  
 %     N       largest order in the full expansion                    1 x 1
 %
@@ -582,13 +582,13 @@ function psy = hermite(order,z,N)
   pi4 = pi^(0.25);
   ez2 = exp(-0.5*z.^2);
 
-  N = N+2;     % expand the domain of extrapolation 
+  z0 = N+2;     % expand the domain of extrapolation 
  
-  switch order
+  switch n 
     case  0
-      psy =    exp(-(z/N).^(6*N));
+      psy =          exp(-(z/z0).^(6*z0));
     case  1
-      psy = z.*exp(-(z/N).^(6*N)) / N;
+      psy = (z/z0) .* exp(-(z/z0).^(6*z0));
     case  2
       psy = 1/pi4 * ez2;
     case  3
@@ -617,7 +617,7 @@ end % ======================================================= function hermite
 
 
 function psy = legendre(order,z)
-% psy = legendre(order,z)
+% psy = legendre(order,z,N)
 % compute the Legendre function of a given order (orders from 0 to 10)
 % for a vector of values of z 
 % https://en.wikipedia.org/wiki/Legendre_polynomials#Rodrigues'_formula_and_other_explicit_formulas
@@ -701,14 +701,15 @@ end % ==================================================== function build_basis
 
 function [ coeff , condB ] = fit_model( Zx, Zy, order, nTerm, mData, L1_pnlty, basis_fctn )
 % [ coeff , condB ] = fit_model( Zx, Zy, order, nTerm, mData )
-% Fit the polynomial model to the data using 
-% the ordinary least squares method or singular value decomposition
+% Fit the polynomial model from all the input data Zx to one of the output data Zy 
+% via singular value decomposition without regularization
+% or quadratic programming with L1 regularization 
 %
 % INPUT       DESCRIPTION                                           DIMENSION
 % --------    ---------------------------------------------------  -----------
-%  Zx         scaled input (explanatory) data                         nx x mData
-%  Zy         scaled input (explanatory) data                          1 x mData
-%  order      powers on each explantory variabe for each term      nTerm x nx
+%  Zx         scaled  input (explanatory) data                        nx x mData
+%  Zy         scaled output  (dependent)  data                         1 x mData
+%  order      order of each explantory variabe in each term        nTerm x nx
 %  nTerm      number of terms in the polynomial model                  1 x 1
 %  L1_pnlty   L_1 regularization coefficient                           1 x 1 
 % basis_fctn  'H': Hermite fctn, 'L': Legendre polynomial, 'P': power polynomial
@@ -720,14 +721,12 @@ function [ coeff , condB ] = fit_model( Zx, Zy, order, nTerm, mData, L1_pnlty, b
 
   fprintf('Fit The Model ... with L1_pnlty = %f \n', L1_pnlty );
 
-  nOut = size(order,3);              % number of output (dependent) variables
-
   B = build_basis( Zx, order, basis_fctn ); 
 
-  nTerms = size(B,2)
 
 % plot the basis (for nInp == 2) 
-  for ii = 1:nTerms
+  nBasis = size(B,2)
+  for ii = 1:nBasis
     figure(1000+ii)
     clf
     hold on
@@ -738,7 +737,6 @@ function [ coeff , condB ] = fit_model( Zx, Zy, order, nTerm, mData, L1_pnlty, b
     title(sprintf('B_{%d}',ii-1))
   end
  
-  coeff = zeros(nTerm,nOut);
   % determine the coefficients of the response surface for each output
 
   if L1_pnlty > 0             % ... by QP optimization for L1 regularization
@@ -746,7 +744,6 @@ function [ coeff , condB ] = fit_model( Zx, Zy, order, nTerm, mData, L1_pnlty, b
     L1_plots( B, coeff, Zy', cvg_hst, L1_pnlty, 0, 7000 );
   else 
     coeff = B \ Zy';          % ... by singular value decomposition
-  % coeff = inv(B'*B)*(B'*Zy) % ... by the ordinary least squares method
   end
 
   condB = cond(B)         % condition number
@@ -866,7 +863,7 @@ function [MDcorr, coeffCOV, R2adj, AIC] = evaluate_model( B, coeff, dataX, dataY
     Std_Err_Coeff = sqrt( ( r*r' ) * diag(inv(B{io}'*B{io})) / (mData-nTerm) ); 
  
     % coefficient of variation of each coefficient for model "io"
-    coeffCOV{io} = abs( Std_Err_Coeff ./ coeff{io} );
+    coeffCOV{io} =  Std_Err_Coeff ./ ( abs(coeff{io}) + 1e-6 );
     coeffCOV{io}(find(abs(coeff{io})<1e-6)) = 1e-3; 
 
     AIC(io) = 0;   % add AIC here
@@ -1011,5 +1008,5 @@ end % ============================================= function print_model_stats
   fprintf('  model-data correlation = %6.3f \n', MDcorr(1,2)); 
 %}
 
-% updated 2006-01-29, 2007-02-21, 2007-03-06, 2009-10-14, 2022-11-19 2023-02-27, 2023-05-31 2025-01-28
+% updated 2006-01-29, 2007-02-21, 2007-03-06, 2009-10-14, 2022-11-19 2023-02-27, 2023-05-31, 2025-11-06
 

@@ -1,10 +1,11 @@
 import numpy as np
 import matplotlib.pyplot as plt
-import matplotlib.cm as cm
 import time as time
 from datetime import datetime, timedelta
+from rainbow import rainbow 
+from format_plot import format_plot
 
-def mimoSHORSA(dataX, dataY, maxOrder=3, pTrain=50, pCull=30, tol=0.10, scaling=1):
+def mimoSHORSA(dataX, dataY, maxOrder=3, pTrain=50, pCull=30, tol=0.10, scaling=1, L1_pnlty=1.0, basis_fctn='H'): 
     '''
     [ order, coeff, meanX, meanY, trfrmX, trfrmY, testModelY, testX, testY ] = mimoSHORSA( dataX, dataY, maxOrder, pTrain, pCull, tol, scaling )
     
@@ -37,6 +38,12 @@ def mimoSHORSA(dataX, dataY, maxOrder=3, pTrain=50, pCull=30, tol=0.10, scaling=
                 scaling = 2 : subtract mean and decorrelate
                 scaling = 3 : log-transform, subtract mean and divide by std.dev
                 scaling = 4 : log-transform, subtract mean and decorrelate
+    L1_pnlty    coefficient for L1 regularization                             1.0
+    basis_fctn  basis function type                                            'H'
+                'H': Hermite functions
+                'L': Legendre polynomials
+                'P': Power polynomials
+
     
     OUTPUT      DESCRIPTION
     --------    --------------------------------------------------------
@@ -68,6 +75,9 @@ def mimoSHORSA(dataX, dataY, maxOrder=3, pTrain=50, pCull=30, tol=0.10, scaling=
     pCull = abs(pCull) / 100 if pCull > 1 else abs(pCull)
     tol = abs(tol)
     scaling = int(round(abs(scaling)))
+    L1_pnlty = abs(L1_pnlty)
+    if L1_pnlty > 0: # No "culling" with L1 regularization
+        pCull = 0
     
     nInp, mDataX = dataX.shape   # number of columns in dataX is mData
     nOut, mDataY = dataY.shape   # number of columns in dataY is mData
@@ -87,7 +97,9 @@ def mimoSHORSA(dataX, dataY, maxOrder=3, pTrain=50, pCull=30, tol=0.10, scaling=
     # scale data matrices trainX and trainY separately since using 
     # the covariance between trainX and trainY in the model is "cheating"
     trainZx, meanX, trfrmX = scale_data(trainX, scaling, 0)
+    print('aaa')
     trainZy, meanY, trfrmY = scale_data(trainY, scaling, 0)
+    print('bbb')
     
     if scaling > 0:  # remove each column of trainZx and trainZy with outliers
         XY = np.vstack([trainZx, trainZy])
@@ -107,11 +119,11 @@ def mimoSHORSA(dataX, dataY, maxOrder=3, pTrain=50, pCull=30, tol=0.10, scaling=
     
     maxOrder = maxOrder * np.ones(nInp, dtype=int)  # same maximum order for all variables
     
-    order, nTerm = mixed_term_powers(maxOrder, nInp, nOut)
+    order, nTerm = mixed_term_orders(maxOrder, nInp, nOut)
     
     # initialize variables
-    maxCull = int(round(pCull * nTerm[0]))  # maximum number of terms to cull
-    condB = np.full((nOut, maxCull), np.nan)  # condition number of basis as model is culled
+    maxCull = max(1,int(round(pCull * nTerm[0]))) # maximum number of terms to cull
+    condB = np.full((nOut, maxCull), np.nan) # condition number of basis as model is culled
     for io in range(nOut):
         coeffCOV[io] = np.ones(nTerm[0])
     
@@ -134,11 +146,12 @@ def mimoSHORSA(dataX, dataY, maxOrder=3, pTrain=50, pCull=30, tol=0.10, scaling=
         
         # fit ("train") a separate model for each output (dependent) variable
         for io in range(nOut):
-            coeff[io], condB[io, iter] = fit_model(trainZx, trainZy[io, :], order[io], nTerm[io], mTrain)
+            coeff[io], condB[io, iter] = fit_model(trainZx, trainZy[io, :], order[io], nTerm[io], mTrain, L1_pnlty, basis_fctn)
         
         # compute the model for the training data and the testing data
-        trainModelY, B = compute_model(order, coeff, meanX, meanY, trfrmX, trfrmY, trainX, scaling)
-        testModelY, _ = compute_model(order, coeff, meanX, meanY, trfrmX, trfrmY, testX, scaling)
+        trainModelY, B = compute_model(order, coeff, meanX, meanY, trfrmX, trfrmY, trainX, scaling, basis_fctn)
+        testModelY, _  = compute_model(order, coeff, meanX, meanY, trfrmX, trfrmY, testX, scaling, basis_fctn)
+
         
         # evaluate the model for the training data and the testing data
         trainMDcorr[:, iter], coeffCOV, _, _ = evaluate_model(B, coeff, trainY, trainModelY, trainFigNo, 'train')
@@ -149,54 +162,58 @@ def mimoSHORSA(dataX, dataY, maxOrder=3, pTrain=50, pCull=30, tol=0.10, scaling=
         
         print_model_stats(iter, coeff, order, coeffCOV, testMDcorr[:, iter], R2adj, scaling, maxCull)
         
-        plt.ion() # interactive mode: on
-        for io in range(nOut):
-            plt.figure(400 + io)
-            format_plot(18, 4, 8)
-            cMap = rainbow(nOut)
-            plt.clf()
-            plt.semilogy(np.arange(1, nTerm[io] + 1), coeffCOV[io], 'o', color=cMap[io, :])
-            for ii in range(nTerm[io]):
-                plt.text(ii + 1, 0.85 * coeffCOV[io][ii], 
-                        f' {order[io][ii, :]}', fontsize=10)
-            plt.ylabel('coefficient of variation')
-            plt.xlabel('term number')
-            plt.title(f'Y_{io}, ρ_train = {trainMDcorr[io, iter]:.3f}, ' +
-                     f'ρ_test = {testMDcorr[io, iter]:.3f}, cond(B) = {condB[io, iter]:.1f}')
-        
-        plt.draw()
-        plt.pause(1.001)
+        if L1_pnlty == 0:
+            plt.ion() # interactive mode: on
+            for io in range(nOut):
+                plt.figure(400 + io)
+                format_plot(18, 4, 8)
+                cMap = rainbow(nOut)
+                plt.clf()
+                plt.semilogy(np.arange(1, nTerm[io] + 1), coeffCOV[io], 'o', color=cMap[io, :])
+                for ii in range(nTerm[io]):
+                    plt.text(ii + 1, 0.85 * coeffCOV[io][ii], 
+                            f' {order[io][ii, :]}', fontsize=10)
+                plt.ylabel('coefficient of variation')
+                plt.xlabel('term number')
+                plt.title(f'Y_{io}, ρ_train = {trainMDcorr[io, iter]:.3f}, ' +
+                        f'ρ_test = {testMDcorr[io, iter]:.3f}, cond(B) = {condB[io, iter]:.1f}')
+            
+            plt.draw()
+            plt.pause(1.001)
         
         if (testMDcorr[:, iter] > 0).all() and (np.max(coeffCOVmax[:, iter]) < tol):
             maxCull = iter + 1
             break
-        
-        order, nTerm, coeffCOV = cull_model(coeff, order, coeffCOV, tol)
-    
+
+        if L1_pnlty == 0:
+            order, nTerm, coeffCOV = cull_model(coeff, order, coeffCOV, tol)
+
     # ------------ cull uncertain terms from the model
     
     # plot correlations and coefficients of variation
-    plt.figure(500)
-    plt.clf()
-    cMap = rainbow(nOut)
-    format_plot(18, 2, 4)
+    if L1_pnlty == 0: 
+        plt.ion() # interactive mode: on
+        plt.figure(500)
+        plt.clf()
+        cMap = rainbow(nOut)
+        format_plot(18, 2, 4)
     
-    plt.subplot(2, 1, 1)
-    for io in range(nOut):
-        plt.plot(np.arange(1, maxCull + 1), trainMDcorr[io, :maxCull], 'o', color=cMap[io, :])
-        plt.plot(np.arange(1, maxCull + 1), testMDcorr[io, :maxCull], 'x', color=cMap[io, :])
-    plt.ylabel('model-data correlation')
-    plt.legend(['train', 'test'], loc='center left')
-    
-    plt.subplot(2, 1, 2)
-    for io in range(nOut):
-        plt.semilogy(np.arange(1, maxCull + 1), condB[io, :maxCull], 'o', color=cMap[io, :])
-        plt.semilogy(np.arange(1, maxCull + 1), coeffCOVmax[io, :maxCull], 'x', color=cMap[io, :])
-    plt.legend(['cond(B)', 'max(c.o.v.)'], loc='center right')
-    plt.ylabel('maximum c.o.v.')
-    plt.xlabel('model reduction')
-    
-    plt.show(block=False)
+        plt.subplot(2, 1, 1)
+        for io in range(nOut):
+            plt.plot(np.arange(1, maxCull + 1), trainMDcorr[io, :maxCull], 'o', color=cMap[io, :])
+            plt.plot(np.arange(1, maxCull + 1), testMDcorr[io, :maxCull], 'x', color=cMap[io, :])
+        plt.ylabel('model-data correlation')
+        plt.legend(['train', 'test'], loc='center left')
+        
+        plt.subplot(2, 1, 2)
+        for io in range(nOut):
+            plt.semilogy(np.arange(1, maxCull + 1), condB[io, :maxCull], 'o', color=cMap[io, :])
+            plt.semilogy(np.arange(1, maxCull + 1), coeffCOVmax[io, :maxCull], 'x', color=cMap[io, :])
+        plt.legend(['cond(B)', 'max(c.o.v.)'], loc='center right')
+        plt.ylabel('maximum c.o.v.')
+        plt.xlabel('model reduction')
+        
+        plt.show(block=False)
     
     return order, coeff, meanX, meanY, trfrmX, trfrmY, testModelY, testX, testY
 
@@ -215,12 +232,12 @@ def split_data(dataX, dataY, pTrain):
     
     OUTPUT      DESCRIPTION                                           DIMENSION
     --------    ---------------------------------------------------   ---------
-    trainX      matrix of  input data for training                    nx x mTrain
-    trainY      matrix of output data for training                    ny x mTrain
-    mTrain      number of observations in the training set             1 x 1
-    testX       matrix of  input data for testing                     nx x mTest
-    testY       matrix of output data for testing                     ny x mTest
-    mTest       number of observations in the testing set              1 x 1
+     trainX     matrix of  input data for training                    nx x mTrain
+     trainY     matrix of output data for training                    ny x mTrain
+     mTrain     number of observations in the training set             1 x 1
+     testX      matrix of  input data for testing                     nx x mTest
+     testY      matrix of output data for testing                     ny x mTest
+     mTest      number of observations in the testing set              1 x 1
     '''
     
     nInp, mData = dataX.shape   # number of columns in dataX is mData
@@ -234,11 +251,13 @@ def split_data(dataX, dataY, pTrain):
     
     trainX = dataX[:, idtrainX]
     trainY = dataY[:, idtrainX]
+    print(f'dim_train_Y = {trainY.shape})
     
     testX = dataX[:, idtestX]
     testY = dataY[:, idtestX]
     
     return trainX, trainY, mTrain, testX, testY, mTest
+
 
 def polynomial_orders(maxOrder, Zx, Zy, n, tol, scaling):
     '''
@@ -354,6 +373,8 @@ def scale_data(Data, scaling, flag):
     elif scaling == 2:  # subtract mean and decorrelate
         meanD = np.mean(Data, axis=1, keepdims=True)
         covData = np.cov(Data)
+        dim_cov_data = covData.shape
+        print(f'dim_cov_data = {dim_cov_data}')
         eVal, eVec = np.linalg.eig(covData)
         T = eVec @ np.sqrt(np.diag(eVal))
     
@@ -449,6 +470,7 @@ def scatter_data(dataX, dataY, figNo=100, varNames=None):
     nTotalVars = nInp + nOut
     
     # Create figure with subplots
+    plt.ion() # interactive mode: on
     fig = plt.figure(figNo, figsize=(3*nTotalVars, 3*nTotalVars))
     plt.clf()
     
@@ -522,9 +544,9 @@ def scatter_data(dataX, dataY, figNo=100, varNames=None):
     return None
 
 
-def mixed_term_powers(maxOrder, nInp, nOut):
+def mixed_term_orders(maxOrder, nInp, nOut):
     '''
-    [ order , nTerm ] = mixed_term_powers( maxOrder, nInp, nOut )
+    [ order , nTerm ] = mixed_term_orders( maxOrder, nInp, nOut )
     specify the exponents on each input variable for every term in the model,
     and the total number of terms, nTerm
     
@@ -536,10 +558,12 @@ def mixed_term_powers(maxOrder, nInp, nOut):
     
     OUTPUT      DESCRIPTION                                           DIMENSION
     --------    ---------------------------------------------------   ---------
-    order       list of matrices of model orders for each output
-                indicating powers present in each model terms      {nTerm x nInp}
+    order       list of 2D matrices of the orders 
+                indicating the orders of each explanatory variable in
+                in each polynomial term                             {nTerm x nInp}
+                one matrix for each output
                 initially, these matrices are all the same 
-    nTerm       number of polynomial terms in the model                 nOut x 1
+    nTerm       number of polynomial terms in the model               nOut x 1
     
     The matrix 'order' indicates which mixed term power-products are present
     in each term of the model. 
@@ -591,127 +615,197 @@ def mixed_term_powers(maxOrder, nInp, nOut):
     return order, nTerm
 
 
-def hermite_product(order, Zx):
+def polynomial_product(order, Zx, max_order, basis_fctn='H'):
     '''
-    psyProduct = hermite_product( order, Zx )
+    psyProduct = polynomial_product( order, Zx, basis_fctn )
     compute the product of hermite functions of given orders (from 0 to 5)
     for a set of column vectors Z, where each column of Zx has a given order
     
     INPUT       DESCRIPTION                                           DIMENSION
     --------    ---------------------------------------------------   ---------
-    order       vector model orders of powers present in one term
-                of the polynomial model                               1 x nInp
+    order       expxonents present in each polynomial term             1 x nInp
      Zx         matrix of scaled input (explanatory) variables      mData x nInp
+     basis_fctn 'H': Hermite, 'L': Legendre, 'P': Power polynomial
     
     OUTPUT      DESCRIPTION                                           DIMENSION
     --------    ---------------------------------------------------   ---------
     psyProduct  vector of product of hermite polynomials             mData x 1
     '''
     
-    nInp = len(order)                # number of input (explanatory) variables
+    nInp = len(order) # number of input (explanatory) variables
     psyProduct = np.ones(Zx.shape[0])  # initialize to vector of 1
-    
-    for k in range(nInp):
-        psyProduct = psyProduct * hermite(order[k], Zx[:, k])
+
+    for i in range(nInp):
+        if order[i] > 0:
+            if basis_fctn == 'H':
+                psyProduct *= hermite( order[i], Zx[:, i], max_order )
+            elif basis_fctn == 'L':
+                psyProduct *= legendre( order[i], Zx[:, i] )
     
     return psyProduct
 
 
-def build_basis(Zx, order):
+def build_basis(Zx, order, basis_fctn='H'):
     '''
-    B = build_basis( Zx, order )
+    B = build_basis( Zx, order, basis_fctn )
     compute matrix of model basis vectors
-    options: power-polynomial basis  or  Hermite function basis
-    
+    options: power-polynomial basis, Hermite function basis, or Legendre basis
+
     INPUT       DESCRIPTION                                           DIMENSION
-    --------    ---------------------------------------------------   ---------
-     Zx         matrix of input (explanatory) variables              nInp x mData
-    order       powers for each variable on each term of the model  nTerm x nInp
-    
+    --------    ---------------------------------------------------  -----------
+     Zx         matrix of input (explanatory) variables               nInp x mData
+     order      orders for each variable in each polynomial term      nTerm x nInp
+     basis_fctn 'H': Hermite, 'L': Legendre, 'P': Power polynomial
+
     OUTPUT      DESCRIPTION                                           DIMENSION
-    --------    ---------------------------------------------------   ---------
+    --------    ---------------------------------------------------  -----------
       B         matrix basis vectors for the polynomial model       mData x nTerm
     '''
-    
-    mData = Zx.shape[1]              # number of data points
-    nTerm, nInp = order.shape        # number of terms, inputs, outputs 
-    B = np.ones((mData, nTerm))      # the matrix of model basis vectors 
-    
+
+    mData = Zx.shape[1]             # number of data points
+    nTerm, nInp = order.shape       # number of terms, inputs, outputs 
+    B = np.ones((mData, nTerm))     # the matrix of model basis vectors 
+
+    max_order = int(np.max(order))
+
     # in the matrix of basis vectors, B, 
     # columns correspond to each term in the polynomial and 
     # rows correspond to each observation 
-    
-    for it in range(nTerm):
-        # use either power polynomials or Hermite functions ...
-        # ... power polynomials ...
-        # B[:, it] = np.prod(Zx.T ** order[it, :], axis=1)
-        # ... Hermite functions ...
-        B[:, it] = hermite_product(order[it, :], Zx.T)
-    
+ 
+    if basis_fctn == 'P':
+        # Power polynomials
+        for it in range(nTerm):
+            B[:, it] = np.prod(Zx.T ** order[it, :], axis=1)
+    else:
+        # Legendre or Hermite
+        for it in range(nTerm):
+            B[:, it] = polynomial_product(order[it, :], Zx.T, max_order, basis_fctn)
+
     return B
 
-
-def hermite(order, z):
+   
+def hermite(n, z, N):
     '''
-    psy = hermite(order,z)
+    psy = hermite(n, z, N)
     compute the Hermite function of a given order (orders from 0 to 10)
     for a vector of values of z 
     https://en.wikipedia.org/wiki/Hermite_polynomials#Hermite_functions
+    Note: These Hermite functions are index-shifted by 2, in order to 
+    augment the basis with a constant (0-order) function and a linear (1-order) 
+    function.  The 0-order and 1-order functions have approximately unit-area and 
+    attenuate exponentially at rates comparable to the highest order Hermite 
+    function in the basis.  
     
     INPUT       DESCRIPTION                                           DIMENSION
     --------    ---------------------------------------------------   ---------
-    order       the polynomial order of a hermite function            1 x 1
-    z           vector of input (explanatory) variables                1 x mData  
+    n           the polynomial order of a hermite function            1 x 1
+    z           vector of input (explanatory) variables               1 x mData
+    N           largest order in the full expansion                   1 x 1
     
     OUTPUT      DESCRIPTION                                           DIMENSION
     --------    ---------------------------------------------------   ---------
-     psy        a hermite function of specified order at given values  1 x mData
+     psy        a hermite function of specified order at given values 1 x mData
     '''
     
     pi4 = np.pi**(0.25)
     ez2 = np.exp(-0.5 * z**2)
-    
-    if order == 0:
+
+    z0 = N+2;     # expand the domain of extrapolation 
+
+    if n == 0:
+        psy = exp(-(z/z0)**(6*z0))
+    elif n == 1:
+        psy = (z/z0) * exp(-(z/z0)**(6*z0)) 
+    elif n == 2:
         psy = 1/pi4 * ez2
-    elif order == 1:
+    elif n == 3:
         psy = np.sqrt(2)/pi4 * z * ez2
-    elif order == 2:
+    elif n == 4:
         psy = 1/(np.sqrt(2)*pi4) * (2*z**2 - 1) * ez2
-    elif order == 3:
+    elif n == 5:
         psy = 1/(np.sqrt(3)*pi4) * (2*z**3 - 3*z) * ez2
-    elif order == 4:
+    elif n == 6:
         psy = 1/(2*np.sqrt(6)*pi4) * (4*z**4 - 12*z**2 + 3) * ez2
-    elif order == 5:
+    elif n == 7:
         psy = 1/(2*np.sqrt(15)*pi4) * (4*z**5 - 20*z**3 + 15*z) * ez2
-    elif order == 6:
+    elif n == 8:
         psy = 1/(12*np.sqrt(5)*pi4) * (8*z**6 - 60*z**4 + 90*z**2 - 15) * ez2
-    elif order == 7:
+    elif n == 9:
         psy = 1/(6*np.sqrt(70)*pi4) * (8*z**7 - 84*z**5 + 210*z**3 - 105*z) * ez2
-    elif order == 8:
+    elif n == 10:
         psy = 1/(24*np.sqrt(70)*pi4) * (16*z**8 - 224*z**6 + 840*z**4 - 840*z**2 + 105) * ez2
-    elif order == 9:
+    elif n == 11:
         psy = 1/(72*np.sqrt(35)*pi4) * (16*z**9 - 288*z**7 + 1512*z**5 - 2520*z**3 + 945*z) * ez2
-    elif order == 10:
+    elif n == 12:
         psy = 1/(720*np.sqrt(7)*pi4) * (32*z**10 - 720*z**8 + 5040*z**6 - 12600*z**4 + 9450*z**2 - 945) * ez2
     else:
-        raise ValueError(f'Hermite function only implemented for orders 0-10, got order={order}')
+        raise ValueError(f'Hermite function implemented only for orders 0-12, got order={order}')
     
     return psy
 
 
-def fit_model(trainZx, trainZy, order, nTerm, mTrain):
+def legendre(n, z):
     '''
-    [ coeff , condB ] = fit_model( Zx, Zy, order, nTerm, mData )
-    Fit the polynomial model to the data using 
-    the ordinary least squares method or singular value decomposition
+    Compute a Legendre polynomial of order n evaluated at points z
+    Legendre polynomials are orthogonal on [-1, 1]:
+    integral_{-1}^{1} P_m(z) P_n(z) dz = 2/(2n+1) * δ{mn}
+
+    INPUT       DESCRIPTION                                           DIMENSION
+    --------    ---------------------------------------------------   ---------
+    n           the polynomial order of a legendre polynomial          1 x 1
+    z           vector of input (explanatory) variables                1 x mData
+    
+    OUTPUT      DESCRIPTION                                           DIMENSION
+    --------    ---------------------------------------------------   ---------
+     psy        a legendre polynomial of given order at given values  1 x mData
+    '''
+
+    z = np.asarray(z)
+
+    if n == 0:
+        return np.ones_like(z)
+    elif n == 1:
+        return z
+    elif n == 2:
+        psy = (    3*z**2 -     1  )/2;
+    elif n == 3:
+        psy = (    5*z**3 -     3*z)/2;
+    elif n == 4:
+        psy = (   35*z**4 -    30*z**2 +    3  )/8;
+    elif n == 5:
+        psy = (   63*z**5 -    70*z**3 +   15*z)/8;
+    elif n == 6:
+        psy = (  231*z**6 -   315*z**4 +  105*z**2 -    5  )/16;
+    elif n == 7:
+        psy = (  429*z**7 -   693*z**5 +  315*z**3 -   35*z)/16;
+    elif n == 8:
+        psy = ( 6435*z**8 - 12012*z**6 + 6930*z**4 - 1260*z**2+  35   )/128;
+    elif n == 9:
+        psy = (12155*z**9 - 25740*z**7 +18018*z**5 - 4620*z**3+ 315*z )/128;
+    elif n == 10:
+        psy = (46189*z**10-109395*z**8 +90090*z**6 -30030*z**4+3465.*z**2-63)/256;
+    else:
+        raise ValueError(f'Legendre function implemented only for orders 0-10, got order={order}')
+
+    return psy
+
+
+def fit_model(Zx, Zy, order, nTerm, mData, L1_pnlty, basis_fctn):
+    '''
+    [ coeff , condB ] = fit_model( Zx, Zy, order, nTerm, mData, L1_pnlty, basis_fctn )
+    via singular value decomposition without regularization, or
+    via quadratic programming with L1 regularization
     
     INPUT       DESCRIPTION                                           DIMENSION
     --------    ---------------------------------------------------   ---------
-     Zx         scaled input (explanatory) data                         nx x mData
-     Zy         scaled output (dependent) data                          1 x mData
-     order      powers on each explanatory variable for each term    nTerm x nx
+     Zx         scaled input (explanatory) data                      nx x mData
+     Zy         scaled output (dependent) data                        1 x mData
+     order      order of each explanatory variable in each term   nTerm x nx
      nTerm      number of terms in the polynomial model                  1 x 1
      mData      number of data points (not used, kept for compatibility) 1 x 1
+     L1_pnlty   L1 regularization coefficient                            1 x 1
+     basis_fctn 'H': Hermite, 'L': Legendre, 'P': Power polynomial
+
     
     OUTPUT      DESCRIPTION                                           DIMENSION
     --------    ---------------------------------------------------   ---------
@@ -719,36 +813,54 @@ def fit_model(trainZx, trainZy, order, nTerm, mTrain):
      condB      condition number of the model basis                     1 x 1
     '''
     
-    print('Fit The Model ...')
-    
-    B = build_basis(trainZx, order)
-    
-    # determine the coefficients of the response surface for each output
-    # coeff = inv(B'*B) * (B'*Zy)    # ... by the ordinary least squares method
-    # coeff = B \ Zy'                # ... by singular value decomposition (MATLAB)
-    coeff = np.linalg.lstsq(B, trainZy.T, rcond=None)[0]  # ... by least squares (NumPy)
-    condB = np.linalg.cond(B)        # condition number
-    
+    print(f'Fit The Model ... with L1_pnlty = {L1_pnlty}')
+
+    B = build_basis( Zx, order, basis_fctn )
+
+    if L1_pnlty > 0:
+        # Use L1_fit for regularization
+        try:
+            from L1_fit import L1_fit
+            from L1_plots import L1_plots
+
+            # Zy needs to be column vector for L1_fit
+            Zy_col = Zy.reshape(-1, 1) if Zy.ndim == 1 else Zy.reshape(-1, 1)
+
+            coeff, mu, nu, cvg_hst = L1_fit(B, Zy_col, L1_pnlty, w=0)
+
+            # Optional: plot L1 convergence
+            # L1_plots(B, coeff, Zy_col, cvg_hst, L1_pnlty, 0, fig_no=7000)
+
+        except ImportError:
+            print('WARNING: L1_fit not found, using OLS instead')
+            coeff = np.linalg.lstsq(B, Zy, rcond=None)[0]
+    else:
+        # Use ordinary least squares / SVD
+        coeff = np.linalg.lstsq(B, Zy, rcond=None)[0]
+
+    condB = np.linalg.cond(B)
+
     print(f'  condition number of model basis matrix = {condB:6.1f}')
-    
+
     return coeff, condB
 
 
-def compute_model(order, coeff, meanX, meanY, trfrmX, trfrmY, dataX, scaling):
+def compute_model(order, coeff, meanX, meanY, trfrmX, trfrmY, dataX, scaling, basis_fctn='H'):
     '''
-    [ modelY, B ] = compute_model(order, coeff, meanX, meanY, trfrmX, trfrmY, dataX, scaling)
-    compute a multivariate power-polynomial model 
+    [ modelY, B ] = compute_model(order, coeff, meanX, meanY, trfrmX, trfrmY, dataX, scaling,basis_fctn)
+    compute a multivariate polynomial model 
     
     INPUT       DESCRIPTION                                           DIMENSION
     --------    ---------------------------------------------------   ---------
-     order      list of powers on each explanatory variable for each term  {nTerm x nInp}
-     coeff      list of model coefficient vectors                          {nTerm x 1}
+     order      list of order of each explanatory variable in each term {nTerm x nInp}
+     coeff      list of model coefficient vectors                       {nTerm x 1}
      meanX      mean of pre-scaled input  (explanatory) variables     nInp x 1 
      meanY      mean of pre-scaled output  (dependent)  variables     nOut x 1 
      trfrmX     transformation matrix for input variables             nInp x nInp 
      trfrmY     transformation matrix for output variables            nOut x nOut
      dataX      input data to evaluate model on                       nInp x mData
      scaling    scaling type ... see scale_data function                 1 x 1
+     basis_fctn 'H': Hermite, 'L': Legendre, 'P': Power polynomial
     
     OUTPUT      DESCRIPTION                                           DIMENSION
     --------    ---------------------------------------------------   ---------
@@ -774,7 +886,7 @@ def compute_model(order, coeff, meanX, meanY, trfrmX, trfrmY, dataX, scaling):
     
     # Compute model for each output
     for io in range(nOut):
-        B[io] = build_basis(dataZx, order[io])
+        B[io] = build_basis(dataZx, order[io], basis_fctn)
         modelZy[:, io] = B[io] @ coeff[io]
     
     # Inverse transform to original scale
@@ -843,15 +955,17 @@ def evaluate_model(B, coeff, dataY, modelY, figNo, txt):
         Std_Err_Coeff = np.sqrt((r @ r.T) * BtB_inv_diag / (mData - nTerm))
         
         # coefficient of variation of each coefficient for model "io"
-        coeffCOV[io] = np.abs(Std_Err_Coeff / coeff[io].flatten())
+        coeffCOV[io] = Std_Err_Coeff / ( np.abs(coeff[io].flatten()) + 1e-6 )
+        coeffCOV[io][np.abs(coeff[io]) < 1e-6] = 1e-3
         
         AIC[io] = 0   # add AIC here
     
     if figNo:
+        plt.ion() # interactive mode: on
         cMap = rainbow(nOut)
         plt.figure(figNo)
-        format_plot(18, 1, 3)
-        ax = [np.min(dataY), np.max(dataY), np.min(dataY), np.max(dataY)]
+        format_plot(16, 1, 3)
+        ax = [ np.min(dataY), np.max(dataY), np.min(dataY), np.max(dataY) ]
         plt.clf()
         for io in range(nOut):
             plt.plot(modelY[io, :], dataY[io, :], 'o', color=cMap[io, :])
@@ -861,18 +975,19 @@ def evaluate_model(B, coeff, dataY, modelY, figNo, txt):
         plt.ylabel('Y data')
         
         tx = 0.00
-        ty = 1.0 - 0.00 * io
-        plt.text(tx * ax[1] + (1 - tx) * ax[0], ty * ax[3] + (1 - ty) * ax[2],
+        ty = 1.0 - 0.05 * (io+1)
+        plt.text(tx*ax[1] + (1-tx)*ax[0], ty*ax[3] + (1-ty)*ax[2],
                 f'{nTerm} model terms')
         
         for io in range(nOut):
-            tx = 0.75
-            ty = 0.4 - 0.1 * io
-            plt.text(tx * ax[1] + (1 - tx) * ax[0], ty * ax[3] + (1 - ty) * ax[2],
+            tx = 0.55
+            ty = 0.5 - 0.2 * (io+1)
+            plt.text(tx*ax[1] + (1-tx)*ax[0], ty*ax[3] + (1-ty)*ax[2],
                     f'ρ_{{x,y{io}}} = {MDcorr[io]:.3f}', color=cMap[io, :])
-            ty = 0.4 + 0.0 * io
-            plt.text(tx * ax[1] + (1 - tx) * ax[0], ty * ax[3] + (1 - ty) * ax[2],
-                    f'txt', color=cMap[io, :])
+#                   '$\rho_{{x,y{io}}}$ = {MDcorr[io]:.3f}', color=cMap[io, :])
+            ty = 0.5 + 0.4 * (io+1)
+            plt.text(tx*ax[1] + (1-tx)*ax[0], ty*ax[3] + (1-ty)*ax[2],
+                    f'{txt}', color=cMap[io, :])
         
         plt.show(block=False)
     
@@ -888,7 +1003,7 @@ def print_model_stats(iter, coeff, order, coeffCOV, MDcorr, R2adj, scaling, maxC
     --------    ---------------------------------------------------   ---------
     iter        current iteration number                                  1 x 1
     coeff       list of coefficient vectors of each model            {nTerm x 1}
-    order       powers on each explanatory variable for each term    {nTerm x nInp}
+    order       order of each explanatory variable in each term      {nTerm x nInp}
     coeffCOV    list of coefficient of variation of each coefficient {1 x nTerm}
     MDcorr      model-data correlation for each output               nOut x 1
     R2adj       adjusted R-squared for each output                   nOut x 1
@@ -948,17 +1063,17 @@ def cull_model(coeff, order, coeffCOV, tol):
     [ order, nTerm, coeffCOV ] = cull_model( coeff, order, coeffCOV, tol )
     remove the term from the model that has the largest coeffCOV
     
-    INPUT       DESCRIPTION                                           DIMENSION
-    --------    ---------------------------------------------------   ---------
-     coeff      list of coefficient vectors of each model            {nTerm x 1}  
-     order      powers on each explanatory variable for each term    {nTerm x nInp}
+    INPUT       DESCRIPTION                                         DIMENSION
+    --------    -------------------------------------------------   ---------
+     coeff      list of coefficient vectors of each model         {nTerm x 1}  
+     order      order of each explanatory variable in each term   {nTerm x nInp}
     coeffCOV    list of coefficient of variation of
-                each model coefficient of each model                 {1 x nTerm}
-     tol        tolerance for an acceptable coeffCOV                       1 x 1
+                each model coefficient of each model               {1 x nTerm}
+     tol        tolerance for an acceptable coeffCOV                1 x 1
     
-    OUTPUT      DESCRIPTION                                           DIMENSION
-    --------    ---------------------------------------------------   ---------
-     order      retained powers on each explanatory variable for each term  {nTerm x nInp}
+    OUTPUT      DESCRIPTION                                         DIMENSION
+    --------    -------------------------------------------------   ---------
+     order      retained order of each explanatory variable in each term  {nTerm x nInp}
      nTerm      number of terms in each polynomial model                  1 x nOut
     coeffCOV    list of coefficient of variation of
                 each model coefficient of each culled model               {1 x nTerm}
@@ -988,52 +1103,6 @@ def cull_model(coeff, order, coeffCOV, tol):
     return order, nTerm, coeffCOV
 
 
-def rainbow(n):
-    '''
-    Generate rainbow colormap with n colors
-    Returns an n x 3 array of RGB colors spanning the rainbow spectrum
-    
-    INPUT       DESCRIPTION                                           DIMENSION
-    --------    ---------------------------------------------------   ---------
-    n           number of colors to generate                              1 x 1
-    
-    OUTPUT      DESCRIPTION                                           DIMENSION
-    --------    ---------------------------------------------------   ---------
-    cMap        RGB color array                                           n x 3
-    '''
-    
-    # Use matplotlib's rainbow/jet colormap
-    cmap = cm.get_cmap('rainbow', n)
-    colors = np.array([cmap(i)[:3] for i in range(n)]) # Get RGB, exclude alpha
-    
-    return colors
-
-
-def format_plot(fontsize, linewidth, markersize):
-    '''
-    Format plot with specified parameters
-    Sets default matplotlib rcParams for consistent plot styling
-    
-    INPUT       DESCRIPTION                                           DIMENSION
-    --------    ---------------------------------------------------   ---------
-    fontsize    font size for labels and text                            1 x 1
-    linewidth   line width for plots                                     1 x 1
-    markersize  marker size for scatter plots                            1 x 1
-    '''
-    
-    plt.rcParams.update({
-        'font.size': fontsize,
-        'axes.labelsize': fontsize,
-        'axes.titlesize': fontsize,
-        'xtick.labelsize': fontsize - 2,
-        'ytick.labelsize': fontsize - 2,
-        'legend.fontsize': fontsize - 2,
-        'lines.linewidth': linewidth,
-        'lines.markersize': markersize,
-        'axes.linewidth': linewidth / 2
-    })
-
-
 def IDWinterp(Zx, Zy, zMap, p, k, tol):
     '''
     Inverse Distance Weighting interpolation
@@ -1041,4 +1110,5 @@ def IDWinterp(Zx, Zy, zMap, p, k, tol):
     '''
     pass
 
-# updated 2006-01-29, 2007-02-21, 2007-03-06, 2009-10-14, 2022-11-19 2023-02-27, 2023-05-31 2025-01-28, 2025-10-23
+
+# updated 2006-01-29, 2007-02-21, 2007-03-06, 2009-10-14, 2022-11-19 2023-02-27, 2023-05-31 2025-11-07

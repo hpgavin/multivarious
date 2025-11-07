@@ -10,6 +10,8 @@ def format_plot(fontsize, linewidth, markersize):
     markersize  marker size for scatter plots                            1 x 1
     '''
 
+    import matplotlib.pyplot as plt
+
     plt.rcParams.update({
         'font.size': fontsize,
         'axes.labelsize': fontsize,

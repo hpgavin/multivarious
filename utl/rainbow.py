@@ -12,6 +12,9 @@ def rainbow(n):
     cMap        RGB color array                                           n x 3
     '''
 
+    import matplotlib.cm as cm
+    import numpy as np
+
     # Use matplotlib's rainbow/jet colormap
     cmap = cm.get_cmap('rainbow', n)
     colors = np.array([cmap(i)[:3] for i in range(n)]) # Get RGB, exclude alpha

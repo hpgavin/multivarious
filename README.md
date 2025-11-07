@@ -61,6 +61,8 @@ _**g**_(_**v**_) is a vector of inequality constraints.
 
 | module | description |
 | ------ | ----------- |
+| **mimoSHORSA** | multi-input multi-output Stochastic High Order Response Surface Algorithm |
+| **mimoSHORSA_example** | example of running mimoSHORSA |
 
 ## rvs . random variables
 
@@ -69,4 +71,11 @@ Correlated random samples of certain multivariate random variables as well.
 
 | module | description |
 | ------ | ----------- |
+| **plot_CDF_ci** | plot the cumulative distribution function from data and its confidence interval |
 
+## utl . utility functions 
+
+| module | description |
+| ------ | ----------- |
+| **format_plot** | set the font size, line width, and marker size |
+| **rainbow**     | rainbow line colors |

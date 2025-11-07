@@ -1,4 +1,4 @@
-% mimoSHORSA_example.m
+% example_usage.m
 % Example usage of mimoSHORSA for polynomial response surface fitting
 %
 % This script demonstrates:
