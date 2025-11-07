@@ -79,35 +79,23 @@ def inv(P, muX):
     return X
 
 
-    '''
-# RND: exp_rnd
-#
-# Generate random samples from an exponential distribution with mean muX.
-#
-# INPUTS:
-#   muX  = mean of the exponential distribution
-#   r    = number of rows in output sample
-#   c    = number of columns in output sample
-#
-# OUTPUT:
-#   x    = random samples shaped (r, c)
-#
-# METHOD:
-#   Use inverse CDF method: x = -muX * log(U), where U ~ Uniform(0,1)
-    '''
-
-
 def rnd(muX, r, c):
-    """
+    '''
+    exponential.rnd
+
     Generate random samples from an exponential distribution with mean muX.
 
-    Parameters:
-        muX : mean of the exponential distribution
-        r, c : dimensions of the output matrix (rows × columns)
+    INPUTS:
+        muX  = mean of the exponential distribution
+        r    = number of rows in output sample
+        c    = number of columns in output sample
+ 
+    OUTPUT:
+        x    = random samples shaped (r, c)
 
-    Returns:
-        x : (r × c) array of random values drawn from Exp(muX)
-    """
+    METHOD:
+        Use inverse CDF method: x = -muX * log(U), where U ~ Uniform(0,1)
+    '''
 
     # Step 1: Generate uniform random numbers in [0, 1] — shape (r × c)
     u = np.random.uniform(0, 1, size=(r, c))
