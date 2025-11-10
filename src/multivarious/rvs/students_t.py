@@ -1,0 +1,141 @@
+import numpy as np
+from scipy.special import beta as beta_func, betaincinv
+
+def pdf(t, k):
+    '''
+    students_t.pdf
+
+    Computes the PDF of the Student's t-distribution with k degrees of freedom.
+
+    Parameters:
+        t : array_like
+            Evaluation points
+        k : int or float
+            Degrees of freedom (must be > 0)
+    Output:
+        f : ndarray
+            PDF values at each point in t
+
+    Reference:
+    https://en.wikipedia.org/wiki/Student%27s_t-distribution
+    '''
+    
+    t = np.asarray(t, dtype=float)
+
+    # Compute the PDF using the known closed-form
+    f = (np.exp(-(k + 1) * np.log(1 + (t ** 2) / k) / 2)) / (np.sqrt(k) * beta_func(k / 2, 0.5))
+
+    return f
+
+def cdf(t, k):
+    '''
+    students_t.cdf
+
+    Computes the CDF of the Student's t-distribution with k degrees of freedom.
+    Handles k = 1 and k = 2 analytically, and uses recurrence relations
+    for integer k > 2 to match the MATLAB implementation.
+
+    Parameters:
+        t : array_like
+            Evaluation points
+        k : int or float
+            Degrees of freedom (must be > 0)
+
+    Output:
+        F : ndarray
+            CDF values at each point in t
+
+    Reference:
+    https://en.wikipedia.org/wiki/Student%27s_t-distribution
+    '''
+    t = np.asarray(t, dtype=float)
+
+    if k == 1:
+        # Cauchy distribution
+        return 0.5 + np.arctan(t) / np.pi
+
+    elif k == 2:
+        return 0.5 + t / (2 * np.sqrt(2 + t**2))
+
+    else:
+        ts = t / np.sqrt(k)
+        ttf = 1 / (1 + ts**2)
+
+        u = np.ones_like(ts, dtype=float)
+        s = np.ones_like(ts, dtype=float)
+
+        if k % 2 == 1:  # odd degrees of freedom
+            m = (k - 1) // 2
+            for ii in range(2, m + 1):
+                u = u * (1 - 1 / (2 * ii - 1)) * ttf
+                s = s + u
+            return 0.5 + (ts * ttf * s + np.arctan(ts)) / np.pi
+
+        else:  # even degrees of freedom
+            m = k // 2
+            for ii in range(1, m):
+                u = u * (1 - 1 / (2 * ii)) * ttf
+                s = s + u
+            return 0.5 + (ts * np.sqrt(ttf) * s) / 2.0
+
+def inv(p, k):
+    '''
+    students_t.inv
+
+    Computes the inverse CDF (quantile function) of the Student's t-distribution
+    with k degrees of freedom, using the inverse incomplete beta function.
+
+    Input:
+        p : array_like
+            Probability values (must be in [0, 1])
+        k : int or float
+            Degrees of freedom (must be > 0)
+
+    Output:
+        x : ndarray
+            Quantile values corresponding to probabilities p
+
+    Reference:
+    https://en.wikipedia.org/wiki/Student%27s_t-distribution
+    '''
+    p = np.asarray(p)
+    
+    # Compute the inverse CDF using the relationship with the incomplete beta function
+    # betaincinv(a, b, y) finds x such that betainc(a, b, x) = y
+    z = betaincinv(k / 2.0, 0.5, 2 * np.minimum(p, 1 - p))
+    
+    # Convert from beta quantile to t quantile
+    x = np.sign(p - 0.5) * np.sqrt(k * (1 / z - 1))
+
+    return x
+
+
+def rnd(k, size=(1,), seed=None): # New
+    '''
+    students_t.rnd
+
+    Generate random samples from the Student's t-distribution with k degrees of freedom.
+
+    Parameters:
+        k : int or float
+            Degrees of freedom (must be > 0)
+        size : tuple, optional
+            Output shape (e.g., (r, c)); default is (1,)
+        seed : int or np.random.Generator, optional
+            Random seed or existing Generator for reproducibility
+
+    Output:
+        x : ndarray
+            Array of shape `size` containing t-distributed random samples
+
+    Reference:
+    https://en.wikipedia.org/wiki/Student%27s_t-distribution
+    '''
+    if isinstance(seed, (int, type(None))):
+        rng = np.random.default_rng(seed)
+    else:
+        rng = seed  # assume user passed Generator
+
+    # Generate uniform samples and use inverse CDF
+    u = rng.random(size)
+    return inv(u, k)

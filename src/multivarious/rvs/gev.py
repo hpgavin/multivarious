@@ -1,16 +1,19 @@
-# multivarious/distributions/gev.py
+# generalized extreme value distrubution
+# github.com/hpgavin/multivarious ... rvs/gev.py
 
 import numpy as np
 
 def pdf(x, param):
-    """
+    '''
+    gev.pdf
+
     Compute the PDF of the generalized extreme value distribution.
     Parameters:
         x     : scalar or array-like
         param : list or array-like of [m, s, k]
     Returns:
         f     : same shape as x, PDF values
-    """
+    '''
     m, s, k = param
     z = (x - m) / s
     arg = 1 + k * z
@@ -20,14 +23,16 @@ def pdf(x, param):
 
 
 def cdf(x, param):
-    """
+    '''
+    gev.cdf 
+
     Compute the CDF of the generalized extreme value distribution.
     Parameters:
         x     : scalar or array-like
         param : list or array-like of [m, s, k]
     Returns:
         F     : same shape as x, CDF values
-    """
+    '''
     m, s, k = param
     z = (x - m) / s
     arg = 1 + k * z
@@ -37,36 +42,44 @@ def cdf(x, param):
 
 
 def inv(p, param):
-    """
+    '''
+    gev.inv
+
     Compute the inverse CDF (quantile function) of the GEV distribution.
     Parameters:
         p     : scalar or array-like in (0,1)
         param : list or array-like of [m, s, k]
     Returns:
         x     : same shape as p, quantiles
-    """
+    '''
     m, s, k = param
     x = m + (s / k) * ((-np.log(p))**(-k) - 1)
     return x
 
 
 def rnd(param, r, c=None):
-    """
+    '''
+    gev.rnd
+
     Generate random samples from the GEV distribution.
+    
     Parameters:
-        param : [m, s, k]
-        r     : rows OR uniform sample array
-        c     : cols (optional)
+        param : list [m, s, k]
+        r     : int or ndarray
+                If c is None: treat r as pre-generated samples
+                If c is provided: r is number of rows
+        c     : int or None
+                Number of columns (optional)
     Returns:
-        x     : random matrix (r x c) or shape of r if r is array-like
-    """
+        x : ndarray of GEV samples
+    '''
     m, s, k = param
 
     if c is None:
-        # Case: r is a matrix of uniform samples (from norm_cdf or others)
+        # r is a pre-generated sample matrix
         u = np.asarray(r)
     else:
-        # Case: generate uniform [0,1] samples
+        # Generate r×c uniform samples
         u = np.random.rand(r, c)
 
     x = m + (s / k) * ((-np.log(u))**(-k) - 1)

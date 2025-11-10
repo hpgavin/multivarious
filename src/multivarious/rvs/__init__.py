@@ -1,5 +1,5 @@
 """
-multivarious.distributions
+multivarious.rvs
 --------------------------
 Collection of probability distributions used in Multivarious.
 Each module defines pdf, cdf, inv, and rnd functions.

@@ -13,7 +13,7 @@ __version__ = metadata.version("multivarious") if metadata.packages_distribution
 # Optional: make submodules importable directly
 from . import optimization
 from . import utils
-from . import distributions
+from . import rvs
 
 __all__ = ["optimization", "utils", "distributions"]
 

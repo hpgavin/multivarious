@@ -41,7 +41,6 @@ def inv(p, mu, sigma):
     loc = mu - scale * GAMMA
     return loc - scale * np.log(-np.log(p))
 
-
 def rnd(muX, cvX, r, c=None):
     """
     Generate samples from the Extreme Value Type I distribution.
