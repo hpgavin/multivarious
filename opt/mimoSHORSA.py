@@ -7,7 +7,7 @@ from format_plot import format_plot
 
 def mimoSHORSA(dataX, dataY, maxOrder=3, pTrain=50, pCull=30, tol=0.10, scaling=1, L1_pnlty=1.0, basis_fctn='H'): 
     '''
-    [ order, coeff, meanX, meanY, trfrmX, trfrmY, testModelY, testX, testY ] = mimoSHORSA( dataX, dataY, maxOrder, pTrain, pCull, tol, scaling )
+    [ order, coeff, meanX, meanY, trfrmX, trfrmY, testModelY, testX, testY ] = mimoSHORSA( dataX, dataY, maxOrder, pTrain, pCull, tol, scaling, L1_pntly, basis_fctn  )
     
     mimoSHORSA
     multi-input multi-output Stochastic High Order Response Surface Algorithm
@@ -97,9 +97,7 @@ def mimoSHORSA(dataX, dataY, maxOrder=3, pTrain=50, pCull=30, tol=0.10, scaling=
     # scale data matrices trainX and trainY separately since using 
     # the covariance between trainX and trainY in the model is "cheating"
     trainZx, meanX, trfrmX = scale_data(trainX, scaling, 0)
-    print('aaa')
     trainZy, meanY, trfrmY = scale_data(trainY, scaling, 0)
-    print('bbb')
     
     if scaling > 0:  # remove each column of trainZx and trainZy with outliers
         XY = np.vstack([trainZx, trainZy])
@@ -251,7 +249,7 @@ def split_data(dataX, dataY, pTrain):
     
     trainX = dataX[:, idtrainX]
     trainY = dataY[:, idtrainX]
-    print(f'dim_train_Y = {trainY.shape})
+    print(f'dim_train_Y = {trainY.shape}') 
     
     testX = dataX[:, idtestX]
     testY = dataY[:, idtestX]
