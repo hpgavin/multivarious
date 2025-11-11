@@ -1,19 +1,25 @@
 import numpy as np
 
-# -------------------------------------------------------------------------
-# PDF: rayleigh_pdf
-#
-# Computes the Probability Density Function (PDF) of the Rayleigh distribution
-# using the mean parameter muX.
-#
-# INPUT:
-#   X    = Evaluation points (scalar or array-like)
-#   muX  = Mean of the Rayleigh distribution (must be > 0)
-#
-# OUTPUT:
-#   f    = PDF values evaluated at X
-# -------------------------------------------------------------------------
 def pdf(X, muX):
+    '''
+    rayleigh.pdf
+
+    Computes the PDF of the Rayleigh distribution using the mean parameter muX.
+
+    Input:
+        X : array_like
+            Evaluation points
+        muX : float
+            Mean of the Rayleigh distribution (must be > 0)
+
+    Output:
+        f : ndarray
+            PDF values at each point in X
+
+    Reference:
+    https://en.wikipedia.org/wiki/Rayleigh_distribution
+    '''
+
     X = np.asarray(X, dtype=float)
 
     # Convert mean to mode: modeX = muX * sqrt(2 / pi)
@@ -28,21 +34,26 @@ def pdf(X, muX):
     return f
 
 
-# -------------------------------------------------------------------------
-# CDF: rayleigh_cdf
-#
-# Computes the Cumulative Distribution Function (CDF) of the Rayleigh distribution
-# with mean muX, evaluated at values in X.
-#
-# INPUTS:
-#   X    = Values to evaluate the CDF at (array-like)
-#   muX  = Mean of the Rayleigh distribution
-#
-# OUTPUT:
-#   F    = CDF values at each point in X
-# -------------------------------------------------------------------------
 def cdf(X, muX):
-    X = np.asarray(X, dtype=float)
+    '''
+    rayleigh.cdf
+    Computes the CDF of the Rayleigh distribution using the mean parameter muX.
+
+    Input:
+        X : array_like
+            Evaluation points
+        muX : float
+            Mean of the Rayleigh distribution (must be > 0)
+
+    Output:
+        F : ndarray
+            CDF values at each point in X
+
+    Reference:
+    https://en.wikipedia.org/wiki/Rayleigh_distribution
+    '''
+
+    X = np.asarray(X, dtype=float).copy()
     
     # Replace X <= 0 with small positive number (to match MATLAB behavior)
     X[X <= 0] = 0.01
@@ -56,23 +67,27 @@ def cdf(X, muX):
     return F
 
 
-import numpy as np
-
-# -------------------------------------------------------------------------
-# INV: rayleigh_inv
-#
-# Computes the inverse CDF (quantile function) of the Rayleigh distribution.
-# Mirrors the MATLAB version using the mean muX as input instead of scale.
-#
-# INPUTS:
-#   P     = non-exceedance probabilities (0 ≤ P ≤ 1)
-#   muX   = mean of the Rayleigh distribution
-#
-# OUTPUT:
-#   x     = inverse CDF values (same shape as P)
-# -------------------------------------------------------------------------
 def inv(P, muX):
-    P = np.asarray(P, dtype=float)
+    '''
+    rayleigh.inv
+
+    Computes the inverse CDF (quantile function) of the Rayleigh distribution
+    using the mean parameter muX.
+
+    INPUT:
+        P : array_like
+            Non-exceedance probabilities (0 ≤ P ≤ 1)
+        muX : float
+            Mean of the Rayleigh distribution (must be > 0)
+
+    OUTPUT:
+        x : ndarray
+            Quantile values corresponding to probabilities P
+
+    Reference:
+    https://en.wikipedia.org/wiki/Rayleigh_distribution
+    '''
+    P = np.asarray(P, dtype=float).copy()
 
     # Clamp values: ensure P stays in [0, 1] just like MATLAB does
     P[P <= 0] = 0.0
@@ -88,11 +103,31 @@ def inv(P, muX):
 
 
 def rnd(muX, r, c=None):
-    """
-    Generate samples from the Rayleigh distribution using either:
-    (1) muX, and a custom matrix of uniform samples (r = matrix, c=None)
-    (2) muX, and integers r, c → will generate random samples via np.random.rand(r, c)
-    """
+    '''
+    rayleigh.rnd
+
+    Generates random samples from the Rayleigh distribution using the mean
+    parameter muX. Samples can be generated either by passing a matrix of
+    uniform random numbers or by specifying the output dimensions.
+
+    Input:
+        muX : float
+            Mean of the Rayleigh distribution (must be > 0)
+        r : int or ndarray
+            If int, number of rows in the output; if ndarray, a matrix of
+            uniform(0,1) random values
+        c : int, optional
+            Number of columns in the output (used only if r is int)
+
+    Output:
+        x : ndarray
+            Random samples drawn from the Rayleigh distribution
+
+    Reference
+    ----------
+    https://en.wikipedia.org/wiki/Rayleigh_distribution
+    '''
+
 
     if np.any(muX <= 0) or np.any(np.isinf(muX)):
         raise ValueError("rayleigh_rnd: muX must be greater than zero")
@@ -103,19 +138,20 @@ def rnd(muX, r, c=None):
     # Case (1): r is already a matrix of uniform random numbers
     if c is None and isinstance(r, np.ndarray):
         u = r
-        r, c = u.shape
+        r_rows, c_cols = u.shape
 
     # Case (2): Generate uniform samples with shape (r, c)
     elif c is not None:
         u = np.random.rand(r, c)
+        r_rows, c_cols = r, c
 
     else:
         raise ValueError("rayleigh_rnd: Either provide a matrix (r) or integers (r, c)")
 
-    # Broadcast muX if needed
-    if np.prod(np.shape(modeX)) == 1:
-        modeX = modeX * np.ones((r, c))
-
+    # Broadcast modeX if needed
+    if np.isscalar(modeX):
+        modeX = modeX * np.ones((r_rows, c_cols))
+        
     # Inverse transform sampling
     x = modeX * np.sqrt(-2.0 * np.log(u))
 

@@ -25,6 +25,7 @@ def pdf(x, muX):
     x = np.where(x < 0, 0.01, x)
 
     f = np.exp(-x / muX) / muX
+    
     return f
 
 
@@ -97,15 +98,16 @@ def rnd(muX, r, c):
         Use inverse CDF method: x = -muX * log(U), where U ~ Uniform(0,1)
     '''
 
-    # Step 1: Generate uniform random numbers in [0, 1] — shape (r × c)
-    u = np.random.uniform(0, 1, size=(r, c))
-
-    # Step 2: Apply the inverse CDF of the exponential distribution:
-    #         X = -muX * log(U), where U ~ Uniform(0,1)
-    #         This transforms uniform randomness into exponential randomness
+    # Check parameter validity
+    if muX <= 0 or np.isinf(muX):
+        raise ValueError(f"exp_rnd: muX must be > 0 and finite")
+    
+    # Generate standard uniform [0,1]
+    u = np.random.rand(r, c)
+    
+    # Inverse transform: x = -muX * log(u)
     x = -muX * np.log(u)
-
-    # Return the generated exponential random values
+    
     return x
 
 

@@ -1,76 +1,107 @@
 import numpy as np
 from scipy.stats import norm as scipy_norm
 
-# --------------------------------
-# Normal Probability Density Function (PDF)
-# --------------------------------
+
 def pdf(x, mu, sigma):
-    """
-    Compute the PDF of the normal distribution N(mu, sigma^2).
+    '''
+    normal.pdf
+
+    Computes the PDF of the normal distribution N(mu, sigma²).
 
     Parameters:
-    - x : scalar or array-like
-    - mu : mean
-    - sigma : standard deviation
+        x : array_like or float
+            Evaluation points
+        mu : float
+            Mean of the distribution
+        sigma : float
+            Standard deviation of the distribution (must be > 0)
 
-    Returns:
-    - pdf : float or np.ndarray
-    """
+    Output:
+        f : ndarray or float
+            PDF values at each point in x
+
+    Reference:
+    https://en.wikipedia.org/wiki/Normal_distribution
+    '''
     dist = scipy_norm(loc=mu, scale=sigma)
     return dist.pdf(x)
 
-# --------------------------------
-# Normal Cumulative Distribution Function (CDF)
-# --------------------------------
+
 def cdf(x, mu, sigma):
-    """
-    Compute the CDF of the normal distribution N(mu, sigma^2).
+    '''
+    normal.cdf
+
+    Computes the CDF of the normal distribution N(mu, sigma²).
 
     Parameters:
-    - x : scalar or array-like
-    - mu : mean
-    - sigma : standard deviation
+        x : array_like or float
+            Evaluation points
+        mu : float
+            Mean of the distribution
+        sigma : float
+            Standard deviation of the distribution (must be > 0)
 
-    Returns:
-    - cdf : float or np.ndarray
-    """
+    Output:
+        F : ndarray or float
+            CDF values at each point in x
+
+    Reference:
+    https://en.wikipedia.org/wiki/Normal_distribution
+    '''
+
     dist = scipy_norm(loc=mu, scale=sigma)
     return dist.cdf(x)
 
-# --------------------------------
-# Normal Inverse CDF (Quantile Function)
-# --------------------------------
+
 def inv(p, mu, sigma):
-    """
-    Compute the inverse CDF (quantile function) for N(mu, sigma^2).
+    '''
+    normal.inv
+
+    Computes the inverse CDF (quantile function) of the normal distribution N(mu, sigma²).
 
     Parameters:
-    - p : scalar or array-like in [0, 1]
-    - mu : mean
-    - sigma : standard deviation
+        p : array_like or float
+            Probability values (must be in [0, 1])
+        mu : float
+            Mean of the distribution
+        sigma : float
+            Standard deviation of the distribution (must be > 0)
 
-    Returns:
-    - x : quantiles corresponding to input probabilities p
-    """
+    Output:
+        x : ndarray or float
+            Quantile values corresponding to probabilities p
+
+    Reference:
+    https://en.wikipedia.org/wiki/Normal_distribution
+    '''
+
     dist = scipy_norm(loc=mu, scale=sigma)
     return dist.ppf(p)
 
-# --------------------------------
-# Normal Random Variable Generator
-# --------------------------------
+
 def rnd(mu, sigma, size=(1,), seed=None):
-    """
-    Generate random samples from a normal distribution N(mu, sigma^2).
+    '''
+    normal.rnd
+    Generates random samples from the normal distribution N(mu, sigma²).
 
     Parameters:
-    - mu : mean
-    - sigma : standard deviation
-    - size : tuple, shape of output (e.g., (1000,), (r, c))
-    - seed : int or numpy.random.Generator, optional
+        mu : float
+            Mean of the distribution
+        sigma : float
+            Standard deviation of the distribution (must be > 0)
+        size : tuple, optional
+            Shape of the output array (e.g., (1000,), (r, c)); default is (1,)
+        seed : int or numpy.random.Generator, optional
+            Random seed or Generator for reproducibility
 
-    Returns:
-    - samples : numpy.ndarray of shape `size`
-    """
+    Output:
+        x : ndarray
+            Array of normal random samples with shape `size`
+
+    Reference:
+    https://en.wikipedia.org/wiki/Normal_distribution
+    '''
+
     if isinstance(seed, (int, type(None))):
         rng = np.random.default_rng(seed)
     else:

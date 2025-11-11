@@ -62,20 +62,24 @@ def rnd(param, r, c=None):
     gev.rnd
 
     Generate random samples from the GEV distribution.
+    
     Parameters:
-        param : [m, s, k]
-        r     : rows OR uniform sample array
-        c     : cols (optional)
+        param : list [m, s, k]
+        r     : int or ndarray
+                If c is None: treat r as pre-generated samples
+                If c is provided: r is number of rows
+        c     : int or None
+                Number of columns (optional)
     Returns:
-        x     : random matrix (r x c) or shape of r if r is array-like
+        x : ndarray of GEV samples
     '''
     m, s, k = param
 
     if c is None:
-        # Case: r is a matrix of uniform samples (from norm_cdf or others)
+        # r is a pre-generated sample matrix
         u = np.asarray(r)
     else:
-        # Case: generate uniform [0,1] samples
+        # Generate r×c uniform samples
         u = np.random.rand(r, c)
 
     x = m + (s / k) * ((-np.log(u))**(-k) - 1)

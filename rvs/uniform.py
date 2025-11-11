@@ -1,85 +1,111 @@
+## uniform distribution
+# github.com/hpgavin/multivarious ... rvs/uniform
+
 import numpy as np
 from scipy.stats import uniform as scipy_uniform
 
-# Scipy is a popular library for scientific computing in Python. It provides
-# a wide range of statistical distributions and functions.
-
-# -------------------------------
-# Uniform Probability Density Function (PDF)
-# -------------------------------
 def pdf(x, a, b):
-    """
-    Compute the PDF of the uniform distribution on [a, b].
+    '''
+    uniform.pdf
+    
+    Computes the PDF of the uniform distribution on [a, b].
+    
+    INPUT:
+        x   = array_like of evaluation points
+        a   = float for Lower bound
+        b   = float for Upper bound (must be > a)
+    
+    OUTPUT:
+        f   = ndarray
+              PDF values at each point in x
+    '''
+    x = np.asarray(x, dtype=float)
+    
+    if b <= a:
+        raise ValueError(f"uniform_pdf: a = {a}, b = {b} — a must be less than b")
+    
+    f = np.zeros_like(x)
+    valid = (x >= a) & (x <= b)
+    f[valid] = 1.0 / (b - a)
+    
+    return f
 
-    Parameters:
-    - x : scalar or array-like
-    - a : lower bound
-    - b : upper bound
 
-    Returns:
-    - pdf : float or np.ndarray
-    """
-    dist = scipy_uniform(loc=a, scale=b - a)  # loc refers to the mean, scale refers to the standard deviation
-    return dist.pdf(x)
-
-
-# -------------------------------
-# Uniform Cumulative Distribution Function (CDF)
-# -------------------------------
 def cdf(x, a, b):
-    """
-    Compute the CDF of the uniform distribution on [a, b].
+    '''
+    uniform.cdf
 
-    Parameters:
-    - x : scalar or array-like
-    - a : lower bound
-    - b : upper bound
-
-    Returns:
-    - cdf : float or np.ndarray
-    """
-    dist = scipy_uniform(loc=a, scale=b - a)
-    return dist.cdf(x)
-
-
-# -------------------------------
-# Uniform Inverse CDF (Quantile Function)
-# -------------------------------
-def inv(p, a, b):
-    """
-    Compute the inverse CDF (quantile function) for the uniform distribution on [a, b].
-
-    Parameters:
-    - p : scalar or array-like in [0, 1]
-    - a : lower bound
-    - b : upper bound
-
-    Returns:
-    - x : quantiles corresponding to input probabilities p
-    """
-    dist = scipy_uniform(loc=a, scale=b - a)
-    return dist.ppf(p)
+    Computes the CDF of the uniform distribution on [a, b].
+    
+    INPUT:
+        x   = array_like of evaluation points
+        a   = float Lower bound
+        b   = float Upper bound (must be > a)
+    
+    OUTPUT:
+        F   = ndarray
+              CDF values at each point in x
+    '''
+    x = np.asarray(x, dtype=float)
+    
+    if b <= a:
+        raise ValueError(f"uniform_cdf: a = {a}, b = {b} — a must be less than b")
+    
+    F = np.clip((x - a) / (b - a), 0, 1)
+    
+    return F
 
 
-# -------------------------------
-# Uniform Random Variable Generator
-# -------------------------------
-def rnd(a, b, size=(1,), seed=None):
-    """
-    Generate random samples from a uniform distribution on [a, b].
+def inv(F, a, b):
+    '''
+    uniform.inv
+    
+    Computes the inverse CDF (quantile function) of the uniform distribution.
+    INPUT:
+        F = array_like of Probability values (must be in [0, 1])
+        a = float of Lower bound
+        b = float of Upper bound (must be > a)
+    
+    OUTPUT:
+        x = ndarray
+            Quantile values corresponding to probabilities F
+    '''
+    F = np.asarray(F, dtype=float)
+    
+    if b <= a:
+        raise ValueError(f'uniform_inv: a = {a}, b = {b} → a must be less than b')
+    
+    if np.any((F < 0) | (F > 1)):
+        raise ValueError('uniform_inv: F must be between 0 and 1')
+    
+    x = a + F * (b - a)
+    
+    return x
 
-    Parameters:
-    - a : lower bound
-    - b : upper bound
-    - size : tuple, shape of output (e.g., (1000,), (r, c))
-    - seed : int or numpy.random.Generator, optional
 
-    Returns:
-    - samples : numpy.ndarray of shape `size`
-    """
-    if isinstance(seed, (int, type(None))):
-        rng = np.random.default_rng(seed)
-    else:
-        rng = seed
-
-    return rng.uniform(low=a, high=b, size=size)
+def rnd(a, b, r, c):
+    '''
+    uniform.rnd
+    
+    Generate random samples from uniform distribution on [a, b].
+    
+    INPUTS:
+        a = float Lower bound
+        b = float Upper bound (must be > a)
+        r = int Number of rows
+        c = int Number of columns
+    
+    OUTPUT:
+        x : ndarray
+            Shape (r, c) array of uniform random samples
+    '''
+    if b <= a:
+        raise ValueError(f"uniform_rnd: a = {a}, b = {b} — a must be less than b")
+    
+    # Generate standard uniform [0,1]
+    u = np.random.rand(r, c)
+    
+    # Transform to [a, b]: x = a + u * (b - a)
+    x = a + u * (b - a)
+    
+    return x
