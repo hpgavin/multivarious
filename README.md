@@ -98,5 +98,6 @@ methods: distribution.pdf(), distribution.cdf(), distribution.inv(), distributio
 
 | module | description |
 | ------ | ----------- |
+| **format_bank** | format a numerical string |
 | **format_plot** | set the font size, line width, and marker size |
 | **rainbow**     | rainbow line colors |
