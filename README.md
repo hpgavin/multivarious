@@ -104,7 +104,7 @@ methods: distribution.pdf(), distribution.cdf(), distribution.inv(), distributio
 
 # Python Path
 
-```
+```bash
 ## set PYTHONPATH in .profile
 PYTHONPATH="$PYTHONPATH:/path/to/code/multivarious/dsp"
 PYTHONPATH="$PYTHONPATH:/path/to/code/multivarious/lti"

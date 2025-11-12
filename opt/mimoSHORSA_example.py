@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 ''' ... from console 
-import importlib , mimoSHORSA_example
-importlib.reload(mimoSHORSA_example)     # to reload edits
+import importlib , example_usage
+importlib.reload(example_usage)     # to reload edits
 '''
 """
 Example usage of mimoSHORSA for polynomial response surface fitting
@@ -47,7 +47,7 @@ def example_1_simple_polynomial():
                    2.0 * dataX[0, :] + 
                    0.5 * dataX[1, :] ** 2 + 
                    0.3 * dataX[0, :] * dataX[1, :] + 
-                   0.5 * np.random.randn(mData))
+                   0.2 * np.random.randn(mData))
     
     # Fit model
     print("\nFitting model...")
@@ -58,7 +58,7 @@ def example_1_simple_polynomial():
                    pCull=40,      # Will be set to 0 if L1_pnlty > 0
                    tol=0.10,      # Maximum coefficient of variation
                    scaling=2,     # Decorrelation scaling
-                   L1_pnlty=10,   # L1 regularization penalty
+                   L1_pnlty=50,   # L1 regularization penalty
                    basis_fctn='L') # 'H'=Hermite, 'L'=Legendre, 'P'=Power
     
     print("\n" + "-"*70)

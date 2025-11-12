@@ -6,7 +6,7 @@ from rainbow import rainbow
 from format_plot import format_plot
 
 
-def mimoSHORSA(dataX, dataY, maxOrder=3, pTrain=50, pCull=30, cov_tol=0.10, scaling=1, L1_pnlty=1.0, basis_fctn='H'): 
+def mimoSHORSA(dataX, dataY, maxOrder=2, pTrain=70, pCull=0, cov_tol=0.10, scaling=1, L1_pnlty=1.0, basis_fctn='H'): 
     '''
     [ order, coeff, meanX, meanY, trfrmX, trfrmY, testModelY, testX, testY ] = mimoSHORSA( dataX, dataY, maxOrder, pTrain, pCull, cov_tol, scaling, L1_pntly, basis_fctn  )
     
@@ -53,9 +53,9 @@ def mimoSHORSA(dataX, dataY, maxOrder=3, pTrain=50, pCull=30, cov_tol=0.10, scal
      meanY      mean vector of the scaled dataY
      trfrmX     transformation matrix from dataZx to dataX
      trfrmY     transformation matrix from dataZy to dataY
-     testModelY output features for model testing
      testX      input  features for model testing 
      testY      output features for model testing 
+     testModelY output features for model testing
     
     Reference:
        Gavin, HP and Yau SC, "High order limit state functions in the 
@@ -213,7 +213,7 @@ def mimoSHORSA(dataX, dataY, maxOrder=3, pTrain=50, pCull=30, cov_tol=0.10, scal
         
         plt.show(block=False)
     
-    return order, coeff, meanX, meanY, trfrmX, trfrmY, testModelY, testX, testY
+    return order, coeff, meanX, meanY, trfrmX, trfrmY, testX, testY, testModelY
 
 
 # Placeholder function stubs - these will be implemented as you provide them
