@@ -101,3 +101,17 @@ methods: distribution.pdf(), distribution.cdf(), distribution.inv(), distributio
 | **format_bank** | format a numerical string |
 | **format_plot** | set the font size, line width, and marker size |
 | **rainbow**     | rainbow line colors |
+
+# Python Path
+
+```
+## set PYTHONPATH in .profile
+PYTHONPATH="$PYTHONPATH:/path/to/code/multivarious/dsp"
+PYTHONPATH="$PYTHONPATH:/path/to/code/multivarious/lti"
+PYTHONPATH="$PYTHONPATH:/path/to/code/multivarious/ode"
+PYTHONPATH="$PYTHONPATH:/path/to/code/multivarious/opt"
+PYTHONPATH="$PYTHONPATH:/path/to/code/multivarious/rvs"
+PYTHONPATH="$PYTHONPATH:/path/to/code/multivarious/utl"
+export PYTHONPATH
+```
+
