@@ -148,6 +148,7 @@ mimoSHORSA (
     pTrain     = 70,    # percentage of the data used for training
     pCull      = 0,     # percentage of the basis to cull 
     cov_tol    = 0.1,   # desired maximum model coefficient of variation
+    scaling    = 1,     # five scaling options
     L1_pnlty   = 1.00,  # L1 regularization penalty factor
     basis_fctn = 'H' )  # 'H' Hermite, 'L' Legendre, 'P' power polynomial
 ```
