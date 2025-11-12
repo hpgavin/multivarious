@@ -707,7 +707,7 @@ def hermite(n, z, N):
     pi4 = np.pi**(0.25)
     ez2 = np.exp(-0.5 * z**2)
 
-    z0 = N+2;     # expand the domain of extrapolation 
+    z0 = N+2;    # expand the domain of extrapolation 
 
     if n == 0:
         psy = np.exp(-(z/z0)**(6*z0))
