@@ -5,9 +5,10 @@ from datetime import datetime, timedelta
 from rainbow import rainbow 
 from format_plot import format_plot
 
-def mimoSHORSA(dataX, dataY, maxOrder=3, pTrain=50, pCull=30, tol=0.10, scaling=1, L1_pnlty=1.0, basis_fctn='H'): 
+
+def mimoSHORSA(dataX, dataY, maxOrder=3, pTrain=50, pCull=30, cov_tol=0.10, scaling=1, L1_pnlty=1.0, basis_fctn='H'): 
     '''
-    [ order, coeff, meanX, meanY, trfrmX, trfrmY, testModelY, testX, testY ] = mimoSHORSA( dataX, dataY, maxOrder, pTrain, pCull, tol, scaling, L1_pntly, basis_fctn  )
+    [ order, coeff, meanX, meanY, trfrmX, trfrmY, testModelY, testX, testY ] = mimoSHORSA( dataX, dataY, maxOrder, pTrain, pCull, cov_tol, scaling, L1_pntly, basis_fctn  )
     
     mimoSHORSA
     multi-input multi-output Stochastic High Order Response Surface Algorithm
@@ -24,26 +25,25 @@ def mimoSHORSA(dataX, dataY, maxOrder=3, pTrain=50, pCull=30, tol=0.10, scaling=
     based on previous results. In the third stage, the response surface 
     is approximated.
     
-    INPUT       DESCRIPTION                                                DEFAULT
-    --------    --------------------------------------------------------   -------
+    INPUT       DESCRIPTION                                              DEFAULT
+    --------    -------------------------------------------------------- -------
     dataX       m observations of n input  features in a (nx x m) matrix
     dataY       m observations of m output features in a (ny x m) matrix
-    maxOrder    maximum allowable polynomial order                            3
-    pTrain      percentage of data for training (remaining for testing)      50
-    pCull       maximum percentage of model which may be culled              30 
-    tol         desired maximum model coefficient of variation                0.10
-    scaling     scale the data before fitting                                 1
+    maxOrder    maximum allowable polynomial order                          3
+    pTrain      percentage of data for training (remaining for testing)    50
+    pCull       maximum percentage of model which may be culled            30 
+    cov_tol     desired maximum model coefficient of variation              0.10
+    scaling     scale the data before fitting                               1
                 scaling = 0 : no scaling
                 scaling = 1 : subtract mean and divide by std.dev
                 scaling = 2 : subtract mean and decorrelate
                 scaling = 3 : log-transform, subtract mean and divide by std.dev
                 scaling = 4 : log-transform, subtract mean and decorrelate
-    L1_pnlty    coefficient for L1 regularization                             1.0
-    basis_fctn  basis function type                                            'H'
+    L1_pnlty    coefficient for L1 regularization                           1.0
+    basis_fctn  basis function type                                         'H'
                 'H': Hermite functions
                 'L': Legendre polynomials
                 'P': Power polynomials
-
     
     OUTPUT      DESCRIPTION
     --------    --------------------------------------------------------
@@ -66,14 +66,14 @@ def mimoSHORSA(dataX, dataY, maxOrder=3, pTrain=50, pCull=30, tol=0.10, scaling=
     Duke University
     Siu Chung Yau, Henri P. Gavin, January 2006, 2023
     '''
-    
+
     print('\n Multi-Input Multi-Output High Order Response Surface (mimoSHORSA)\n')
-    
+
     # Handle default arguments and convert to appropriate types
     maxOrder = int(round(abs(maxOrder)))
     pTrain = abs(pTrain) / 100 if pTrain > 1 else abs(pTrain)
     pCull = abs(pCull) / 100 if pCull > 1 else abs(pCull)
-    tol = abs(tol)
+    cov_tol = abs(cov_tol)
     scaling = int(round(abs(scaling)))
     L1_pnlty = abs(L1_pnlty)
     if L1_pnlty > 0: # No "culling" with L1 regularization
@@ -96,8 +96,8 @@ def mimoSHORSA(dataX, dataY, maxOrder=3, pTrain=50, pCull=30, tol=0.10, scaling=
     
     # scale data matrices trainX and trainY separately since using 
     # the covariance between trainX and trainY in the model is "cheating"
-    trainZx, meanX, trfrmX = scale_data(trainX, scaling, 0)
-    trainZy, meanY, trfrmY = scale_data(trainY, scaling, 0)
+    trainZx, meanX, trfrmX = scale_data(trainX, scaling)
+    trainZy, meanY, trfrmY = scale_data(trainY, scaling)
     
     if scaling > 0:  # remove each column of trainZx and trainZy with outliers
         XY = np.vstack([trainZx, trainZy])
@@ -179,12 +179,12 @@ def mimoSHORSA(dataX, dataY, maxOrder=3, pTrain=50, pCull=30, tol=0.10, scaling=
             plt.draw()
             plt.pause(1.001)
         
-        if (testMDcorr[:, iter] > 0).all() and (np.max(coeffCOVmax[:, iter]) < tol):
+        if (testMDcorr[:, iter] > 0).all() and (np.max(coeffCOVmax[:, iter]) <cov_tol):
             maxCull = iter + 1
             break
 
         if L1_pnlty == 0:
-            order, nTerm, coeffCOV = cull_model(coeff, order, coeffCOV, tol)
+            order, nTerm, coeffCOV = cull_model(coeff, order, coeffCOV, cov_tol)
 
     # ------------ cull uncertain terms from the model
     
@@ -257,7 +257,7 @@ def split_data(dataX, dataY, pTrain):
     return trainX, trainY, mTrain, testX, testY, mTest
 
 
-def polynomial_orders(maxOrder, Zx, Zy, n, tol, scaling):
+def polynomial_orders(maxOrder, Zx, Zy, n, cov_tol, scaling):
     '''
     [order, orderR2] = polynomial_orders(maxOrder)
     
@@ -319,7 +319,7 @@ def polynomial_orders(maxOrder, Zx, Zy, n, tol, scaling):
             plt.title(ttl)
             plt.pause(1.1)
             
-            if (orderR2[i] > 1 - tol) and (fit_error < tol):  # the 1D fit is accurate
+            if (orderR2[i] > 1 - cov_tol) and (fit_error < cov_tol):  # the 1D fit is accurate
                 break
         
         order[i] = ki  # save the identified polynomial order
@@ -332,7 +332,7 @@ def polynomial_orders(maxOrder, Zx, Zy, n, tol, scaling):
     return order, orderR2
 
 
-def scale_data(Data, scaling, flag):
+def scale_data(Data, scaling):
     '''
     [ Z, meanD, T, maxZ, minZ ] = scale_data(Data, scaling)
      scale data in one of four or five ways ..  Z = inv(T)*(Data - meanD); 
@@ -346,7 +346,6 @@ def scale_data(Data, scaling, flag):
                  scaling = 2 : subtract mean and decorrelate
                  scaling = 3 : log-transform, subtract mean and divide by std.dev
                  scaling = 4 : log-transform, subtract mean and decorrelate
-    flag        unused parameter (kept for compatibility)             1 x 1
     
     OUTPUT      DESCRIPTION                                           DIMENSION
     --------    ---------------------------------------------------   ---------
@@ -711,9 +710,9 @@ def hermite(n, z, N):
     z0 = N+2;     # expand the domain of extrapolation 
 
     if n == 0:
-        psy = exp(-(z/z0)**(6*z0))
+        psy = np.exp(-(z/z0)**(6*z0))
     elif n == 1:
-        psy = (z/z0) * exp(-(z/z0)**(6*z0)) 
+        psy = (z/z0) * np.exp(-(z/z0)**(6*z0)) 
     elif n == 2:
         psy = 1/pi4 * ez2
     elif n == 3:
@@ -811,7 +810,7 @@ def fit_model(Zx, Zy, order, nTerm, mData, L1_pnlty, basis_fctn):
      condB      condition number of the model basis                     1 x 1
     '''
     
-    print(f'Fit The Model ... with L1_pnlty = {L1_pnlty}')
+    print(f'Fit The Model ... with {basis_fctn} polynomials and L1_pnlty = {L1_pnlty}')
 
     B = build_basis( Zx, order, basis_fctn )
 
@@ -838,7 +837,7 @@ def fit_model(Zx, Zy, order, nTerm, mData, L1_pnlty, basis_fctn):
 
     condB = np.linalg.cond(B)
 
-    print(f'  condition number of model basis matrix = {condB:6.1f}')
+    print(f'  condition number of model basis matrix = {condB:8.2e}')
 
     return coeff, condB
 
@@ -954,7 +953,7 @@ def evaluate_model(B, coeff, dataY, modelY, figNo, txt):
         
         # coefficient of variation of each coefficient for model "io"
         coeffCOV[io] = Std_Err_Coeff / ( np.abs(coeff[io].flatten()) + 1e-6 )
-        coeffCOV[io][np.abs(coeff[io]) < 1e-6] = 1e-3
+        coeffCOV[io][np.abs(coeff[io]) < 1e-6] = 1e-4
         
         AIC[io] = 0   # add AIC here
     
@@ -981,8 +980,8 @@ def evaluate_model(B, coeff, dataY, modelY, figNo, txt):
             tx = 0.55
             ty = 0.5 - 0.2 * (io+1)
             plt.text(tx*ax[1] + (1-tx)*ax[0], ty*ax[3] + (1-ty)*ax[2],
-                    f'ρ_{{x,y{io}}} = {MDcorr[io]:.3f}', color=cMap[io, :])
-#                   '$\rho_{{x,y{io}}}$ = {MDcorr[io]:.3f}', color=cMap[io, :])
+                f'ρ_{{x,y{io+1}}} = {MDcorr[io]:.3f}', color=cMap[io, :])
+#               '$\rho_{{x,y{io_1}}}$ = {MDcorr[io]:.3f}', color=cMap[io, :])
             ty = 0.5 + 0.4 * (io+1)
             plt.text(tx*ax[1] + (1-tx)*ax[0], ty*ax[3] + (1-ty)*ax[2],
                     f'{txt}', color=cMap[io, :])
@@ -1012,7 +1011,8 @@ def print_model_stats(iter, coeff, order, coeffCOV, MDcorr, R2adj, scaling, maxC
     nOut = len(order)
     nTerm, nInp = order[0].shape
     
-    print(f' model culling iteration {iter + 1}')
+    if maxCull > 1:
+        print(f' model culling iteration {iter}')
     for io in range(nOut):
         print(f'  Output {io + 1} ------------------------------------------')
         print(f'  Scaling Option    = {scaling}')
@@ -1030,10 +1030,13 @@ def print_model_stats(iter, coeff, order, coeffCOV, MDcorr, R2adj, scaling, maxC
         
         # Print each term
         for it in range(nTerm):
-            line = f'  {it + 1:3d} '
+            line = f'  {it:3d}  '
             for ii in range(nInp):
-                line += f' {order[io][it, ii]:2d}  '
-            line += f' {coeff[io][it]:8.4f}  {coeffCOV[io][it]:8.4f}'
+                if order[io][it,ii] > 0:
+                   line += f' {order[io][it, ii]:2d}  '
+                else:
+                   line += f'  .  '
+            line += f'{coeff[io][it]:8.4f}  {coeffCOV[io][it]:8.4f}'
             print(line)
         
         print()
@@ -1056,9 +1059,9 @@ def print_model_stats(iter, coeff, order, coeffCOV, MDcorr, R2adj, scaling, maxC
         print('  ==================================')
 
 
-def cull_model(coeff, order, coeffCOV, tol):
+def cull_model(coeff, order, coeffCOV, cov_tol):
     '''
-    [ order, nTerm, coeffCOV ] = cull_model( coeff, order, coeffCOV, tol )
+    [ order, nTerm, coeffCOV ] = cull_model( coeff, order, coeffCOV, cov_tol )
     remove the term from the model that has the largest coeffCOV
     
     INPUT       DESCRIPTION                                         DIMENSION
@@ -1067,7 +1070,7 @@ def cull_model(coeff, order, coeffCOV, tol):
      order      order of each explanatory variable in each term   {nTerm x nInp}
     coeffCOV    list of coefficient of variation of
                 each model coefficient of each model               {1 x nTerm}
-     tol        tolerance for an acceptable coeffCOV                1 x 1
+     cov_tol    tolerance for an acceptable coeffCOV                1 x 1
     
     OUTPUT      DESCRIPTION                                         DIMENSION
     --------    -------------------------------------------------   ---------
@@ -1101,7 +1104,7 @@ def cull_model(coeff, order, coeffCOV, tol):
     return order, nTerm, coeffCOV
 
 
-def IDWinterp(Zx, Zy, zMap, p, k, tol):
+def IDWinterp(Zx, Zy, zMap, p, k, cov_tol):
     '''
     Inverse Distance Weighting interpolation
     NOTE: This function is used only by polynomial_orders, which is currently unused.
