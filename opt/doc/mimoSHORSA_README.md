@@ -136,8 +136,8 @@ basis_function = 'H'  # Hermite functions
 
 
 # Your data
-# xData: (nInp x mData) input features
-# yData: (nOut x mData) output features
+# dataX: (nInp x mData) input features
+# dataY: (nOut x mData) output features
 
 # Run mimoSHORSA
 order, coeff, meanX,meanY, trfrmX,trfrmY, testX,testY, testModelY = \
