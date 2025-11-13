@@ -162,8 +162,8 @@ def mimoSHORSA(dataX, dataY, maxOrder=2, pTrain=70, pCull=0, cov_tol=0.10, scali
 
         
         # evaluate the model for the training data and the testing data
-        trainMDcorr[:, iter], coeffCOV, _, _ = evaluate_model(B, coeff, trainY, trainModelY, trainFigNo, 'train')
-        testMDcorr[:, iter], _, R2adj, AIC = evaluate_model(B, coeff, testY, testModelY, testFigNo, 'test')
+        trainMDcorr[:, iter], coeffCOV, _, _ = evaluate_model(B, coeff, trainY, trainModelY, trainFigNo, 'training')
+        testMDcorr[:, iter], _, R2adj, AIC = evaluate_model(B, coeff, testY, testModelY, testFigNo, 'testing')
         
         for io in range(nOut):
             coeffCOVmax[io, iter] = np.max(coeffCOV[io])
@@ -430,7 +430,7 @@ def clip_data(Data, low_limit, high_limit):
     idxc = np.where(np.any( np.abs(Data) > Chauvenet_criterion, axis=0 ))[0]
     outliers = idxc.shape[0]
     print(f'  Chauvenet outlier criterion = {Chauvenet_criterion:.2f}')  
-    print(f'  Number of Outliers = {outliers} = {100*outliers/nData:.2f} percent of the data')
+    print(f'  number of outliers = {outliers} = {100*outliers/nData:.2f} percent of the data')
 
     if outliers > 0:
         low_limit  =  low_limit * Chauvenet_criterion
@@ -979,14 +979,14 @@ def evaluate_model(B, coeff, dataY, modelY, figNo, txt):
         cMap = rainbow(nOut)
         plt.figure(figNo)
         format_plot(16, 1, 3)
-        ax = [ np.min(dataY), np.max(dataY), np.min(dataY), np.max(dataY) ]
+        ax = [  np.min(dataY), np.max(dataY), np.min(dataY), np.max(dataY)]
         plt.clf()
         for io in range(nOut):
-            plt.plot(modelY[io, :], dataY[io, :], 'o', color=cMap[io, :])
+            plt.plot(dataY[io, :], modelY[io, :],  'o', color=cMap[io, :])
         plt.plot([ax[0], ax[1]], [ax[2], ax[3]], '-k', linewidth=0.5)
         plt.axis('square')
-        plt.xlabel('Y model')
-        plt.ylabel('Y data')
+        plt.xlabel(f'{txt} output data')
+        plt.ylabel(f'{txt} model output')
         
         tx = 0.00
         ty = 1.0 - 0.05 * (io+1)
@@ -999,9 +999,6 @@ def evaluate_model(B, coeff, dataY, modelY, figNo, txt):
             plt.text(tx*ax[1] + (1-tx)*ax[0], ty*ax[3] + (1-ty)*ax[2],
                 f'ρ_{{x,y{io+1}}} = {MDcorr[io]:.3f}', color=cMap[io, :])
 #               '$\rho_{{x,y{io_1}}}$ = {MDcorr[io]:.3f}', color=cMap[io, :])
-            ty = 0.5 + 0.4 * (io+1)
-            plt.text(tx*ax[1] + (1-tx)*ax[0], ty*ax[3] + (1-ty)*ax[2],
-                    f'{txt}', color=cMap[io, :])
         
         plt.show(block=False)
     
