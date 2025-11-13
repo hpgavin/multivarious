@@ -6,9 +6,9 @@ from rainbow import rainbow
 from format_plot import format_plot
 
 
-def mimoSHORSA(dataX, dataY, maxOrder=2, pTrain=70, pCull=0, cov_tol=0.10, scaling=1, L1_pnlty=1.0, basis_fctn='H'): 
+def mimoSHORSA(dataX, dataY, maxOrder=2, pTrain=70, pCull=0, cov_tol=0.10, scaling=1, L1_pnlty=1.0, basis_fctn='H'):
     '''
-    [ order, coeff, meanX, meanY, trfrmX, trfrmY, testModelY, testX, testY ] = mimoSHORSA( dataX, dataY, maxOrder, pTrain, pCull, cov_tol, scaling, L1_pntly, basis_fctn  )
+    [ order, coeff, meanX, meanY, TX, TY, testModelY, testX, testY ] = mimoSHORSA( dataX, dataY, maxOrder, pTrain, pCull, cov_tol, scaling, L1_pntly, basis_fctn  )
     
     mimoSHORSA
     multi-input multi-output Stochastic High Order Response Surface Algorithm
@@ -51,8 +51,8 @@ def mimoSHORSA(dataX, dataY, maxOrder=2, pTrain=70, pCull=0, cov_tol=0.10, scali
      coeff      list of polynomial coefficients 
      meanX      mean vector of the scaled dataX
      meanY      mean vector of the scaled dataY
-     trfrmX     transformation matrix from dataZx to dataX
-     trfrmY     transformation matrix from dataZy to dataY
+     TX         transformation matrix from dataZx to dataX
+     TY         transformation matrix from dataZy to dataY
      testX      input  features for model testing 
      testY      output features for model testing 
      testModelY output features for model testing
@@ -87,49 +87,61 @@ def mimoSHORSA(dataX, dataY, maxOrder=2, pTrain=70, pCull=0, cov_tol=0.10, scali
     else:
         mData = mDataX
     
-    # initialize lists for ...
-    B = [None] * nOut           # correlating matrix
-    coeff = [None] * nOut       # model coefficient vector
-    coeffCOV = [None] * nOut    # coefficient of variation of the model coefficients
-    
-    trainX, trainY, mTrain, testX, testY, mTest = split_data(dataX, dataY, pTrain)
-    
-    # scale data matrices trainX and trainY separately since using 
-    # the covariance between trainX and trainY in the model is "cheating"
-    trainZx, meanX, trfrmX = scale_data(trainX, scaling)
-    trainZy, meanY, trfrmY = scale_data(trainY, scaling)
-    
-    print(f'   {trainZy.shape[1]} training data values') 
+    scatter_data(dataX, dataY, figNo=100, varNames=None)
 
-    if scaling > 0:  # remove each column of trainZx and trainZy with outliers
+    # scale data matrices for X (explanatory) and Y (dependent) variables
+    # separately since using the covariance between X and Y in the model
+    # is "cheating"
+    Zx, meanX, TX = scale_data(dataX, scaling)
+    Zy, meanY, TY = scale_data(dataY, scaling)
+    
+    print(f'   {Zy.shape[1]} data values') 
 
-        print(f'  {np.min(trainZx):.6f} < trainZx < {np.max(trainZx):.6f}')
-        print(f'  {np.min(trainZy):.6f} < trainZy < {np.max(trainZy):.6f}')
+    if scaling > 0:  # remove each column of Zx and Zy containing outliers
 
-        XY = np.vstack([trainZx , trainZy])
+        print(f'  {np.min(Zx):.6f} < Zx < {np.max(Zx):.6f}')
+        print(f'  {np.min(Zy):.6f} < Zy < {np.max(Zy):.6f}')
+
+        XY = np.vstack([Zx , Zy])
         XY = XY[:, np.all(XY > -4, axis=0)]
         XY = XY[:, np.all(XY < 4, axis=0)]
 
         XY = clip_data(XY, -1.0 , 1.0 ) 
 
         nData = XY.shape[1]
-        trainZx = XY[:nInp, :]
-        trainZy = XY[nInp:nInp+nOut, :]
+        Zx = XY[:nInp, :]
+        Zy = XY[nInp:nInp+nOut, :]
 
-        print(f'   {trainZy.shape[1]} training data values') 
-        print(f'  {np.min(trainZx):.6f} < trainZx < {np.max(trainZx):.6f}')
-        print(f'  {np.min(trainZy):.6f} < trainZy < {np.max(trainZy):.6f}')
+        # re-scale the data
+        dataX = descale_data(Zx, meanX, TX, scaling)
+        dataY = descale_data(Zy, meanY, TY, scaling)
+        Zx, meanX, TX = scale_data(dataX, scaling)
+        Zy, meanY, TY = scale_data(dataY, scaling)
+
+        print(f'   {Zy.shape[1]} data values') 
+        print(f'  {np.min(Zx):.6f} < Zx < {np.max(Zx):.6f}')
+        print(f'  {np.min(Zy):.6f} < Zy < {np.max(Zy):.6f}')
 
     time.sleep(1) # if needed for debugging
-    
-    # separate order for each variable --- Not needed if data is already provided
+
+    trainZx, trainZy, mTrain, testZx, testZy, mTest = split_data(Zx, Zy, pTrain)
+
+    trainX = descale_data(trainZx, meanX, TX, scaling)
+    trainY = descale_data(trainZy, meanY, TY, scaling)
+    testX  = descale_data(testZx, meanX, TX, scaling)
+    testY  = descale_data(testZy, meanY, TY, scaling)
+
+    # separate order for each variable -- Not needed if data is already provided
     # [maxOrder, orderR2] = polynomial_orders(maxOrder)
     
     maxOrder = maxOrder * np.ones(nInp, dtype=int)  # same maximum order for all variables
     
     order, nTerm = mixed_term_orders(maxOrder, nInp, nOut)
     
-    # initialize variables
+    # initialize variables ...
+    B = [None] * nOut           # model basis matrix
+    coeff = [None] * nOut       # model coefficient vector
+    coeffCOV = [None] * nOut    # coefficient of variation of the model coefficients
     maxCull = max(1,int(round(pCull * nTerm[0]))) # maximum number of terms to cull
     condB = np.full((nOut, maxCull), np.nan) # condition number of basis as model is culled
     for io in range(nOut):
@@ -157,10 +169,9 @@ def mimoSHORSA(dataX, dataY, maxOrder=2, pTrain=70, pCull=0, cov_tol=0.10, scali
             coeff[io], condB[io, iter] = fit_model(trainZx, trainZy[io, :], order[io], nTerm[io], mTrain, L1_pnlty, basis_fctn)
         
         # compute the model for the training data and the testing data
-        trainModelY, B = compute_model(order, coeff, meanX, meanY, trfrmX, trfrmY, trainX, scaling, basis_fctn)
-        testModelY, _  = compute_model(order, coeff, meanX, meanY, trfrmX, trfrmY, testX, scaling, basis_fctn)
+        trainModelY, B = compute_model(order, coeff, meanX, meanY, TX, TY, trainX, scaling, basis_fctn)
+        testModelY, _  = compute_model(order, coeff, meanX, meanY, TX, TY, testX, scaling, basis_fctn)
 
-        
         # evaluate the model for the training data and the testing data
         trainMDcorr[:, iter], coeffCOV, _, _ = evaluate_model(B, coeff, trainY, trainModelY, trainFigNo, 'training')
         testMDcorr[:, iter], _, R2adj, AIC = evaluate_model(B, coeff, testY, testModelY, testFigNo, 'testing')
@@ -223,228 +234,7 @@ def mimoSHORSA(dataX, dataY, maxOrder=2, pTrain=70, pCull=0, cov_tol=0.10, scali
         
         plt.show(block=False)
     
-    return order, coeff, meanX, meanY, trfrmX, trfrmY, testX, testY, testModelY
-
-
-# Placeholder function stubs - these will be implemented as you provide them
-def split_data(dataX, dataY, pTrain):
-    '''
-    [trainX,trainY,mTrain, testX,testY,mTest] = split_data(dataX,dataY,pTrain)
-    split data into a training set and a testing set
-    
-    INPUT       DESCRIPTION                                           DIMENSION
-    --------    ---------------------------------------------------   ---------
-     dataX      m observations of nx input  "explanatory variables     nx x m 
-     dataY      m observations of ny output "explanatory variables     ny x m 
-     pTrain     fraction of the m observations to use for training      1 x 1
-    
-    OUTPUT      DESCRIPTION                                           DIMENSION
-    --------    ---------------------------------------------------   ---------
-     trainX     matrix of  input data for training                    nx x mTrain
-     trainY     matrix of output data for training                    ny x mTrain
-     mTrain     number of observations in the training set             1 x 1
-     testX      matrix of  input data for testing                     nx x mTest
-     testY      matrix of output data for testing                     ny x mTest
-     mTest      number of observations in the testing set              1 x 1
-    '''
-    
-    nInp, mData = dataX.shape   # number of columns in dataX is mData
-    
-    mTrain = int(np.floor(pTrain * mData))  # number of data points in training data set
-    mTest = mData - mTrain                   # number of data points in testing  data set
-    
-    reorder = np.random.permutation(mData)        # random permutation of integers [0:mData-1]
-    idtrainX = reorder[:mTrain]                   # indices of training data
-    idtestX = reorder[mTrain:mData]               # indices of testing data
-    
-    trainX = dataX[:, idtrainX]
-    trainY = dataY[:, idtrainX]
-    
-    testX = dataX[:, idtestX]
-    testY = dataY[:, idtestX]
-    
-    return trainX, trainY, mTrain, testX, testY, mTest
-
-
-def polynomial_orders(maxOrder, Zx, Zy, n, cov_tol, scaling):
-    '''
-    [order, orderR2] = polynomial_orders(maxOrder)
-    
-    NOTE: This function is not currently used in the main workflow.
-    It becomes inefficient for larger datasets.
-    The main function uses uniform maxOrder for all variables instead.
-    '''
-    print('1st Stage: Polynomial Order Determination ...')
-    
-    order = np.ones(n, dtype=int)      # initial guess of response surface orders
-    quality = np.zeros(n)
-    orderR2 = np.zeros(n)
-    no_pts = maxOrder + 15             # number of sample points (must be > ki+1)
-    
-    # sample points along dimension X_i within the domain [-1,1]
-    # (roots of no_pts-th order Chebyshev polynomial)
-    z = np.cos(np.pi * (np.arange(1, no_pts + 1) - 0.5) / no_pts)
-    
-    for i in range(n):  # determine the orders for each variable one by one
-        
-        # allocate memory for matrix of sampling points along all variables
-        zAvg = np.mean(Zx, axis=1)
-        zMap = np.outer(zAvg, np.ones(no_pts))
-        
-        # the sample points along z (-1 <= z <= 1) are linearly mapped onto the domain [zMin ... zMax]
-        # only the i-th row is non-zero since all other variables 
-        # are kept constants at their mean values
-        zMax = np.max(Zx[i, :])
-        zMin = np.min(Zx[i, :])
-        zMap[i, :] = (zMax + zMin + z * (zMax - zMin)) / 2
-        
-        # interpolate the data at the Chebyshev sampling points
-        y = IDWinterp(Zx.T, Zy.T, zMap.T, 2, 10, 0.1)
-        
-        for ki in range(order[i], maxOrder + 1):  # loop over possible polynomial orders
-            
-            # values of 0-th to ki-th degree Chebyshev polynomials at
-            # the sampling points.
-            # this matrix is used for the determination of coefficients
-            Tx = np.cos(np.arccos(z[:, np.newaxis]) * np.arange(ki + 1))
-            
-            d = (Tx.T @ y) / np.diag(Tx.T @ Tx)  # coefficients by least squares method
-            
-            residuals = y - Tx @ d               # residuals of the 1-D curve-fit
-            fit_error = np.linalg.norm(residuals) / (np.linalg.norm(y) - np.mean(y))  # error of the curve fit
-            orderR2[i] = 1 - fit_error**2
-            
-            plt.figure(103)
-            format_plot(18, 4, 8)
-            plt.clf()
-            plt.plot(zMap[i, :], y, 'ob', label='data')
-            plt.plot(zMap[i, :], Tx @ d, '*r', label='fit')
-            if scaling > 0:
-                plt.xlabel(f'Z_{i+1}')
-            else:
-                plt.xlabel(f'X_{i+1}')
-            ttl = f'k_{{{i+1}}}={ki}   R^2 = {orderR2[i]:.3f}   fit-error = {fit_error:.3f}'
-            plt.legend()
-            plt.title(ttl)
-            plt.pause(1.1)
-            
-            if (orderR2[i] > 1 - cov_tol) and (fit_error < cov_tol):  # the 1D fit is accurate
-                break
-        
-        order[i] = ki  # save the identified polynomial order
-    
-    # output the results
-    print('  Variable     Determined Order    R_sq ')
-    for i in range(n):
-        print(f'{i+1:10.0f} {order[i]:20.0f}    {orderR2[i]:9.6f}')
-    
-    return order, orderR2
-
-
-def scale_data(Data, scaling):
-    '''
-    [ Z, meanD, T, maxZ, minZ ] = scale_data(Data, scaling)
-     scale data in one of four or five ways ..  Z = inv(T)*(Data - meanD); 
-    
-    INPUT       DESCRIPTION                                           DIMENSION
-    --------    ---------------------------------------------------   ---------
-    Data        a matrix of data values                               n x m
-    scaling     type of scaling ...                                   1 x 1
-                 scaling = 0 : no scaling
-                 scaling = 1 : subtract mean and divide by std.dev
-                 scaling = 2 : subtract mean and decorrelate
-                 scaling = 3 : log-transform, subtract mean and divide by std.dev
-                 scaling = 4 : log-transform, subtract mean and decorrelate
-    
-    OUTPUT      DESCRIPTION                                           DIMENSION
-    --------    ---------------------------------------------------   ---------
-    Z           scaled data                                           n x m
-    meanD       the arithmetic mean of the (log-transformed) data     n x 1
-    T           transformation matrix                                 n x n
-    maxZ        maximum value of each data sample                     1 x n
-    minZ        minimum value of each data sample                     1 x n
-    '''
-    
-    n, m = Data.shape  # m observations of n variables
-    
-    if scaling == 0:  # no scaling
-        Z = Data.copy()
-        meanD = np.zeros((n, 1))
-        T = np.eye(n)
-    
-    elif scaling == 1:  # subtract mean and divide by std.dev
-        meanD = np.mean(Data, axis=1, keepdims=True)
-        T = np.diag(np.sqrt(np.var(Data, axis=1, ddof=1)))
-    
-    elif scaling == 2:  # subtract mean and decorrelate
-        meanD = np.mean(Data, axis=1, keepdims=True)
-        covData = np.cov(Data)
-        dim_cov_data = covData.shape
-        eVal, eVec = np.linalg.eig(covData)
-        T = eVec @ np.sqrt(np.diag(eVal))
-    
-    elif scaling == 3:  # log-transform, subtract mean and divide by std.dev
-        Data = np.log10(Data)
-        meanD = np.mean(Data, axis=1, keepdims=True)
-        T = np.diag(np.sqrt(np.var(Data, axis=1, ddof=1)))
-    
-    elif scaling == 4:  # log-transform, subtract mean and decorrelate
-        Data = np.log10(Data)
-        meanD = np.mean(Data, axis=1, keepdims=True)
-        covData = np.cov(Data)
-        eVal, eVec = np.linalg.eig(covData)
-        T = eVec @ np.sqrt(np.diag(eVal))
-    
-    else:
-        raise ValueError(f'Invalid scaling option: {scaling}. Must be 0-4.')
-    
-    # apply the scaling: Z = inv(T) * (Data - meanD)
-    Z = np.linalg.solve(T, Data - meanD)
-
-    maxZ = np.max(Z, axis=1)
-    minZ = np.min(Z, axis=1)
-    
-    return Z, meanD, T
-
-
-def clip_data(Data, low_limit, high_limit):
-    '''
-     clip_data(Data, low_limit, high_limit)
-     remove outliers from standardized data (zero mean, unit variance)
-     using Chauvenet's criterion
-    
-    INPUT       DESCRIPTION                                           DIMENSION
-    --------    ---------------------------------------------------   ---------
-    Data        matrix of data                                          n x m  
-    low_limit   remove values lower  than low_limit *Chauvenet crit     1 x 1
-    high_limit  remove values higher than high_limit*Chauvenet crit     1 x 1
-    
-    OUTPUT      DESCRIPTION                                           DIMENSION
-    --------    ---------------------------------------------------   ---------
-     Data       matrix of data without values exceeding given limits    n x m'
-    '''
-        
-    nData = Data.shape[1]
-
-    Chauvenet_criterion = 0.8 + 0.4*np.log(nData)  # an approximation
-    idxc = np.where(np.any( np.abs(Data) > Chauvenet_criterion, axis=0 ))[0]
-    outliers = idxc.shape[0]
-    print(f'  Chauvenet outlier criterion = {Chauvenet_criterion:.2f}')  
-    print(f'  number of outliers = {outliers} = {100*outliers/nData:.2f} percent of the data')
-
-    if outliers > 0:
-        low_limit  =  low_limit * Chauvenet_criterion
-        high_limit = high_limit * Chauvenet_criterion
- 
-        # Keep only columns where all values are greater than low_limit
-        idxc = np.where(np.all(Data > low_limit, axis=0))[0]
-        Data = Data[:, idxc]
-    
-        # Keep only columns where all values are less than high_limit
-        idxc = np.where(np.all(Data < high_limit, axis=0))[0]
-        Data = Data[:, idxc]
-    
-    return Data 
+    return order, coeff, meanX, meanY, TX, TY, testX, testY, testModelY
 
 
 def scatter_data(dataX, dataY, figNo=100, varNames=None):
@@ -487,7 +277,7 @@ def scatter_data(dataX, dataY, figNo=100, varNames=None):
     
     # Create figure with subplots
     plt.ion() # interactive mode: on
-    fig = plt.figure(figNo, figsize=(3*nTotalVars, 3*nTotalVars))
+    fig = plt.figure(figNo, figsize=(2*nTotalVars, 2*nTotalVars))
     plt.clf()
     
     plotIndex = 1
@@ -560,6 +350,150 @@ def scatter_data(dataX, dataY, figNo=100, varNames=None):
     return None
 
 
+def scale_data(Data, scaling):
+    '''
+    [ Z, meanD, T, maxZ, minZ ] = scale_data(Data, scaling)
+     scale data in one of four or five ways ..  Z = inv(T)*(Data - meanD); 
+    
+    INPUT       DESCRIPTION                                           DIMENSION
+    --------    ---------------------------------------------------   ---------
+    Data        a matrix of data values                               n x m
+    scaling     type of scaling ...                                   1 x 1
+                 scaling = 0 : no scaling
+                 scaling = 1 : subtract mean and divide by std.dev
+                 scaling = 2 : subtract mean and decorrelate
+                 scaling = 3 : log-transform, subtract mean and divide by std.dev
+                 scaling = 4 : log-transform, subtract mean and decorrelate
+    
+    OUTPUT      DESCRIPTION                                           DIMENSION
+    --------    ---------------------------------------------------   ---------
+    Z           scaled data                                           n x m
+    meanD       the arithmetic mean of the (log-transformed) data     n x 1
+    T           transformation matrix                                 n x n
+    maxZ        maximum value of each data sample                     1 x n
+    minZ        minimum value of each data sample                     1 x n
+    '''
+    
+    n, m = Data.shape  # m observations of n variables
+    
+    if scaling == 0:  # no scaling
+        Z = Data.copy()
+        meanD = np.zeros((n, 1))
+        T = np.eye(n)
+    
+    elif scaling == 1:  # subtract mean and divide by std.dev
+        meanD = np.mean(Data, axis=1, keepdims=True)
+        T = np.diag(np.sqrt(np.var(Data, axis=1, ddof=1)))
+    
+    elif scaling == 2:  # subtract mean and decorrelate
+        meanD = np.mean(Data, axis=1, keepdims=True)
+        covData = np.cov(Data)
+        dim_cov_data = covData.shape
+        eVal, eVec = np.linalg.eig(covData)
+        T = eVec @ np.sqrt(np.diag(eVal))
+    
+    elif scaling == 3:  # log-transform, subtract mean and divide by std.dev
+        Data = np.log10(Data)
+        meanD = np.mean(Data, axis=1, keepdims=True)
+        T = np.diag(np.sqrt(np.var(Data, axis=1, ddof=1)))
+    
+    elif scaling == 4:  # log-transform, subtract mean and decorrelate
+        Data = np.log10(Data)
+        meanD = np.mean(Data, axis=1, keepdims=True)
+        covData = np.cov(Data)
+        eVal, eVec = np.linalg.eig(covData)
+        T = eVec @ np.sqrt(np.diag(eVal))
+    
+    else:
+        raise ValueError(f'Invalid scaling option: {scaling}. Must be 0-4.')
+    
+    # apply the scaling: Z = inv(T) * (Data - meanD)
+    Z = np.linalg.solve(T, Data - meanD)
+
+    maxZ = np.max(Z, axis=1)
+    minZ = np.min(Z, axis=1)
+    
+    return Z, meanD, T
+
+
+def descale_data(Z, meanD, T, scaling ):
+    '''
+     Data  = scale_data(Z, meanD,  scaling)
+     descale data in one of four or five ways ..  Z = inv(T)*(Data - meanD); 
+    
+    INPUT       DESCRIPTION                                           DIMENSION
+    --------    ---------------------------------------------------   ---------
+    Z           scaled data                                           n x m
+    meanD       the arithmetic mean of the (log-transformed) data     n x 1
+    T           transformation matrix                                 n x n
+    scaling     type of scaling ...                                   1 x 1
+                 scaling = 0 : no scaling
+                 scaling = 1 : subtract mean and divide by std.dev
+                 scaling = 2 : subtract mean and decorrelate
+                 scaling = 3 : log-transform, subtract mean and divide by std.dev
+                 scaling = 4 : log-transform, subtract mean and decorrelate
+    
+    OUTPUT      DESCRIPTION                                           DIMENSION
+    --------    ---------------------------------------------------   ---------
+    Data        a matrix of data values                               n x m
+    '''
+    # apply the scaling: Data = T * Z + meanD
+    
+    if scaling == 0:  # no scaling
+        Data = Z.copy()
+
+    if scaling == 1 or scaling == 2:  
+        Data = T @ Z + meanD; 
+
+    elif scaling == 3 or scaling == 4: 
+        Data = 10**(T @ Z + meanD); 
+    
+    else:
+        raise ValueError(f'Invalid scaling option: {scaling}. Must be 0-4.')
+    
+    return Data
+
+
+def clip_data(Data, low_limit, high_limit):
+    '''
+     clip_data(Data, low_limit, high_limit)
+     remove outliers from standardized data (zero mean, unit variance)
+     using Chauvenet's criterion
+    
+    INPUT       DESCRIPTION                                           DIMENSION
+    --------    ---------------------------------------------------   ---------
+    Data        matrix of data                                          n x m  
+    low_limit   remove values lower  than low_limit *Chauvenet crit     1 x 1
+    high_limit  remove values higher than high_limit*Chauvenet crit     1 x 1
+    
+    OUTPUT      DESCRIPTION                                           DIMENSION
+    --------    ---------------------------------------------------   ---------
+     Data       matrix of data without values exceeding given limits    n x m'
+    '''
+        
+    nData = Data.shape[1]
+
+    Chauvenet_criterion = 0.8 + 0.4*np.log(nData)  # an approximation
+    idxc = np.where(np.any( np.abs(Data) > Chauvenet_criterion, axis=0 ))[0]
+    outliers = idxc.shape[0]
+    print(f'  Chauvenet outlier criterion = {Chauvenet_criterion:.2f}')  
+    print(f'  number of outliers = {outliers} = {100*outliers/nData:.2f} percent of the data')
+
+    if outliers > 0:
+        low_limit  =  low_limit * Chauvenet_criterion
+        high_limit = high_limit * Chauvenet_criterion
+ 
+        # Keep only columns where all values are greater than low_limit
+        idxc = np.where(np.all(Data > low_limit, axis=0))[0]
+        Data = Data[:, idxc]
+    
+        # Keep only columns where all values are less than high_limit
+        idxc = np.where(np.all(Data < high_limit, axis=0))[0]
+        Data = Data[:, idxc]
+    
+    return Data 
+
+
 def mixed_term_orders(maxOrder, nInp, nOut):
     '''
     [ order , nTerm ] = mixed_term_orders( maxOrder, nInp, nOut )
@@ -591,7 +525,7 @@ def mixed_term_orders(maxOrder, nInp, nOut):
     Algorithm by Siu Chung Yau (2006)
     '''
     
-    print('Determine the Mixed Term Power Products ...')
+    print(f'\nDetermine the Mixed Term Power Products ...')
     
     nTerm_total = int(np.prod(maxOrder + 1))
     
@@ -859,9 +793,9 @@ def fit_model(Zx, Zy, order, nTerm, mData, L1_pnlty, basis_fctn):
     return coeff, condB
 
 
-def compute_model(order, coeff, meanX, meanY, trfrmX, trfrmY, dataX, scaling, basis_fctn='H'):
+def compute_model(order, coeff, meanX, meanY, TX, TY, dataX, scaling, basis_fctn='H'):
     '''
-    [ modelY, B ] = compute_model(order, coeff, meanX, meanY, trfrmX, trfrmY, dataX, scaling,basis_fctn)
+    [ modelY, B ] = compute_model(order, coeff, meanX, meanY, TX, TY, dataX, scaling,basis_fctn)
     compute a multivariate polynomial model 
     
     INPUT       DESCRIPTION                                           DIMENSION
@@ -870,8 +804,8 @@ def compute_model(order, coeff, meanX, meanY, trfrmX, trfrmY, dataX, scaling, ba
      coeff      list of model coefficient vectors                       {nTerm x 1}
      meanX      mean of pre-scaled input  (explanatory) variables     nInp x 1 
      meanY      mean of pre-scaled output  (dependent)  variables     nOut x 1 
-     trfrmX     transformation matrix for input variables             nInp x nInp 
-     trfrmY     transformation matrix for output variables            nOut x nOut
+     TX     transformation matrix for input variables             nInp x nInp 
+     TY     transformation matrix for output variables            nOut x nOut
      dataX      input data to evaluate model on                       nInp x mData
      scaling    scaling type ... see scale_data function                 1 x 1
      basis_fctn 'H': Hermite, 'L': Legendre, 'P': Power polynomial
@@ -892,11 +826,11 @@ def compute_model(order, coeff, meanX, meanY, trfrmX, trfrmY, dataX, scaling, ba
         dataZx = dataX
     
     elif scaling in [1, 2]:
-        dataZx = np.linalg.solve(trfrmX, dataX - meanX)
+        dataZx = np.linalg.solve(TX, dataX - meanX)
     
     elif scaling in [3, 4]:
         log10X = np.log10(dataX)
-        dataZx = np.linalg.solve(trfrmX, log10X - meanX)  # standard normal variables
+        dataZx = np.linalg.solve(TX, log10X - meanX)  # standard normal variables
     
     # Compute model for each output
     for io in range(nOut):
@@ -908,12 +842,125 @@ def compute_model(order, coeff, meanX, meanY, trfrmX, trfrmY, dataX, scaling, ba
         modelY = modelZy.T
     
     elif scaling in [1, 2]:
-        modelY = trfrmY @ modelZy.T + meanY
+        modelY = TY @ modelZy.T + meanY
     
     elif scaling in [3, 4]:
-        modelY = 10**(trfrmY @ modelZy.T + meanY)
+        modelY = 10**(TY @ modelZy.T + meanY)
     
     return modelY, B
+# Placeholder function stubs - these will be implemented as you provide them
+def split_data(dataX, dataY, pTrain):
+    '''
+    [trainX,trainY,mTrain, testX,testY,mTest] = split_data(dataX,dataY,pTrain)
+    split data into a training set and a testing set
+    
+    INPUT       DESCRIPTION                                           DIMENSION
+    --------    ---------------------------------------------------   ---------
+     dataX      m observations of nx input  "explanatory variables     nx x m 
+     dataY      m observations of ny output "explanatory variables     ny x m 
+     pTrain     fraction of the m observations to use for training      1 x 1
+    
+    OUTPUT      DESCRIPTION                                           DIMENSION
+    --------    ---------------------------------------------------   ---------
+     trainX     matrix of  input data for training                    nx x mTrain
+     trainY     matrix of output data for training                    ny x mTrain
+     mTrain     number of observations in the training set             1 x 1
+     testX      matrix of  input data for testing                     nx x mTest
+     testY      matrix of output data for testing                     ny x mTest
+     mTest      number of observations in the testing set              1 x 1
+    '''
+    
+    nInp, mData = dataX.shape   # number of columns in dataX is mData
+    
+    mTrain = int(np.floor(pTrain * mData))  # number of data points in training data set
+    mTest = mData - mTrain                   # number of data points in testing  data set
+    
+    reorder = np.random.permutation(mData)        # random permutation of integers [0:mData-1]
+    idtrainX = reorder[:mTrain]                   # indices of training data
+    idtestX = reorder[mTrain:mData]               # indices of testing data
+    
+    trainX = dataX[:, idtrainX]
+    trainY = dataY[:, idtrainX]
+    
+    testX = dataX[:, idtestX]
+    testY = dataY[:, idtestX]
+    
+    return trainX, trainY, mTrain, testX, testY, mTest
+
+
+def polynomial_orders(maxOrder, Zx, Zy, n, cov_tol, scaling):
+    '''
+    [order, orderR2] = polynomial_orders(maxOrder)
+    
+    NOTE: This function is not currently used in the main workflow.
+    It becomes inefficient for larger datasets.
+    The main function uses uniform maxOrder for all variables instead.
+    '''
+    print('1st Stage: Polynomial Order Determination ...')
+    
+    order = np.ones(n, dtype=int)      # initial guess of response surface orders
+    quality = np.zeros(n)
+    orderR2 = np.zeros(n)
+    no_pts = maxOrder + 15             # number of sample points (must be > ki+1)
+    
+    # sample points along dimension X_i within the domain [-1,1]
+    # (roots of no_pts-th order Chebyshev polynomial)
+    z = np.cos(np.pi * (np.arange(1, no_pts + 1) - 0.5) / no_pts)
+    
+    for i in range(n):  # determine the orders for each variable one by one
+        
+        # allocate memory for matrix of sampling points along all variables
+        zAvg = np.mean(Zx, axis=1)
+        zMap = np.outer(zAvg, np.ones(no_pts))
+        
+        # the sample points along z (-1 <= z <= 1) are linearly mapped onto the domain [zMin ... zMax]
+        # only the i-th row is non-zero since all other variables 
+        # are kept constants at their mean values
+        zMax = np.max(Zx[i, :])
+        zMin = np.min(Zx[i, :])
+        zMap[i, :] = (zMax + zMin + z * (zMax - zMin)) / 2
+        
+        # interpolate the data at the Chebyshev sampling points
+        y = IDWinterp(Zx.T, Zy.T, zMap.T, 2, 10, 0.1)
+        
+        for ki in range(order[i], maxOrder + 1):  # loop over possible polynomial orders
+            
+            # values of 0-th to ki-th degree Chebyshev polynomials at
+            # the sampling points.
+            # this matrix is used for the determination of coefficients
+            Tx = np.cos(np.arccos(z[:, np.newaxis]) * np.arange(ki + 1))
+            
+            d = (Tx.T @ y) / np.diag(Tx.T @ Tx)  # coefficients by least squares method
+            
+            residuals = y - Tx @ d               # residuals of the 1-D curve-fit
+            fit_error = np.linalg.norm(residuals) / (np.linalg.norm(y) - np.mean(y))  # error of the curve fit
+            orderR2[i] = 1 - fit_error**2
+            
+            plt.figure(103)
+            format_plot(18, 4, 8)
+            plt.clf()
+            plt.plot(zMap[i, :], y, 'ob', label='data')
+            plt.plot(zMap[i, :], Tx @ d, '*r', label='fit')
+            if scaling > 0:
+                plt.xlabel(f'Z_{i+1}')
+            else:
+                plt.xlabel(f'X_{i+1}')
+            ttl = f'k_{{{i+1}}}={ki}   R^2 = {orderR2[i]:.3f}   fit-error = {fit_error:.3f}'
+            plt.legend()
+            plt.title(ttl)
+            plt.pause(1.1)
+            
+            if (orderR2[i] > 1 - cov_tol) and (fit_error < cov_tol):  # the 1D fit is accurate
+                break
+        
+        order[i] = ki  # save the identified polynomial order
+    
+    # output the results
+    print('  Variable     Determined Order    R_sq ')
+    for i in range(n):
+        print(f'{i+1:10.0f} {order[i]:20.0f}    {orderR2[i]:9.6f}')
+    
+    return order, orderR2
 
 
 def evaluate_model(B, coeff, dataY, modelY, figNo, txt):
@@ -1043,6 +1090,7 @@ def print_model_stats(iter, coeff, order, coeffCOV, MDcorr, R2adj, scaling, maxC
         print(header)
         
         # Print each term
+        retained_terms = 0
         for it in range(nTerm):
             line = f'  {it:3d}  '
             for ii in range(nInp):
@@ -1051,11 +1099,14 @@ def print_model_stats(iter, coeff, order, coeffCOV, MDcorr, R2adj, scaling, maxC
                 else:
                    line += f'  .  '
             line += f'{coeff[io][it]:8.4f}  {coeffCOV[io][it]:8.4f}'
+            if np.abs(coeff[io][it]) > 1e-4:
+                line += '  *'
+                retained_terms += 1
             print(line)
         
         print()
         print(f'  scaling option            = {scaling:3d}')
-        print(f'  Total Number of Terms     = {nTerm * nOut:3d}')
+        print(f'  Total Number of Terms     = {retained_terms:4d} out of {nTerm * nOut:4d}')
         print(f'  Adjusted R-square {io + 1}       = {R2adj[io]:6.3f}')
         print(f'  model-data correlation {io + 1}  = {MDcorr[io]:6.3f}')
     
