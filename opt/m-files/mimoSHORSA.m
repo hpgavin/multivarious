@@ -582,13 +582,11 @@ function psy = hermite(n,z,N)
   pi4 = pi^(0.25);
   ez2 = exp(-0.5*z.^2);
 
-  z0 = N+2;     % expand the domain of extrapolation 
- 
   switch n 
     case  0
-      psy =          exp(-(z/z0).^(6*z0));
+      psy =          exp(-(z/(N+2)).^(6*N));
     case  1
-      psy = (z/z0) .* exp(-(z/z0).^(6*z0));
+      psy = (z/(N+2)) .* exp(-(z/(N+2)).^(6*N));
     case  2
       psy = 1/pi4 * ez2;
     case  3
