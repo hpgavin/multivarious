@@ -99,17 +99,27 @@ def mimoSHORSA(dataX, dataY, maxOrder=2, pTrain=70, pCull=0, cov_tol=0.10, scali
     trainZx, meanX, trfrmX = scale_data(trainX, scaling)
     trainZy, meanY, trfrmY = scale_data(trainY, scaling)
     
+    print(f'   {trainZy.shape[1]} training data values') 
+
     if scaling > 0:  # remove each column of trainZx and trainZy with outliers
-        XY = np.vstack([trainZx, trainZy])
+
+        print(f'  {np.min(trainZx):.6f} < trainZx < {np.max(trainZx):.6f}')
+        print(f'  {np.min(trainZy):.6f} < trainZy < {np.max(trainZy):.6f}')
+
+        XY = np.vstack([trainZx , trainZy])
         XY = XY[:, np.all(XY > -4, axis=0)]
         XY = XY[:, np.all(XY < 4, axis=0)]
-        
+
+        XY = clip_data(XY, -1.0 , 1.0 ) 
+
         nData = XY.shape[1]
         trainZx = XY[:nInp, :]
         trainZy = XY[nInp:nInp+nOut, :]
-        print(f'{np.min(trainZx):.6f} < trainZx < {np.max(trainZx):.6f}')
-        print(f'{np.min(trainZy):.6f} < trainZy < {np.max(trainZy):.6f}')
-    
+
+        print(f'   {trainZy.shape[1]} training data values') 
+        print(f'  {np.min(trainZx):.6f} < trainZx < {np.max(trainZx):.6f}')
+        print(f'  {np.min(trainZy):.6f} < trainZy < {np.max(trainZy):.6f}')
+
     time.sleep(1) # if needed for debugging
     
     # separate order for each variable --- Not needed if data is already provided
@@ -249,7 +259,6 @@ def split_data(dataX, dataY, pTrain):
     
     trainX = dataX[:, idtrainX]
     trainY = dataY[:, idtrainX]
-    print(f'dim_train_Y = {trainY.shape}') 
     
     testX = dataX[:, idtestX]
     testY = dataY[:, idtestX]
@@ -371,7 +380,6 @@ def scale_data(Data, scaling):
         meanD = np.mean(Data, axis=1, keepdims=True)
         covData = np.cov(Data)
         dim_cov_data = covData.shape
-        print(f'dim_cov_data = {dim_cov_data}')
         eVal, eVec = np.linalg.eig(covData)
         T = eVec @ np.sqrt(np.diag(eVal))
     
@@ -392,40 +400,51 @@ def scale_data(Data, scaling):
     
     # apply the scaling: Z = inv(T) * (Data - meanD)
     Z = np.linalg.solve(T, Data - meanD)
-    
+
     maxZ = np.max(Z, axis=1)
     minZ = np.min(Z, axis=1)
     
     return Z, meanD, T
 
 
-def clip_data(Data, lowLimit, highLimit):
+def clip_data(Data, low_limit, high_limit):
     '''
-     clip_data(Data, lowLimit, highLimit)
-     remove outliers from the data
+     clip_data(Data, low_limit, high_limit)
+     remove outliers from standardized data (zero mean, unit variance)
+     using Chauvenet's criterion
     
     INPUT       DESCRIPTION                                           DIMENSION
     --------    ---------------------------------------------------   ---------
     Data        matrix of data                                          n x m  
-    lowLimit    remove values lower  than lowLimit                      1 x 1
-    highLimit   remove values higher than highLimit                     1 x 1
+    low_limit   remove values lower  than low_limit *Chauvenet crit     1 x 1
+    high_limit  remove values higher than high_limit*Chauvenet crit     1 x 1
     
     OUTPUT      DESCRIPTION                                           DIMENSION
     --------    ---------------------------------------------------   ---------
      Data       matrix of data without values exceeding given limits    n x m'
     '''
+        
+    nData = Data.shape[1]
+
+    Chauvenet_criterion = 0.8 + 0.4*np.log(nData)  # an approximation
+    idxc = np.where(np.any( np.abs(Data) > Chauvenet_criterion, axis=0 ))[0]
+    outliers = idxc.shape[0]
+    print(f'  Chauvenet outlier criterion = {Chauvenet_criterion:.2f}')  
+    print(f'  Number of Outliers = {outliers} = {100*outliers/nData:.2f} percent of the data')
+
+    if outliers > 0:
+        low_limit  =  low_limit * Chauvenet_criterion
+        high_limit = high_limit * Chauvenet_criterion
+ 
+        # Keep only columns where all values are greater than low_limit
+        idxc = np.where(np.all(Data > low_limit, axis=0))[0]
+        Data = Data[:, idxc]
     
-    # remove low and high values (outliers)
+        # Keep only columns where all values are less than high_limit
+        idxc = np.where(np.all(Data < high_limit, axis=0))[0]
+        Data = Data[:, idxc]
     
-    # Keep only columns where all values are greater than lowLimit
-    idxc = np.where(np.all(Data > lowLimit, axis=0))[0]
-    Data = Data[:, idxc]
-    
-    # Keep only columns where all values are less than highLimit
-    idxc = np.where(np.all(Data < highLimit, axis=0))[0]
-    Data = Data[:, idxc]
-    
-    return Data
+    return Data 
 
 
 def scatter_data(dataX, dataY, figNo=100, varNames=None):
