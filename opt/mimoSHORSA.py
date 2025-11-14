@@ -79,6 +79,14 @@ def mimoSHORSA(dataX, dataY, maxOrder=2, pTrain=70, pCull=0, cov_tol=0.10, scali
     if L1_pnlty > 0: # No "culling" with L1 regularization
         pCull = 0
     
+    if not np.isfinite(dataX).all():
+        print(' dataX has infinite or NaN values ')
+        return
+
+    if not np.isfinite(dataY).all():
+        print(' dataY has infinite or NaN values ')
+        return
+
     nInp, mDataX = dataX.shape   # number of columns in dataX is mData
     nOut, mDataY = dataY.shape   # number of columns in dataY is mData
     
@@ -92,15 +100,15 @@ def mimoSHORSA(dataX, dataY, maxOrder=2, pTrain=70, pCull=0, cov_tol=0.10, scali
     # scale data matrices for X (explanatory) and Y (dependent) variables
     # separately since using the covariance between X and Y in the model
     # is "cheating"
-    Zx, meanX, TX = scale_data(dataX, scaling)
-    Zy, meanY, TY = scale_data(dataY, scaling)
+    Zx, meanX, TX, RX, minZx, maxZx = scale_data(dataX, scaling)
+    Zy, meanY, TY, RY, minZy, maxZy = scale_data(dataY, scaling)
     
     print(f'   {Zy.shape[1]} data values') 
 
-    if scaling > 0:  # remove each column of Zx and Zy containing outliers
+    if scaling > 0:  # remove columns of  Zx and Zy containing outliers
 
-        print(f'  {np.min(Zx):.6f} < Zx < {np.max(Zx):.6f}')
-        print(f'  {np.min(Zy):.6f} < Zy < {np.max(Zy):.6f}')
+        print(f'  {minZx:.6f} < Zx < {maxZx:.6f}')
+        print(f'  {minZy:.6f} < Zy < {maxZy:.6f}')
 
         XY = np.vstack([Zx , Zy])
         XY = XY[:, np.all(XY > -4, axis=0)]
@@ -108,19 +116,26 @@ def mimoSHORSA(dataX, dataY, maxOrder=2, pTrain=70, pCull=0, cov_tol=0.10, scali
 
         XY = clip_data(XY, -1.0 , 1.0 ) 
 
-        nData = XY.shape[1]
+        mData = XY.shape[1]
         Zx = XY[:nInp, :]
         Zy = XY[nInp:nInp+nOut, :]
 
         # re-scale the data
         dataX = descale_data(Zx, meanX, TX, scaling)
         dataY = descale_data(Zy, meanY, TY, scaling)
-        Zx, meanX, TX = scale_data(dataX, scaling)
-        Zy, meanY, TY = scale_data(dataY, scaling)
+        Zx, meanX, TX, RX, minZx, maxZx = scale_data(dataX, scaling)
+        Zy, meanY, TY, RY, minZy, maxZy = scale_data(dataY, scaling)
 
         print(f'   {Zy.shape[1]} data values') 
-        print(f'  {np.min(Zx):.6f} < Zx < {np.max(Zx):.6f}')
-        print(f'  {np.min(Zy):.6f} < Zy < {np.max(Zy):.6f}')
+        print(f'  {minZx:.6f} < Zx < {maxZx:.6f}')
+        print(f'  {minZy:.6f} < Zy < {maxZy:.6f}')
+        print(f'  dataX correlation matrix  ')
+        print(np.round(RX,2))
+        print(f'  dataY correlation matrix  ')
+        print(np.round(RY,2))
+
+        if scaling == 2 or scaling == 4:
+            scatter_data(Zx, Zy, figNo=101, varNames=None)
 
     time.sleep(1) # if needed for debugging
 
@@ -128,13 +143,13 @@ def mimoSHORSA(dataX, dataY, maxOrder=2, pTrain=70, pCull=0, cov_tol=0.10, scali
 
     trainX = descale_data(trainZx, meanX, TX, scaling)
     trainY = descale_data(trainZy, meanY, TY, scaling)
-    testX  = descale_data(testZx, meanX, TX, scaling)
-    testY  = descale_data(testZy, meanY, TY, scaling)
+    testX  = descale_data( testZx, meanX, TX, scaling)
+    testY  = descale_data( testZy, meanY, TY, scaling)
 
     # separate order for each variable -- Not needed if data is already provided
     # [maxOrder, orderR2] = polynomial_orders(maxOrder)
     
-    maxOrder = maxOrder * np.ones(nInp, dtype=int)  # same maximum order for all variables
+    maxOrder = maxOrder * np.ones(nInp, dtype=int) # same maximum order for all variables
     
     order, nTerm = mixed_term_orders(maxOrder, nInp, nOut)
     
@@ -154,15 +169,7 @@ def mimoSHORSA(dataX, dataY, maxOrder=2, pTrain=70, pCull=0, cov_tol=0.10, scali
     # start a timer to measure computational time
     start_time = time.time()
     
-    for iter in range(maxCull):  # cull uncertain terms from the model ------------
-        
-        # plot model coefficients and correlations at first and last culling iter
-        if (iter == 0) or (iter == maxCull - 1) or (np.max(coeffCOVmax[:, iter]) < 2*tol):
-            trainFigNo = 200
-            testFigNo = 300
-        else:
-            trainFigNo = 0
-            testFigNo = 0
+    for iter in range(maxCull):  # cull uncertain terms from the model --------
         
         # fit ("train") a separate model for each output (dependent) variable
         for io in range(nOut):
@@ -173,14 +180,17 @@ def mimoSHORSA(dataX, dataY, maxOrder=2, pTrain=70, pCull=0, cov_tol=0.10, scali
         testModelY, _  = compute_model(order, coeff, meanX, meanY, TX, TY, testX, scaling, basis_fctn)
 
         # evaluate the model for the training data and the testing data
-        trainMDcorr[:, iter], coeffCOV, _, _ = evaluate_model(B, coeff, trainY, trainModelY, trainFigNo, 'training')
-        testMDcorr[:, iter], _, R2adj, AIC = evaluate_model(B, coeff, testY, testModelY, testFigNo, 'testing')
+        trainMDcorr[:, iter], coeffCOV, _, _ = evaluate_model(B, coeff, trainY, trainModelY)
+        testMDcorr[:, iter], _, R2adj, AIC = evaluate_model(B, coeff, testY, testModelY) 
         
         for io in range(nOut):
             coeffCOVmax[io, iter] = np.max(coeffCOV[io])
         
         print_model_stats(iter, coeff, order, coeffCOV, testMDcorr[:, iter], R2adj, scaling, maxCull)
         
+        visualize_model_performance(trainY, trainModelY, 'training')
+        visualize_model_performance( testY,  testModelY, 'testing')
+
         if L1_pnlty == 0:
             plt.ion() # interactive mode: on
             for io in range(nOut):
@@ -207,7 +217,7 @@ def mimoSHORSA(dataX, dataY, maxOrder=2, pTrain=70, pCull=0, cov_tol=0.10, scali
         if L1_pnlty == 0:
             order, nTerm, coeffCOV = cull_model(coeff, order, coeffCOV, cov_tol)
 
-    # ------------ cull uncertain terms from the model
+    # cull uncertain terms from the model ------------------------------------ 
     
     # plot correlations and coefficients of variation
     if L1_pnlty == 0: 
@@ -260,7 +270,6 @@ def scatter_data(dataX, dataY, figNo=100, varNames=None):
           - Y vs X correlations in lower left
           - Y vs Y correlations in lower right
     '''
-    
     nInp, m = dataX.shape
     nOut, _ = dataY.shape
     
@@ -285,7 +294,8 @@ def scatter_data(dataX, dataY, figNo=100, varNames=None):
     # Create scatter plots for all pairs
     for iRow in range(nTotalVars):
         for iCol in range(nTotalVars):
-            
+#           print(f' iRow = {iRow}   iCol = {iCol}')
+
             ax = plt.subplot(nTotalVars, nTotalVars, plotIndex)
             
             # Determine which data to plot
@@ -295,7 +305,7 @@ def scatter_data(dataX, dataY, figNo=100, varNames=None):
                 yData = dataX[iRow, :]
                 xLabel = xNames[iCol]
                 yLabel = xNames[iRow]
-                color = 'blue'
+                color = 'darkblue'
                 
             elif iRow >= nInp and iCol < nInp:
                 # Y vs X
@@ -303,7 +313,7 @@ def scatter_data(dataX, dataY, figNo=100, varNames=None):
                 yData = dataY[iRow - nInp, :]
                 xLabel = xNames[iCol]
                 yLabel = yNames[iRow - nInp]
-                color = 'red'
+                color = 'darkcyan'
                 
             elif iRow >= nInp and iCol >= nInp:
                 # Y vs Y
@@ -311,18 +321,24 @@ def scatter_data(dataX, dataY, figNo=100, varNames=None):
                 yData = dataY[iRow - nInp, :]
                 xLabel = yNames[iCol - nInp]
                 yLabel = yNames[iRow - nInp]
-                color = 'green'
+                color = 'darkgreen'
                 
-            else:
+            elif iRow < nInp and iCol >= nInp:
                 # X vs Y (upper right - leave empty or skip)
-                plotIndex += 1
-                continue
+                yData = dataX[iRow, :]
+                xData = dataY[iCol - nInp, :]
+                yLabel = xNames[iRow]
+                xLabel = yNames[iCol - nInp]
+                color = 'darkcyan'
+            # else:  
+                # plotIndex += 1
+                # continue
             
             # Create scatter plot
             if iRow == iCol:
                 # Diagonal: plot histogram instead of scatter
                 ax.hist(xData, bins=20, color=color, alpha=0.7, edgecolor='black')
-                ax.set_ylabel('Count')
+                # ax.set_ylabel('Count')
             else:
                 # Off-diagonal: scatter plot
                 ax.plot(xData, yData, 'o', color=color, markersize=2, alpha=0.5)
@@ -344,7 +360,7 @@ def scatter_data(dataX, dataY, figNo=100, varNames=None):
             plotIndex += 1
     
     plt.tight_layout()
-    plt.suptitle('Pairwise Scatter Plots', fontsize=14, y=1.0)
+#   plt.suptitle('Pairwise Scatter Plots', fontsize=14, y=1.0)
     plt.show(block=False)
     
     return None
@@ -370,16 +386,19 @@ def scale_data(Data, scaling):
     Z           scaled data                                           n x m
     meanD       the arithmetic mean of the (log-transformed) data     n x 1
     T           transformation matrix                                 n x n
+    R           data correlation matrix                               n x n
     maxZ        maximum value of each data sample                     1 x n
     minZ        minimum value of each data sample                     1 x n
     '''
     
     n, m = Data.shape  # m observations of n variables
     
-    if scaling == 0:  # no scaling
+    print(f'n = {n}')
+    T = np.eye(n)
+    R = np.eye(n)
+    if scaling <= 0:  # no scaling
         Z = Data.copy()
         meanD = np.zeros((n, 1))
-        T = np.eye(n)
     
     elif scaling == 1:  # subtract mean and divide by std.dev
         meanD = np.mean(Data, axis=1, keepdims=True)
@@ -388,10 +407,14 @@ def scale_data(Data, scaling):
     elif scaling == 2:  # subtract mean and decorrelate
         meanD = np.mean(Data, axis=1, keepdims=True)
         covData = np.cov(Data)
-        dim_cov_data = covData.shape
-        eVal, eVec = np.linalg.eig(covData)
-        T = eVec @ np.sqrt(np.diag(eVal))
-    
+        if not np.isfinite(covData).all():
+            print(' data covariance has infinite or NaN values ')
+            return
+        if n > 1:
+            eVal, eVec = np.linalg.eig(covData + 1e-6*np.eye(n))
+            print(eVal)
+            T = eVec @ np.sqrt(np.diag(eVal))
+
     elif scaling == 3:  # log-transform, subtract mean and divide by std.dev
         Data = np.log10(Data)
         meanD = np.mean(Data, axis=1, keepdims=True)
@@ -401,19 +424,24 @@ def scale_data(Data, scaling):
         Data = np.log10(Data)
         meanD = np.mean(Data, axis=1, keepdims=True)
         covData = np.cov(Data)
-        eVal, eVec = np.linalg.eig(covData)
-        T = eVec @ np.sqrt(np.diag(eVal))
-    
+        if n > 1:
+            eVal, eVec = np.linalg.eig(covData + 1e-6*np.eye(n))
+            T = eVec @ np.sqrt(np.diag(eVal))
+
+    # correlation matrix
+    if n > 1:
+        inv_sqrt_diag_V = np.linalg.inv(np.diag(np.sqrt((np.diag(covData)))))
+        R = inv_sqrt_diag_V @ covData @ inv_sqrt_diag_V
     else:
-        raise ValueError(f'Invalid scaling option: {scaling}. Must be 0-4.')
+        R = [[1]]
     
     # apply the scaling: Z = inv(T) * (Data - meanD)
     Z = np.linalg.solve(T, Data - meanD)
 
-    maxZ = np.max(Z, axis=1)
-    minZ = np.min(Z, axis=1)
+    maxZ = np.max(Z)
+    minZ = np.min(Z)
     
-    return Z, meanD, T
+    return Z, meanD, T, R, minZ, maxZ
 
 
 def descale_data(Z, meanD, T, scaling ):
@@ -437,9 +465,11 @@ def descale_data(Z, meanD, T, scaling ):
     --------    ---------------------------------------------------   ---------
     Data        a matrix of data values                               n x m
     '''
+    n, m = Z.shape  # m observations of n variables
+
     # apply the scaling: Data = T * Z + meanD
     
-    if scaling == 0:  # no scaling
+    if scaling <= 0:  # no scaling
         Data = Z.copy()
 
     if scaling == 1 or scaling == 2:  
@@ -447,9 +477,6 @@ def descale_data(Z, meanD, T, scaling ):
 
     elif scaling == 3 or scaling == 4: 
         Data = 10**(T @ Z + meanD); 
-    
-    else:
-        raise ValueError(f'Invalid scaling option: {scaling}. Must be 0-4.')
     
     return Data
 
@@ -471,13 +498,13 @@ def clip_data(Data, low_limit, high_limit):
      Data       matrix of data without values exceeding given limits    n x m'
     '''
         
-    nData = Data.shape[1]
+    mData = Data.shape[1]
 
-    Chauvenet_criterion = 0.8 + 0.4*np.log(nData)  # an approximation
+    Chauvenet_criterion = 0.8 + 0.4*np.log(mData)  # an approximation
     idxc = np.where(np.any( np.abs(Data) > Chauvenet_criterion, axis=0 ))[0]
     outliers = idxc.shape[0]
     print(f'  Chauvenet outlier criterion = {Chauvenet_criterion:.2f}')  
-    print(f'  number of outliers = {outliers} = {100*outliers/nData:.2f} percent of the data')
+    print(f'  number of outliers = {outliers} = {100*outliers/mData:.2f} percent of the data')
 
     if outliers > 0:
         low_limit  =  low_limit * Chauvenet_criterion
@@ -848,7 +875,8 @@ def compute_model(order, coeff, meanX, meanY, TX, TY, dataX, scaling, basis_fctn
         modelY = 10**(TY @ modelZy.T + meanY)
     
     return modelY, B
-# Placeholder function stubs - these will be implemented as you provide them
+
+
 def split_data(dataX, dataY, pTrain):
     '''
     [trainX,trainY,mTrain, testX,testY,mTest] = split_data(dataX,dataY,pTrain)
@@ -946,7 +974,6 @@ def polynomial_orders(maxOrder, Zx, Zy, n, cov_tol, scaling):
             else:
                 plt.xlabel(f'X_{i+1}')
             ttl = f'k_{{{i+1}}}={ki}   R^2 = {orderR2[i]:.3f}   fit-error = {fit_error:.3f}'
-            plt.legend()
             plt.title(ttl)
             plt.pause(1.1)
             
@@ -963,9 +990,9 @@ def polynomial_orders(maxOrder, Zx, Zy, n, cov_tol, scaling):
     return order, orderR2
 
 
-def evaluate_model(B, coeff, dataY, modelY, figNo, txt):
+def evaluate_model(B, coeff, dataY, modelY):
     '''
-    [ MDcorr, coeffCOV , R2adj, AIC ] = evaluate_model( B, coeff, dataY, modelY, figNo )
+    [ MDcorr, coeffCOV , R2adj, AIC ] = evaluate_model( B, coeff, dataY, modelY)
     evaluate the model statistics 
     
     INPUT       DESCRIPTION                                           DIMENSION
@@ -974,8 +1001,6 @@ def evaluate_model(B, coeff, dataY, modelY, figNo, txt):
      coeff      list of coefficient vectors of each model            {nTerm x 1}  
      dataY      output (dependent) data                               nOut x mData
      modelY     model predictions                                     nOut x mData
-     figNo      figure number for plotting (figNo = 0: don't plot)         1 x 1
-       txt      annotation text
     
     OUTPUT      DESCRIPTION                                           DIMENSION
     --------    ---------------------------------------------------   ---------
@@ -1021,35 +1046,53 @@ def evaluate_model(B, coeff, dataY, modelY, figNo, txt):
         
         AIC[io] = 0   # add AIC here
     
-    if figNo:
-        plt.ion() # interactive mode: on
-        cMap = rainbow(nOut)
-        plt.figure(figNo)
-        format_plot(16, 1, 3)
-        ax = [  np.min(dataY), np.max(dataY), np.min(dataY), np.max(dataY)]
-        plt.clf()
-        for io in range(nOut):
-            plt.plot(dataY[io, :], modelY[io, :],  'o', color=cMap[io, :])
-        plt.plot([ax[0], ax[1]], [ax[2], ax[3]], '-k', linewidth=0.5)
-        plt.axis('square')
-        plt.xlabel(f'{txt} output data')
-        plt.ylabel(f'{txt} model output')
-        
-        tx = 0.00
-        ty = 1.0 - 0.05 * (io+1)
-        plt.text(tx*ax[1] + (1-tx)*ax[0], ty*ax[3] + (1-ty)*ax[2],
-                f'{nTerm} model terms')
-        
-        for io in range(nOut):
-            tx = 0.55
-            ty = 0.5 - 0.2 * (io+1)
-            plt.text(tx*ax[1] + (1-tx)*ax[0], ty*ax[3] + (1-ty)*ax[2],
-                f'ρ_{{x,y{io+1}}} = {MDcorr[io]:.3f}', color=cMap[io, :])
-#               '$\rho_{{x,y{io_1}}}$ = {MDcorr[io]:.3f}', color=cMap[io, :])
-        
-        plt.show(block=False)
-    
     return MDcorr, coeffCOV, R2adj, AIC
+
+
+def visualize_model_performance(dataY, modelY,  txt):
+    '''
+    Create visualization of model performance
+
+    INPUT       DESCRIPTION                                           DIMENSION
+    --------    ---------------------------------------------------   ---------
+     dataY      output (dependent) data                               nOut x mData
+     modelY     model predictions                                     nOut x mData
+       txt      annotation text
+    '''
+
+    nOut = dataY.shape[0]
+    
+    plt.ion() # interactive mode: on 
+    fig, axes = plt.subplots(1, nOut, figsize=(6*nOut, 5))
+    if nOut == 1:
+        axes = [axes]
+    
+    for io in range(nOut):
+        ax = axes[io]
+        
+        # Scatter plot
+        ax.scatter(dataY[io, :], modelY[io, :], alpha=0.6, s=50)
+        
+        # Perfect prediction line
+        min_val = min(np.min(dataY[io, :]), np.min(modelY[io, :]))
+        max_val = max(np.max(dataY[io, :]), np.max(modelY[io, :]))
+        ax.plot([min_val, max_val], [min_val, max_val], 'r--', linewidth=2) 
+        #       label='Perfect prediction')
+        
+        # Correlation
+        corr = np.corrcoef(dataY[io, :], modelY[io, :])[0, 1]
+        
+        ax.set_xlabel(f'{txt} output data', fontsize=12)
+        ax.set_ylabel(f'{txt} model output', fontsize=12)
+        ax.set_title(f'Output {io+1}:  correlation: {corr:.3f}', fontsize=14)
+        ax.grid(True, alpha=0.3)
+        ax.set_aspect('equal', adjustable='box')
+    
+    plt.tight_layout()
+    plt.savefig(f'{txt}_performance.png', dpi=150, bbox_inches='tight')
+    print(f"\nPerformance plot saved to '{txt}_performance.png'")
+    
+    return
 
 
 def print_model_stats(iter, coeff, order, coeffCOV, MDcorr, R2adj, scaling, maxCull):
@@ -1071,6 +1114,14 @@ def print_model_stats(iter, coeff, order, coeffCOV, MDcorr, R2adj, scaling, maxC
     
     nOut = len(order)
     nTerm, nInp = order[0].shape
+
+    scaling_names = { 
+        0: "no scaling", 
+        1: "standardization (mean=0, std=1)", 
+        2: "standardization and decorrelation",
+        3: "log-transform and standardization (mean(log) = 0, std(log) = 1)",
+        4: "log-transform, standardization, and decorrelation" }
+
     
     if maxCull > 1:
         print(f' model culling iteration {iter}')
@@ -1105,8 +1156,8 @@ def print_model_stats(iter, coeff, order, coeffCOV, MDcorr, R2adj, scaling, maxC
             print(line)
         
         print()
-        print(f'  scaling option            = {scaling:3d}')
-        print(f'  Total Number of Terms     = {retained_terms:4d} out of {nTerm * nOut:4d}')
+        print(f'  scaling option            = {scaling:3d}: {scaling_names[scaling]}')
+        print(f'  Total Number of Terms     = {retained_terms:4d} out of {nTerm:4d}')
         print(f'  Adjusted R-square {io + 1}       = {R2adj[io]:6.3f}')
         print(f'  model-data correlation {io + 1}  = {MDcorr[io]:6.3f}')
     

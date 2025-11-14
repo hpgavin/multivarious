@@ -47,29 +47,20 @@ def example_1_simple_polynomial():
                    2.0 * dataX[0, :] + 
                    0.5 * dataX[1, :] ** 2 + 
                    0.3 * dataX[0, :] * dataX[1, :] + 
-                   0.2 * np.random.randn(mData))
+                   0.4 * np.random.randn(mData))
     
     # Fit model
     print("\nFitting model...")
-    order, coeff, meanX, meanY, trfrmX, trfrmY, testModelY, testX, testY = \
+    order, coeff, meanX, meanY, trfrmX, trfrmY, testX, testY, testModelY = \
         mimoSHORSA(dataX, dataY, 
-                   maxOrder=2,    # Maximum polynomial order
-                   pTrain=70,     # 70% training, 30% testing
-                   pCull=40,      # Will be set to 0 if L1_pnlty > 0
-                   tol=0.10,      # Maximum coefficient of variation
-                   scaling=2,     # Decorrelation scaling
-                   L1_pnlty=50,   # L1 regularization penalty
+                   maxOrder=2,     # Maximum polynomial order
+                   pTrain=70,      # 70% training, 30% testing
+                   pCull=0,        # Will be set to 0 if L1_pnlty > 0
+                   cov_tol=0.10,   # Maximum coefficient of variation
+                   scaling=1,      # Decorrelation scaling
+                   L1_pnlty=50,    # L1 regularization penalty
                    basis_fctn='L') # 'H'=Hermite, 'L'=Legendre, 'P'=Power
-    
-    print("\n" + "-"*70)
-    print("Final Model Summary:")
-    print("-"*70)
-    print(f"Number of terms: {order[0].shape[0]}")
-    print(f"\nTop 5 coefficients:")
-    top_indices = np.argsort(np.abs(coeff[0]))[::-1][:5]
-    for idx in top_indices:
-        print(f"  Term {idx}: powers={order[0][idx]}, coeff={coeff[0][idx]:.4f}")
-    
+   
     return order, coeff, testModelY, testX, testY
 
 
@@ -107,31 +98,20 @@ def example_2_multi_output():
     
     # Fit model
     print("\nFitting multi-output model...")
-    order, coeff, meanX, meanY, trfrmX, trfrmY, testModelY, testX, testY = \
+    order, coeff, meanX, meanY, trfrmX, trfrmY, testX, testY, testModelY = \
         mimoSHORSA(dataX, dataY,
                    maxOrder=3,
                    pTrain=75, 
-                   pCull=35,      # Ignored if L1_pnlty > 0
-                   tol=0.18, 
-                   scaling=1,
-                   L1_pnlty=10,   # Try L1 regularization
-                   basis_fctn='H') # Hermite basis
-    
-    print("\n" + "-"*70)
-    print("Final Model Summary:")
-    print("-"*70)
-    for io in range(nOut):
-        print(f"\nOutput {io}:")
-        print(f"  Number of terms: {order[io].shape[0]}")
-        print(f"  Top 3 coefficients:")
-        top_indices = np.argsort(np.abs(coeff[io]))[::-1][:3]
-        for idx in top_indices:
-            print(f"    Term {idx}: powers={order[io][idx]}, coeff={coeff[io][idx]:.4f}")
+                   pCull=0,      # Ignored if L1_pnlty > 0
+                   cov_tol=0.0, 
+                   scaling=2,
+                   L1_pnlty=10,   # L1 regularization
+                   basis_fctn='L') # Hermite basis
     
     return order, coeff, testModelY, testX, testY
 
 
-def example_3_high_dimensional():
+def example_3_multi_input():
     """
     Example 3: Higher dimensional problem
     """
@@ -156,34 +136,21 @@ def example_3_high_dimensional():
                    0.4 * dataX[3, :] +
                    0.3 * dataX[0, :] * dataX[1, :] +
                    0.2 * dataX[2, :] * dataX[4, :] +
-                   0.05 * np.random.randn(mData))
+                   0.25 * np.random.randn(mData))
     
     # Fit model with lower maximum order due to curse of dimensionality
     print("\nFitting high-dimensional model...")
-    order, coeff, meanX, meanY, trfrmX, trfrmY, testModelY, testX, testY = \
+    order, coeff, meanX, meanY, trfrmX, trfrmY, testX, testY, testModelY = \
         mimoSHORSA(dataX, dataY,
                    maxOrder=2,
-                   pTrain=80,
-                   pCull=40,
-                   tol=0.25,
-                   scaling=1,
-                   L1_pnlty=5,    # Light L1 regularization
-                   basis_fctn='P') # Power polynomial basis
+                   pTrain=70,
+                   pCull=0,
+                   cov_tol=0.1,
+                   scaling=2,
+                   L1_pnlty= 89,    # Light L1 regularization
+                   basis_fctn='L') # Power polynomial basis
 
-    
-    print("\n" + "-"*70)
-    print("Final Model Summary:")
-    print("-"*70)
-    print(f"Number of terms: {order[0].shape[0]}")
-    print(f"\nMost significant terms:")
-    top_indices = np.argsort(np.abs(coeff[0]))[::-1][:6]
-    for idx in top_indices:
-        term_str = " ".join([f"x{i}^{order[0][idx][i]}" 
-                            for i in range(nInp) if order[0][idx][i] > 0])
-        if not term_str:
-            term_str = "constant"
-        print(f"  {term_str}: coeff={coeff[0][idx]:.4f}")
-    
+   
     return order, coeff, testModelY, testX, testY
 
 
@@ -196,42 +163,42 @@ def example_4_with_scaling():
     print("="*70)
     
     np.random.seed(789)
-    nInp = 2
+    nInp = 3
     nOut = 1
     mData = 100
     
     # Generate data with different scales
     dataX = np.zeros((nInp, mData))
-    dataX[0, :] = 100 * np.random.randn(mData)  # Large scale
-    dataX[1, :] = 0.01 * np.random.randn(mData)  # Small scale
+    dataX[0, :] = 100  * np.random.randn(mData)   # Large scale
+    dataX[1, :] = 1.00 * np.random.randn(mData)   # Small scale
+    dataX[2, :] = dataX[0,:] + dataX[1,:]         # Correlated inputs
     
     # Generate output
     dataY = np.zeros((nOut, mData))
-    dataY[0, :] = 0.01 * dataX[0, :] + 100 * dataX[1, :] ** 2 + 0.1*np.random.randn(mData)
+    dataY[0, :] =    0.01 * dataX[0, :] + \
+                   100.0  * dataX[1, :]**2 + \
+                     0.5  * dataX[1,:]*dataX[2,:] + \
+                     0.1  * np.random.randn(mData)
     
-    scaling_names = {
-        0: "No scaling",
-        1: "Standardization (mean=0, std=1)",
-        2: "Decorrelation (whitening)"
-    }
+    scaling_names = { 0: "no scaling", 1: "standardization (mean=0, std=1)", 2: "decorrelation" }
     
-    for scaling_option in [0, 1, 2]:
-        print(f"\n--- Scaling Option {scaling_option}: {scaling_names[scaling_option]} ---")
+    scaling_option = 2   #  use 0 , 1, 2 
+    print(f"\n--- Scaling Option {scaling_option}: {scaling_names[scaling_option]} ---")
         
-        try:
-            order, coeff, *_ = mimoSHORSA(
-                dataX, dataY,
-                maxOrder=2,
-                pTrain=70,
-                pCull=30,
-                tol=0.25,
-                scaling=scaling_option,
-                L1_pnlty=10,      # Use L1 for all scaling tests
-                basis_fctn='L'    # Legendre basis
-            )
-            print(f"Successfully fitted with {order[0].shape[0]} terms")
-        except Exception as e:
-            print(f"Error: {e}")
+    order, coeff, *_ = mimoSHORSA(
+        dataX, dataY,
+        maxOrder=2,
+        pTrain=70,
+        pCull=0,
+        cov_tol=0.1,
+        scaling=scaling_option,
+        L1_pnlty=10,      # Use L1 for all scaling tests
+        basis_fctn='L'    # Legendre basis
+    )
+#   except Exception as e:
+#       print(f"Error: {e}")
+
+    return
 
 
 def example_5_basis_comparison():
@@ -277,12 +244,12 @@ def example_5_basis_comparison():
     for basis in basis_types:
         print(f"\n--- Testing {basis_names[basis]} ---")
 
-        order, coeff, meanX, meanY, trfrmX, trfrmY, testModelY, testX, testY = \
+        order, coeff, meanX, meanY, trfrmX, trfrmY, testX, testY, testModelY = \
             mimoSHORSA(dataX, dataY,
                        maxOrder=3,
                        pTrain=70,
                        pCull=0,        # Not used with L1
-                       tol=0.20,
+                       cov_tol=0.2,
                        scaling=2,      # Decorrelation
                        L1_pnlty=20,    # L1 regularization
                        basis_fctn=basis)
@@ -351,8 +318,8 @@ def example_6_L1_vs_COV():
         mimoSHORSA(dataX, dataY,
                    maxOrder=3,
                    pTrain=70,
-                   pCull=40,       # Enable culling
-                   tol=0.15,
+                   pCull=0,       # Enable culling
+                   cov_tol=0.2,
                    scaling=2,
                    L1_pnlty=0,     # Disable L1 (use COV)
                    basis_fctn='L')
@@ -370,7 +337,7 @@ def example_6_L1_vs_COV():
                    maxOrder=3,
                    pTrain=70,
                    pCull=0,        # No culling (automatic with L1)
-                   tol=0.15,
+                   cov_tol=0.2,
                    scaling=2,
                    L1_pnlty=10,    # Enable L1 regularization
                    basis_fctn='L')
@@ -398,45 +365,6 @@ def example_6_L1_vs_COV():
     print("  - L1 provides global optimization")
 
 
-
-def visualize_model_performance(testY, testModelY):
-    """
-    Create visualization of model performance
-    """
-    nOut = testY.shape[0]
-    
-    plt.ion() # interactive mode: on 
-    fig, axes = plt.subplots(1, nOut, figsize=(6*nOut, 5))
-    if nOut == 1:
-        axes = [axes]
-    
-    for io in range(nOut):
-        ax = axes[io]
-        
-        # Scatter plot
-        ax.scatter(testModelY[io, :], testY[io, :], alpha=0.6, s=50)
-        
-        # Perfect prediction line
-        min_val = min(np.min(testY[io, :]), np.min(testModelY[io, :]))
-        max_val = max(np.max(testY[io, :]), np.max(testModelY[io, :]))
-        ax.plot([min_val, max_val], [min_val, max_val], 'r--', linewidth=2) 
-        #       label='Perfect prediction')
-        
-        # Correlation
-        corr = np.corrcoef(testY[io, :], testModelY[io, :])[0, 1]
-        
-        ax.set_xlabel('Model Prediction', fontsize=12)
-        ax.set_ylabel('True Value', fontsize=12)
-        ax.set_title(f'Output {io}: ρ = {corr:.3f}', fontsize=14)
-        ax.legend()
-        ax.grid(True, alpha=0.3)
-        ax.set_aspect('equal', adjustable='box')
-    
-    plt.tight_layout()
-    plt.savefig('model_performance.png', dpi=150, bbox_inches='tight')
-    print("\nPerformance plot saved to 'model_performance.png'")
-    
-
 def main():
     """
     Run all examples
@@ -448,32 +376,28 @@ def main():
     # Run examples
     print("\n\nRunning examples (this may take a few minutes)...\n")
 
-    # Example 1
+    '''
+    # Example 1 - simple polynomial
     order1, coeff1, testModelY1, testX1, testY1 = example_1_simple_polynomial()
     
-    '''
-    # Example 2
+    # Example 2: multi-output
     order2, coeff2, testModelY2, testX2, testY2 = example_2_multi_output()
     
-    # Example 3
-    order3, coeff3, testModelY3, testX3, testY3 = example_3_high_dimensional()
+    # Example 3: multi-input
+    order3, coeff3, testModelY3, testX3, testY3 = example_3_multi_input()
     
-    # Example 4
+    '''
+    # Example 4: scaling and decorrelation
     example_4_with_scaling()
 
+    '''
     # Example 5: Basis comparison
     example_5_basis_comparison()
 
     # Example 6: L1 vs COV comparison
     example_6_L1_vs_COV()
     '''
-    
-    # Visualize one of the examples 
-    print("\n" + "="*70)
-    print("Creating visualization for Example 1...")
-    print("="*70)
-    visualize_model_performance(testY1, testModelY1)
-    
+   
     '''
     print("\n" + "#"*70)
     print("# All examples completed successfully!")
