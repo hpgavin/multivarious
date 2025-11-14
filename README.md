@@ -1,4 +1,4 @@
-# Multivarious (Python Translation)
+# Multivarious
 
 *A Python adaptation of Dr. Henri P. Gavin’s MATLAB library for uncertainty analysis, probability modeling, and numerical optimization.*
 
@@ -9,7 +9,7 @@ This fork contains my ongoing translation of **Multivarious** into Python for us
 Progress directed and supervised by Dr. Gavin.
 
 The library provides:
-- random-variable models (PDF, CDF, inverse, sampling)
+- random-variable modules (PDF, CDF, inverse, sampling)
 - stochastic simulation tools
 - optimization routines (ORSopt, Nelder-Mead, SQP)
 - utilities for optimization tools and visualization 
@@ -34,3 +34,4 @@ For the authoritative MATLAB version by **Dr. Henri P. Gavin**, see:
 
 ## Acknowledgment
 Based on the original MATLAB Multivarious library developed by **H.P. Gavin, Duke University**.
+
