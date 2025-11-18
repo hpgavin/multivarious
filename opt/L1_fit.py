@@ -91,7 +91,7 @@ def L1_fit(B, y, alfa, w):
     err_norm_old = 100.0
     
     # Convergence history
-    max_iter = 500
+    max_iter = 10*n
     cvg_hst = np.zeros((5*n + 2, max_iter))
     cvg_hst[:, 0] = np.concatenate([
         c.flatten(),

@@ -1,12 +1,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
-import time as time
-from datetime import datetime, timedelta
-from rainbow import rainbow 
-from format_plot import format_plot
 
-
-def mimoSHORSA(dataX, dataY, max_order=2, pTrain=70, scaling=1, L1_pnlty=1.0, basis_fctn='H'):
+def mimoSHORSA(dataX, dataY, max_order=2, pTrain=70, scaling=1, L1_pnlty=1.0, basis_fctn='H', var_names=None ):
     '''
     [ ordr, coeff, meanX, meanY, invTX, TY, testModelY, testX, testY ] = mimoSHORSA( dataX, dataY, max_order, pTrain, scaling, L1_pntly, basis_fctn  )
     
@@ -42,10 +37,13 @@ def mimoSHORSA(dataX, dataY, max_order=2, pTrain=70, scaling=1, L1_pnlty=1.0, ba
                 'H': Hermite functions
                 'L': Legendre polynomials
                 'P': Power polynomials
+    var_names   optional dictionary with keys 'X' and 'Y' containing
+                lists of variable names for labeling                       None
+    
     
     OUTPUT      DESCRIPTION
     --------    --------------------------------------------------------
-     ordr       list of matrices of the orders of variables in each term in the polynomial 
+     ordr       list of matrices of the orders of variables in each polynomial term 
      coeff      list of polynomial coefficients 
      meanX      mean vector of the scaled dataX
      meanY      mean vector of the scaled dataY
@@ -82,12 +80,12 @@ def mimoSHORSA(dataX, dataY, max_order=2, pTrain=70, scaling=1, L1_pnlty=1.0, ba
          4: "log transform and decorrelation" }
    
     if not np.isfinite(dataX).all():
-        print(' dataX has infinite or NaN values ')
-        return
+        print(' mimoSHORSA: dataX has infinite or NaN values\n\n')
+        exit(100)
 
     if not np.isfinite(dataY).all():
-        print(' dataY has infinite or NaN values ')
-        return
+        print(' mimoSHORSA: dataY has infinite or NaN values\n\n')
+        exit(100)
 
     nInp, mDataX = dataX.shape   # number of columns in dataX is mData
     nOut, mDataY = dataY.shape   # number of columns in dataY is mData
@@ -102,9 +100,9 @@ def mimoSHORSA(dataX, dataY, max_order=2, pTrain=70, scaling=1, L1_pnlty=1.0, ba
     if mDataX != mDataY:
         raise ValueError('the dataX and dataY matrices must have the same number of columns')
     else:
-        mData = mDataX
-    
-    scatter_data(dataX, dataY, figNo=100, varNames=None)
+        mData = min(mDataX,mDataY)
+
+    scatter_data(dataX, dataY, figNo=100, var_names = var_names )
 
     # scale data matrices for X (explanatory) and Y (dependent) variables
     # separately since using the covariance between X and Y in the model
@@ -124,7 +122,7 @@ def mimoSHORSA(dataX, dataY, max_order=2, pTrain=70, scaling=1, L1_pnlty=1.0, ba
     # print(f' 1 shape XY = {XY.shape}')
 
     # remove columns of  Zx and Zy containing outliers
-    XY = clip_data( XY, -1e4 , 1e4 ) 
+    XY = clip_data( XY, -1e0 , 1e0 ) 
 
     # print(f' 2 shape XY = {XY.shape}')
 
@@ -135,11 +133,13 @@ def mimoSHORSA(dataX, dataY, max_order=2, pTrain=70, scaling=1, L1_pnlty=1.0, ba
     # print(f' shape Zx = {Zx.shape}')
     # print(f' shape Zy = {Zy.shape}')
 
-    # re-scale the data
+    # re-scale the data ??
+    '''
     dataX = descale_data(Zx, meanX, TX, scaling[0])
     dataY = descale_data(Zy, meanY, TY, scaling[1])
     Zx, meanX, TX, invTX, RX, minZx, maxZx = scale_data(dataX, scaling[0])
     Zy, meanY, TY, invTY, RY, minZy, maxZy = scale_data(dataY, scaling[1])
+    '''
 
     print(f'   {Zy.shape[1]:6d} data values\n') 
     print(f'  {minZx:.6f} < Zx < {maxZx:.6f}')
@@ -150,9 +150,15 @@ def mimoSHORSA(dataX, dataY, max_order=2, pTrain=70, scaling=1, L1_pnlty=1.0, ba
     print(np.round(RY,2))
 
     if np.any(scaling == 2) or np.any(scaling == 4):
-        scatter_data(Zx, Zy, figNo=101, varNames=None)
 
-    time.sleep(1) # if needed for debugging
+        xNames = [rf"$zX_{i+1}$" for i in range(nZx)]
+        yNames = [rf"$zY_{i+1}$" for i in range(nZy)]
+        z_names = { 'X': xNames  , 'Y': yNames }
+        scatter_data(Zx, Zy, figNo=101, var_names = z_names)
+
+    #import time as time
+    #from datetime import datetime, timedelta
+    #time.sleep(1) # if needed for debugging
 
     trainZx, trainZy, mTrain, testZx, testZy, mTest = split_data(Zx, Zy, pTrain)
 
@@ -163,18 +169,14 @@ def mimoSHORSA(dataX, dataY, max_order=2, pTrain=70, scaling=1, L1_pnlty=1.0, ba
     
     ordr, nTerm = mixed_term_orders(max_order, nZx)
 
-    coeff = np.zeros([nTerm,nOut]) # initialize model coefficient vector
-    condB = np.zeros(nOut)         # initialize model basis condition number
-    
     trainMDcorr = np.full((nOut, 1), np.nan)
-    testMDcorr = np.full((nOut, 1), np.nan)
+    testMDcorr  = np.full((nOut, 1), np.nan)
     
     # start a timer to measure computational time
-    start_time = time.time()
+    #start_time = time.time()
     
     # fit ("train") a separate model for each output (dependent) variable
-    for io in range(nOut):
-        coeff[:,io], condB[io] = fit_model(trainZx, trainZy[io,:], ordr, nTerm, mTrain, L1_pnlty, basis_fctn)
+    coeff, condB = fit_model(trainZx, trainZy, ordr, nTerm, mTrain, L1_pnlty, basis_fctn)
         
     # compute the model for the training data and the testing data
     trainModelY, B = compute_model(ordr, coeff, meanX, meanY, invTX, TY, trainX, scaling, basis_fctn)
@@ -184,7 +186,7 @@ def mimoSHORSA(dataX, dataY, max_order=2, pTrain=70, scaling=1, L1_pnlty=1.0, ba
     trainMDcorr, coeffCOV, _, _ = evaluate_model(B, coeff, trainY, trainModelY)
     testMDcorr, _, R2adj, AIC   = evaluate_model(B, coeff,  testY,  testModelY) 
         
-    print_model_stats(coeff, ordr, coeffCOV, testMDcorr, R2adj, scaling, scaling_names)
+    print_model_stats(coeff, ordr, coeffCOV, testMDcorr, R2adj, AIC, scaling, scaling_names)
         
     visualize_model_performance(trainY, trainModelY, 'training')
     visualize_model_performance( testY,  testModelY, 'testing')
@@ -192,9 +194,9 @@ def mimoSHORSA(dataX, dataY, max_order=2, pTrain=70, scaling=1, L1_pnlty=1.0, ba
     return ordr, coeff, meanX, meanY, invTX, TY, testX, testY, testModelY
 
 
-def scatter_data(dataX, dataY, figNo=100, varNames=None):
+def scatter_data(dataX, dataY, figNo=100, var_names=None):
     '''
-    scatter_data(dataX, dataY, figNo, varNames)
+    scatter_data(dataX, dataY, figNo, var_names)
     Create scatter plots of each pair of input and output variables
     
     INPUT       DESCRIPTION                                           DIMENSION
@@ -202,7 +204,7 @@ def scatter_data(dataX, dataY, figNo=100, varNames=None):
     dataX       matrix of input data                                   nInp x m
     dataY       matrix of output data                                  nOut x m
     figNo       figure number for plotting (default = 100)             1 x 1
-    varNames    optional dict with keys 'X' and 'Y' containing
+    var_names   optional dictionary with keys 'X' and 'Y' containing
                 lists of variable names for labeling                   dict
     
     OUTPUT      DESCRIPTION                                           DIMENSION
@@ -217,15 +219,19 @@ def scatter_data(dataX, dataY, figNo=100, varNames=None):
     '''
     nInp, m = dataX.shape
     nOut, _ = dataY.shape
+
+    #print(var_names)
     
     # Set up variable names if not provided
-    if varNames is None:
+    if var_names is None:
         xNames = [rf"$x_{i+1}$" for i in range(nInp)]
         yNames = [rf"$y_{i+1}$" for i in range(nOut)]
     else:
-        xNames = varNames.get('X', [rf"$x_{i+1}$" for i in range(nInp)])
-        yNames = varNames.get('Y', [rf"$y_{i+1}$" for i in range(nOut)])
-    
+        xNames = var_names.get('X') #, [rf"$zX_{i+1}$" for i in range(nInp)])
+        yNames = var_names.get('Y') #, [rf"$zY_{i+1}$" for i in range(nOut)])
+        #xNames = [rf"$zX_{i+1}$" for i in range(nInp)]
+        #yNames = [rf"$zY_{i+1}$" for i in range(nOut)]
+
     # Calculate number of subplots needed
     nTotalVars = nInp + nOut
     
@@ -290,12 +296,12 @@ def scatter_data(dataX, dataY, figNo=100, varNames=None):
             
             # Add labels only on edges
             if iRow == nTotalVars - 1:
-                ax.set_xlabel(xLabel, fontsize=16, fontweight='bold')
+                ax.set_xlabel(xLabel, fontsize=16) #, fontweight='bold')
             else:
                 ax.set_xticklabels([])
             
             if iCol == 0:
-                ax.set_ylabel(yLabel, fontsize=16, fontweight='bold')
+                ax.set_ylabel(yLabel, fontsize=16) #, fontweight='bold')
             else:
                 ax.set_yticklabels([])
             
@@ -344,29 +350,35 @@ def scale_data(Data, scaling):
     R    = np.eye(n)
 
     if scaling in [ 3 , 4 ]:  # log-transform
-        Data = np.log10(Data);
+        if np.any(Data <= 0):
+            print('  mimoSHORSA: Data has negative values, can not log-transform\n\n')
+            exit(300)
+        Data = np.log(Data);
 
     meanD   = np.mean(Data, axis=1, keepdims=True)
     covData =  np.cov(Data, ddof=1)
 
     if not np.isfinite(covData).all():
-        print(' data covariance has infinite or NaN values ')
+        print('  mimoSHORSA: data covariance has infinite or NaN values \n\n')
         exit(200)
 
     if scaling <= 0: # no scaling
-        meanD = np.zeros(n,1)
+        meanD = np.zeros([n,1])
     
     if scaling == 1 or scaling == 3: # subtract mean and divide by std.dev
         if n > 1:
             T = np.diag(np.sqrt(np.diag(covData)))
             invT = np.diag(np.sqrt(1/np.diag(covData)))
     
-    if scaling == 2 or scaling == 4: # subtract mean and divide by std.dev
+    if scaling == 2 or scaling == 4: # subtract mean and decorrelate
         if n > 1:
             eVal, eVec = np.linalg.eig(covData)               # eig decomp
             idx = eVal > 1e-6*max(eVal)                       # +'ve eigenvals
             T = (eVec[:,idx]) @ np.sqrt(np.diag(eVal[idx]))
             invT = np.diag(np.sqrt(1.0 / eVal[idx])) @ eVec[:,idx].T
+            nCut = np.sum(eVal < 1e-6*max(eVal))
+            if nCut > 0:
+                print(f'  Basis reduced by {nCut} dimension(s)\n')
             #print(f'eVal = {eVal} , idx = {idx}')
             #print(f'T = {T} , invT = {invT} ,  I2 = {invT @ T}')
     
@@ -423,7 +435,7 @@ def descale_data(Z, meanD, T, scaling ):
         Data = T @ Z + meanD; 
 
     elif scaling == 3 or scaling == 4: 
-        Data = 10**(T @ Z + meanD); 
+        Data = np.exp(T @ Z + meanD); 
     
     return Data
 
@@ -466,6 +478,45 @@ def clip_data(Data, low_limit, high_limit):
         Data = Data[:, idxc]
     
     return Data 
+
+
+def split_data(dataX, dataY, pTrain):
+    '''
+    [trainX,trainY,mTrain, testX,testY,mTest] = split_data(dataX,dataY,pTrain)
+    split data into a training set and a testing set
+    
+    INPUT       DESCRIPTION                                           DIMENSION
+    --------    ---------------------------------------------------   ---------
+     dataX      m observations of nx input  "explanatory variables     nx x m 
+     dataY      m observations of ny output "explanatory variables     ny x m 
+     pTrain     fraction of the m observations to use for training      1 x 1
+    
+    OUTPUT      DESCRIPTION                                           DIMENSION
+    --------    ---------------------------------------------------   ---------
+     trainX     matrix of  input data for training                    nx x mTrain
+     trainY     matrix of output data for training                    ny x mTrain
+     mTrain     number of observations in the training set             1 x 1
+     testX      matrix of  input data for testing                     nx x mTest
+     testY      matrix of output data for testing                     ny x mTest
+     mTest      number of observations in the testing set              1 x 1
+    '''
+    
+    nInp, mData = dataX.shape   # number of columns in dataX is mData
+    
+    mTrain = int(np.floor(pTrain * mData))  # number of data points in training data set
+    mTest = mData - mTrain                   # number of data points in testing  data set
+    
+    reorder = np.random.permutation(mData)        # random permutation of integers [0:mData-1]
+    idtrainX = reorder[:mTrain]                   # indices of training data
+    idtestX = reorder[mTrain:mData]               # indices of testing data
+    
+    trainX = dataX[:, idtrainX]
+    trainY = dataY[:, idtrainX]
+    
+    testX = dataX[:, idtestX]
+    testY = dataY[:, idtestX]
+    
+    return trainX, trainY, mTrain, testX, testY, mTest
 
 
 def mixed_term_orders( max_order, nZx ):
@@ -535,39 +586,9 @@ def mixed_term_orders( max_order, nZx ):
     return ordr, nTerm
 
 
-def polynomial_product(ordr, Zx, max_order, basis_fctn='H'):
+def build_model_basis(Zx, ordr, basis_fctn='H'):
     '''
-    psyProduct = polynomial_product( ordr, Zx, basis_fctn )
-    compute the product of hermite functions of given orders (from 0 to 5)
-    for a set of column vectors Z, where each column of Zx has a given order
-    
-    INPUT       DESCRIPTION                                           DIMENSION
-    --------    ---------------------------------------------------   ---------
-    ordr        expxonents present in each polynomial term              1 x nZx
-     Zx         matrix of scaled input (explanatory) variables      mData x nZx
-     basis_fctn 'H': Hermite, 'L': Legendre, 'P': Power polynomial
-    
-    OUTPUT      DESCRIPTION                                           DIMENSION
-    --------    ---------------------------------------------------   ---------
-    psyProduct  vector of product of hermite polynomials             mData x 1
-    '''
-    
-    nZx  = len(ordr) # number of independent input (explanatory) variables
-    psyProduct = np.ones(Zx.shape[0])  # initialize to vector of 1
-
-    for i in range(nZx):
-        if ordr[i] > 0:
-            if basis_fctn == 'H':
-                psyProduct *= hermite( ordr[i], Zx[:, i], max_order )
-            elif basis_fctn == 'L':
-                psyProduct *= legendre( ordr[i], Zx[:, i] )
-    
-    return psyProduct
-
-
-def build_basis(Zx, ordr, basis_fctn='H'):
-    '''
-    B = build_basis( Zx, ordr, basis_fctn )
+    B = build_model_basis( Zx, ordr, basis_fctn )
     compute matrix of model basis vectors
     options: power-polynomial basis, Hermite function basis, or Legendre basis
 
@@ -604,6 +625,36 @@ def build_basis(Zx, ordr, basis_fctn='H'):
     return B
 
    
+def polynomial_product(ordr, Zx, max_order, basis_fctn='H'):
+    '''
+    psyProduct = polynomial_product( ordr, Zx, basis_fctn )
+    compute the product of hermite functions of given orders (from 0 to 5)
+    for a set of column vectors Z, where each column of Zx has a given order
+    
+    INPUT       DESCRIPTION                                           DIMENSION
+    --------    ---------------------------------------------------   ---------
+    ordr        expxonents present in each polynomial term              1 x nZx
+     Zx         matrix of scaled input (explanatory) variables      mData x nZx
+     basis_fctn 'H': Hermite, 'L': Legendre, 'P': Power polynomial
+    
+    OUTPUT      DESCRIPTION                                           DIMENSION
+    --------    ---------------------------------------------------   ---------
+    psyProduct  vector of product of hermite polynomials             mData x 1
+    '''
+    
+    nZx  = len(ordr) # number of independent input (explanatory) variables
+    psyProduct = np.ones(Zx.shape[0])  # initialize to vector of 1
+
+    for i in range(nZx):
+        if ordr[i] > 0:
+            if basis_fctn == 'H':
+                psyProduct *= hermite( ordr[i], Zx[:, i], max_order )
+            elif basis_fctn == 'L':
+                psyProduct *= legendre( ordr[i], Zx[:, i] )
+    
+    return psyProduct
+
+
 def hermite(n, z, N):
     '''
     psy = hermite(n, z, N)
@@ -731,9 +782,29 @@ def fit_model(Zx, Zy, ordr, nTerm, mData, L1_pnlty, basis_fctn):
      condB      condition number of the model basis                     1 x 1
     '''
     
+    #print(f'Zy dim = {Zy.shape}')
+    nZy = Zy.shape[0]
+    coeff = np.zeros([nTerm,nZy])
+
     print(f'Fit The Model ... with {basis_fctn} polynomials and L1_pnlty = {L1_pnlty}')
 
-    B = build_basis( Zx, ordr, basis_fctn )
+    B = build_model_basis( Zx, ordr, basis_fctn )
+
+    condB = np.linalg.cond(B)
+
+    print(f'  Basis matrix condition number = {condB:8.2e}')
+    if condB > 1e20:
+        print(f'  ... is just too much - exiting \n\n')
+        exit(100)
+    elif condB > 1e12:
+        print(f'  ... you are in serious trouble \n\n')
+    elif condB > 1e6:
+        print(f'  ... you are in trouble \n\n')
+    elif condB > 1e2:
+        print(f'  ... it could work \n\n')
+    elif condB < 1e2:
+        print(f'  ... looking good! \n\n')
+
 
     if L1_pnlty > 0:
         # Use L1_fit for regularization
@@ -741,13 +812,14 @@ def fit_model(Zx, Zy, ordr, nTerm, mData, L1_pnlty, basis_fctn):
             from L1_fit import L1_fit
             from L1_plots import L1_plots
 
-            # Zy needs to be column vector for L1_fit
-            Zy_col = Zy.reshape(-1, 1) if Zy.ndim == 1 else Zy.reshape(-1, 1)
+            for io in range(nZy):
+                Zy_col = Zy[io,:].T # Zy needs to be column vector for L1_fit
 
-            coeff, mu, nu, cvg_hst = L1_fit(B, Zy_col, L1_pnlty, w=0)
+                #print(f'Zy_col_dim = {Zy_col.shape}')
+                coeff[:,io], mu, nu, cvg_hst = L1_fit(B, Zy_col, L1_pnlty, w=0)
 
-            # Optional: plot L1 convergence
-            # L1_plots(B, coeff, Zy_col, cvg_hst, L1_pnlty, 0, fig_no=7000)
+                # Optional: plot L1 convergence
+                L1_plots(B, coeff[:,io], Zy_col, cvg_hst, L1_pnlty, 0, fig_no=700+10*io)
 
         except ImportError:
             print('WARNING: L1_fit not found, using OLS instead')
@@ -755,15 +827,6 @@ def fit_model(Zx, Zy, ordr, nTerm, mData, L1_pnlty, basis_fctn):
     else:
         # Use ordinary least squares / SVD
         coeff = np.linalg.lstsq(B, Zy, rcond=None)[0]
-
-    condB = np.linalg.cond(B)
-
-    print(f'  condition number of model basis matrix = {condB:8.2e}')
-    if condB > 1e20:
-        print(f'  ... is too large - exiting \n\n')
-        exit(100)
-    if condB < 1e2:
-        print(f'  ... looks good! \n')
 
     return coeff, condB
 
@@ -803,11 +866,11 @@ def compute_model(ordr, coeff, meanX, meanY, invTX, TY, dataX, scaling, basis_fc
         dataZx = invTX @ ( dataX - meanX )
     
     elif scaling[0] in [3, 4]:
-        log10X = np.log10(dataX)
-        dataZx = invTX @ ( log10X - meanX )  # standard normal variables
+        logX = np.log(dataX)
+        dataZx = invTX @ ( logX - meanX )  # standard normal variables
     
     # Compute model for each output
-    B = build_basis(dataZx, ordr, basis_fctn)
+    B = build_model_basis(dataZx, ordr, basis_fctn)
     for io in range(nOut):
         modelZy[:,io] = B @ coeff[:,io]
     
@@ -819,48 +882,9 @@ def compute_model(ordr, coeff, meanX, meanY, invTX, TY, dataX, scaling, basis_fc
         modelY = TY @ modelZy.T + meanY
     
     elif scaling[1] in [3, 4]:
-        modelY = 10**(TY @ modelZy.T + meanY)
+        modelY = np.exp(TY @ modelZy.T + meanY)
     
     return modelY, B
-
-
-def split_data(dataX, dataY, pTrain):
-    '''
-    [trainX,trainY,mTrain, testX,testY,mTest] = split_data(dataX,dataY,pTrain)
-    split data into a training set and a testing set
-    
-    INPUT       DESCRIPTION                                           DIMENSION
-    --------    ---------------------------------------------------   ---------
-     dataX      m observations of nx input  "explanatory variables     nx x m 
-     dataY      m observations of ny output "explanatory variables     ny x m 
-     pTrain     fraction of the m observations to use for training      1 x 1
-    
-    OUTPUT      DESCRIPTION                                           DIMENSION
-    --------    ---------------------------------------------------   ---------
-     trainX     matrix of  input data for training                    nx x mTrain
-     trainY     matrix of output data for training                    ny x mTrain
-     mTrain     number of observations in the training set             1 x 1
-     testX      matrix of  input data for testing                     nx x mTest
-     testY      matrix of output data for testing                     ny x mTest
-     mTest      number of observations in the testing set              1 x 1
-    '''
-    
-    nInp, mData = dataX.shape   # number of columns in dataX is mData
-    
-    mTrain = int(np.floor(pTrain * mData))  # number of data points in training data set
-    mTest = mData - mTrain                   # number of data points in testing  data set
-    
-    reorder = np.random.permutation(mData)        # random permutation of integers [0:mData-1]
-    idtrainX = reorder[:mTrain]                   # indices of training data
-    idtestX = reorder[mTrain:mData]               # indices of testing data
-    
-    trainX = dataX[:, idtrainX]
-    trainY = dataY[:, idtrainX]
-    
-    testX = dataX[:, idtestX]
-    testY = dataY[:, idtestX]
-    
-    return trainX, trainY, mTrain, testX, testY, mTest
 
 
 def evaluate_model(B, coeff, dataY, modelY):
@@ -898,9 +922,11 @@ def evaluate_model(B, coeff, dataY, modelY):
 
     for io in range(nOut):
         
+        nc = sum( np.abs(coeff[:,io]) > 1e-3)
         r = residuals[io, :]          # R-squared criterion for model "io"
         m = modelY[io, :]             # computed output data for model "io"
         d = dataY[io, :]              # measured output data for model "io"
+        Vr = residuals @ residuals.T / mData   # covariance of the residuals
         R2 = 1 - (np.linalg.norm(r) / np.linalg.norm(m - np.mean(m)))**2  # R-squared
         
         # R-squared criterion adjusted for the amount of data and number of coefficients
@@ -917,7 +943,7 @@ def evaluate_model(B, coeff, dataY, modelY):
         coeffCOV[:,io] = Std_Err_Coeff / ( np.abs(coeff[:,io].flatten()) + 1e-6 )
         coeffCOV[ np.abs(coeff[:,io]) < 1e-6 , io ] = 1e-4
         
-        AIC[io] = 0   # add AIC here
+        AIC[io] = np.log(2*np.pi*nc*Vr[io,io]) + nc*Vr[io,io] + 2*nc 
 
     #print(f'nOut = {nOut}')
     #print('coeffCOV')
@@ -972,26 +998,28 @@ def visualize_model_performance(dataY, modelY,  txt):
     return
 
 
-def print_model_stats(coeff, order, coeffCOV, MDcorr, R2adj, scaling, scaling_names ):
+def print_model_stats(coeff, order, coeffCOV, MDcorr, R2adj, AIC, scaling, scaling_names ):
     '''
     print_model_stats( coeff, order, coeffCOV, MDcorr, R2adj, scaling )
     Print model statistics 
     
     INPUT       DESCRIPTION                                           DIMENSION
     --------    ---------------------------------------------------   ---------
-    coeff       list of coefficient vectors of each model            {nTerm x 1}
-    order       order of each explanatory variable in each term      {nTerm x nZx}
-    coeffCOV    list of coefficient of variation of each coefficient {1 x nTerm}
-    MDcorr      model-data correlation for each output               nOut x 1
-    R2adj       adjusted R-squared for each output                   nOut x 1
-    scaling     scale the X data and the Y data before fitting            1 x 2
+    coeff       list of coefficient vectors of each model            nTerm x 1
+    order       order of each explanatory variable in each term      nTerm x nZx
+    coeffCOV    list of coefficient of variation of each coefficient  1 x nTerm
+    MDcorr      model-data correlation for each output                1 x nOut 
+    R2adj       adjusted R-squared for each output                    1 x nOut 
+    AIC                                                               1 x nOut
+    scaling     scale the X data and the Y data before fitting        1 x 2
+    scaling_names short description of each scaling type   
     '''
     
     nTerm, nZx = order.shape
     nOut = coeff.shape[1]
     
     for io in range(nOut):
-        print(f'  Output {io + 1} ------------------------------------------')
+        print(f'\n  Output {io + 1} ------------------------------------------')
         print('  Response Surface Coefficients')
         
         # Print header
@@ -1023,8 +1051,9 @@ def print_model_stats(coeff, order, coeffCOV, MDcorr, R2adj, scaling, scaling_na
         print(f'  X scaling option          = {scaling[0]:3d}: {scaling_names[scaling[0]]}')
         print(f'  Y scaling option          = {scaling[1]:3d}: {scaling_names[scaling[1]]}')
         print(f'  Total Number of Terms     = {retained_terms:4d} out of {nTerm:4d}')
-        print(f'  Adjusted R-square {io + 1}       = {R2adj[io]:6.3f}')
-        print(f'  model-data correlation {io + 1}  = {MDcorr[io]:6.3f}')
+        print(f'  Akaike Information Critrion {io + 1} = {AIC[io]:7.3f}')
+        print(f'  Adjusted R-square {io + 1}           = {R2adj[io]:7.3f}')
+        print(f'  model-data correlation {io + 1}      = {MDcorr[io]:7.3f}')
     
     # Estimate time remaining
     # import time
