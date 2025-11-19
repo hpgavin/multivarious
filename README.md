@@ -61,14 +61,22 @@ _**g**_(_**v**_) is a vector of inequality constraints.
 
 | module | description |
 | ------ | ----------- |
+| **avg_cov_func** | estimate the value of an uncertain computation to desired precision |
 | **fsolve** | solve a system of nonlinear algebraic equations |
 | **L1_fit** | linear least-squares curve fitting with l_1 regularization |
 | **L1_fit_test** | test example for L1_fit |
 | **L1_plots** | plot results from L1_fit |
 | **mimoSHORSA** | multi-input multi-output Stochastic High Order Response Surface Algorithm |
 | **mimoSHORSA_example** | example of running mimoSHORSA |
+| **nms** | nonlinear constrained optimization - Nelder Mead Simplex |
+| **opt_example** | example of runnin optimization codes ors, nms, sqp |
+| **opt_options** | adjust algorithmic options for ors, nms, and sqp |
+| **ors** | nonlinear constrained optimization - Optimized Random Search |
+| **plot_cvg_hist** | plot the convergence historyof ors, nms and sqp |
+| **plot_opt_surface** | plot the objective function landscape in any selected 2D slice |
 | **poly_fit** | power polynomial curve fitting with arbitrary exponents |
 | **poly_fit_test** | example function for poly_fit |
+| **sqp** | nonlinear constrained optimization - Sequential Quadratic Programming |
 
 ## rvs . random variables
 

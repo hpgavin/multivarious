@@ -153,17 +153,15 @@ def ors(func, v_init, v_lb=None, v_ub=None, options_in=None, consts=1.0):
             p2 = (v2-s0)/s1
             p3 = (v3-s0)/s1
             p4 = (v4-s0)/s1
-            f_offset = (f_max-f_min)/100
             ii = int(options[10])
             jj = int(options[11])
-            #print(f' ii = {ii} --- jj = {jj}')
-            ax.plot([p2[ii],p3[ii]],[p2[jj],p3[jj]],[fa[1],fa[2]]+f_offset, 
-                    '-o', alpha=1.0, color='orange', markersize=9,
-                    markerfacecolor='orange',linewidth=3) 
+            ax.plot( [p2[ii],p3[ii]], [p2[jj],p3[jj]], [fa[1],fa[2]], 
+                '-o', alpha=1.0, linewidth=3, markersize=6, color='red',
+                 markerfacecolor='red', markeredgecolor='darkred')
             if quad_update:
-                ax.plot([p2[ii],p4[ii]],[p2[jj],p4[jj]],[fa[1],fa[3]]+f_offset,
-                        '-o', alpha=1.0, color='orange', markersize=9,
-                        markerfacecolor='orange',linewidth=3) 
+                ax.plot( [p2[ii],p4[ii]], [p2[jj],p4[jj]], [fa[1],fa[3]],
+                '-o', alpha=1.0, linewidth=3, markersize=6, color='red',
+                 markerfacecolor='red', markeredgecolor='darkred')
             #plt.draw()
 
         # choose best of the four 
