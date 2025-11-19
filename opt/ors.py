@@ -12,6 +12,7 @@ import numpy as np
 from opt_options import opt_options
 from box_constraint import box_constraint
 from avg_cov_func import avg_cov_func
+from matplotlib import pyplot as plt
 from plot_opt_surface import plot_opt_surface
 
 
@@ -89,10 +90,13 @@ def ors(func, v_init, v_lb=None, v_ub=None, options_in=None, consts=1.0):
     cvg_v = 1.0
     cvg_f = 1.0
     cvg_hst[:, iteration - 1] = np.concatenate([(v_opt - s0) / s1,
-                                                [f_opt, np.max(g_opt), function_count, cvg_v, cvg_f]])
+                         [f_opt, np.max(g_opt), function_count, cvg_v, cvg_f]])
 
+    if msglev > 2:
+        f_min, f_max, ax = plot_opt_surface(func,(v_init-s0)/s1,v_lb,v_ub,options,consts,103)
+        
     # search parameters
-    sigma = 0.200  # step scale
+    sigma = 0.300  # step scale
     nu = 1.0       # exponent in sigma schedule
     t0 = time.time()
 
@@ -135,8 +139,8 @@ def ors(func, v_init, v_lb=None, v_ub=None, options_in=None, consts=1.0):
         a, b, c = np.linalg.solve(A, fa[:3])
 
         quad_update = False
-        if a > 0.0:
-            d = -b / a  # zero-slope point
+        if a > 0.0:                 # curvature is positive!
+            d = -b / a              # try to go to the zero-slope point
             a4, _ = box_constraint(v1, d * r)
             v4 = v1 + a4 * d * r
             fa4, g4, v4, c4, nAvg = avg_cov_func(func, v4, s0, s1, options, consts, BX)
@@ -144,7 +148,25 @@ def ors(func, v_init, v_lb=None, v_ub=None, options_in=None, consts=1.0):
             fa[3] = fa4
             quad_update = True
 
-        # choose best of the four
+        if msglev > 2:              # plot values on the surface 
+            p1 = (v1-s0)/s1
+            p2 = (v2-s0)/s1
+            p3 = (v3-s0)/s1
+            p4 = (v4-s0)/s1
+            f_offset = (f_max-f_min)/100
+            ii = int(options[10])
+            jj = int(options[11])
+            #print(f' ii = {ii} --- jj = {jj}')
+            ax.plot([p2[ii],p3[ii]],[p2[jj],p3[jj]],[fa[1],fa[2]]+f_offset, 
+                    '-o', alpha=1.0, color='orange', markersize=9,
+                    markerfacecolor='orange',linewidth=3) 
+            if quad_update:
+                ax.plot([p2[ii],p4[ii]],[p2[jj],p4[jj]],[fa[1],fa[3]]+f_offset,
+                        '-o', alpha=1.0, color='orange', markersize=9,
+                        markerfacecolor='orange',linewidth=3) 
+            #plt.draw()
+
+        # choose best of the four 
         i_min = int(np.argmin(fa))
         if i_min == 0:
             pass
@@ -195,6 +217,8 @@ def ors(func, v_init, v_lb=None, v_ub=None, options_in=None, consts=1.0):
                 print(f" max constraint           = {np.max(g_opt):11.3e}")
                 print(f" Convergence F            = {cvg_f:11.4e}   tolF = {tol_f:8.6f}")
                 print(f" Convergence X            = {cvg_v:11.4e}   tolX = {tol_v:8.6f}")
+                if quad_update:
+                    print(f" *** quadratic update ***    a = {a:9.2e} sigma = {sigma:5.3f}")
                 print("\n")
 
         # termination checks
@@ -204,7 +228,7 @@ def ors(func, v_init, v_lb=None, v_ub=None, options_in=None, consts=1.0):
                 print(" *           ... and that is all we are asking for.")
             break                  # ... and that's all we want
 
-        if iteration > 1 and (cvg_v < tol_v or cvg_f < tol_f):
+        if iteration > 1 and (cvg_v < tol_v or cvg_f < tol_f) and sigma < 0.1:
             if msglev:
                 print(" * Woo Hoo!  Converged solution found!")
             if cvg_v < tol_v:
@@ -245,12 +269,7 @@ def ors(func, v_init, v_lb=None, v_ub=None, options_in=None, consts=1.0):
                 tag = " ** not ok ** "
             print(f" *  g[{j:3d}] = {gj:12.5f}{tag}")
 
-    if msglev > 2:
-        f_min, f_max = plot_opt_surface(func,(v_init-s0)/s1,v_lb,v_ub,options,consts,103)
-
-
-    # finalize history
-    # add a final column mirroring the last iteration
+    # close history by adding a final column mirroring the last iteration
     k = max(1, iteration)
     cvg_hist = cvg_hst[:, :k].copy()
     if not np.isfinite(cvg_hist[-1, -1]):

@@ -49,8 +49,8 @@ v_init = np.array([ 0.8 , 0.8 ])                 # a specified initial guess
 
 # adjust the optimization options ...
 # with ORS, convergence tolerances should be kind of loose
-#              msg_level tol_v  tol_f  tol_g  max_evals
-opts = opt_options([ 3 , 1e-1 , 1e-1 , 1e-1 , 200 ])  # for ORS
+#              msg_level tol_v  tol_f  tol_g  max_evals pnlty
+opts = opt_options([ 3 , 5e-2 , 5e-2 , 1e-2 , 500 ,     1e0   ])  # for ORS
 
 # solve the optimization problem
 v_opt, f_opt, g_opt, cvg_hst = ors(opt_example_analysis, v_init, v_lb, v_ub, opts, c)

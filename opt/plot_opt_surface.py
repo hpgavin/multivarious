@@ -55,6 +55,8 @@ def plot_opt_surface(func, x, v_lb, v_ub, options, consts=None, fig_no=1):
         Minimum value of the meshed surface data
     fmax : float
         Maximum value of the meshed surface data (clipped for visualization)
+    ax : 
+        To allow other functions to update the figure
     
     Notes
     -----
@@ -145,7 +147,7 @@ def plot_opt_surface(func, x, v_lb, v_ub, options, consts=None, fig_no=1):
     # ax.plot_wireframe(X_i, X_j, f_mesh, linewidth=1.5, alpha=0.7)
     
     # Alternative: use plot_surface for filled surface
-    ax.plot_surface(X_i, X_j, f_mesh, cmap='viridis', alpha=0.8, \
+    ax.plot_surface(X_i, X_j, f_mesh, cmap='viridis', alpha=0.5, \
                     linewidth=0.5, edgecolor='k')
     
     # Set labels with LaTeX-style formatting
@@ -200,7 +202,7 @@ def plot_opt_surface(func, x, v_lb, v_ub, options, consts=None, fig_no=1):
     #plt.savefig(f'/mnt/user-data/outputs/{filename}', dpi=150, bbov_inches='tight')
     #print(f"Saved: {filename}")
     
-    return fmin, fmax
+    return fmin, fmax, ax
 
 
 # Example usage / test
