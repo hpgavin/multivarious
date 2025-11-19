@@ -19,7 +19,7 @@ def avg_cov_func(func, x, s0, s1, options, consts=None, BX=1):
     s0, s1 : np.ndarray or float
         Linear scaling factors mapping [x_lb, x_ub] -> [-1, +1]
     options : np.ndarray
-        Optimization settings vector (see optim_options)
+        Optimization settings vector (see opt_options)
     consts : np.ndarray, optional
         Additional constants (non-design variables)
     BX : int, optional

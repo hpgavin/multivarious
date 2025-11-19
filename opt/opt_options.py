@@ -1,12 +1,11 @@
-# optim_options.py
+# opt_options.py
 # -----------------------------------------------------------------------------
-# Translated from MATLAB's optim_options.m
-# Defines default optimization parameters for Multivarious optimization routines.
+# default optimization parameters for Multivarious optimization routines 
 # -----------------------------------------------------------------------------
 
 import numpy as np
 
-def optim_options(options_in=None):
+def opt_options(options_in=None):
     """
     Return the default optimization parameters, optionally updating with user input.
 
@@ -23,7 +22,7 @@ def optim_options(options_in=None):
 
     # Default parameters (same order and values as MATLAB)
     default_options = np.array([
-        1,       # (1) display flag
+        1,       # (1) message level flag
         1e-3,    # (2) tolerance on parameters
         1e-3,    # (3) tolerance on cost
         0e-4,    # (4) tolerance on constraints
@@ -33,8 +32,8 @@ def optim_options(options_in=None):
         1,       # (8) number of function evaluations in average
         0.1,     # (9) desired coefficient of variation on mean estimate
         0,       # (10) stop when feasible
-        1,       # (11) index for plotting surface
-        2,       # (12) index for plotting surface
+        0,       # (11) index for plotting surface
+        1,       # (12) index for plotting surface
         25,      # (13) # of first-index values for plotting
         35,      # (14) # of second-index values for plotting
         1e-6,    # (15) finite diff minimum param. change

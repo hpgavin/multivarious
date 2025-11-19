@@ -75,9 +75,10 @@ def plot_cvg_hst(cvg_hst, v_opt, figNo=1002, clr=None):
     
     if figNo:  # Make plots
         # Set up plot formatting
+        plt.ion() # interactive plot mode: on
         plt.rcParams['font.size'] = 14
         plt.rcParams['lines.linewidth'] = 2
-        plt.rcParams['axes.linewidth'] = 4
+        #plt.rcParams['axes.linewidth'] = 1
         
         # ====================================================================
         # FIGURE figNo+1: Convergence Criteria
@@ -101,7 +102,7 @@ def plot_cvg_hst(cvg_hst, v_opt, figNo=1002, clr=None):
             else:
                 plt.plot(fc, f_conv, linewidth=lw)
         
-        plt.ylabel('F convergence')
+        plt.ylabel(r'$F$ convergence')
         plt.grid(True, alpha=0.3)
         
         # Subplot 2: X convergence criterion
@@ -120,14 +121,14 @@ def plot_cvg_hst(cvg_hst, v_opt, figNo=1002, clr=None):
             else:
                 plt.plot(fc, x_conv, linewidth=lw)
         
-        plt.ylabel('X convergence')
+        plt.ylabel(r'$X$ convergence')
         plt.xlabel('function evaluations')
         plt.grid(True, alpha=0.3)
         
         plt.tight_layout()
         filename1 = f'plot_cvg_hst-{figNo+1}.png'
-        plt.savefig(f'/mnt/user-data/outputs/{filename1}', dpi=150, bbox_inches='tight')
-        print(f"Saved: {filename1}")
+        #plt.savefig(f'/mnt/user-data/outputs/{filename1}', dpi=150, bbox_inches='tight')
+        #print(f"Saved: {filename1}")
         
         # ====================================================================
         # FIGURE figNo: Objective, Variables, and Constraints
@@ -155,13 +156,13 @@ def plot_cvg_hst(cvg_hst, v_opt, figNo=1002, clr=None):
             else:
                 plt.plot(fc, obj_vals, linewidth=lw)
         
-        plt.ylabel('objective   f_A')
+        plt.ylabel(r'objective   $f_A$')
         plt.grid(True, alpha=0.3)
         
         # Title with final values
         f_opt = obj_vals[-1]
         g_opt = cvg_hst[n + 1, -1]
-        plt.title(f' f_opt = {f_opt:11.4e}         max(g_opt) = {g_opt:11.4e}')
+        plt.title(rf"$f_{{opt}}$ = {f_opt:10.3e}         max($g_{{opt}}$) = {g_opt:10.3e}")
         
         # Subplot 2: Design variable convergence
         plt.subplot(3, 1, 2)
@@ -209,9 +210,9 @@ def plot_cvg_hst(cvg_hst, v_opt, figNo=1002, clr=None):
         plt.grid(True, alpha=0.3)
         
         plt.tight_layout()
-        filename2 = f'plot_cvg_hst-{figNo}.png'
-        plt.savefig(f'/mnt/user-data/outputs/{filename2}', dpi=150, bbox_inches='tight')
-        print(f"Saved: {filename2}")
+        #filename2 = f'plot_cvg_hst-{figNo}.png'
+        #plt.savefig(f'/mnt/user-data/outputs/{filename2}', dpi=150, bbox_inches='tight')
+        #print(f"Saved: {filename2}")
 
 
 # Example usage / test
@@ -257,7 +258,7 @@ if __name__ == "__main__":
     
     plt.show()
     
-    print("\n" + "="*70)
-    print("plot_cvg_hst test completed successfully!")
-    print("Figures saved to /mnt/user-data/outputs/")
-    print("="*70 + "\n")
+    #print("\n" + "="*70)
+    #print("plot_cvg_hst test completed successfully!")
+    #print("Figures saved to /mnt/user-data/outputs/")
+    #print("="*70 + "\n")

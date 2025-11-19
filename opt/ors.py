@@ -1,21 +1,21 @@
-# ors_opt.py
+# ors.py
 # -----------------------------------------------------------------------------
-# Optimized Step Size Random Search (ORS opt)
+# Optimized Step Size Random Search (ORS)
 # Translation of Henri P. Gavin's ORSopt.m (Duke CEE).
-# Depends on: optim_options(), box_constraint(), avg_cov_func()
+# Depends on: opt_options(), box_constraint(), avg_cov_func()
 # -----------------------------------------------------------------------------
 
 from __future__ import annotations
 import time
 import numpy as np
 
-from optim_options import optim_options
+from opt_options import opt_options
 from box_constraint import box_constraint
 from avg_cov_func import avg_cov_func
+from plot_opt_surface import plot_opt_surface
 
 
-
-def ors_opt(func, v_init, v_lb=None, v_ub=None, options_in=None, consts=1.0):
+def ors(func, v_init, v_lb=None, v_ub=None, options_in=None, consts=1.0):
     """
     Optimized Step Size Random Search (inequality constraints via penalties).
 
@@ -29,7 +29,7 @@ def ors_opt(func, v_init, v_lb=None, v_ub=None, options_in=None, consts=1.0):
     v_lb, v_ub : array-like (n,), optional
         Lower/upper bounds on v. If omitted, wide bounds are used (±1e2*|v_init|).
     options_in : array-like, optional
-        See optim_options() for the 19 parameters (same positions as MATLAB).
+        See opt_options() for the 19 parameters (same positions as MATLAB).
     consts : any
         Passed through to `func`.
 
@@ -52,7 +52,7 @@ def ors_opt(func, v_init, v_lb=None, v_ub=None, options_in=None, consts=1.0):
     v_lb = np.asarray(v_lb, dtype=float).flatten()
     v_ub = np.asarray(v_ub, dtype=float).flatten()
 
-    options = optim_options(options_in)
+    options = opt_options(options_in)
     msglev    = int(options[0])   # display level
     tol_v     = float(options[1]) # design var convergence tol
     tol_f     = float(options[2]) # objective convergence tol
@@ -127,7 +127,7 @@ def ors_opt(func, v_init, v_lb=None, v_ub=None, options_in=None, consts=1.0):
         # fit local quadratic along r using (0, dv2, dv3)
         dv2 = np.linalg.norm(v2 - v1) / (np.linalg.norm(r) + 1e-16)
         dv3 = np.linalg.norm(v3 - v1) / (np.linalg.norm(r) + 1e-16)
-        # regularization (i3 in MATLAB)
+        # regularization 
         i3 = 1e-9 * np.eye(3)
         A = np.array([[0.0,         0.0, 1.0],
                       [0.5*dv2**2,  dv2, 1.0],
@@ -184,7 +184,7 @@ def ors_opt(func, v_init, v_lb=None, v_ub=None, options_in=None, consts=1.0):
                 rate = function_count / max(elapsed, 1e-9)
                 remaining = max_evals - function_count
                 eta_sec = int(remaining / max(rate, 1e-9))
-                print(" -+-+-+-+-+-+-+-+-+-+- ORS opt -+-+-+-+-+-+-+-+-+-+-+-+-+")
+                print(" -+-+-+-+-+-+-+-+-+-+-+- ORS +--+-+-+-+-+-+-+-+-+-+-+-+-+")
                 print(f" iteration                = {iteration:5d}   "
                       f"{'*** feasible ***' if np.max(g_opt) <= tol_g else '!!! infeasible !!!'}")
                 print(f" function evaluations     = {function_count:5d} of {max_evals:5d}"
@@ -195,24 +195,33 @@ def ors_opt(func, v_init, v_lb=None, v_ub=None, options_in=None, consts=1.0):
                 print(f" max constraint           = {np.max(g_opt):11.3e}")
                 print(f" Convergence F            = {cvg_f:11.4e}   tolF = {tol_f:8.6f}")
                 print(f" Convergence X            = {cvg_v:11.4e}   tolX = {tol_v:8.6f}")
-                print(" -+-+-+-+-+-+-+-+-+-+- ORS opt -+-+-+-+-+-+-+-+-+-+-+-+-+")
+                print("\n")
 
         # termination checks
         if np.max(g_opt) < tol_g and find_feas:
             if msglev:
-                print("Woo Hoo! Feasible solution found — stopping as requested.")
-            break
+                print(" * Woo Hoo!  Feasible solution found! ")
+                print(" *           ... and that is all we are asking for.")
+            break                  # ... and that's all we want
 
         if iteration > 1 and (cvg_v < tol_v or cvg_f < tol_f):
             if msglev:
-                print("*** Converged solution found!")
-                print(f"*** {'feasible' if np.max(g_opt) < tol_g else 'NOT feasible'}")
+                print(" * Woo Hoo!  Converged solution found!")
+            if cvg_v < tol_v:
+                print(" *           convergence in design variables") 
+            if cvg_f < tol_f:
+                print(" *           convergence in design objective") 
+            if np.max(g_opt) < tol_g:
+                print(" * Woo Hoo!  Converged solution is feasible") 
+            else:
+                print(" * Boo Hoo!  Converged solution is NOT feasible!") 
+                print(" *            ... Increase options[6] and try, try again ...")
             break
 
     # time-out message
     if function_count >= max_evals and msglev:
-        print(f"Enough! Max evaluations ({max_evals}) exceeded. \n"
-              "Increase tol_v (options[1]) or max_evals (options[4]) and try again.")
+        print(f" * Enough! max evaluations ({max_evals}) exceeded. \n"
+              " * Increase tol_v (options[1]) or max_evals (options[4]) and try again.")
 
     # scale back to original units
     v_init_out = (s0 + s1 * v_init - s0) / s1  # = v_init (kept for parity)
@@ -221,25 +230,31 @@ def ors_opt(func, v_init, v_lb=None, v_ub=None, options_in=None, consts=1.0):
     # print summary (compact)
     if msglev:
         dur = time.time() - t0
-        print(f"*** Completion :\n    objective = {f_opt:11.3e}   evals = {function_count}   "
+        print(f" *          objective = {f_opt:11.3e}   evals = {function_count}   "
               f"time = {dur:.2f}s")
-        print("              v_init        v_lb     <    v_opt    <    v_ub")
-        print("-----------------------------------------------------------------")
+        print(" *  ----------------------------------------------------------------")
+        print(" *                v_init        v_lb     <    v_opt    <    v_ub")
+        print(" *  ----------------------------------------------------------------")
         for i in range(n):
-            print(f"v({i+1:3d})  {v_init_out[i]:12.5f}  {v_lb[i]:12.5f}  {v_opt_out[i]:12.5f}  {v_ub[i]:12.5f}")
-        print("*** Constraints:")
+            print(f" *  v[{i+1:3d}]  {v_init_out[i]:12.5f}  {v_lb[i]:12.5f}  {v_opt_out[i]:12.5f}  {v_ub[i]:12.5f}")
+        print(" *  ----------------------------------------------------------------")
+        print(" * Constraints:")
         for j, gj in enumerate(np.atleast_1d(g_opt).flatten(), 1):
             tag = " ** binding ** " if gj > -tol_g else ""
             if gj > tol_g:
                 tag = " ** not ok ** "
-            print(f"   g({j:3d}) = {gj:12.5f}{tag}")
+            print(f" *  g[{j:3d}] = {gj:12.5f}{tag}")
+
+    if msglev > 2:
+        f_min, f_max = plot_opt_surface(func,(v_init-s0)/s1,v_lb,v_ub,options,consts,103)
+
 
     # finalize history
-    # add a final column mirroring the last iteration, as in MATLAB ending
+    # add a final column mirroring the last iteration
     k = max(1, iteration)
-    out_hist = cvg_hst[:, :k].copy()
-    if not np.isfinite(out_hist[-1, -1]):
-        out_hist[-1, -1] = out_hist[-1, max(0, k-2)]
+    cvg_hist = cvg_hst[:, :k].copy()
+    if not np.isfinite(cvg_hist[-1, -1]):
+        cvg_hist[-1, -1] = cvg_hist[-1, max(0, k-2)]
 
-    return v_opt_out, f_opt, g_opt, out_hist
+    return v_opt_out, f_opt, g_opt, cvg_hist
 
