@@ -58,7 +58,7 @@ v_init = np.array([ 0.8 , 0.8 ])
 opts = opt_options([ 3 , 2e-2 , 2e-2 , 1e-2 , 500 ,     1e0   ])  # for ORS
 
 # solve the optimization problem using one of ... ors , nms , sqp 
-v_opt, f_opt, g_opt, cvg_hst, _, _  = sqp(opt_example_analysis, v_init, v_lb, v_ub, opts, c)
+v_opt, f_opt, g_opt, cvg_hst, _,_  = ors(opt_example_analysis, v_init, v_lb, v_ub, opts, c)
 
 # plot the convergence history
 plot_cvg_hst( cvg_hst , v_opt )  

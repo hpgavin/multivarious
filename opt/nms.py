@@ -448,24 +448,22 @@ def nms(func, v_init, v_lb=None, v_ub=None, options_in=None, consts=1.0):
               "or max_evals (options[4]) and try again")
 
     # Scale back to original units
-    v_opt_out = (x_opt - s0) / s1
+    v_opt = (x_opt - s0) / s1
 
     # ----- Summary -----
     if msglev:
         dur = time.time() - t0
-        print(f" *          objective = {f_opt:11.3e}   evals = {function_count}   "
-              f"time = {dur:.2f}s")
-        print(" *  ----------------------------------------------------------------")
-        print(" *                v_init        v_lb     <    v_opt    <    v_ub")
-        print(" *  ----------------------------------------------------------------")
-        v_init_out = (x1 - s0) / s1
+        print(f" *          objective = {f_opt:11.3e}   evals = {function_count}   " f"time = {dur:.2f}s")
+        print(" * ----------------------------------------------------------------------------")
+        print(" *                v_init      v_lb     <    v_opt     <    v_ub      ")
+        print(" * ----------------------------------------------------------------------------")
         for i in range(n):
-            eqlb = '=' if v_opt_out[i] < v_lb[i] + tol_g + 10 * np.finfo(float).eps else ' '
-            equb = '=' if v_opt_out[i] > v_ub[i] - tol_g - 10 * np.finfo(float).eps else ' '
+            eqlb = '=' if v_opt[i] < v_lb[i] + tol_g + 10 * np.finfo(float).eps else ' '
+            equb = '=' if v_opt[i] > v_ub[i] - tol_g - 10 * np.finfo(float).eps else ' '
             binding = ' ** binding **' if eqlb == '=' or equb == '=' else ''
-            print(f" *  v[{i+1:3d}]  {v_init_out[i]:12.5f}  "
-                  f"{v_lb[i]:12.5f} {eqlb} {v_opt_out[i]:12.5f} {equb} {v_ub[i]:12.5f} {binding}")
-        print(" *  ----------------------------------------------------------------")
+            print(f" *  v[{i+1:3d}]  {v_init[i]:11.4f} "
+                  f"{v_lb[i]:11.4f} {eqlb} {v_opt[i]:12.5f} {equb} {v_ub[i]:11.4f} {binding}")
+        print(" *  ---------------------------------------------------------------------------")
         print(" * Constraints:")
         for j, gj in enumerate(np.atleast_1d(g_opt).flatten(), 1):
             tag = " ** binding **" if gj > -tol_g else ""
@@ -476,4 +474,4 @@ def nms(func, v_init, v_lb=None, v_ub=None, options_in=None, consts=1.0):
     # Trim history
     cvg_hist = cvg_hst[:, :iteration].copy()
 
-    return v_opt_out, f_opt, g_opt, cvg_hist
+    return v_opt, f_opt, g_opt, cvg_hist, 0, 0

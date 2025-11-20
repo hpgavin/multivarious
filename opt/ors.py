@@ -42,7 +42,6 @@ def ors(func, v_init, v_lb=None, v_ub=None, options_in=None, consts=1.0):
     cvg_hst : np.ndarray (n+5, k)
         Columns store [v; f; max(g); func_count; cvg_v; cvg_f] per iteration.
     """
-
     # ----- options & inputs -----
     v_init = np.asarray(v_init, dtype=float).flatten()
     n = v_init.size
@@ -73,7 +72,7 @@ def ors(func, v_init, v_lb=None, v_ub=None, options_in=None, consts=1.0):
     iteration = 1
     cvg_hst = np.full((n + 5, max(1, max_evals)), np.nan)
     fa = np.zeros(4)  # augmented costs for up to 4 evaluations
-    BX = 1           # enforce bounds inside avg_cov_func
+    BX = 1            # enforce bounds inside avg_cov_func
 
     # ----- analyze initial guess -----
     fv, gv, v1, cJ, nAvg = avg_cov_func(func, v1, s0, s1, options, consts, BX)
@@ -96,15 +95,15 @@ def ors(func, v_init, v_lb=None, v_ub=None, options_in=None, consts=1.0):
         f_min, f_max, ax = plot_opt_surface(func,(v_init-s0)/s1,v_lb,v_ub,options,consts,103)
         
     # search parameters
-    sigma = 0.300  # step scale
+    sigma = 0.200  # step scale
     nu = 1.0       # exponent in sigma schedule
     t0 = time.time()
 
     # initialize four points (v1 already done)
     fa[0] = f_opt
-    v2 = v1.copy(); g2 = g_opt.copy()
-    v3 = v1.copy(); g3 = g_opt.copy()
-    v4 = v1.copy(); g4 = g_opt.copy(); fa[3] = fa[0]
+    v2 = v1; g2 = g_opt;
+    v3 = v1; g3 = g_opt;
+    v4 = v1; g4 = g_opt; fa[3] = fa[0]
 
     last_update = function_count
 
@@ -162,7 +161,7 @@ def ors(func, v_init, v_lb=None, v_ub=None, options_in=None, consts=1.0):
                 ax.plot( [p2[ii],p4[ii]], [p2[jj],p4[jj]], [fa[1],fa[3]],
                 '-o', alpha=1.0, linewidth=3, markersize=6, color='red',
                  markerfacecolor='red', markeredgecolor='darkred')
-            #plt.draw()
+            plt.draw()
 
         # choose best of the four 
         i_min = int(np.argmin(fa))
@@ -182,9 +181,9 @@ def ors(func, v_init, v_lb=None, v_ub=None, options_in=None, consts=1.0):
 
         # update incumbent if improved
         if fa[i_min] < f_opt:
-            v_opt = v1.copy()
-            f_opt = float(fa[i_min])
-            g_opt = np.atleast_1d(g1).astype(float).flatten()
+            v_opt = v1 #.copy()
+            f_opt = float( fa[i_min] )
+            g_opt = g1 # np.atleast_1d(g1).astype(float).flatten()
 
             # convergence metrics vs last recorded iteration
             prev = cvg_hst[:n, iteration - 1]
@@ -197,7 +196,7 @@ def ors(func, v_init, v_lb=None, v_ub=None, options_in=None, consts=1.0):
             last_update = function_count
             iteration += 1
             cvg_hst[:, iteration - 1] = np.concatenate([vv,
-                                                        [f_opt, np.max(g_opt), function_count, cvg_v, cvg_f]])
+                                        [f_opt, np.max(g_opt), function_count, cvg_v, cvg_f]])
 
             if msglev:
                 elapsed = time.time() - t0
@@ -216,7 +215,7 @@ def ors(func, v_init, v_lb=None, v_ub=None, options_in=None, consts=1.0):
                 print(f" Convergence F            = {cvg_f:11.4e}   tolF = {tol_f:8.6f}")
                 print(f" Convergence X            = {cvg_v:11.4e}   tolX = {tol_v:8.6f}")
                 if quad_update:
-                    print(f" *** quadratic update ***    a = {a:9.2e} sigma = {sigma:5.3f}")
+                    print(f"\n *** quadratic update ***    a = {a:9.2e} sigma = {sigma:5.3f}")
                 print("\n")
 
         # termination checks
@@ -246,19 +245,18 @@ def ors(func, v_init, v_lb=None, v_ub=None, options_in=None, consts=1.0):
               " * Increase tol_v (options[1]) or max_evals (options[4]) and try again.")
 
     # scale back to original units
-    v_init_out = (s0 + s1 * v_init - s0) / s1  # = v_init (kept for parity)
-    v_opt_out = (v_opt - s0) / s1
+    v_opt = (v_opt - s0) / s1
 
     # print summary (compact)
     if msglev:
         dur = time.time() - t0
         print(f" *          objective = {f_opt:11.3e}   evals = {function_count}   "
               f"time = {dur:.2f}s")
-        print(" *  ----------------------------------------------------------------")
-        print(" *                v_init        v_lb     <    v_opt    <    v_ub")
-        print(" *  ----------------------------------------------------------------")
+        print(" * ----------------------------------------------------------------------------")
+        print(" *                v_init      v_lb     <    v_opt     <    v_ub      ")
+        print(" * ----------------------------------------------------------------------------")
         for i in range(n):
-            print(f" *  v[{i+1:3d}]  {v_init_out[i]:12.5f}  {v_lb[i]:12.5f}  {v_opt_out[i]:12.5f}  {v_ub[i]:12.5f}")
+            print(f" *  v[{i+1:3d}]  {v_init[i]:11.4f} {v_lb[i]:11.4f}   {v_opt[i]:12.5f}   {v_ub[i]:11.4f}")
         print(" *  ----------------------------------------------------------------")
         print(" * Constraints:")
         for j, gj in enumerate(np.atleast_1d(g_opt).flatten(), 1):
@@ -273,5 +271,5 @@ def ors(func, v_init, v_lb=None, v_ub=None, options_in=None, consts=1.0):
     if not np.isfinite(cvg_hist[-1, -1]):
         cvg_hist[-1, -1] = cvg_hist[-1, max(0, k-2)]
 
-    return v_opt_out, f_opt, g_opt, cvg_hist
+    return v_opt, f_opt, g_opt, cvg_hist, 0, 0
 
