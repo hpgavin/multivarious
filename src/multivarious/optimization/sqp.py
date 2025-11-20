@@ -6,6 +6,22 @@
 # Uses quadprog package for QP subproblems
 # -----------------------------------------------------------------------------
 
+
+from __future__ import annotations
+import time
+import numpy as np
+
+from scipy.optimize import minimize
+from scipy.linalg import cho_factor, cho_solve
+
+from .opt_options import opt_options
+from .avg_cov_func import avg_cov_func
+
+from .box_constraint import box_constraint
+from matplotlib import pyplot as plt
+from .plot_opt_surface import plot_opt_surface
+
+''' Commented out for testing, replaced with version above.
 from __future__ import annotations
 import time
 import numpy as np
@@ -16,6 +32,7 @@ from scipy.linalg import cho_factor, cho_solve
 from opt_options import opt_options
 from matplotlib import pyplot as plt
 from plot_opt_surface import plot_opt_surface
+'''
 #from quadprog import solve_qp
 
 

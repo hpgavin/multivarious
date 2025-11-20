@@ -9,12 +9,25 @@ from __future__ import annotations
 import time
 import numpy as np
 
+from .opt_options import opt_options
+from .box_constraint import box_constraint
+from .avg_cov_func import avg_cov_func
+from matplotlib import pyplot as plt
+from .plot_opt_surface import plot_opt_surface
+
+
+
+'''  Commented out for testing, replaced with version above.
+from __future__ import annotations
+import time
+import numpy as np
+
 from opt_options import opt_options
 from box_constraint import box_constraint
 from avg_cov_func import avg_cov_func
 from matplotlib import pyplot as plt
 from plot_opt_surface import plot_opt_surface
-
+'''
 
 def ors(func, v_init, v_lb=None, v_ub=None, options_in=None, consts=1.0):
     """
