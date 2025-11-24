@@ -196,6 +196,7 @@ def nms(func, v_init, v_lb=None, v_ub=None, options_in=None, consts=1.0):
                       [fx_all[0], g_max[0], function_count, cvg_v, cvg_f]])
 
     if msglev:
+        print('\033[H\033[J', end='')  # Clear screen
         print(" ======================= NMS ============================")
         print(f" iteration                = {iteration:5d}   "
               f"{'*** feasible ***' if np.max(g_opt) <= tol_g else '!!! infeasible !!!'}")
@@ -362,6 +363,7 @@ def nms(func, v_init, v_lb=None, v_ub=None, options_in=None, consts=1.0):
             remaining = max_evals - function_count
             eta_sec = int(remaining / max(rate, 1e-9))
 
+            print('\033[H\033[J', end='')  # clear screen
             print(" ======================= NMS ============================")
             print(f" iteration                = {iteration:5d}   "
                   f"{'*** feasible ***' if np.max(g_opt) <= tol_g else '!!! infeasible !!!'}")
@@ -406,6 +408,7 @@ def nms(func, v_init, v_lb=None, v_ub=None, options_in=None, consts=1.0):
                        '-or', alpha=1.0, markersize=6, linewidth=2,
                        markerfacecolor='red', markeredgecolor='darkred')
             plt.draw()
+            plt.pause(0.01)
 
         # ----- Termination checks -----
         if np.max(g_opt) < tol_g and find_feas:
@@ -471,6 +474,7 @@ def nms(func, v_init, v_lb=None, v_ub=None, options_in=None, consts=1.0):
                 tag = " ** not ok **"
             print(f" *  g[{j:3d}] = {gj:12.5f}  {tag}")
 
+        print(" *\n *  ---------------------------------------------------------------------------")
     # Trim history
     cvg_hist = cvg_hst[:, :iteration].copy()
 

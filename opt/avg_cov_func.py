@@ -6,7 +6,7 @@
 
 import numpy as np
 
-def avg_cov_func(func, x, s0, s1, options, consts=None, BX=1):
+def avg_cov_func(func, x, s0, s1, options, consts=None, BOX=1):
     """
     Compute the average and coefficient of variation of a penalized cost function.
 
@@ -22,7 +22,7 @@ def avg_cov_func(func, x, s0, s1, options, consts=None, BX=1):
         Optimization settings vector (see opt_options)
     consts : np.ndarray, optional
         Additional constants (non-design variables)
-    BX : int, optional
+    BOX : int, optional
         1 to bound x within [-1, 1], 0 to allow unbounded (default=1)
 
     Returns
@@ -32,7 +32,7 @@ def avg_cov_func(func, x, s0, s1, options, consts=None, BX=1):
     g_avg : np.ndarray
         Average constraint vector
     x : np.ndarray
-        Possibly bounded x (if BX=1)
+        Possibly bounded x (if BOX=1)
     cov_F : float
         Coefficient of variation of F
     m : int
@@ -54,7 +54,7 @@ def avg_cov_func(func, x, s0, s1, options, consts=None, BX=1):
     m = 0
 
     x = np.asarray(x, dtype=float).flatten()
-    if BX:
+    if BOX:
         x = np.clip(x, -1.0, 1.0)
 
     for m in range(1, m_max + 1):

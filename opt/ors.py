@@ -1,275 +1,426 @@
-# ors.py
-# -----------------------------------------------------------------------------
-# Optimized Step Size Random Search (ORS)
-# Translation of Henri P. Gavin's ORSopt.m (Duke CEE).
-# Depends on: opt_options(), box_constraint(), avg_cov_func()
-# -----------------------------------------------------------------------------
+"""
+ors.py - Optimized Step Size Randomized Search
+===============================================
 
-from __future__ import annotations
-import time
+Nonlinear optimization with inequality constraints using Random Search
+with optimized step sizes based on quadratic approximations.
+
+Minimizes f(v) such that g(v) < 0 and v_lb <= v_opt <= v_ub.
+- f is a scalar objective function
+- v is a vector of design variables
+- g is a vector of inequality constraints
+
+Reference:
+Sheela Belur V, "An Optimized Step Size Random Search",
+Computer Methods in Applied Mechanics & Eng'g, Vol 19, 99-106, 1979
+
+S.Rao, Optimization Theory and Applications, 2nd ed, John Wiley, 1984
+
+Translation from MATLAB to Python, 2025-11-24
+Original by H.P. Gavin, Civil & Environmental Eng'g, Duke Univ.
+"""
+
 import numpy as np
-
-from opt_options import opt_options
-from box_constraint import box_constraint
+import time
+from datetime import datetime, timedelta
 from avg_cov_func import avg_cov_func
-from matplotlib import pyplot as plt
-from plot_opt_surface import plot_opt_surface
+from box_constraint import box_constraint
+from opt_options import opt_options
 
-
-def ors(func, v_init, v_lb=None, v_ub=None, options_in=None, consts=1.0):
+def ors(func, v_init, v_lb=None, v_ub=None, options=None, consts=None):
     """
-    Optimized Step Size Random Search (inequality constraints via penalties).
-
+    Optimized Random Search with inequality constraints.
+    
     Parameters
     ----------
     func : callable
-        Signature: f, g = func(v, consts).  f is scalar, g is (m,) constraints (g<0 feasible).
-        v is in *original* units (not scaled).
-    v_init : array-like (n,)
-        Initial guess.
-    v_lb, v_ub : array-like (n,), optional
-        Lower/upper bounds on v. If omitted, wide bounds are used (±1e2*|v_init|).
-    options_in : array-like, optional
-        See opt_options() for the 19 parameters (same positions as MATLAB).
-    consts : any
-        Passed through to `func`.
-
+        Function to optimize with signature: f, g = func(v, consts)
+        Returns objective value (float) and constraint values (array)
+    v_init : ndarray, shape (n,)
+        Initial design variable values
+    v_lb : ndarray, shape (n,), optional
+        Lower bounds on design variables (default: -100*|v_init|)
+    v_ub : ndarray, shape (n,), optional
+        Upper bounds on design variables (default: +100*|v_init|)
+    options : ndarray or list, optional
+        Optimization settings (see opt_options.py for details):
+        options[0] = message level (0=quiet, 1+=verbose)
+        options[1] = tol_v - tolerance on design variables
+        options[2] = tol_f - tolerance on objective function
+        options[3] = tol_g - tolerance on constraints
+        options[4] = max_evals - max function evaluations
+        options[5] = penalty - penalty on constraint violations
+        options[6] = q - exponent on constraint violations
+        options[7] = m_max - num. function evals in mean estimate
+        options[8] = err_F - desired coefficient of variation on mean
+        options[9] = find_feas - stop when solution is feasible (1) or not (0)
+        options[10:13] = surface plotting parameters
+    consts : optional
+        Additional constants passed to func(v, consts)
+    
     Returns
     -------
-    v_opt : np.ndarray (n,)
+    v_opt : ndarray
+        Optimal design variables
     f_opt : float
-    g_opt : np.ndarray (m,)
-    cvg_hst : np.ndarray (n+5, k)
-        Columns store [v; f; max(g); func_count; cvg_v; cvg_f] per iteration.
+        Optimal objective function value
+    g_opt : ndarray
+        Constraint values at optimum
+    cvg_hst : ndarray
+        Convergence history: [v; f; max(g); func_count; cvg_v; cvg_f]
+    iteration : int
+        Number of iterations completed
+    function_count : int
+        Total number of function evaluations
     """
-    # ----- options & inputs -----
+    
+    BOX = 1  # Use box constraints
+    
+    # Handle missing arguments
     v_init = np.asarray(v_init, dtype=float).flatten()
-    n = v_init.size
-
-    if v_lb is None or v_ub is None:
+    n = len(v_init)
+    
+    if v_lb is None:
         v_lb = -1.0e2 * np.abs(v_init)
-        v_ub = +1.0e2 * np.abs(v_init)
+    if v_ub is None:
+        v_ub = 1.0e2 * np.abs(v_init)
+    
     v_lb = np.asarray(v_lb, dtype=float).flatten()
     v_ub = np.asarray(v_ub, dtype=float).flatten()
-
-    options = opt_options(options_in)
-    msglev    = int(options[0])   # display level
-    tol_v     = float(options[1]) # design var convergence tol
-    tol_f     = float(options[2]) # objective convergence tol
-    tol_g     = float(options[3]) # constraint tol
-    max_evals = int(options[4])   # budget
-    # options[5], [6] handled inside avg_cov_func
-    find_feas = bool(options[9])  # stop once feasible
-
-    # ----- scale to [-1, +1] (as in MATLAB) -----
-    s0 = (v_lb + v_ub) / (v_lb - v_ub)
-    s1 = 2.0 / (v_ub - v_lb)
-    v1 = s0 + s1 * v_init
-    v1 = np.clip(v1, -1.0, 1.0)
-
-    # book-keeping
+    
+    if options is None:
+        options = opt_options()
+    else:
+        options = opt_options(options)
+    
+    if consts is None:
+        consts = 1.0
+    
+    # Extract options
+    msglev = int(options[0])
+    tol_v = options[1]
+    tol_f = options[2]
+    tol_g = options[3]
+    max_evals = int(options[4])
+    penalty = options[5]
+    q = options[6]
+    find_feas = int(options[9])
+    
+    # Check bounds are valid
+    if np.any(v_ub < v_lb):
+        print('Error: v_ub cannot be less than v_lb for any variable')
+        return v_init, (np.sqrt(5)-1)/2, np.array([1.0]), None, 0, 0
+    
+    # Initialize
     function_count = 0
     iteration = 1
-    cvg_hst = np.full((n + 5, max(1, max_evals)), np.nan)
-    fa = np.zeros(4)  # augmented costs for up to 4 evaluations
-    BX = 1            # enforce bounds inside avg_cov_func
-
-    # ----- analyze initial guess -----
-    fv, gv, v1, cJ, nAvg = avg_cov_func(func, v1, s0, s1, options, consts, BX)
-    function_count += nAvg
-    if not np.isscalar(fv):
-        raise ValueError("Objective returned by func(v,consts) must be a scalar.")
-    gv = np.atleast_1d(gv).astype(float).flatten()
-
-    # initial records
-    f_opt = float(fv)
-    v_opt = v1.copy()
-    g_opt = gv.copy()
-
-    cvg_v = 1.0
     cvg_f = 1.0
-    cvg_hst[:, iteration - 1] = np.concatenate([(v_opt - s0) / s1,
-                         [f_opt, np.max(g_opt), function_count, cvg_v, cvg_f]])
-
+    cvg_hst = np.full((n + 5, max_evals), np.nan)
+    fa = np.zeros(4)
+    
+    # Scale v from [v_lb, v_ub] to x in [-1, +1]
+    s0 = (v_lb + v_ub) / (v_lb - v_ub)
+    s1 = 2.0 / (v_ub - v_lb)
+    x_init = s0 + s1 * v_init
+    x_init = np.clip(x_init, -1.0, 1.0)
+    
+    i3 = 1e-9 * np.eye(3)  # Regularization for matrix inversion
+    
+    # Evaluate initial guess
+    fv, gv, v_init_scaled, cJ, nAvg = avg_cov_func(
+        func, x_init, s0, s1, options, consts, BOX
+    )
+    function_count += nAvg
+    
+    m = len(gv)  # Number of constraints
+    
+    # Check dimensions
+    if np.prod(np.shape(fv)) != 1:
+        raise ValueError('Objective must be a scalar')
+    if gv.ndim == 2 and gv.shape[0] == 1:
+        raise ValueError('Constraints must be a column vector')
+    
+    # Optional: plot objective surface
     if msglev > 2:
-        f_min, f_max, ax = plot_opt_surface(func,(v_init-s0)/s1,v_lb,v_ub,options,consts,103)
-        
-    # search parameters
-    sigma = 0.200  # step scale
-    nu = 1.0       # exponent in sigma schedule
-    t0 = time.time()
-
-    # initialize four points (v1 already done)
-    fa[0] = f_opt
-    v2 = v1; g2 = g_opt;
-    v3 = v1; g3 = g_opt;
-    v4 = v1; g4 = g_opt; fa[3] = fa[0]
-
-    last_update = function_count
-
-    # ============================ main loop ============================
-    while function_count < max_evals:
-        # random direction
-        r = sigma * np.random.randn(n)
-
-        # +1 step
-        a2, _ = box_constraint(v1, r)
-        v2 = v1 + a2 * r
-        fa2, g2, v2, c2, nAvg = avg_cov_func(func, v2, s0, s1, options, consts, BX)
-        function_count += nAvg
-        fa[1] = fa2
-
-        # decide direction for second probe (+2 or -1)
-        step = +2.0 if fa[1] < fa[0] else -1.0
-        a3, _ = box_constraint(v1, step * r)
-        v3 = v1 + a3 * step * r
-        fa3, g3, v3, c3, nAvg = avg_cov_func(func, v3, s0, s1, options, consts, BX)
-        function_count += nAvg
-        fa[2] = fa3
-
-        # fit local quadratic along r using (0, dv2, dv3)
-        dv2 = np.linalg.norm(v2 - v1) / (np.linalg.norm(r) + 1e-16)
-        dv3 = np.linalg.norm(v3 - v1) / (np.linalg.norm(r) + 1e-16)
-        # regularization 
-        i3 = 1e-9 * np.eye(3)
-        A = np.array([[0.0,         0.0, 1.0],
-                      [0.5*dv2**2,  dv2, 1.0],
-                      [0.5*dv3**2,  dv3, 1.0]], dtype=float) + i3
-        a, b, c = np.linalg.solve(A, fa[:3])
-
-        quad_update = False
-        if a > 0.0:                 # curvature is positive!
-            d = -b / a              # try to go to the zero-slope point
-            a4, _ = box_constraint(v1, d * r)
-            v4 = v1 + a4 * d * r
-            fa4, g4, v4, c4, nAvg = avg_cov_func(func, v4, s0, s1, options, consts, BX)
-            function_count += nAvg
-            fa[3] = fa4
-            quad_update = True
-
-        if msglev > 2:              # plot values on the surface 
-            p1 = (v1-s0)/s1
-            p2 = (v2-s0)/s1
-            p3 = (v3-s0)/s1
-            p4 = (v4-s0)/s1
-            ii = int(options[10])
-            jj = int(options[11])
-            ax.plot( [p2[ii],p3[ii]], [p2[jj],p3[jj]], [fa[1],fa[2]], 
-                '-o', alpha=1.0, linewidth=3, markersize=6, color='red',
-                 markerfacecolor='red', markeredgecolor='darkred')
-            if quad_update:
-                ax.plot( [p2[ii],p4[ii]], [p2[jj],p4[jj]], [fa[1],fa[3]],
-                '-o', alpha=1.0, linewidth=3, markersize=6, color='red',
-                 markerfacecolor='red', markeredgecolor='darkred')
-            plt.draw()
-
-        # choose best of the four 
-        i_min = int(np.argmin(fa))
-        if i_min == 0:
-            pass
-        elif i_min == 1:
-            v1, g1, c1 = v2, g2, c2
-        elif i_min == 2:
-            v1, g1, c1 = v3, g3, c3
-        else:
-            v1, g1, c1 = v4, g4, c4
-
-        if i_min > 0:
-            # shrink scope as evaluations proceed
-            sigma = sigma * (1.0 - function_count / max_evals)**nu
-        v1 = np.clip(v1, -1.0, 1.0)
-
-        # update incumbent if improved
-        if fa[i_min] < f_opt:
-            v_opt = v1 #.copy()
-            f_opt = float( fa[i_min] )
-            g_opt = g1 # np.atleast_1d(g1).astype(float).flatten()
-
-            # convergence metrics vs last recorded iteration
-            prev = cvg_hst[:n, iteration - 1]
-            prev_f = cvg_hst[n, iteration - 1]
-            vv = (v_opt - s0) / s1
-            cvg_v = (np.linalg.norm(prev - vv) /
-                     (np.linalg.norm(vv) + 1e-16)) if iteration >= 1 and np.all(np.isfinite(prev)) else 1.0
-            cvg_f = (abs(prev_f - f_opt) / (abs(f_opt) + 1e-16)) if iteration >= 1 and np.isfinite(prev_f) else 1.0
-
-            last_update = function_count
-            iteration += 1
-            cvg_hst[:, iteration - 1] = np.concatenate([vv,
-                                        [f_opt, np.max(g_opt), function_count, cvg_v, cvg_f]])
-
-            if msglev:
-                elapsed = time.time() - t0
-                rate = function_count / max(elapsed, 1e-9)
-                remaining = max_evals - function_count
-                eta_sec = int(remaining / max(rate, 1e-9))
-                print(" -+-+-+-+-+-+-+-+-+-+-+- ORS +--+-+-+-+-+-+-+-+-+-+-+-+-+")
-                print(f" iteration                = {iteration:5d}   "
-                      f"{'*** feasible ***' if np.max(g_opt) <= tol_g else '!!! infeasible !!!'}")
-                print(f" function evaluations     = {function_count:5d} of {max_evals:5d}"
-                      f" ({100.0*function_count/max_evals:4.1f}%)")
-                print(f" e.t.a.                   = ~{eta_sec//60}m{eta_sec%60:02d}s")
-                print(f" objective                = {f_opt:11.3e}")
-                print(" variables                = " + " ".join(f"{v:11.3e}" for v in vv))
-                print(f" max constraint           = {np.max(g_opt):11.3e}")
-                print(f" Convergence F            = {cvg_f:11.4e}   tolF = {tol_f:8.6f}")
-                print(f" Convergence X            = {cvg_v:11.4e}   tolX = {tol_v:8.6f}")
-                if quad_update:
-                    print(f"\n *** quadratic update ***    a = {a:9.2e} sigma = {sigma:5.3f}")
-                print("\n")
-
-        # termination checks
-        if np.max(g_opt) < tol_g and find_feas:
-            if msglev:
-                print(" * Woo Hoo!  Feasible solution found! ")
-                print(" *           ... and that is all we are asking for.")
-            break                  # ... and that's all we want
-
-        if iteration > 1 and (cvg_v < tol_v or cvg_f < tol_f) and sigma < 0.1:
-            if msglev:
-                print(" * Woo Hoo!  Converged solution found!")
-            if cvg_v < tol_v:
-                print(" *           convergence in design variables") 
-            if cvg_f < tol_f:
-                print(" *           convergence in design objective") 
-            if np.max(g_opt) < tol_g:
-                print(" * Woo Hoo!  Converged solution is feasible") 
-            else:
-                print(" * Boo Hoo!  Converged solution is NOT feasible!") 
-                print(" *            ... Increase options[6] and try, try again ...")
-            break
-
-    # time-out message
-    if function_count >= max_evals and msglev:
-        print(f" * Enough! max evaluations ({max_evals}) exceeded. \n"
-              " * Increase tol_v (options[1]) or max_evals (options[4]) and try again.")
-
-    # scale back to original units
-    v_opt = (v_opt - s0) / s1
-
-    # print summary (compact)
+        try:
+            from plot_opt_surface import plot_opt_surface
+            f_min, f_max, _ = plot_opt_surface(
+                func, (x_init - s0) / s1, v_lb, v_ub, options, consts, fig_no=103
+            )
+        except ImportError:
+            print('Warning: plot_opt_surface not available')
+    
+    # Algorithm parameters
+    sigma = 0.200  # Standard deviation of random perturbations
+    nu = 2.5       # Exponent for reducing sigma
+    
     if msglev:
-        dur = time.time() - t0
-        print(f" *          objective = {f_opt:11.3e}   evals = {function_count}   "
-              f"time = {dur:.2f}s")
-        print(" * ----------------------------------------------------------------------------")
-        print(" *                v_init      v_lb     <    v_opt     <    v_ub      ")
-        print(" * ----------------------------------------------------------------------------")
+        start_time = time.time()
+    
+    # Analyze initial guess
+    x1 = x_init.copy()
+    fa[0], g1, x1, c1, nAvg = avg_cov_func(func, x1, s0, s1, options, consts, BOX)
+    function_count += nAvg
+    
+    # Initialize optimal values
+    f_opt = fa[0]
+    x_opt = x1.copy()
+    g_opt = g1.copy()
+    
+    # Save initial guess to convergence history
+    cvg_hst[:, iteration-1] = np.concatenate([
+        (x_opt - s0) / s1, [f_opt], [np.max(g_opt)], 
+        [function_count], [sigma], [1.0]
+    ])
+    
+    if msglev:
+        print()  # clear screen effect
+    
+    x4 = x1.copy()
+    g4 = g1.copy()
+    fa[3] = fa[0]
+    
+    last_update = function_count
+    
+    # ========== Main optimization loop ==========
+    while function_count < max_evals:
+        
+        # Random search perturbation
+        r = sigma * np.random.randn(n)
+        
+        # First perturbation: +1*r
+        aa, _ = box_constraint(x1, r)
+        x2 = x1 + aa * r
+        
+        fa[1], g2, x2, c2, nAvg = avg_cov_func(func, x2, s0, s1, options, consts, BOX)
+        function_count += nAvg
+        
+        # Determine direction for second perturbation
+        if fa[1] < fa[0]:
+            step = +2
+        else:
+            step = -1
+        
+        # Second perturbation: -1*r or +2*r
+        aa, bb = box_constraint(x1, step * r)
+        if step > 0:
+            x3 = x1 + aa * step * r
+        else:
+            x3 = x1 + bb * r
+        
+        fa[2], g3, x3, c3, nAvg = avg_cov_func(func, x3, s0, s1, options, consts, BOX)
+        function_count += nAvg
+        
+        # Distances for quadratic fit
+        dx2 = np.linalg.norm(x2 - x1) / np.linalg.norm(r)
+        dx3 = np.linalg.norm(x3 - x1) / np.linalg.norm(r)
+        
+        # Fit quadratic: f(d) = 0.5*a*d^2 + b*d + c
+        A = np.array([
+            [0,           0,    1],
+            [0.5*dx2**2, dx2,   1],
+            [0.5*dx3**2, dx3,   1]
+        ]) + i3
+        
+        abc = np.linalg.solve(A, fa[0:3])
+        a, b, c = abc[0], abc[1], abc[2]
+        
+        # Try quadratic update if curvature is positive
+        quad_update = False
+        if a > 0:
+            d = -b / a  # Zero-slope point
+            aa, bb = box_constraint(x1, d * r)
+            if d > 0:
+                x4 = x1 + aa * d * r
+            else:
+                x4 = x1 + bb * d * r
+            
+            fa[3], g4, x4, c4, nAvg = avg_cov_func(func, x4, s0, s1, options, consts, BOX)
+            function_count += nAvg
+        
+        # Find best of the 4 evaluations
+        i_min = np.argmin(fa)
+        fa[0] = fa[i_min]
+        
+        if i_min == 1:
+            x1, g1, c1 = x2, g2, c2
+        elif i_min == 2:
+            x1, g1, c1 = x3, g3, c3
+        elif i_min == 3:
+            x1, g1, c1 = x4, g4, c4
+            quad_update = True
+        
+        # Update search scope if solution improved
+        if i_min > 0:
+            sigma = sigma * (1 - function_count / max_evals) ** nu
+        
+        x1 = np.clip(x1, -1.0, 1.0)  # Keep within bounds
+        
+        # Update optimal solution if improved
+        if fa[0] < f_opt:
+            x_opt = x1.copy()
+            f_opt = fa[0]
+            g_opt = g1.copy()
+            
+            # Convergence criteria
+            cvg_v = np.linalg.norm(cvg_hst[0:n, iteration-1] - (x_opt - s0) / s1) / \
+                    np.linalg.norm((x_opt - s0) / s1)
+            cvg_f = np.linalg.norm(cvg_hst[n, iteration-1] - f_opt) / np.abs(f_opt)
+            
+            last_update = function_count
+            cvg_hst[:, iteration] = np.concatenate([
+                (x_opt - s0) / s1, [f_opt], [np.max(g_opt)],
+                [function_count], [cvg_v], [cvg_f]
+            ])
+            iteration += 1
+            
+            # Display progress
+            if msglev:
+                elapsed = time.time() - start_time
+                secs_left = int((max_evals - function_count) * elapsed / function_count)
+                eta = (datetime.now() + timedelta(seconds=secs_left)).strftime('%H:%M:%S')
+                
+                max_g = np.max(g_opt)
+                idx_ub_g = np.argmax(g_opt)
+                
+                print('\033[H\033[J', end='')  # clear screen
+                print(' -+-+-+-+-+-+-+-+-+-+- ORS -+-+-+-+-+-+-+-+-+-+-+-+-+')
+                print(f' iteration               = {iteration:5d}', end='')
+                if max_g > tol_g:
+                    print('     !!! infeasible !!!')
+                else:
+                    print('     ***  feasible  ***')
+                print(f' function evaluations    = {function_count:5d}  of  {max_evals:5d}  '
+                      f'({100*function_count/max_evals:4.1f}%)')
+                print(f' e.t.a.                  = {eta}')
+                print(f' objective               = {f_opt:11.3e}')
+                print(f' variables               = ', end='')
+                for val in (x_opt - s0) / s1:
+                    print(f'{val:11.3e}', end='')
+                print()
+                print(f' max constraint          = {max_g:11.3e} ({idx_ub_g})')
+                print(f' Convergence Criterion F = {cvg_f:11.4e}    tolF = {tol_f:8.6f}')
+                print(f' Convergence Criterion X = {cvg_v:11.4e}    tolX = {tol_v:8.6f}')
+                print(f' c.o.v. of f_a           = {c1:11.3e}')
+                print(f' step std.dev (sigma)    = {sigma:5.3f}')
+                print(' -+-+-+-+-+-+-+-+-+-+- ORS -+-+-+-+-+-+-+-+-+-+-+-+-+')
+                if quad_update:
+                    print(' line quadratic update successful')
+        
+        # Optional: plot on surface
+        if msglev > 2:
+            try:
+                import matplotlib.pyplot as plt
+                v1 = (x1 - s0) / s1
+                v2 = (x2 - s0) / s1
+                v3 = (x3 - s0) / s1
+                v4 = (x4 - s0) / s1
+                f_offset = (f_max - f_min) / 100
+                
+                plt.figure(103)
+                ii = int(options[10])
+                jj = int(options[11])
+                
+                if step == -1:
+                    plt.plot([v2[ii], v1[ii], v3[ii]], 
+                            [v2[jj], v1[jj], v3[jj]],
+                            fa[[1, 0, 2]] + f_offset, '-or', markersize=4)
+                else:
+                    plt.plot([v1[ii], v2[ii], v3[ii]], 
+                            [v1[jj], v2[jj], v3[jj]],
+                            fa[[0, 1, 2]] + f_offset, '-or', markersize=4)
+                
+                if quad_update:
+                    plt.plot([v4[ii]], [v4[jj]], fa[3] + f_offset, 
+                            'ob', markersize=9, linewidth=3)
+                
+                plt.draw()
+                plt.pause(0.01)
+            except:
+                pass
+        
+        # Check for feasible solution
+        if np.max(g_opt) < tol_g and find_feas:
+            print('\n * Woo Hoo! Feasible solution found!', end='')
+            print(' *          ... and that is all we are asking for.')
+            break
+        
+        # Check convergence
+        if iteration > n*n and (cvg_v < tol_v or cvg_f < tol_f or 
+                                (function_count - last_update) > 0.2*max_evals):
+            print('\n * Woo-Hoo! Converged solution found!')
+            if cvg_v < tol_v:
+                print(' *           convergence in design variables')
+            if cvg_f < tol_f:
+                print(' *           convergence in design objective')
+            
+            if np.max(g_opt) < tol_g:
+                print(' * Woo-Hoo! Converged solution is feasible!')
+            else:
+                print(' * Boo-Hoo! Converged solution is NOT feasible!')
+                if np.max(g_opt) > tol_g:
+                    print(' *   ... Increase options[5] (penalty) and try, try again ...')
+                else:
+                    print(' *   ... Decrease options[5] (penalty) and try, try again ...')
+            break
+    
+    # ========== End main loop ==========
+    
+    # Check if maximum evaluations exceeded
+    if function_count >= max_evals:
+        if msglev:
+            print(f'\n * Enough!! Maximum number of function evaluations ({max_evals}) '
+                  'has been exceeded')
+            print(' *   ... Increase tol_v (options[1]) or max_evals (options[4]) '
+                  'and try try again.')
+    
+    # Scale back to original units
+    v_init = (x_init - s0) / s1
+    v_opt = (x_opt - s0) / s1
+    
+    # Final report
+    if msglev:
+        elapsed = time.time() - start_time
+        completion_time = datetime.now().strftime('%H:%M:%S')
+        elapsed_str = str(timedelta(seconds=int(elapsed)))
+        
+        print(f' * \n * Completion  : {completion_time} ({elapsed_str})')
+        print(f' * Objective   : {f_opt:11.3e}')
+        print(' * Variables   :')
+        print(' *             v_init         v_lb     <     v_opt    <     v_ub')
+        print(' * --------------------------------------------------------------')
+        
         for i in range(n):
-            print(f" *  v[{i+1:3d}]  {v_init[i]:11.4f} {v_lb[i]:11.4f}   {v_opt[i]:12.5f}   {v_ub[i]:11.4f}")
-        print(" *  ----------------------------------------------------------------")
-        print(" * Constraints:")
-        for j, gj in enumerate(np.atleast_1d(g_opt).flatten(), 1):
-            tag = " ** binding ** " if gj > -tol_g else ""
-            if gj > tol_g:
-                tag = " ** not ok ** "
-            print(f" *  g[{j:3d}] = {gj:12.5f}{tag}")
+            eqlb = ' '
+            equb = ' '
+            if v_opt[i] < v_lb[i] + tol_g + 10*np.finfo(float).eps:
+                eqlb = '='
+            elif v_opt[i] > v_ub[i] - tol_g - 10*np.finfo(float).eps:
+                equb = '='
+            
+            print(f' x({i:3d})  {v_init[i]:12.5f}   {v_lb[i]:11.4f} {eqlb} '
+                  f' {v_opt[i]:12.5f} {equb} {v_ub[i]:11.4f}')
+        
+        print(' * Constraints :')
+        for j in range(m):
+            binding = ' '
+            if g_opt[j] > -tol_g:
+                binding = ' ** binding ** '
+            if g_opt[j] > tol_g:
+                binding = ' ** not ok  ** '
+            print(f' *     g({j:3d}) = {g_opt[j]:12.5f}  {binding}')
+        print(' *\n * --------------------------------------------------------------\n')
+    
+    # Save final iteration
+    cvg_hst[:, iteration] = np.concatenate([
+        v_opt, [f_opt], [np.max(g_opt)], [function_count], [cvg_v], [cvg_f]
+    ])
+    cvg_hst[n+4, 0:2] = cvg_hst[n+4, 2]
+    cvg_hst = cvg_hst[:, 0:iteration+1]
+    
+    return v_opt, f_opt, g_opt, cvg_hst, iteration, function_count
 
-    # close history by adding a final column mirroring the last iteration
-    k = max(1, iteration)
-    cvg_hist = cvg_hst[:, :k].copy()
-    if not np.isfinite(cvg_hist[-1, -1]):
-        cvg_hist[-1, -1] = cvg_hist[-1, max(0, k-2)]
-
-    return v_opt, f_opt, g_opt, cvg_hist, 0, 0
+# ======================================================================
+# updated 2011-04-13, 2014-01-12, 2015-03-14, (pi day 03.14.15), 2015-03-26, 
+# 2016-04-06, 2019-02-23, 2020-01-17, 2024-04-03, 2025-11-24
 

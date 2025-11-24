@@ -328,6 +328,7 @@ def sqp(func, v_init, v_lb=None, v_ub=None, options_in=None, consts=1.0):
             cvg_f = abs(absSL * np.dot(gradf, SD) / f) if f != 0 else 0
             cvg_v = np.max(np.abs(absSL * SD / (x + np.finfo(float).eps)))
 
+            print('\033[H\033[J', end='')  # clear screen
             print("\n *********************** SQP ****************************")
             print(f" iteration                = {iteration:5d}   "
                   f"{'*** feasible ***' if g_max <= tol_g and np.all(x >= -1) and np.all(x <= 1) else '!!! infeasible !!!'}")
@@ -359,6 +360,7 @@ def sqp(func, v_init, v_lb=None, v_ub=None, options_in=None, consts=1.0):
                    'ro', alpha=1.0, markersize=8, linewidth=4,
                    markerfacecolor='red', markeredgecolor='darkred')
             plt.draw()
+            plt.pause(0.01)
 
         # ----- Check convergence -----
         cvg_f = abs(absSL * np.dot(gradf, SD) / f) if f != 0 else 0

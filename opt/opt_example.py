@@ -1,3 +1,5 @@
+#! /usr/bin/python3 -i 
+
 import numpy as np
 from opt_options import opt_options
 from ors import ors
@@ -52,10 +54,10 @@ n = len(v_lb)
 v_init = np.array([ 0.8 , 0.8 ])                
 
 # adjust the optimization options ...
-# with ORS, convergence tolerances should be kind of loose
-# with NMA, convergence tolerances should be tighter than ORS
-#              msg_level tol_v  tol_f  tol_g  max_evals pnlty
-opts = opt_options([ 3 , 2e-2 , 2e-2 , 1e-2 , 500 ,     1e0   ])  # for ORS
+# with ORS, convergence tolerances should be kind of large
+# with NMA, convergence tolerances should be smaller than ORS
+#              msg_level tol_v  tol_f  tol_g  max_evals  pnlty  expn
+opts = opt_options([ 3 , 1e-2 , 1e-2 , 1e-3 , 100*n**3 , 0.5  , 0.5 ])  # for ORS
 
 # solve the optimization problem using one of ... ors , nms , sqp 
 v_opt, f_opt, g_opt, cvg_hst, _,_  = ors(opt_example_analysis, v_init, v_lb, v_ub, opts, c)
