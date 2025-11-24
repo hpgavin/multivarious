@@ -7,7 +7,7 @@
 import numpy as np
 
 def box_constraint(x, r):
-    """
+    '''
     Determine box constraint scaling factors (aa, bb) such that:
         max(x + aa*r) < +1 and min(x + aa*r) > -1
         max(x - bb*r) < +1 and min(x - bb*r) > -1
@@ -25,12 +25,12 @@ def box_constraint(x, r):
         Maximum feasible positive step size.
     bb : float
         Maximum feasible negative step size.
-    """
+    '''
     x = np.asarray(x).flatten()
     r = np.asarray(r).flatten()
     n = len(x)
 
-    a_vals = np.ones(n)
+    a_vals =  np.ones(n)
     b_vals = -np.ones(n)
     I = np.eye(n)
 
@@ -45,6 +45,7 @@ def box_constraint(x, r):
         else:
             a_vals[i], b_vals[i] = bb_i, aa_i
 
-    aa = np.min([np.min(a_vals), +1.0])
+    aa =  np.min([np.min(a_vals), +1.0])
     bb = -np.max([np.max(b_vals), -1.0])
+
     return aa, bb

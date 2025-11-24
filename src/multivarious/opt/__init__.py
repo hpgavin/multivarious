@@ -1,5 +1,5 @@
-# multivarious/optimization/__init__.py
-# multivarious/optimization/__init__.py
+# multivarious/opt/__init__.py
+# multivarious/opt/__init__.py
 
 """
 Optimization algorithms: 
@@ -8,7 +8,7 @@ Optimization algorithms:
 - SQP  (Sequential Quadratic Programming)
 """
 
-# multivarious/optimization/__init__.py
+# multivarious/opt/__init__.py
 from . import ors
 from . import nms
 from . import sqp
