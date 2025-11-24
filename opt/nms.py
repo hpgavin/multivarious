@@ -3,6 +3,12 @@
 # Nelder-Mead Algorithm for Nonlinear Optimization
 # Depends on: opt_options(), avg_cov_func(), plot_opt_surface()
 # -----------------------------------------------------------------------------
+# 
+# updated ...
+# 2005-1-22, 2006-1-26, 2011-1-31, 2011-4-13, 2016-03-24, 2016-04-06,
+# 2019-02-23, 2019-03-21, 2019-11-22, 2020-01-17, 2021-01-19, 2024-04-03,
+# 2025-11-24
+
 
 from __future__ import annotations
 import time

@@ -74,9 +74,9 @@ def ors(func, v_init, v_lb=None, v_ub=None, options=None, consts=None):
         Total number of function evaluations
     """
     
-    BOX = 1  # Use box constraints
+    BOX = 1  # use box constraints
     
-    # Handle missing arguments
+    # handle missing arguments
     v_init = np.asarray(v_init, dtype=float).flatten()
     n = len(v_init)
     
@@ -96,7 +96,7 @@ def ors(func, v_init, v_lb=None, v_ub=None, options=None, consts=None):
     if consts is None:
         consts = 1.0
     
-    # Extract options
+    # extract options
     msglev = int(options[0])
     tol_v = options[1]
     tol_f = options[2]
@@ -106,19 +106,19 @@ def ors(func, v_init, v_lb=None, v_ub=None, options=None, consts=None):
     q = options[6]
     find_feas = int(options[9])
     
-    # Check bounds are valid
+    # check bounds are valid
     if np.any(v_ub < v_lb):
         print('Error: v_ub cannot be less than v_lb for any variable')
         return v_init, (np.sqrt(5)-1)/2, np.array([1.0]), None, 0, 0
     
-    # Initialize
+    # initialize
     function_count = 0
     iteration = 1
     cvg_f = 1.0
     cvg_hst = np.full((n + 5, max_evals), np.nan)
     fa = np.zeros(4)
     
-    # Scale v from [v_lb, v_ub] to x in [-1, +1]
+    # scale v from [v_lb, v_ub] to x in [-1, +1]
     s0 = (v_lb + v_ub) / (v_lb - v_ub)
     s1 = 2.0 / (v_ub - v_lb)
     x_init = s0 + s1 * v_init
@@ -126,7 +126,7 @@ def ors(func, v_init, v_lb=None, v_ub=None, options=None, consts=None):
     
     i3 = 1e-9 * np.eye(3)  # Regularization for matrix inversion
     
-    # Evaluate initial guess
+    # evaluate initial guess
     fv, gv, v_init_scaled, cJ, nAvg = avg_cov_func(
         func, x_init, s0, s1, options, consts, BOX
     )
@@ -134,13 +134,13 @@ def ors(func, v_init, v_lb=None, v_ub=None, options=None, consts=None):
     
     m = len(gv)  # Number of constraints
     
-    # Check dimensions
+    # check dimensions
     if np.prod(np.shape(fv)) != 1:
         raise ValueError('Objective must be a scalar')
     if gv.ndim == 2 and gv.shape[0] == 1:
         raise ValueError('Constraints must be a column vector')
     
-    # Optional: plot objective surface
+    # optional: plot objective surface
     if msglev > 2:
         try:
             from plot_opt_surface import plot_opt_surface
@@ -150,24 +150,24 @@ def ors(func, v_init, v_lb=None, v_ub=None, options=None, consts=None):
         except ImportError:
             print('Warning: plot_opt_surface not available')
     
-    # Algorithm parameters
-    sigma = 0.200  # Standard deviation of random perturbations
-    nu = 2.5       # Exponent for reducing sigma
+    # algorithm hyper-parameters
+    sigma = 0.200  # standard deviation of random perturbations
+    nu = 2.5       # exponent for reducing sigma
     
     if msglev:
         start_time = time.time()
     
-    # Analyze initial guess
+    # analyze initial guess
     x1 = x_init.copy()
     fa[0], g1, x1, c1, nAvg = avg_cov_func(func, x1, s0, s1, options, consts, BOX)
     function_count += nAvg
     
-    # Initialize optimal values
+    # initialize optimal values
     f_opt = fa[0]
     x_opt = x1.copy()
     g_opt = g1.copy()
     
-    # Save initial guess to convergence history
+    # save initial guess to convergence history
     cvg_hst[:, iteration-1] = np.concatenate([
         (x_opt - s0) / s1, [f_opt], [np.max(g_opt)], 
         [function_count], [sigma], [1.0]
@@ -182,26 +182,26 @@ def ors(func, v_init, v_lb=None, v_ub=None, options=None, consts=None):
     
     last_update = function_count
     
-    # ========== Main optimization loop ==========
+    # ========== main optimization loop ==========
     while function_count < max_evals:
         
-        # Random search perturbation
+        # random search perturbation
         r = sigma * np.random.randn(n)
         
-        # First perturbation: +1*r
+        # 1st perturbation: +1*r
         aa, _ = box_constraint(x1, r)
         x2 = x1 + aa * r
         
         fa[1], g2, x2, c2, nAvg = avg_cov_func(func, x2, s0, s1, options, consts, BOX)
         function_count += nAvg
         
-        # Determine direction for second perturbation
+        # determine direction for second perturbation
         if fa[1] < fa[0]:
             step = +2
         else:
             step = -1
         
-        # Second perturbation: -1*r or +2*r
+        # 2nd perturbation: -1*r or +2*r
         aa, bb = box_constraint(x1, step * r)
         if step > 0:
             x3 = x1 + aa * step * r
@@ -211,11 +211,11 @@ def ors(func, v_init, v_lb=None, v_ub=None, options=None, consts=None):
         fa[2], g3, x3, c3, nAvg = avg_cov_func(func, x3, s0, s1, options, consts, BOX)
         function_count += nAvg
         
-        # Distances for quadratic fit
+        # distances for quadratic fit
         dx2 = np.linalg.norm(x2 - x1) / np.linalg.norm(r)
         dx3 = np.linalg.norm(x3 - x1) / np.linalg.norm(r)
         
-        # Fit quadratic: f(d) = 0.5*a*d^2 + b*d + c
+        # fit quadratic: f(d) = 0.5*a*d^2 + b*d + c
         A = np.array([
             [0,           0,    1],
             [0.5*dx2**2, dx2,   1],
@@ -225,10 +225,10 @@ def ors(func, v_init, v_lb=None, v_ub=None, options=None, consts=None):
         abc = np.linalg.solve(A, fa[0:3])
         a, b, c = abc[0], abc[1], abc[2]
         
-        # Try quadratic update if curvature is positive
+        # try quadratic update if curvature is positive
         quad_update = False
         if a > 0:
-            d = -b / a  # Zero-slope point
+            d = -b / a  # zero-slope point
             aa, bb = box_constraint(x1, d * r)
             if d > 0:
                 x4 = x1 + aa * d * r
@@ -238,7 +238,7 @@ def ors(func, v_init, v_lb=None, v_ub=None, options=None, consts=None):
             fa[3], g4, x4, c4, nAvg = avg_cov_func(func, x4, s0, s1, options, consts, BOX)
             function_count += nAvg
         
-        # Find best of the 4 evaluations
+        # find best of the 4 evaluations
         i_min = np.argmin(fa)
         fa[0] = fa[i_min]
         
@@ -250,13 +250,13 @@ def ors(func, v_init, v_lb=None, v_ub=None, options=None, consts=None):
             x1, g1, c1 = x4, g4, c4
             quad_update = True
         
-        # Update search scope if solution improved
+        # update search scope if solution improved
         if i_min > 0:
             sigma = sigma * (1 - function_count / max_evals) ** nu
         
         x1 = np.clip(x1, -1.0, 1.0)  # Keep within bounds
         
-        # Update optimal solution if improved
+        # update optimal solution if improved
         if fa[0] < f_opt:
             x_opt = x1.copy()
             f_opt = fa[0]
@@ -307,7 +307,7 @@ def ors(func, v_init, v_lb=None, v_ub=None, options=None, consts=None):
                 if quad_update:
                     print(' line quadratic update successful')
         
-        # Optional: plot on surface
+        # optional: plot on surface
         if msglev > 2:
             try:
                 import matplotlib.pyplot as plt
@@ -339,13 +339,13 @@ def ors(func, v_init, v_lb=None, v_ub=None, options=None, consts=None):
             except:
                 pass
         
-        # Check for feasible solution
+        # check for feasible solution
         if np.max(g_opt) < tol_g and find_feas:
             print('\n * Woo Hoo! Feasible solution found!', end='')
             print(' *          ... and that is all we are asking for.')
             break
         
-        # Check convergence
+        # check convergence
         if iteration > n*n and (cvg_v < tol_v or cvg_f < tol_f or 
                                 (function_count - last_update) > 0.2*max_evals):
             print('\n * Woo-Hoo! Converged solution found!')
@@ -364,9 +364,9 @@ def ors(func, v_init, v_lb=None, v_ub=None, options=None, consts=None):
                     print(' *   ... Decrease options[5] (penalty) and try, try again ...')
             break
     
-    # ========== End main loop ==========
+    # ========== end main loop ==========
     
-    # Check if maximum evaluations exceeded
+    # check if maximum evaluations exceeded
     if function_count >= max_evals:
         if msglev:
             print(f'\n * Enough!! Maximum number of function evaluations ({max_evals}) '
@@ -374,11 +374,11 @@ def ors(func, v_init, v_lb=None, v_ub=None, options=None, consts=None):
             print(' *   ... Increase tol_v (options[1]) or max_evals (options[4]) '
                   'and try try again.')
     
-    # Scale back to original units
+    # scale back to original units
     v_init = (x_init - s0) / s1
     v_opt = (x_opt - s0) / s1
     
-    # Final report
+    # final report
     if msglev:
         elapsed = time.time() - start_time
         completion_time = datetime.now().strftime('%H:%M:%S')
@@ -411,7 +411,7 @@ def ors(func, v_init, v_lb=None, v_ub=None, options=None, consts=None):
             print(f' *     g({j:3d}) = {g_opt[j]:12.5f}  {binding}')
         print(' *\n * --------------------------------------------------------------\n')
     
-    # Save final iteration
+    # save final iteration
     cvg_hst[:, iteration] = np.concatenate([
         v_opt, [f_opt], [np.max(g_opt)], [function_count], [cvg_v], [cvg_f]
     ])

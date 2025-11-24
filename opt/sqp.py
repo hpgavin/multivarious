@@ -6,6 +6,10 @@
 # Uses quadprog package for QP subproblems
 # -----------------------------------------------------------------------------
 
+# updated ... 
+# 2010 - 2023, 2024-02-03, 2025-01-26, 2025-11-24
+
+
 from __future__ import annotations
 import time
 import numpy as np
@@ -54,11 +58,6 @@ def sqp(func, v_init, v_lb=None, v_ub=None, options_in=None, consts=1.0):
         Lagrange multipliers at active constraints
     hess : np.ndarray (n, n)
         Final Hessian matrix approximation
-
-    References
-    ----------
-    Copyright (c) 1990 by The MathWorks, Inc., Andy Grace 7-9-90.
-    Modified and enhanced by H.P. Gavin, Duke University.
     """
 
     # ----- options & inputs -----
