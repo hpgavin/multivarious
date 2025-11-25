@@ -1,6 +1,8 @@
+#! /usr/bin/python3 -i 
+
 import numpy as np
 import matplotlib.pyplot as plt
-from mimoSHORSA import mimoSHORSA, rainbow, format_plot
+from mimoSHORSA import mimoSHORSA
 
 
 def mimoSHORSA_test():
