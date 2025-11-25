@@ -66,6 +66,7 @@ _**g**_(_**v**_) is a vector of inequality constraints.
 | **L1_fit** | linear least-squares curve fitting with l_1 regularization |
 | **L1_fit_test** | test example for L1_fit |
 | **L1_plots** | plot results from L1_fit |
+| **LP_analysis** | to solve any LP using ors, nms, or sqp |
 | **mimoSHORSA** | multi-input multi-output Stochastic High Order Response Surface Algorithm |
 | **mimoSHORSA_example** | example of running mimoSHORSA |
 | **nms** | nonlinear constrained optimization - Nelder Mead Simplex |

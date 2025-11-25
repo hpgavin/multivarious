@@ -8,16 +8,16 @@ from sqp import sqp
 from plot_cvg_hst import plot_cvg_hst
 from collections import namedtuple
 
-def opt_example_analysis(v,c):
+def opt_example_analysis(v,C):
     '''
     A simple 2D constrained optimization test problem.
     ''' 
     v1 = v[0]                   # description of design variable 0, units
     v2 = v[1]                   # description of design variable 1, units
 
-    a = c.a                     # description of constant a, units
-    b = c.b                     # description of constant b, units
-    c = c.c                     # description of constant c, units
+    a = C.a                     # description of constant a, units
+    b = C.b                     # description of constant b, units
+    c = C.c                     # description of constant c, units
 
     # the objective function 
     f = ( v1 - c[0] )**2 + ( v2 - c[1] )**2 +  c[2]*np.random.randn(1)
@@ -35,14 +35,14 @@ def opt_example_analysis(v,c):
 
 # -------------------------------------------------------------------------
 
-# various constants used in the analysis ... in a named tuple
-Constant = namedtuple('Constant', [ 'a', 'b', 'c' ])
+# various constants used within the optimization ... in a named tuple
 
 a = np.array([  1.0 ,  0.2 ,  0.5 ,  0.3 ])
 b = np.array([ -2.0 , -0.5 ,  0.5 , -1.5 ])
 c = np.array([  0.8 ,  0.2 ,  0.0 ])
 
-c = Constant( a , b , c )
+Constant = namedtuple('Constant', [ 'a', 'b', 'c' ])
+C = Constant( a , b , c )
 
 v_lb = np.array([ 0.0,  0.0])       # lower bound
 v_ub = np.array([ 1.0,  1.0])       # upper bound
@@ -60,7 +60,7 @@ v_init = np.array([ 0.8 , 0.8 ])
 opts = opt_options([ 3 , 1e-2 , 1e-2 , 1e-3 , 100*n**3 , 0.5  , 0.5 ])  # for ORS
 
 # solve the optimization problem using one of ... ors , nms , sqp 
-v_opt, f_opt, g_opt, cvg_hst, _,_  = ors(opt_example_analysis, v_init, v_lb, v_ub, opts, c)
+v_opt, f_opt, g_opt, cvg_hst, _,_  = ors(opt_example_analysis, v_init, v_lb, v_ub, opts, C)
 
 # plot the convergence history
 plot_cvg_hst( cvg_hst , v_opt )  
