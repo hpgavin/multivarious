@@ -1,4 +1,5 @@
-#!/usr/bin/env python3
+#!/usr/bin/env python3 -i
+
 ''' ... from console 
 import importlib , example_usage
 importlib.reload(example_usage)     # to reload edits

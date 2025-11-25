@@ -1,3 +1,5 @@
+#! /usr/bin/python3 -i
+
 """
 L1_fit_test.py - Test script for L1 regularization
 

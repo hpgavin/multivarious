@@ -1,3 +1,5 @@
+#! /usr/bin/python3 -i
+
 import numpy as np
 import matplotlib.pyplot as plt
 from ode4u import ode4u
