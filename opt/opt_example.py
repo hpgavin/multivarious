@@ -1,6 +1,7 @@
 #! /usr/bin/python3 -i 
 
 import numpy as np
+
 from opt_options import opt_options
 from ors import ors
 from nms import nms
@@ -35,7 +36,7 @@ def opt_example_analysis(v,C):
 
 # -------------------------------------------------------------------------
 
-# various constants used within the optimization ... in a named tuple
+# various constants used within the optimization analysis ... in a named tuple
 
 a = np.array([  1.0 ,  0.2 ,  0.5 ,  0.3 ])
 b = np.array([ -2.0 , -0.5 ,  0.5 , -1.5 ])
