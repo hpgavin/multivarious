@@ -198,7 +198,7 @@ def rnd(medX, covX, N, R=None):
     # Validate correlation matrix
     R = np.asarray(R)
     if R.shape != (n, n):
-        raise ValueError(f"Correlation matrix R must be square {n}×{n}, got {R.shape}")
+        raise ValueError(f"Correlation matrix R must be square {n}x{n}, got {R.shape}")
     
     if not np.allclose(np.diag(R), 1.0):
         raise ValueError("corr_logn_rnd: diagonal of R must equal 1")
