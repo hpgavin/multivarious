@@ -1,5 +1,6 @@
 import numpy as np
 import matplotlib.pyplot as plt
+from scipy.special import betaincinv
 
 def plot_CDF_ci(data, confidence_level, figNo, x_label='x'):
     """
@@ -18,28 +19,37 @@ def plot_CDF_ci(data, confidence_level, figNo, x_label='x'):
     """
     
     data = np.asarray(data).flatten()
-    n = len(data)
+    N = len(data)
     
     # Sort data
     sorted_data = np.sort(data)
     
     # Empirical CDF
-    Fx = np.arange(1, n + 1) / ( n + 1 )    # Gumbel (1958)
+    Fx = np.arange(1, N + 1) / ( N + 1 )    # Gumbel (1958)
 
-    # Confidence intervals on Fx using Gumble (p.47) 
-    sFx = np.sqrt(Fx*(1-Fx)/(n+2));         # standard error of Fx Gumbel p.47
-    p   = ( 1.0 - confidence_level/100.0 )/2.0 
-    z   = -5.531 * ( ((1-p)/p)**0.1193 - 1.0 ) # approx norm_inv, Shore, 1982
-    epsilon = z*sFx
-    
+    # Confidence intervals on Fx
+    alpha = 1 - confidence_level / 100
+    P = 1 - alpha/2 
+
+    # Confidence intervals on Fx using Gumble (p.47) and normal distribution
+    #sFx = np.sqrt(Fx*(1-Fx)/(N+2))             # standard error of Fx Gumbel p.47
+    #z   = -5.531 * ( ((1-P)/P)**0.1193 - 1.0 ) # norm_inv, Shore, 1982 P > 0.5
+    #epsilon = z*sFx
+
     # Confidence intervals on Fx using Dvoretzky-Kiefer-Wolfowitz inequality
     # https://en.wikipedia.org/wiki/Dvoretzky-Kiefer-Wolfowitz_inequality
-    #alpha = 1 - confidence_level / 100
-    #epsilon = np.sqrt(np.log(2 / alpha) / (2 * n))
+    # epsilon = np.sqrt(np.log(2 / alpha) / (2 * N))
 
-    upper_ci = np.minimum(Fx + epsilon, 1.0 - 0.001 / n)
-    lower_ci = np.maximum(Fx - epsilon, 0.0 + 0.001 / n)
+    #upper_ci = np.minimum(Fx + epsilon, 1.0 - 0.001 / N)
+    #lower_ci = np.maximum(Fx - epsilon, 0.0 + 0.001 / N)
     
+    # Confidence interval on Fx using the Beta distribution 
+    # variance of the Beta distribion is (F)(1-F)/(N+2)
+    q = np.arange(1,N+1)
+    p = N+1-q
+    lower_ci = betaincinv(q, p,   P)  # lower quantile, near zero ( ci > 0 )
+    upper_ci = betaincinv(q, p, 1-P)  # upper quantile, near one  ( ci < 1 )
+
     # normal CDF
     mu, std = np.mean(data), np.std(data)
     x_theory = np.linspace(min(sorted_data), max(sorted_data), 200)
@@ -57,15 +67,20 @@ def plot_CDF_ci(data, confidence_level, figNo, x_label='x'):
                      label=f'{confidence_level}% confidence band')
     plt.step(sorted_data, Fx, '-', color=[0.2, 0.4, 0.8], 
              linewidth=2, markersize=4, label='Empirical CDF')
+    #plt.plot(sorted_data, upper_ci_B, '-r')
+    #plt.plot(sorted_data, lower_ci_B, '-r')
+    #plt.plot(sorted_data, upper_ci_DKW, '-g')
+    #plt.plot(sorted_data, lower_ci_DKW, '-g')
     #plt.plot(x_theory, cdf_theory, 'r-', linewidth=2, 
     #         label=f'Normal CDF (μ={mu:.3f}, σ={std:.3f})')
     #plt.plot(sorted_data, sorted_data * 0 + 0.5, '--k', alpha=0.3, linewidth=1)
     
-    plt.xlabel(x_label, fontsize=13)
-    plt.ylabel('Cumulative probability', fontsize=13)
+    plt.xlabel(x_label, fontsize=16)
+    plt.ylabel('Cumulative probability', fontsize=16)
     plt.title(f'Empirical CDF with {confidence_level}% Confidence Intervals', 
-              fontsize=14)
-    plt.legend(fontsize=11)
+              fontsize=16)
+    plt.legend(fontsize=16)
+    plt.legend(loc='lower right')
     plt.grid(True, alpha=0.3)
     plt.ylim([0, 1])
     
