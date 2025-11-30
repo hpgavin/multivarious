@@ -152,9 +152,9 @@ def rnd(medX, covX, N, R=None):
                Each column corresponds to one observation.
   
     Method: (Gaussian Copula)
-        1. Perform eigenvalue decomposition of correlation matrix R = V @ Λ @ V^T
+        1. Perform eigenvalue decomposition of correlation matrix R = V @ Lambda @ V^T
         2. Generate uncorrelated standard normal samples Z ~ N(0, I)
-        3. Apply correlation structure: Y = V @ sqrt(Λ) @ Z, so Y ~ N(0, R)
+        3. Apply correlation structure: Y = V @ sqrt(Lambda) @ Z, so Y ~ N(0, R)
         4. Transform to lognormal: X = exp(log(medX) + Y * sqrt(V))
         where V = log(1 + covX²)
     
