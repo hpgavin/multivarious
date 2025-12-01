@@ -130,7 +130,7 @@ pip install https://github.com/hpgavin/multivarious/archive/refs/heads/main.zip
 # Installation for Developers
 ```bash
 # requires both PIP and GIT ... 
-git clone https://github.com/<hpgavin>/multivarious.git
+git clone https://github.com/hpgavin/multivarious.git
 cd multivarious
 
 # optionally start a virtual environment (venv) in order to provide uninstalled dependencies 
