@@ -144,10 +144,19 @@ pip install -e .
 ```
 -->
 
-# Python Path
+# Installation 
 
 ```bash
-## set PYTHONPATH in .profile
+# macOS and linux
+# Python should already be installed 
+# set PYTHONPATH in .profile ...
 PYTHONPATH="$PYTHONPATH:/path/to/code/multivarious/"
 export PYTHONPATH
+
+# Windows 
+# download and install Python from ... https://www.python.org/downloads/ 
+# set PYTHONPATH through the Windows Control Panel
+Control Panel -> System -> Advanced system settings -> Environment Variables -> User Variables -> PYTHONPATH
+... add: 
+"C:\full\path\to\code\multivarious;"
 ```
