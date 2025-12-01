@@ -9,10 +9,10 @@ import time
 import numpy as np
 from matplotlib import pyplot as plt
 
-from .opt_options import opt_options
-from .box_constraint import box_constraint
-from .avg_cov_func import avg_cov_func
-from .plot_opt_surface import plot_opt_surface
+from multivarious.utils.opt_options import opt_options
+from multivarious.utils.box_constraint import box_constraint
+from multivarious.utils.avg_cov_func import avg_cov_func
+from multivarious.utils.plot_opt_surface import plot_opt_surface
 
 ''' Commented out for testing, replaced with version above.
 from __future__ import annotations

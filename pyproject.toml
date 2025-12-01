@@ -1,0 +1,20 @@
+[build-system]
+requires = ["setuptools>=64", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "multivarious"
+version = "0.1"
+description = "Optimization and probability distribution tools"
+requires-python = ">=3.8"
+dependencies = [
+    "numpy",
+    "scipy",
+    "matplotlib"
+]
+
+[tool.setuptools]
+packages = {find = {where = ["src"]}}
+
+[tool.setuptools.package-data]
+"*" = ["*.md"]

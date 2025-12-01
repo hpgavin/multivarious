@@ -22,7 +22,9 @@ __all__ = [
     "students_t",
     "triangular",
     "uniform",
+    "plot_CDF_ci"
 ]
+
 
 # Lazy import pattern like SciPy uses
 import importlib

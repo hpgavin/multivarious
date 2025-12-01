@@ -9,11 +9,11 @@ Optimization algorithms:
 """
 
 # multivarious/opt/__init__.py
-from . import ors
-from . import nms
-from . import sqp
+from .nms import nms
+from .ors import ors  
+from .sqp import sqp
 
-__all__ = ["ors", "nms", "sqp"]
+__all__ = ["nms", "ors", "sqp"]
 
 
 

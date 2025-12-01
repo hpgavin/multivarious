@@ -9,11 +9,11 @@ from __future__ import annotations
 import time
 import numpy as np
 
-from .opt_options import opt_options
-from .box_constraint import box_constraint
-from .avg_cov_func import avg_cov_func
+from multivarious.utils.opt_options import opt_options
+from multivarious.utils.box_constraint import box_constraint
+from multivarious.utils.avg_cov_func import avg_cov_func
+from multivarious.utils.plot_opt_surface import plot_opt_surface
 from matplotlib import pyplot as plt
-from .plot_opt_surface import plot_opt_surface
 
 
 
