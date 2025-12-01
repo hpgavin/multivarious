@@ -1,6 +1,6 @@
 import numpy as np
 
-def WienerFilter(u, y, Hn):
+def wiener_filter(u, y, Hn):
     """
     Identify or simulate a MIMO system modeled by discrete-time convolution:
     
@@ -45,7 +45,7 @@ def WienerFilter(u, y, Hn):
         # Fit the model to input/output data sequences
         n = int(Hn)
         if r * n > N - n + 1:
-            raise ValueError('WienerFilter: not enough data to fit')
+            raise ValueError('2iener_filter: not enough data to fit')
     else:
         # Simulate the model response with input data sequences
         H = np.asarray(Hn)
@@ -75,7 +75,7 @@ def WienerFilter(u, y, Hn):
     return Hy
 
 
-# --------------------------------------- WienerFilter   HP Gavin
+# --------------------------------------- wiener_filter   HP Gavin
 # System Identification, Duke University, Fall 2013,
 # updated: 2013-09-04, 2017-10-06
 
@@ -83,7 +83,7 @@ def WienerFilter(u, y, Hn):
 if __name__ == "__main__":
     import matplotlib.pyplot as plt
     
-    print("Testing WienerFilter: System Identification via Markov Parameters\n")
+    print("Testing wiener_filter: System Identification via Markov Parameters\n")
     print("="*60)
     
     # Example 1: Identify a simple FIR system
@@ -99,7 +99,7 @@ if __name__ == "__main__":
     u = np.random.randn(1, N)
     
     # Generate true output using convolution
-    y_true = WienerFilter(u, np.zeros((1, N)), H_true)
+    y_true = wiener_filter(u, np.zeros((1, N)), H_true)
     
     # Add measurement noise
     noise_level = 0.1
@@ -111,7 +111,7 @@ if __name__ == "__main__":
     
     # Identify the system
     n_order = 3
-    H_identified = WienerFilter(u, y_noisy, n_order)
+    H_identified = wiener_filter(u, y_noisy, n_order)
     
     print(f"\nIdentified Markov parameters:\n{H_identified}\n")
     print(f"Identification error:\n{H_true - H_identified}\n")
@@ -126,10 +126,10 @@ if __name__ == "__main__":
     u_test = np.random.randn(1, 500)
     
     # Generate true output
-    y_test_true = WienerFilter(u_test, np.zeros((1, 500)), H_true)
+    y_test_true = wiener_filter(u_test, np.zeros((1, 500)), H_true)
     
     # Generate identified output
-    y_test_identified = WienerFilter(u_test, np.zeros((1, 500)), H_identified)
+    y_test_identified = wiener_filter(u_test, np.zeros((1, 500)), H_identified)
     
     # Compare
     error = y_test_true - y_test_identified
@@ -178,14 +178,14 @@ if __name__ == "__main__":
     u_mimo = np.random.randn(2, N_mimo)
     
     # Generate true MIMO output
-    y_mimo_true = WienerFilter(u_mimo, np.zeros((2, N_mimo)), H_mimo_true)
+    y_mimo_true = wiener_filter(u_mimo, np.zeros((2, N_mimo)), H_mimo_true)
     
     # Add noise
     y_mimo_noisy = y_mimo_true + 0.05 * np.random.randn(*y_mimo_true.shape)
     
     # Identify MIMO system
     n_mimo = 3
-    H_mimo_identified = WienerFilter(u_mimo, y_mimo_noisy, n_mimo)
+    H_mimo_identified = wiener_filter(u_mimo, y_mimo_noisy, n_mimo)
     
     print(f"True MIMO Markov parameters:\n{H_mimo_true}\n")
     print(f"Identified MIMO Markov parameters:\n{H_mimo_identified}\n")
@@ -193,8 +193,8 @@ if __name__ == "__main__":
     
     # Validate MIMO model
     u_mimo_test = np.random.randn(2, 500)
-    y_mimo_test_true = WienerFilter(u_mimo_test, np.zeros((2, 500)), H_mimo_true)
-    y_mimo_test_id = WienerFilter(u_mimo_test, np.zeros((2, 500)), H_mimo_identified)
+    y_mimo_test_true = wiener_filter(u_mimo_test, np.zeros((2, 500)), H_mimo_true)
+    y_mimo_test_id = wiener_filter(u_mimo_test, np.zeros((2, 500)), H_mimo_identified)
     
     error_mimo = y_mimo_test_true - y_mimo_test_id
     print(f"MIMO validation RMS error: {np.sqrt(np.mean(error_mimo**2)):.4f}")

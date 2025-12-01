@@ -1,6 +1,6 @@
 import numpy as np
 from scipy.linalg import expm
-from multivarious import lti.abcd_dim as abcd_dim
+from multivarious.lti import abcd_dim 
 # from abcd_dim import abcd_dim
 
 def con2dis(Ac, Bc, Cc, Dc, dt, ntrp='foh'):

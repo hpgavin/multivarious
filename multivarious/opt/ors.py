@@ -23,9 +23,9 @@ Original by H.P. Gavin, Civil & Environmental Eng'g, Duke Univ.
 import numpy as np
 import time
 from datetime import datetime, timedelta
-from avg_cov_func import avg_cov_func
-from box_constraint import box_constraint
-from opt_options import opt_options
+from multivarious.opt import avg_cov_func
+from multivarious.opt import box_constraint
+from multivarious.opt import opt_options
 
 def ors(func, v_init, v_lb=None, v_ub=None, options=None, consts=None):
     """

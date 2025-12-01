@@ -1,6 +1,6 @@
 import numpy as np
 from scipy.linalg import logm
-from abcd_dim import abcd_dim
+from multivarious.lti import abcd_dim
 
 def dis2con(Ad, Bd, Cd, Dd, dt, ntrp='foh'):
     """

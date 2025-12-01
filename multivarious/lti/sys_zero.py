@@ -1,6 +1,6 @@
 import numpy as np
 from scipy.linalg import eig
-from abcd_dim import abcd_dim
+from multivarious.lti import abcd_dim
 
 def sys_zero(A, B, C, D, tol=1e-6):
     """

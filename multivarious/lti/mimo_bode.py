@@ -1,9 +1,9 @@
 import numpy as np
 import matplotlib.pyplot as plt
 from scipy.integrate import cumulative_trapezoid
-from abcd_dim import abcd_dim
+from multivarious.lti import abcd_dim
 
-def mimoBode(A, B, C, D, w=None, dt=None, figno=100, ax='n', leg=None, tol=1e-18):
+def mimo_bode(A, B, C, D, w=None, dt=None, figno=100, ax='n', leg=None, tol=1e-18):
     """
     Plot the magnitude and phase of the steady-state harmonic response 
     of a MIMO linear dynamic system.
@@ -157,5 +157,4 @@ def mimoBode(A, B, C, D, w=None, dt=None, figno=100, ax='n', leg=None, tol=1e-18
     
     return mag, pha_deg, G
 
-
-# ------------------------------------------------------------------ MIMOBODE
+# -------------------------------------------------------------------------- 

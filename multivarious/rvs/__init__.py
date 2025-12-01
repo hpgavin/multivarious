@@ -21,8 +21,8 @@ name collisions).
 
 from typing import TYPE_CHECKING
 
-from .plot_CI_cdf import plot_CI_cdf 
-from .quantile_ci import quantile_ci
+from . import plot_CDF_ci
+from . import quantile_ci
 
 __all__ = [
     "beta",

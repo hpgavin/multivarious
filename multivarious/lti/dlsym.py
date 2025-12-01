@@ -1,5 +1,5 @@
 import numpy as np
-from abcd_dim import abcd_dim
+from multivarious.lti import abcd_dim
 
 def dlsym(A, B, C, D, u, t=None, x0=None):
     """

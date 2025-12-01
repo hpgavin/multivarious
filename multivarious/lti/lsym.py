@@ -1,6 +1,6 @@
 import numpy as np
 from scipy.linalg import expm
-from abcd_dim import abcd_dim
+from multivarious.lti import abcd_dim
 
 def lsym(A, B, C, D, u, t, x0=None, ntrp='foh'):
     """
