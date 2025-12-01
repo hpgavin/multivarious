@@ -115,7 +115,7 @@ methods: distribution.pdf(), distribution.cdf(), distribution.inv(), distributio
 
 # Installation for Users
 ```bash
-# optionally start a virtual environment (venv) in order to provide uninstalled dependencies 
+# start a virtual environment (venv) for a safe and clean installation
 python3 -m venv .venv  
 source .venv/bin/activate 
 
@@ -133,7 +133,7 @@ pip install https://github.com/hpgavin/multivarious/archive/refs/heads/main.zip
 git clone https://github.com/hpgavin/multivarious.git
 cd multivarious
 
-# optionally start a virtual environment (venv) in order to provide uninstalled dependencies 
+# start a virtual environment (venv) for a safe and clean installation
 python3 -m venv .venv
 # on macOS / Linux
 source .venv/bin/activate

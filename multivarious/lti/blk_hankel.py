@@ -1,6 +1,6 @@
 import numpy as np
 
-def blkHankel(y, r, k):
+def blk_hankel(y, r, k):
     """
     Return a block Hankel matrix filled with the data y containing k block-rows.
     

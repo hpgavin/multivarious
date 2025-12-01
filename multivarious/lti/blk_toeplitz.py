@@ -1,6 +1,6 @@
 import numpy as np
 
-def blkToeplitz(y, r, k):
+def blk_toeplitz(y, r, k):
     """
     Return a block Toeplitz matrix filled with the data y containing k block-rows.
     
