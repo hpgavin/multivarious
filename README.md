@@ -112,7 +112,7 @@ methods: distribution.pdf(), distribution.cdf(), distribution.inv(), distributio
 | **rainbow**     | rainbow line colors                            |
 
 <!---
-# Installation for Users
+# installation for users
 ```bash
 # start a virtual environment (venv) for a safe and clean installation
 python3 -m venv .venv  
@@ -126,7 +126,7 @@ pip install git+https://github.com/hpgavin/multivarious.git
 pip install https://github.com/hpgavin/multivarious/archive/refs/heads/main.zip  
 ```
 
-# Installation for Developers
+# installation for developers
 ```bash
 # requires both PIP and GIT ... 
 git clone https://github.com/hpgavin/multivarious.git
@@ -144,7 +144,7 @@ pip install -e .
 ```
 -->
 
-# Installation 
+# installation 
 
 ```bash
 # macOS and linux
