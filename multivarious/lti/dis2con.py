@@ -1,6 +1,6 @@
 import numpy as np
 from scipy.linalg import logm
-from abcddim import abcddim
+from abcd_dim import abcd_dim
 
 def dis2con(Ad, Bd, Cd, Dd, dt, ntrp='foh'):
     """
@@ -42,7 +42,7 @@ def dis2con(Ad, Bd, Cd, Dd, dt, ntrp='foh'):
     Dd = np.asarray(Dd)
     
     # Check dimensions
-    n, r, m = abcddim(Ad, Bd, Cd, Dd)
+    n, r, m = abcd_dim(Ad, Bd, Cd, Dd)
     
     # First solve for zero-order hold
     # M = logm([Ad, Bd; 0, I]) / dt

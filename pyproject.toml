@@ -1,0 +1,37 @@
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "multivarious"
+version = "0.4.0"
+description = """
+A Python package for various multivariable computations in digital signal processing, linear time-invariant systems, optimization, ordinary differential equations, and random variables.
+"""
+readme = "README.md"
+authors = [
+  { name = "Henri P Gavin" }
+]
+requires-python = ">=3.8"
+keywords = ["digital-signal-processing", "linear-time-invariant-systems", "optimization", "ordinary-differential-equations", "random-variables", "engineering"]
+license = { text = "MIT" }
+
+# Add runtime dependencies here only if needed:
+# dependencies = ["numpy>=1.24", "scipy>=1.10"]
+
+[tool.setuptools]
+include-package-data = true
+
+[tool.setuptools.packages.find]
+# Look for Python packages only in the project root
+where = ["."]
+include = ["multivarious*"]
+
+# Optionally include non-code data files inside multivarious/
+# If you ever want examples shipped inside the package (usually not recommended),
+# uncomment and adjust:
+#
+# [tool.setuptools.package-data]
+# multivarious = ["data/*.txt"]
+
+

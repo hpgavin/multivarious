@@ -1,6 +1,7 @@
 import numpy as np
 from scipy.linalg import expm
-from abcddim import abcddim
+from multivarious import lti.abcd_dim as abcd_dim
+# from abcd_dim import abcd_dim
 
 def con2dis(Ac, Bc, Cc, Dc, dt, ntrp='foh'):
     """
@@ -40,7 +41,7 @@ def con2dis(Ac, Bc, Cc, Dc, dt, ntrp='foh'):
     Dc = np.asarray(Dc)
     
     # Check dimensions
-    n, r, m = abcddim(Ac, Bc, Cc, Dc)
+    n, r, m = abcd_dim(Ac, Bc, Cc, Dc)
     
     # Continuous-time to discrete-time conversion
     if ntrp.lower() == 'zoh':  # Zero-order hold on inputs

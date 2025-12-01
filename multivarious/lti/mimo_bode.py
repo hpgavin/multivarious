@@ -1,7 +1,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
 from scipy.integrate import cumulative_trapezoid
-from abcddim import abcddim
+from abcd_dim import abcd_dim
 
 def mimoBode(A, B, C, D, w=None, dt=None, figno=100, ax='n', leg=None, tol=1e-18):
     """
@@ -44,7 +44,7 @@ def mimoBode(A, B, C, D, w=None, dt=None, figno=100, ax='n', leg=None, tol=1e-18
     D = np.asarray(D)
     
     # Check for compatible dimensions
-    n, r, m = abcddim(A, B, C, D)
+    n, r, m = abcd_dim(A, B, C, D)
     
     # Default frequency vector
     if w is None:

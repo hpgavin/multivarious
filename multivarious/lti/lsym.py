@@ -1,6 +1,6 @@
 import numpy as np
 from scipy.linalg import expm
-from abcddim import abcddim
+from abcd_dim import abcd_dim
 
 def lsym(A, B, C, D, u, t, x0=None, ntrp='foh'):
     """
@@ -28,7 +28,7 @@ def lsym(A, B, C, D, u, t, x0=None, ntrp='foh'):
     """
     
     # Get matrix dimensions and verify compatibility
-    n, r, m = abcddim(A, B, C, D)
+    n, r, m = abcd_dim(A, B, C, D)
     
     # Convert to numpy arrays
     A = np.asarray(A)

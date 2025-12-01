@@ -1,5 +1,5 @@
 import numpy as np
-from abcddim import abcddim
+from abcd_dim import abcd_dim
 
 def dlsym(A, B, C, D, u, t=None, x0=None):
     """
@@ -32,7 +32,7 @@ def dlsym(A, B, C, D, u, t=None, x0=None):
     u = np.asarray(u)
     
     # Check dimensions
-    n, m, l = abcddim(A, B, C, D)
+    n, m, l = abcd_dim(A, B, C, D)
     
     # Ensure u is 2D
     if u.ndim == 1:
