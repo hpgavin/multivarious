@@ -113,7 +113,38 @@ methods: distribution.pdf(), distribution.cdf(), distribution.inv(), distributio
 | **format_plot** | set the font size, line width, and marker size |
 | **rainbow**     | rainbow line colors |
 
-# Python Path
+# Installation for Users
+```bash
+# optionally start a virtual environment (venv) in order to provide uninstalled dependencies 
+python3 -m venv .venv  
+source .venv/bin/activate 
+
+# choose (A) or (B) below
+# (A) requires both PIP and GIT ... 
+pip install git+https://github.com/hpgavin/multivarious.git  
+
+# (B) requires PIP, but not GIT ...
+pip install https://github.com/hpgavin/multivarious/archive/refs/heads/main.zip  
+```
+
+# Installation for Developers
+```bash
+# requires both PIP and GIT ... 
+git clone https://github.com/<hpgavin>/multivarious.git
+cd multivarious
+
+# optionally start a virtual environment (venv) in order to provide uninstalled dependencies 
+python3 -m venv .venv
+# on macOS / Linux
+source .venv/bin/activate
+# on Windows:
+# .venv\Scripts\activate  
+
+pip install -e .
+
+```
+
+# Python Path --- (not needed if you install as above)
 
 ```bash
 ## set PYTHONPATH in .profile

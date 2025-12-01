@@ -1,0 +1,26 @@
+# Basic project files
+include README.md
+include LICENSE
+include pyproject.toml
+
+# Examples directory (whole tree)
+graft examples
+
+# Include doc/ directories that live inside the package subfolders
+graft multivarious/dsp/doc
+graft multivarious/lti/doc
+graft multivarious/ode/doc
+graft multivarious/opt/doc
+graft multivarious/rvs/doc
+
+# Also include any docs or data files anywhere inside the package tree
+recursive-include multivarious *.md *.rst *.txt *.pdf *.csv *.yml *.yaml
+recursive-include multivarious *.png *.jpg *.jpeg *.svg *.gif
+
+# If you have example notebooks or scripts in examples/, include common extensions
+recursive-include examples *.py *.ipynb *.md
+
+# Optional: include tests if they are to be included in the sdist
+# graft tests
+# recursive-include tests *.py
+
