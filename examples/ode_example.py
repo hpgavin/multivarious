@@ -6,7 +6,7 @@ from multivarious.ode import ode4u
 from multivarious.ode import ode45u
 from ode_fctn import ode_test_fctn
 
-def ode_test(number, tolerance, constant):
+def ode_example(number, tolerance, constant):
     """
     Tests ODE solvers with a number of examples, some from:
     J. R. CASH and ALAN H. KARP,
@@ -276,4 +276,4 @@ def ode_test(number, tolerance, constant):
 # Example usage:
 if __name__ == "__main__":
     # Test problem 1 with tolerance 1e-3 and constant 0.1
-    ode_test(1, 1e-3, 0.1)
+    ode_example(1, 1e-3, 0.1)

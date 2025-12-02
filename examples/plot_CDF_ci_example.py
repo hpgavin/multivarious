@@ -1,5 +1,10 @@
 #! /usr/bin/python3 -i
 
+"""
+plot_CDF_ci_exampple.py - script for testing plot_CDF_ci.py
+2025-12-02
+"""
+
 import numpy as np
 import matplotlib.pyplot as plt
 from multivarious.rvs import lognormal

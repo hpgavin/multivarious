@@ -1,7 +1,7 @@
 #! /usr/bin/python3 -i
 
 """
-L1_fit_test.py - Test script for L1 regularization
+L1_fit_example.py - Test script for L1 regularization
 
 Demonstrates L1_fit on synthetic polynomial data with various true functions.
 

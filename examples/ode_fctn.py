@@ -1,6 +1,10 @@
+"""
+ode_fctn.py - various ordinary differential equations 
+"""
+
 import numpy as np
 
-def ode_test_fctn(t, x, u, params):
+def ode_example_fctn(t, x, u, params):
     """
     Test ODEs from Cash and Karp paper
     
