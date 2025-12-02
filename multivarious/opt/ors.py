@@ -21,11 +21,14 @@ Original by H.P. Gavin, Civil & Environmental Eng'g, Duke Univ.
 """
 
 import numpy as np
+import matplotlib.pyplot as plt
 import time
 from datetime import datetime, timedelta
-from multivarious.opt import avg_cov_func
-from multivarious.opt import box_constraint
-from multivarious.opt import opt_options
+
+from multivarious.opt.avg_cov_func import avg_cov_func
+from multivarious.opt.box_constraint import box_constraint
+from multivarious.opt.opt_options import opt_options
+from multivarious.opt.plot_opt_surface import plot_opt_surface  # ??
 
 def ors(func, v_init, v_lb=None, v_ub=None, options=None, consts=None):
     """
@@ -142,13 +145,9 @@ def ors(func, v_init, v_lb=None, v_ub=None, options=None, consts=None):
     
     # optional: plot objective surface
     if msglev > 2:
-        try:
-            from plot_opt_surface import plot_opt_surface
-            f_min, f_max, _ = plot_opt_surface(
-                func, (x_init - s0) / s1, v_lb, v_ub, options, consts, fig_no=103
-            )
-        except ImportError:
-            print('Warning: plot_opt_surface not available')
+        f_min, f_max, ax = plot_opt_surface(
+            func, (x_init - s0) / s1, v_lb, v_ub, options, consts, 103)
+
     
     # algorithm hyper-parameters
     sigma = 0.200  # standard deviation of random perturbations
@@ -310,7 +309,6 @@ def ors(func, v_init, v_lb=None, v_ub=None, options=None, consts=None):
         # optional: plot on surface
         if msglev > 2:
             try:
-                import matplotlib.pyplot as plt
                 v1 = (x1 - s0) / s1
                 v2 = (x2 - s0) / s1
                 v3 = (x3 - s0) / s1
@@ -398,7 +396,7 @@ def ors(func, v_init, v_lb=None, v_ub=None, options=None, consts=None):
             elif v_opt[i] > v_ub[i] - tol_g - 10*np.finfo(float).eps:
                 equb = '='
             
-            print(f' x({i:3d})  {v_init[i]:12.5f}   {v_lb[i]:11.4f} {eqlb} '
+            print(f' * v[{i:3d}] {v_init[i]:11.4f}    {v_lb[i]:11.4f} {eqlb} '
                   f' {v_opt[i]:12.5f} {equb} {v_ub[i]:11.4f}')
         
         print(' * Constraints :')

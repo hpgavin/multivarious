@@ -4,7 +4,6 @@ import numpy as np
 
 from collections import namedtuple
 
-from multivarious.opt import opt_options
 from multivarious.opt import ors
 from multivarious.opt import nms
 from multivarious.opt import sqp
@@ -58,11 +57,11 @@ v_init = np.array([ 0.8 , 0.8 ])
 # adjust the optimization options ...
 # with ORS, convergence tolerances should be kind of large
 # with NMA, convergence tolerances should be smaller than ORS
-#              msg_level tol_v  tol_f  tol_g  max_evals  pnlty  expn
-opts = opt_options([ 3 , 1e-2 , 1e-2 , 1e-3 , 100*n**3 , 0.5  , 0.5 ])  # for ORS
+#  msg_level tol_v  tol_f  tol_g  max_evals  pnlty  expn
+opts = [ 3 , 1e-2 , 1e-2 , 1e-3 , 100*n**3 , 0.5  , 0.5 ]  
 
 # solve the optimization problem using one of ... ors , nms , sqp 
-v_opt, f_opt, g_opt, cvg_hst, _,_  = ors(opt_example_analysis, v_init, v_lb, v_ub, opts, C)
+v_opt, f_opt, g_opt, cvg_hst, _,_  = sqp(opt_example_analysis, v_init, v_lb, v_ub, opts, C)
 
 # plot the convergence history
 plot_cvg_hst( cvg_hst , v_opt )  

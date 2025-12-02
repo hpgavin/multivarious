@@ -3,24 +3,24 @@
 # Sequential Quadratic Programming for Nonlinear Optimization
 # Translation of Henri P. Gavin's SQPopt.m (Duke CEE).
 # Depends on: opt_options(), plot_opt_surface()
-# Uses quadprog package for QP subproblems
+# Use SciPy optimize.minimize package for QP subproblems
+# In the future: use quadprog package for QP subproblems
 # -----------------------------------------------------------------------------
 
 # updated ... 
 # 2010 - 2023, 2024-02-03, 2025-01-26, 2025-11-24
 
 
-from __future__ import annotations
-import time
 import numpy as np
-
-from scipy.optimize import minimize
-from scipy.linalg import cho_factor, cho_solve
 from matplotlib import pyplot as plt
+import time
 
-from multivarious.opt import opt_options
-from multivarious.opt import plot_opt_surface
-#from quadprog import solve_qp
+from scipy.linalg import cho_factor, cho_solve
+from scipy.optimize import minimize
+#from quadprog import solve_qp # ... in the future
+
+from multivarious.opt.plot_opt_surface import plot_opt_surface
+from multivarious.opt.opt_options import opt_options
 
 
 def sqp(func, v_init, v_lb=None, v_ub=None, options_in=None, consts=1.0):
@@ -77,7 +77,7 @@ def sqp(func, v_init, v_lb=None, v_ub=None, options_in=None, consts=1.0):
     # Put initial guess within bounds
     v_init = np.clip(v_init, 0.9 * v_lb, 0.9 * v_ub)
 
-    options = opt_options(options_in)
+    options   = opt_options(options_in)
     msglev    = int(options[0])    # display level
     tol_v     = float(options[1])  # design var convergence tol
     tol_f     = float(options[2])  # objective convergence tol
@@ -448,7 +448,7 @@ def sqp(func, v_init, v_lb=None, v_ub=None, options_in=None, consts=1.0):
 
 def solve_qp_subproblem(H, f, A, b):
     '''
-    Solve QP subproblem using scipy.optimize.
+    Solve QP subproblem using scipy.optimize.minimize
 
     Solves: min 0.5*x'*H*x + f'*x  subject to  A*x <= b
 

@@ -10,14 +10,13 @@
 # 2025-11-24
 
 
-from __future__ import annotations
-import time
 import numpy as np
 from matplotlib import pyplot as plt
+import time
 
-from multivarious.opt import opt_options
-from multivarious.opt import avg_cov_func
-from multivarious.opt import plot_opt_surface
+from multivarious.opt.avg_cov_func import avg_cov_func
+from multivarious.opt.plot_opt_surface import plot_opt_surface
+from multivarious.opt.opt_options import opt_options
 
 
 def nms(func, v_init, v_lb=None, v_ub=None, options_in=None, consts=1.0):
@@ -91,7 +90,7 @@ def nms(func, v_init, v_lb=None, v_ub=None, options_in=None, consts=1.0):
     if np.any(v_ub <= v_lb):
         raise ValueError("v_ub must be greater than v_lb for all parameters")
 
-    options = opt_options(options_in)
+    options   = opt_options(options_in)
     msglev    = int(options[0])   # display level
     tol_v     = float(options[1]) # design var convergence tol
     tol_f     = float(options[2]) # objective convergence tol
