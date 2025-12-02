@@ -146,8 +146,12 @@ pip install -e .
 
 # installation 
 
+## OSX
+
+OSX has a rudimentary version of python3 which you can use to add required packages ... 
+numpy, matplotlib, and scipy.  
+
 ```bash
-# macOS and linux
 # Python should already be installed 
 # set PYTHONPATH in .profile ...
 PYTHONPATH="$PYTHONPATH:/path/to/code/multivarious/"
