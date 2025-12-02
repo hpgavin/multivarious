@@ -21,10 +21,12 @@ name collisions).
 
 from typing import TYPE_CHECKING
 
-from . import plot_CDF_ci
-from . import quantile_ci
+from .plot_CDF_ci import plot_CDF_ci
+from .quantile_ci import quantile_ci
 
 __all__ = [
+    "plot_CDF_ci", 
+    "quantile_ci", 
     "beta",
     "chi2",
     "exponential",
@@ -45,7 +47,7 @@ __all__ = [
 
 # For type checkers / IDEs: import module names only during static analysis.
 # This helps editors show completions like `m.rvs.beta` without causing runtime imports.
-if TYPE_CHECKING:  # pragma: no cover
+if TYPE_CHECKING: # pragma: no cover
     from . import (
         beta,
         chi2,

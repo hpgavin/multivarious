@@ -24,7 +24,7 @@ This script demonstrates:
 
 import numpy as np
 import matplotlib.pyplot as plt
-from mimoSHORSA import mimoSHORSA
+from multivarious.opt import mimoSHORSA
 
 def example_1_simple_polynomial():
     """

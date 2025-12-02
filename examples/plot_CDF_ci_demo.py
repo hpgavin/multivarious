@@ -2,13 +2,13 @@
 
 import numpy as np
 import matplotlib.pyplot as plt
-from lognormal import rnd as ln_rnd
-from plot_CDF_ci import plot_CDF_ci
+from multivarious.rvs import lognormal
+from multivarious.rvs import plot_CDF_ci
 
 # a demonstration of plot_CDF_ci
 
 # x is a sample of N observations 
-x = ln_rnd( medX =   5.0  ,  # the median of the population 
+x = lognormal.rnd( medX =   5.0  ,  # the median of the population 
             covX =   0.3  ,  # the coefficient of variation of the population
                N = 100 )     # number of observations in the sample
 

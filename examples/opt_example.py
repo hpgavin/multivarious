@@ -2,12 +2,13 @@
 
 import numpy as np
 
-from opt_options import opt_options
-from ors import ors
-from nms import nms
-from sqp import sqp
-from plot_cvg_hst import plot_cvg_hst
 from collections import namedtuple
+
+from multivarious.opt import opt_options
+from multivarious.opt import ors
+from multivarious.opt import nms
+from multivarious.opt import sqp
+from multivarious.opt import plot_cvg_hst
 
 def opt_example_analysis(v,C):
     '''

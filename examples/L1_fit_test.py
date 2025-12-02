@@ -10,8 +10,8 @@ Translation from MATLAB by Claude, 2025-10-24
 
 import numpy as np
 import matplotlib.pyplot as plt
-from L1_fit import L1_fit
-from L1_plots import L1_plots, format_plot
+from multivarious.opt import L1_fit, L1_plots 
+from multivarious.utl import format_plot
 
 
 def test_L1_basic():

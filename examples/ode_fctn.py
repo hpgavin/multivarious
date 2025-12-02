@@ -1,6 +1,6 @@
 import numpy as np
 
-def odef(t, x, u, params):
+def ode_test_fctn(t, x, u, params):
     """
     Test ODEs from Cash and Karp paper
     

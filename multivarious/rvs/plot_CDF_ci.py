@@ -18,7 +18,7 @@ def plot_CDF_ci(data, confidence_level, fig_no, x_label='sorted sample values', 
     x_label : string
         label for the x axis
     norm_inv_CDF : boolean
-        True : plot norm inverse of F , False : plot F  (default)
+        True: plot norm inverse of F , False: plot F (default)
     """
     
     data = np.asarray(data).flatten()
