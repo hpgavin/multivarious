@@ -135,6 +135,12 @@ Customize the path to your own installation, for example, if you put multivariou
 PYTHONPATH="$PYTHONPATH:/Users/my_user_name/Desktop/Code/multivarious/"
 export PYTHONPATH
 ```
+After editing these files, activate the changes by entering 
+```
+source ~/.bash_profile   # for macOS
+source ~/.profile        # for linux
+```
+
 * **Windows:** set PYTHONPATH through the Windows Control Panel <br>
 Customize the path to your own installation, for example, if you put multivarious in a Code folder on your Desktop ... <br>
 Control Panel > search for ... User envonment variables ...  and add:  <br>
@@ -143,6 +149,5 @@ PYTHONPATH | "C:\Users\my_user_name\Desktop\Code\multivarious;"
 * **VS Code:** <br>
   VS Code > File > New File ... Text File > enter a line ... (customize for your own installation) <br>
   <span style="font-family: Courier"> PYTHONPATH=/Users/my_user_name/Desktop/Code/multivarious </span>  <br>
-  Save As .env within your project folder
-
+  Save As filename .env within any folder using multivarious 
 
