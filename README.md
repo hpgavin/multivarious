@@ -135,7 +135,7 @@ Customize the path to your own installation, for example, if you put multivariou
 PYTHONPATH="$PYTHONPATH:/Users/my_user_name/Desktop/Code/multivarious/"
 export PYTHONPATH
 ```
-After editing these files, activate the changes by entering 
+After editing your ~/.bash_profile or ~/.profile file, activate the changes by entering 
 ```
 source ~/.bash_profile   # for macOS
 source ~/.profile        # for linux
