@@ -159,7 +159,7 @@ pip install -e .
   save and exit settings.json
 
 
-Set environment variables <br>
+Set the PYTHONPATH environment variable <br>
 * **macOS and linux:** set PYTHONPATH by adding the following to ~/.bash_profile (in macOS) or ~/.profile (in linux) 
 ```bash
 PYTHONPATH="$PYTHONPATH:/full/path/to/code/multivarious/"
