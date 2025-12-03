@@ -111,40 +111,13 @@ methods: distribution.pdf(), distribution.cdf(), distribution.inv(), distributio
 | **format_plot** | set the font size, line width, and marker size |
 | **rainbow**     | rainbow line colors                            |
 
-<!---
-# installation for users
-```bash
-# start a virtual environment (venv) for a safe and clean installation
-python3 -m venv .venv  
-source .venv/bin/activate 
-
-# choose (A) or (B) below
-# (A) requires both PIP and GIT ... 
-pip install git+https://github.com/hpgavin/multivarious.git  
-
-# (B) requires PIP, but not GIT ...
-pip install https://github.com/hpgavin/multivarious/archive/refs/heads/main.zip  
-```
-
-# installation for developers
-```bash
-# requires both PIP and GIT ... 
-git clone https://github.com/hpgavin/multivarious.git
-cd multivarious
-
-# start a virtual environment (venv) for a safe and clean installation
-python3 -m venv .venv
-# on macOS / Linux
-source .venv/bin/activate
-# on Windows:
-# .venv\Scripts\activate  
-
-pip install -e .
-
-```
--->
-
 # installation 
+
+* install via git (for example, in a Code folder on your Desktop) 
+```
+cd ~/Desktop/Code
+git clone https://github.com/hpgavin/multivarious
+```
 
 * If needed, install [VS Code](https://code.visualstudio.com/) and Python via [miniconda](https://www.anaconda.com/docs/getting-started/miniconda/install) 
 
@@ -152,7 +125,7 @@ pip install -e .
   VS Code > File > Preferenes > Settings > Search Settings and enter: python terminal execute ... click the checkbox <br>
   VS Code > File > Preferenes > Settings > Search Settings and enter: python terminal lauch > Enter in settings.json ... and enter <br>
   <span style="font-family: Courier"> "python.terminal.launchArgs": ["-i"] </span>  <br>
-  save and exit settings.json
+  Save and exit settings.json
 
 
 Set the PYTHONPATH environment variable <br>
@@ -167,7 +140,7 @@ Customize the path to your own installation, for example, if you put multivariou
 Control Panel > search for ... User envonment variables ...  and add:  <br>
 PYTHONPATH | "C:\Users\my_user_name\Desktop\Code\multivarious;"
 
-* VS Code: <br>
+* **VS Code:** <br>
   VS Code > File > New File ... Text File > enter a line ... (customize for your own installation) <br>
   <span style="font-family: Courier"> PYTHONPATH=/Users/my_user_name/Desktop/Code/multivarious </span>  <br>
   Save As .env within your project folder
