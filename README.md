@@ -153,7 +153,7 @@ pip install -e .
   <span style="font-family: Courier"> PYTHONPATH=/full/path/to/code/multivarious </span>  <br>
   Save As .env within your project folder
 
-  VS Code > File > Preferenes > Settings > Search Settings and enter: python terminal execute ... click the checkbox
+  VS Code > File > Preferenes > Settings > Search Settings and enter: python terminal execute ... click the checkbox <br>
   VS Code > File > Preferenes > Settings > Search Settings and enter: python terminal lauch > Enter in settings.json ... and enter <br>
   <span style="font-family: Courier"> "python.terminal.launchArgs": ["-i"] </span> save and exit settings.json
 
