@@ -46,8 +46,8 @@ _t_ is time, _**x**_ is a state vector, _**u**_ is a time series of exogeneous i
 | ------------ | ---------------------------------------------------------------------------- |
 | **ode4u**    | the ODE solution via a fixed-time step, 4th order method                     |
 | **ode45u**   | the ODE solution via the adaptive time step, 4th-5th method by Cash and Karp |
-| **odef**     | a library of multivariable ordinary differential equations, for testing      |
-| **ode_test** | a library of tests for ode4u and ode45u                                      |
+| **ode_example** | test ode4u and ode45u using ode_fctn.py                                   |
+| **ode_fctn**    | a library of multivariable ordinary differential equations, for testing   |
 
 ## opt . optimization
 
@@ -62,19 +62,19 @@ _**g**_(_**v**_) is a vector of inequality constraints.
 | **avg_cov_func**       | estimate the value of an uncertain computation to desired precision       |
 | **fsolve**             | solve a system of nonlinear algebraic equations                           |
 | **L1_fit**             | linear least-squares curve fitting with l_1 regularization                |
-| **L1_fit_test**        | test example for L1_fit                                                   |
+| **L1_fit_example**     | example for L1_fit                                                        |
 | **L1_plots**           | plot results from L1_fit                                                  |
 | **LP_analysis**        | to solve any LP using ors, nms, or sqp                                    |
 | **mimoSHORSA**         | multi-input multi-output Stochastic High Order Response Surface Algorithm |
 | **mimoSHORSA_example** | example of running mimoSHORSA                                             |
 | **nms**                | nonlinear constrained optimization - Nelder Mead Simplex                  |
-| **opt_example**        | example of runnin optimization codes ors, nms, sqp                        |
+| **opt_example**        | example for ors, nms, sqp                        |
 | **opt_options**        | adjust algorithmic options for ors, nms, and sqp                          |
 | **ors**                | nonlinear constrained optimization - Optimized Random Search              |
 | **plot_cvg_hist**      | plot the convergence historyof ors, nms and sqp                           |
 | **plot_opt_surface**   | plot the objective function landscape in any selected 2D slice            |
 | **poly_fit**           | power polynomial curve fitting with arbitrary exponents                   |
-| **poly_fit_test**      | example function for poly_fit                                             |
+| **poly_fit_example**   | example for poly_fit                                                      |
 | **sqp**                | nonlinear constrained optimization - Sequential Quadratic Programming     |
 
 ## rvs . random variables
@@ -146,21 +146,24 @@ pip install -e .
 
 # installation 
 
-## OSX
+* If needed, install [VS Code](https://code.visualstudio.com/) and Python via [miniconda](https://www.anaconda.com/docs/getting-started/miniconda/install) 
 
-OSX has a rudimentary version of python3 which you can use to add required packages ... 
-numpy, matplotlib, and scipy.  
+* if using VS Code:
+  VS Code > File > New File ... Text File > enter a single line ... 
+  <span style="font-family: Courier"> PYTHONPATH=/full/path/to/code/multivarious </span> 
+  Save As .env within your project folder
 
+  VS Code > File > Preferenes > Settings > Search Settings and enter: python terminal execute ... click the checkbox
+  VS Code > File > Preferenes > Settings > Search Settings and enter: python terminal lauch > Enter in settings.json ... and enter
+  <span style="font-family: Courier"> "python.terminal.launchArgs": ["-i"] </span> save and exit settings.json
+
+
+* Set environment variables 
+**macOS and linux:** add the following to ~/.bash_profile (in macOS) or ~/.profile (in linux) 
 ```bash
-# Python should already be installed 
-# set PYTHONPATH in .profile ...
-PYTHONPATH="$PYTHONPATH:/path/to/code/multivarious/"
+PYTHONPATH="$PYTHONPATH:/full/path/to/code/multivarious/"
 export PYTHONPATH
-
-# Windows 
-# download and install Python from ... https://www.python.org/downloads/ 
-# set PYTHONPATH through the Windows Control Panel
-Control Panel -> System -> Advanced system settings -> Environment Variables -> User Variables -> PYTHONPATH
-... add: 
-"C:\full\path\to\code\multivarious;"
 ```
+**Windows:** set PYTHONPATH through the Windows Control Panel
+Control Panel > search for ... User envonment variables ...  and add: 
+PYTHONPATH | "C:\full\path\to\code\multivarious;"
