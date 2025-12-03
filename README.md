@@ -159,12 +159,12 @@ pip install -e .
   save and exit settings.json
 
 
-* Set environment variables <br>
-**macOS and linux:** set PYTHONPATH by adding the following to ~/.bash_profile (in macOS) or ~/.profile (in linux) 
+Set environment variables <br>
+* **macOS and linux:** set PYTHONPATH by adding the following to ~/.bash_profile (in macOS) or ~/.profile (in linux) 
 ```bash
 PYTHONPATH="$PYTHONPATH:/full/path/to/code/multivarious/"
 export PYTHONPATH
 ```
-**Windows:** set PYTHONPATH through the Windows Control Panel <br>
+* **Windows:** set PYTHONPATH through the Windows Control Panel <br>
 Control Panel > search for ... User envonment variables ...  and add:  <br>
 PYTHONPATH | "C:\full\path\to\code\multivarious;"
