@@ -198,9 +198,9 @@ def plot_opt_surface(func, x, v_lb, v_ub, options, consts=None, fig_no=1):
     plt.tight_layout()
     
     # Save figure
-    #filename = f'plot_opt_surface-{fig_no}.png'
-    #plt.savefig(f'/mnt/user-data/outputs/{filename}', dpi=150, bbov_inches='tight')
-    #print(f"Saved: {filename}")
+    filename = f'plot_opt_surface-{fig_no}.png'
+    plt.savefig(f'{filename}', dpi=150)
+    print(f"Saved: {filename}")
     
     return fmin, fmax, ax
 

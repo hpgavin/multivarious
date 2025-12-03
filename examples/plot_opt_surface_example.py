@@ -79,6 +79,5 @@ plt.show()
 
 print("\n" + "="*70)
 print("plot_opt_surface test completed successfully!")
-print("Figure saved to /mnt/user-data/outputs/")
 print("="*70 + "\n")
 
