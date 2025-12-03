@@ -161,10 +161,12 @@ pip install -e .
 
 Set the PYTHONPATH environment variable <br>
 * **macOS and linux:** set PYTHONPATH by adding the following to ~/.bash_profile (in macOS) or ~/.profile (in linux) 
+Customize the path to your own installation, for example, if you put multivarious in a Code folder on your Desktop ...
 ```bash
-PYTHONPATH="$PYTHONPATH:/full/path/to/code/multivarious/"
+PYTHONPATH="$PYTHONPATH:/Users/my_user_name/Desktop/Code/multivarious/"
 export PYTHONPATH
 ```
 * **Windows:** set PYTHONPATH through the Windows Control Panel <br>
+Customize the path to your own installation, for example, if you put multivarious in a Code folder on your Desktop ... <br>
 Control Panel > search for ... User envonment variables ...  and add:  <br>
-PYTHONPATH | "C:\full\path\to\code\multivarious;"
+PYTHONPATH | "C:\Users\my_user_name\Desktop\Code\multivarious;"
