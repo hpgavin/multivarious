@@ -149,12 +149,12 @@ pip install -e .
 * If needed, install [VS Code](https://code.visualstudio.com/) and Python via [miniconda](https://www.anaconda.com/docs/getting-started/miniconda/install) 
 
 * if using VS Code:
-  VS Code > File > New File ... Text File > enter a single line ... 
-  <span style="font-family: Courier"> PYTHONPATH=/full/path/to/code/multivarious </span> 
+  VS Code > File > New File ... Text File > enter a line ... <br>
+  <span style="font-family: Courier"> PYTHONPATH=/full/path/to/code/multivarious </span>  <br>
   Save As .env within your project folder
 
   VS Code > File > Preferenes > Settings > Search Settings and enter: python terminal execute ... click the checkbox
-  VS Code > File > Preferenes > Settings > Search Settings and enter: python terminal lauch > Enter in settings.json ... and enter
+  VS Code > File > Preferenes > Settings > Search Settings and enter: python terminal lauch > Enter in settings.json ... and enter <br>
   <span style="font-family: Courier"> "python.terminal.launchArgs": ["-i"] </span> save and exit settings.json
 
 
