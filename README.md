@@ -148,11 +148,7 @@ pip install -e .
 
 * If needed, install [VS Code](https://code.visualstudio.com/) and Python via [miniconda](https://www.anaconda.com/docs/getting-started/miniconda/install) 
 
-* if using VS Code: <br>
-  VS Code > File > New File ... Text File > enter a line ... <br>
-  <span style="font-family: Courier"> PYTHONPATH=/full/path/to/code/multivarious </span>  <br>
-  Save As .env within your project folder
-
+* If using VS Code:  <br>
   VS Code > File > Preferenes > Settings > Search Settings and enter: python terminal execute ... click the checkbox <br>
   VS Code > File > Preferenes > Settings > Search Settings and enter: python terminal lauch > Enter in settings.json ... and enter <br>
   <span style="font-family: Courier"> "python.terminal.launchArgs": ["-i"] </span>  <br>
@@ -170,3 +166,10 @@ export PYTHONPATH
 Customize the path to your own installation, for example, if you put multivarious in a Code folder on your Desktop ... <br>
 Control Panel > search for ... User envonment variables ...  and add:  <br>
 PYTHONPATH | "C:\Users\my_user_name\Desktop\Code\multivarious;"
+
+* VS Code: <br>
+  VS Code > File > New File ... Text File > enter a line ... (customize for your own installation) <br>
+  <span style="font-family: Courier"> PYTHONPATH=/Users/my_user_name/Desktop/Code/multivarious </span>  <br>
+  Save As .env within your project folder
+
+
