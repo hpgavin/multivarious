@@ -113,7 +113,7 @@ methods: distribution.pdf(), distribution.cdf(), distribution.inv(), distributio
 
 # installation
 
-* install multivarious using git (for example, in a Code folder on your Desktop).<br> 
+* Install multivarious using git (for example, in a Code folder on your Desktop).<br> 
   In a terminal window (called PowerShell in Windows) type:
   ```
   cd ~/Desktop/Code
