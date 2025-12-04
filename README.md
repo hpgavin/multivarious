@@ -123,7 +123,7 @@ methods: distribution.pdf(), distribution.cdf(), distribution.inv(), distributio
 * If you have not yet installed Python or VS Code, install Python (via [miniconda](https://www.anaconda.com/docs/getting-started/miniconda/install)) and 
   [VS Code](https://code.visualstudio.com/) (optionally)
 
-* If using VS Code:  <br>
+* Configure VS Code:  <br>
   VS Code > File > Preferenes > Settings > Search Settings and enter: python terminal execute ... click the checkbox <br>
   VS Code > File > Preferenes > Settings > Search Settings and enter: python terminal lauch > Enter in settings.json ... and enter <br>
   <span style="font-family: Courier"> "python.terminal.launchArgs": ["-i"] </span>  <br>
@@ -132,12 +132,25 @@ methods: distribution.pdf(), distribution.cdf(), distribution.inv(), distributio
 Set the PYTHONPATH environment variable <br>
 
 * **Within VS Code:** <br>
-  VS Code > File > New File ... Text File > enter a line ... (customize for your own installation) <br>
-  <span style="font-family: Courier"> PYTHONPATH=/Users/my_user_name/Desktop/Code/multivarious </span>  <br>
-  Save As filename .env within any folder using multivarious 
+Add a .env file to all folders containing code that will make use of multivarious. <br>
+The .env file has this single line ... 
+```bash
+PYTHONPATH=/Users/my_user_name/Desktop/Code/multivarious 
+```
+You may use VS Code to create and save this file ...
+VS Code > File > New File ... Text File > cut and paste the line above and
+(replace "my_user_name" to your computer login ID, change the path to match your installation location for multivariou ) <br>
+Save As using a filename .env and in the directory containing your python code that will use multivarious
+
+Edit a VS Code setting <br>
+VS Code > File > Preferences > Settings > Search Settings ... python env file <br>
+Within the textbox enter:
+```bash
+${workspaceFolder}/.env
+```
 
 * **For  your OS ... Windows, macOS, linux:** <br>
-(optional if only using VS Code) <br>
+(uneccessary if the PYTHONPATH is set within VS Code) <br>
 Edit your profile directly:  <br>
 Open a terminal (e.g., PowerShell in Windows) to edit your profile ... 
 ```bash
