@@ -143,7 +143,7 @@ In a terminal, use an editor (e.g., in macOS use TextEdit or in linux use pico)
 ```bash
 TextEdit ~/.zprofile 
 ```
-If you put multivarious in a Code folder on your Desktop, add this line 
+If you put multivarious in a Code folder on your Desktop, add the following line 
 (change "my_user_name" to your login ID, and otherwise edit the line for your particular case) ... 
 ```bash
 PYTHONPATH="$PYTHONPATH:/Users/my_user_name/Desktop/Code/multivarious/" # macOS
@@ -168,11 +168,13 @@ In PowerShell, use notepad to open $PROFILE ...   <br>
 ```powershell
 notepad $PROFILE 
 ```
-and add this line ... 
+If you put multivarious in a Code folder on your Desktop, add the following line 
+(change "my_user_name" to your login ID, and otherwise edit the line for your particular case) ... 
 ```powershell
 $env:PYTHONPATH="$env:PYTHONPATH;C:\Users\my_user_name\Desktop\Code\multivarious/"
 ```
-Save and close notepad. Activate the changes by typing the following into the PowerShell terminal 
+Save and close notepad.  
+Activate the changes by typing the following into the PowerShell terminal 
 ```powershell
 . $PROFILE
 ```
