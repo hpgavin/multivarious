@@ -113,7 +113,7 @@ methods: distribution.pdf(), distribution.cdf(), distribution.inv(), distributio
 
 # installation
 
-* install via git (for example, in a Code folder on your Desktop) 
+* install multivarious using git (for example, in a Code folder on your Desktop) 
   
   ```
   cd ~/Desktop/Code
