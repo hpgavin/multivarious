@@ -144,20 +144,20 @@ In a terminal, use an editor (e.g., in macOS use TextEdit or in linux use pico)
 TextEdit ~/.zprofile 
 ```
 If you put multivarious in a Code folder on your Desktop, add this line 
-(edit the line for your particular case) ... 
+(change "my_user_name" to your login ID, and otherwise edit the line for your particular case) ... 
 ```bash
 PYTHONPATH="$PYTHONPATH:/Users/my_user_name/Desktop/Code/multivarious/" # macOS
 PYTHONPATH="$PYTHONPATH:/home/my_user_name/Desktop/Code/multivarious/"  # linux
 export PYTHONPATH
 ```
-After editing your ~/.zprofile or ~/.profile file, activate the changes by entering 
+After editing your ~/.zprofile or ~/.profile file, activate the changes by typing one of the following into the terminal  
 ```
 source ~/.zprofile       # for macOS
 source ~/.profile        # for linux
 ```
-Confirm the change has taken effect by typing ... 
+Confirm the change has taken effect by typing the following into the terminal ... 
 ```
-echo $PYTHONPATH       # for macOS and for linuxS
+echo $PYTHONPATH       # for macOS and for linux 
 ```
 
 * **Windows:** <br>
@@ -171,11 +171,11 @@ and add this line ...
 ```powershell
 $env:PYTHONPATH="$env:PYTHONPATH;C:\Users\my_user_name\Desktop\Code\multivarious/"
 ```
-Save and close notepad. Then run $PROFILE for the changes to take effect
+Save and close notepad. For the changes to take effect run $PROFILE by typing the following into the PowerShell terminal 
 ```powershell
 . $PROFILE
 ```
-Confirm the change has taken effect by typing ... 
+Confirm the change has taken effect by typing the following into the PowerShell terminal ... 
 ```
 echo $env:PYTHONPATH
 ```
