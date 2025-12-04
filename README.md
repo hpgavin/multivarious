@@ -127,9 +127,16 @@ git clone https://github.com/hpgavin/multivarious
   <span style="font-family: Courier"> "python.terminal.launchArgs": ["-i"] </span>  <br>
   Save and exit settings.json
 
-
 Set the PYTHONPATH environment variable <br>
-* **macOS and linux:** set PYTHONPATH by adding the following to ~/.bash_profile (in macOS) or ~/.profile (in linux) 
+
+* **VS Code:** <br>
+  VS Code > File > New File ... Text File > enter a line ... (customize for your own installation) <br>
+  <span style="font-family: Courier"> PYTHONPATH=/Users/my_user_name/Desktop/Code/multivarious </span>  <br>
+  Save As filename .env within any folder using multivarious 
+
+* **macOS and linux:** <br>
+(optional if only using VS Code) <br>
+set PYTHONPATH by adding the following to ~/.bash_profile (in macOS) or ~/.profile (in linux) 
 Customize the path to your own installation, for example, if you put multivarious in a Code folder on your Desktop ...
 ```bash
 PYTHONPATH="$PYTHONPATH:/Users/my_user_name/Desktop/Code/multivarious/"
@@ -141,13 +148,11 @@ source ~/.bash_profile   # for macOS
 source ~/.profile        # for linux
 ```
 
-* **Windows:** set PYTHONPATH through the Windows Control Panel <br>
+* **Windows:** <br>
+(optional if only using VS Code) <br>
+set PYTHONPATH through the Windows Control Panel <br>
 Customize the path to your own installation, for example, if you put multivarious in a Code folder on your Desktop ... <br>
 Control Panel > search for ... User envonment variables ...  and add:  <br>
 PYTHONPATH | "C:\Users\my_user_name\Desktop\Code\multivarious;"
 
-* **VS Code:** <br>
-  VS Code > File > New File ... Text File > enter a line ... (customize for your own installation) <br>
-  <span style="font-family: Courier"> PYTHONPATH=/Users/my_user_name/Desktop/Code/multivarious </span>  <br>
-  Save As filename .env within any folder using multivarious 
 
