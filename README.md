@@ -145,7 +145,7 @@ notepad $PROFILE       # Windows
 TextEdit ~/.zprofile   # macOS
 pico ~/.profile        # linux
 ```
-If you saved multivarious to a Code folder on your Desktop, add one of the following three lines
+If you saved multivarious to a Code folder on your Desktop, add one or two of the following three lines. <br> 
 (change "my_user_name" to your login ID, and otherwise edit the line for your particular case) ... 
 ```bash
 $env:PYTHONPATH="$env:PYTHONPATH;C:\Users\my_user_name\Desktop\Code\multivarious/" # Windows
