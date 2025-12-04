@@ -132,59 +132,59 @@ methods: distribution.pdf(), distribution.cdf(), distribution.inv(), distributio
 Set the PYTHONPATH environment variable <br>
 
 * **Within VS Code:** <br>
-Add a .env file to all folders containing code that will make use of multivarious. <br>
-The .env file has this single line ... 
-```bash
-PYTHONPATH=C:\Users\my_user_name\Desktop\Code\multivarious     # Windows
-PYTHONPATH=/Users/my_user_name/Desktop/Code/multivarious       # macOS
-PYTHONPATH=/home/my_user_name/Desktop/Code/multivarious        # linux
-```
-You may use VS Code to create and save this file ... <br>
-VS Code > File > New File ... Text File > cut and paste the appropriate line above.   <br>
-Change "my_user_name" to your computer login ID. <br>
-Change the path to match your installation location for multivariou  <br>
-Save-As using the filename .env and save to the directory containing python code that will make use of multivarious. 
+  * Add a .env file to all directories containing code that will make use of multivarious. <br>
+    The .env file has a single line ... 
+    ```bash
+    PYTHONPATH=C:\Users\my_user_name\Desktop\Code\multivarious     # Windows
+    PYTHONPATH=/Users/my_user_name/Desktop/Code/multivarious       # macOS
+    PYTHONPATH=/home/my_user_name/Desktop/Code/multivarious        # linux
+    ```
+    You may use VS Code to create and save the .env file ... <br>
+    VS Code > File > New File ... Text File > cut and paste the appropriate line above.   <br>
+    Change "my_user_name" to your computer login ID. <br>
+    Change the path to match the multivarious installation directory on your computer. <br>
+    Save-As using the filename .env and save to the directory containing python code that will make use of multivarious. 
 
-Edit a VS Code setting <br>
-VS Code > File > Preferences > Settings > Search Settings ... python env file <br>
-Within the textbox enter:
-```bash
-${workspaceFolder}/.env
-```
+  * Edit a VS Code setting <br>
+    VS Code > File > Preferences > Settings > Search Settings ... python env file <br>
+    Within the textbox enter:
+    ```bash
+    ${workspaceFolder}/.env
+    ```
 
 * **For  your OS ... Windows, macOS, linux:** <br>
-(uneccessary if you are only using VS Code and the .env file is saved to your workspace directory) <br>
-Edit your profile directly:  <br>
-Open a terminal (e.g., PowerShell in Windows) to edit your profile ... 
-```bash
-notepad $PROFILE       # Windows
-TextEdit ~/.zprofile   # macOS
-pico ~/.profile        # linux
-```
-If you saved multivarious to a Code folder on your Desktop, add one or two of the following three lines. <br> 
-(change "my_user_name" to your login ID, and otherwise edit the line for your particular case) ... 
-```bash
-$env:PYTHONPATH="$env:PYTHONPATH;C:\Users\my_user_name\Desktop\Code\multivarious/" # Windows
-PYTHONPATH="$PYTHONPATH:/Users/my_user_name/Desktop/Code/multivarious/" # macOS
-PYTHONPATH="$PYTHONPATH:/home/my_user_name/Desktop/Code/multivarious/"  # linux
-export PYTHONPATH                                    # only for macOS and linux
-```
-Save and exit your editor.  
-Activate the changes by typing one of the following into the terminal ...  
-```bash
-. $PROFILE             # Windows
-source ~/.zprofile     # macOS
-source ~/.profile      # linux
-```
-Confirm the change has taken effect by typing the following into the terminal ... 
-```bash
-echo $env:PYTHONPATH   # Windows
-echo $PYTHONPATH       # macOS and linux 
-```
+  (uneccessary if you are only using VS Code and the .env file is saved to your workspace directory) <br>
+  Edit your profile directly:  <br>
+  Open a terminal (e.g., PowerShell in Windows) to edit your profile ... 
+  ```bash
+  notepad $PROFILE       # Windows
+  TextEdit ~/.zprofile   # macOS
+  pico ~/.profile        # linux
+  ```
+  If you saved multivarious to a Code directory on your Desktop, add one or two of the following three lines. <br> 
+  (change "my_user_name" to your login ID, and otherwise edit the line for your particular case) ... 
+  ```bash
+  $env:PYTHONPATH="$env:PYTHONPATH;C:\Users\my_user_name\Desktop\Code\multivarious/" # Windows
+  PYTHONPATH="$PYTHONPATH:/Users/my_user_name/Desktop/Code/multivarious/" # macOS
+  PYTHONPATH="$PYTHONPATH:/home/my_user_name/Desktop/Code/multivarious/"  # linux
+  export PYTHONPATH                                    # only for macOS and linux
+  ```
+  Save and exit your editor.  
+  Activate the changes by typing one of the following into the terminal ...  
+  ```bash
+  . $PROFILE             # Windows
+  source ~/.zprofile     # macOS
+  source ~/.profile      # linux
+  ```
+  Confirm the change has taken effect by typing the following into the terminal ... 
+  ```bash
+  echo $env:PYTHONPATH   # Windows
+  echo $PYTHONPATH       # macOS and linux 
+  ```
 
-Alternatively, in Windows you may set PYTHONPATH through the Control Panel. <br>
-If you put multivarious in a Code folder on your Desktop:  <br>
-Control Panel > search for ... User envonment variables ...  and add:  
-```powershell
-PYTHONPATH | "C:\Users\my_user_name\Desktop\Code\multivarious/"
+  Alternatively, in Windows you may set PYTHONPATH through the Control Panel. <br>
+  If you put multivarious in a Code folder on your Desktop:  <br>
+  Control Panel > search for ... User envonment variables ...  and add:  
+  ```powershell
+  PYTHONPATH | "C:\Users\my_user_name\Desktop\Code\multivarious/"
 ```
