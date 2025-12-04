@@ -150,7 +150,8 @@ PYTHONPATH="$PYTHONPATH:/Users/my_user_name/Desktop/Code/multivarious/" # macOS
 PYTHONPATH="$PYTHONPATH:/home/my_user_name/Desktop/Code/multivarious/"  # linux
 export PYTHONPATH
 ```
-After editing your ~/.zprofile or ~/.profile file, activate the changes by typing one of the following into the terminal  
+Save and exit your editor.  
+Activate the changes by typing one of the following into the terminal ...  
 ```
 source ~/.zprofile       # for macOS
 source ~/.profile        # for linux
@@ -171,7 +172,7 @@ and add this line ...
 ```powershell
 $env:PYTHONPATH="$env:PYTHONPATH;C:\Users\my_user_name\Desktop\Code\multivarious/"
 ```
-Save and close notepad. For the changes to take effect run $PROFILE by typing the following into the PowerShell terminal 
+Save and close notepad. Activate the changes by typing the following into the PowerShell terminal 
 ```powershell
 . $PROFILE
 ```
