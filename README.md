@@ -140,7 +140,7 @@ Set the PYTHONPATH environment variable <br>
     PYTHONPATH=/home/my_user_name/Desktop/Code/multivarious        # linux
     ```
     You may use VS Code to create and save the .env file ... <br>
-    VS Code > File > New File ... Text File > cut and paste the appropriate line above.   <br>
+    VS Code > File > New File ... Text File > cut the appropriate line above and paste it into the VS Code editor.   <br>
     Change "my_user_name" to your computer login ID. <br>
     Change the path to match the multivarious installation directory on your computer. <br>
     Save-As using the filename .env and save to the directory containing python code that will make use of multivarious. 
@@ -161,8 +161,9 @@ Set the PYTHONPATH environment variable <br>
   TextEdit ~/.zprofile   # macOS
   pico ~/.profile        # linux
   ```
-  If you saved multivarious to a Code directory on your Desktop, add one or two of the following three lines. <br> 
-  (change "my_user_name" to your login ID, and otherwise edit the line for your particular case) ... 
+  If you saved multivarious to the Code directory on your Desktop, add one or two of the following three lines to your profile. <br> 
+  Change "my_user_name" to your computer login ID. <br> 
+  Change the path to match the multivarious installation directory on your computer. <br>
   ```bash
   $env:PYTHONPATH="$env:PYTHONPATH;C:\Users\my_user_name\Desktop\Code\multivarious/" # Windows
   PYTHONPATH="$PYTHONPATH:/Users/my_user_name/Desktop/Code/multivarious/" # macOS
@@ -187,4 +188,4 @@ Set the PYTHONPATH environment variable <br>
   Control Panel > search for ... User envonment variables ...  and add:  
   ```powershell
   PYTHONPATH | "C:\Users\my_user_name\Desktop\Code\multivarious/"
-```
+  ```
