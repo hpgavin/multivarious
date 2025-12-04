@@ -42,12 +42,12 @@ and corresponding system outputs, _**y**_ = _**C x**_ + _**D u**_
 To solve systems of ordinary differential equations _d**x**_/_dt_ = _f_(_t_,_**x**_,_**u**_,_c_) where 
 _t_ is time, _**x**_ is a state vector, _**u**_ is a time series of exogeneous inputs, and _c_ contains a set of system constants. 
 
-| module       | description                                                                  |
-| ------------ | ---------------------------------------------------------------------------- |
-| **ode4u**    | the ODE solution via a fixed-time step, 4th order method                     |
-| **ode45u**   | the ODE solution via the adaptive time step, 4th-5th method by Cash and Karp |
-| **ode_example** | test ode4u and ode45u using ode_fctn.py                                   |
-| **ode_fctn**    | a library of multivariable ordinary differential equations, for testing   |
+| module          | description                                                                  |
+| --------------- | ---------------------------------------------------------------------------- |
+| **ode4u**       | the ODE solution via a fixed-time step, 4th order method                     |
+| **ode45u**      | the ODE solution via the adaptive time step, 4th-5th method by Cash and Karp |
+| **ode_example** | test ode4u and ode45u using ode_fctn.py                                      |
+| **ode_fctn**    | a library of multivariable ordinary differential equations, for testing      |
 
 ## opt . optimization
 
@@ -68,7 +68,7 @@ _**g**_(_**v**_) is a vector of inequality constraints.
 | **mimoSHORSA**         | multi-input multi-output Stochastic High Order Response Surface Algorithm |
 | **mimoSHORSA_example** | example of running mimoSHORSA                                             |
 | **nms**                | nonlinear constrained optimization - Nelder Mead Simplex                  |
-| **opt_example**        | example for ors, nms, sqp                        |
+| **opt_example**        | example for ors, nms, sqp                                                 |
 | **opt_options**        | adjust algorithmic options for ors, nms, and sqp                          |
 | **ors**                | nonlinear constrained optimization - Optimized Random Search              |
 | **plot_cvg_hist**      | plot the convergence historyof ors, nms and sqp                           |
@@ -111,16 +111,17 @@ methods: distribution.pdf(), distribution.cdf(), distribution.inv(), distributio
 | **format_plot** | set the font size, line width, and marker size |
 | **rainbow**     | rainbow line colors                            |
 
-# installation 
+# installation
 
 * install via git (for example, in a Code folder on your Desktop) 
-```
-cd ~/Desktop/Code
-git clone https://github.com/hpgavin/multivarious
-```
+  
+  ```
+  cd ~/Desktop/Code
+  git clone https://github.com/hpgavin/multivarious
+  ```
 
 * If not yet installed, install Python (via [miniconda](https://www.anaconda.com/docs/getting-started/miniconda/install)) and 
-[VS Code](https://code.visualstudio.com/) (optionally)
+  [VS Code](https://code.visualstudio.com/) (optionally)
 
 * If using VS Code:  <br>
   VS Code > File > Preferenes > Settings > Search Settings and enter: python terminal execute ... click the checkbox <br>
@@ -137,23 +138,50 @@ Set the PYTHONPATH environment variable <br>
 
 * **macOS and linux:** <br>
 (optional if only using VS Code) <br>
-set PYTHONPATH by adding the following to ~/.bash_profile (in macOS) or ~/.profile (in linux) 
-Customize the path to your own installation, for example, if you put multivarious in a Code folder on your Desktop ...
+Edit the macOS or the linux profile file directly:  <br>
+In a terminal, use an editor (e.g., in macOS use TextEdit or in linux use pico)
 ```bash
-PYTHONPATH="$PYTHONPATH:/Users/my_user_name/Desktop/Code/multivarious/"
+TextEdit ~/.zprofile 
+```
+If you put multivarious in a Code folder on your Desktop, add this line 
+(edit the line for your particular case) ... 
+```bash
+PYTHONPATH="$PYTHONPATH:/Users/my_user_name/Desktop/Code/multivarious/" # macOS
+PYTHONPATH="$PYTHONPATH:/home/my_user_name/Desktop/Code/multivarious/"  # linux
 export PYTHONPATH
 ```
-After editing your ~/.bash_profile or ~/.profile file, activate the changes by entering 
+After editing your ~/.zprofile or ~/.profile file, activate the changes by entering 
 ```
-source ~/.bash_profile   # for macOS
+source ~/.zprofile       # for macOS
 source ~/.profile        # for linux
+```
+Confirm the change has taken effect by typing ... 
+```
+echo $PYTHONPATH       # for macOS and for linuxS
 ```
 
 * **Windows:** <br>
 (optional if only using VS Code) <br>
-set PYTHONPATH through the Windows Control Panel <br>
-Customize the path to your own installation, for example, if you put multivarious in a Code folder on your Desktop ... <br>
-Control Panel > search for ... User envonment variables ...  and add:  <br>
-PYTHONPATH | "C:\Users\my_user_name\Desktop\Code\multivarious;"
-
-
+Edit the Windows PowerShell profile directly:  <br>
+In PowerShell, use notepad to open $PROFILE ...   <br>
+```powershell
+notepad $PROFILE 
+```
+and add this line ... 
+```powershell
+$env:PYTHONPATH="$env:PYTHONPATH;C:\Users\my_user_name\Desktop\Code\multivarious/"
+```
+Save and close notepad. Then run $PROFILE for the changes to take effect
+```powershell
+. $PROFILE
+```
+Confirm the change has taken effect by typing ... 
+```
+echo $env:PYTHONPATH
+```
+Alternatively, set PYTHONPATH through the Windows Control Panel <br>
+If you put multivarious in a Code folder on your Desktop ... <br>
+Control Panel > search for ... User envonment variables ...  and add:  
+```powershell
+PYTHONPATH | "C:\Users\my_user_name\Desktop\Code\multivarious/"
+```
