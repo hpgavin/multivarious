@@ -141,8 +141,9 @@ PYTHONPATH=/home/my_user_name/Desktop/Code/multivarious        # linux
 ```
 You may use VS Code to create and save this file ... <br>
 VS Code > File > New File ... Text File > cut and paste the appropriate line above.   <br>
-Replace "my_user_name" to your computer login ID, change the path to match your installation location for multivariou  <br>
-Save As using a filename .env and in the directory containing your python code that will use multivarious
+Change "my_user_name" to your computer login ID. <br>
+Change the path to match your installation location for multivariou  <br>
+Save-As using the filename .env and save to the directory containing python code that will make use of multivarious. 
 
 Edit a VS Code setting <br>
 VS Code > File > Preferences > Settings > Search Settings ... python env file <br>
@@ -152,7 +153,7 @@ ${workspaceFolder}/.env
 ```
 
 * **For  your OS ... Windows, macOS, linux:** <br>
-(uneccessary if the PYTHONPATH is set within VS Code) <br>
+(uneccessary if you are only using VS Code and the .env file is saved to your workspace directory) <br>
 Edit your profile directly:  <br>
 Open a terminal (e.g., PowerShell in Windows) to edit your profile ... 
 ```bash
