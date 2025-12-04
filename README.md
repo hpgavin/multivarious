@@ -139,19 +139,19 @@ Set the PYTHONPATH environment variable <br>
 * **For  your OS ... Windows, macOS, linux:** <br>
 (optional if only using VS Code) <br>
 Edit the profile file directly:  <br>
-In a terminal (e.g., PowerShell in Windows), use an editor (e.g., notepad in Windows, TextEdit in macOS or pico in linux )
+Open a terminal (e.g., PowerShell in Windows) to edit your profile ... 
 ```bash
 notepad $PROFILE        # Windows
 TextEdit ~/.zprofile    # macOS
 pico ~/.profile         # linux
 ```
-If you put multivarious in a Code folder on your Desktop, add the following line 
+If you saved multivarious to a Code folder on your Desktop, add one of the following three lines
 (change "my_user_name" to your login ID, and otherwise edit the line for your particular case) ... 
 ```bash
 $env:PYTHONPATH="$env:PYTHONPATH;C:\Users\my_user_name\Desktop\Code\multivarious/" # Windows
 PYTHONPATH="$PYTHONPATH:/Users/my_user_name/Desktop/Code/multivarious/" # macOS
 PYTHONPATH="$PYTHONPATH:/home/my_user_name/Desktop/Code/multivarious/"  # linux
-export PYTHONPATH
+export PYTHONPATH                                    # only for macOS and linux
 ```
 Save and exit your editor.  
 Activate the changes by typing one of the following into the terminal ...  
