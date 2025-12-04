@@ -154,7 +154,7 @@ methods: distribution.pdf(), distribution.cdf(), distribution.inv(), distributio
   * **For  your OS ... Windows, macOS, linux:** <br>
     (uneccessary if you are using only VS Code and if the .env file is saved to your workspace directory) <br>
     Edit your profile directly:  <br>
-    Open a terminal (e.g., PowerShell in Windows) to edit your profile ... 
+    Open a terminal (e.g., PowerShell in Windows) and edit your profile using one of the following three commands ... 
     ```bash
     notepad $PROFILE       # Windows
     TextEdit ~/.zprofile   # macOS
