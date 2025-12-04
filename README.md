@@ -119,7 +119,8 @@ cd ~/Desktop/Code
 git clone https://github.com/hpgavin/multivarious
 ```
 
-* If not yet installed, install [VS Code](https://code.visualstudio.com/) and Python via [miniconda](https://www.anaconda.com/docs/getting-started/miniconda/install) 
+* If not yet installed, install Python (via [miniconda](https://www.anaconda.com/docs/getting-started/miniconda/install)) and 
+[VS Code](https://code.visualstudio.com/) (optionally)
 
 * If using VS Code:  <br>
   VS Code > File > Preferenes > Settings > Search Settings and enter: python terminal execute ... click the checkbox <br>
