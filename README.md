@@ -160,7 +160,7 @@ methods: distribution.pdf(), distribution.cdf(), distribution.inv(), distributio
     TextEdit ~/.zprofile   # macOS
     pico ~/.profile        # linux
     ```
-    If you saved multivarious to the Code directory on your Desktop, copy one or two of the following three lines below and paste it into your profile. <br> 
+    If you saved multivarious to the Code directory on your Desktop, copy one or two of the following four lines below and paste it into your profile. <br> 
     ```bash
     $env:PYTHONPATH="$env:PYTHONPATH;C:\Users\my_user_name\Desktop\Code\multivarious/" # Windows
     PYTHONPATH="$PYTHONPATH:/Users/my_user_name/Desktop/Code/multivarious/" # macOS
@@ -170,7 +170,7 @@ methods: distribution.pdf(), distribution.cdf(), distribution.inv(), distributio
     Change "my_user_name" to your computer login ID. <br> 
     Change the path to match the multivarious installation directory on your computer. <br>
     Save your profile and close your editor.  
-    Activate the changes by typing one of the following into the terminal ...  
+    Activate the changes by typing one of the following two commands into the terminal ...  
     ```bash
     . $PROFILE             # Windows
     source ~/.zprofile     # macOS
@@ -189,3 +189,5 @@ methods: distribution.pdf(), distribution.cdf(), distribution.inv(), distributio
     ```powershell
     PYTHONPATH | "C:\Users\my_user_name\Desktop\Code\multivarious/"
     ```
+    Change "my_user_name" to your computer login ID. <br> 
+    Change the path to match the multivarious installation directory on your computer. <br>
