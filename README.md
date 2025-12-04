@@ -113,20 +113,20 @@ methods: distribution.pdf(), distribution.cdf(), distribution.inv(), distributio
 
 # installation
 
-* install multivarious using git (for example, in a Code folder on your Desktop) .   In a terminal window (called PowerShell in Windows) type:
+* install multivarious using git (for example, in a Code folder on your Desktop).<br> 
+  In a terminal window (called PowerShell in Windows) type:
   ```
   cd ~/Desktop/Code
   git clone https://github.com/hpgavin/multivarious
   ```
 
-* If you have not yet installed Python or VS Code, install Python (via [miniconda](https://www.anaconda.com/docs/getting-started/miniconda/install)) and 
-  [VS Code](https://code.visualstudio.com/) (optionally)
+* If you have not yet installed Python or VS Code, install Python (via [miniconda](https://www.anaconda.com/docs/getting-started/miniconda/install)) and [VS Code](https://code.visualstudio.com/) 
 
 * Configure VS Code:  <br>
   VS Code > File > Preferences > Settings > Search Settings ... enter: python terminal execute ... click the checkbox <br>
   VS Code > File > Preferences > Settings > Search Settings ... enter: python terminal launch > Enter in settings.json ... and enter <br>
   <span style="font-family: Courier"> "python.terminal.launchArgs": ["-i"] </span>  <br>
-  Save settings.json and exit 
+  Save settings.json and close the VS Code edit window. 
 
 * Set the PYTHONPATH environment variable <br>
 
@@ -160,16 +160,16 @@ methods: distribution.pdf(), distribution.cdf(), distribution.inv(), distributio
     TextEdit ~/.zprofile   # macOS
     pico ~/.profile        # linux
     ```
-    If you saved multivarious to the Code directory on your Desktop, add one or two of the following three lines to your profile. <br> 
-    Change "my_user_name" to your computer login ID. <br> 
-    Change the path to match the multivarious installation directory on your computer. <br>
+    If you saved multivarious to the Code directory on your Desktop, copy one or two of the following three lines below and paste it into your profile. <br> 
     ```bash
     $env:PYTHONPATH="$env:PYTHONPATH;C:\Users\my_user_name\Desktop\Code\multivarious/" # Windows
     PYTHONPATH="$PYTHONPATH:/Users/my_user_name/Desktop/Code/multivarious/" # macOS
     PYTHONPATH="$PYTHONPATH:/home/my_user_name/Desktop/Code/multivarious/"  # linux
     export PYTHONPATH                                    # only for macOS and linux
     ```
-    Save and exit your editor.  
+    Change "my_user_name" to your computer login ID. <br> 
+    Change the path to match the multivarious installation directory on your computer. <br>
+    Save your profile and close your editor.  
     Activate the changes by typing one of the following into the terminal ...  
     ```bash
     . $PROFILE             # Windows
@@ -181,6 +181,7 @@ methods: distribution.pdf(), distribution.cdf(), distribution.inv(), distributio
     echo $env:PYTHONPATH   # Windows
     echo $PYTHONPATH       # macOS and linux 
     ```
+    If the terminal shows that your PYTHONPATH is set as indended, it has worked.  
   
     Alternatively, in Windows you may set PYTHONPATH through the Control Panel. <br>
     If you put multivarious in a Code folder on your Desktop:  <br>
