@@ -131,21 +131,24 @@ methods: distribution.pdf(), distribution.cdf(), distribution.inv(), distributio
 
 Set the PYTHONPATH environment variable <br>
 
-* **VS Code:** <br>
+* **Within VS Code:** <br>
   VS Code > File > New File ... Text File > enter a line ... (customize for your own installation) <br>
   <span style="font-family: Courier"> PYTHONPATH=/Users/my_user_name/Desktop/Code/multivarious </span>  <br>
   Save As filename .env within any folder using multivarious 
 
-* **macOS and linux:** <br>
+* **For  your OS ... Windows, macOS, linux:** <br>
 (optional if only using VS Code) <br>
-Edit the macOS or the linux profile file directly:  <br>
-In a terminal, use an editor (e.g., in macOS use TextEdit or in linux use pico)
+Edit the profile file directly:  <br>
+In a terminal (e.g., PowerShell in Windows), use an editor (e.g., notepad in Windows, TextEdit in macOS or pico in linux )
 ```bash
-TextEdit ~/.zprofile 
+notepad $PROFILE        # Windows
+TextEdit ~/.zprofile    # macOS
+pico ~/.profile         # linux
 ```
 If you put multivarious in a Code folder on your Desktop, add the following line 
 (change "my_user_name" to your login ID, and otherwise edit the line for your particular case) ... 
 ```bash
+$env:PYTHONPATH="$env:PYTHONPATH;C:\Users\my_user_name\Desktop\Code\multivarious/" # Windows
 PYTHONPATH="$PYTHONPATH:/Users/my_user_name/Desktop/Code/multivarious/" # macOS
 PYTHONPATH="$PYTHONPATH:/home/my_user_name/Desktop/Code/multivarious/"  # linux
 export PYTHONPATH
@@ -153,36 +156,17 @@ export PYTHONPATH
 Save and exit your editor.  
 Activate the changes by typing one of the following into the terminal ...  
 ```
-source ~/.zprofile       # for macOS
-source ~/.profile        # for linux
+. $PROFILE               # Windows
+source ~/.zprofile       # macOS
+source ~/.profile        # linux
 ```
 Confirm the change has taken effect by typing the following into the terminal ... 
 ```
-echo $PYTHONPATH       # for macOS and for linux 
+echo $env:PYTHONPATH   # Windows
+echo $PYTHONPATH       # macOS and linux 
 ```
 
-* **Windows:** <br>
-(optional if only using VS Code) <br>
-Edit the Windows PowerShell profile directly:  <br>
-In PowerShell, use notepad to open $PROFILE ...   <br>
-```powershell
-notepad $PROFILE 
-```
-If you put multivarious in a Code folder on your Desktop, add the following line 
-(change "my_user_name" to your login ID, and otherwise edit the line for your particular case) ... 
-```powershell
-$env:PYTHONPATH="$env:PYTHONPATH;C:\Users\my_user_name\Desktop\Code\multivarious/"
-```
-Save and close notepad.  
-Activate the changes by typing the following into the PowerShell terminal 
-```powershell
-. $PROFILE
-```
-Confirm the change has taken effect by typing the following into the PowerShell terminal ... 
-```
-echo $env:PYTHONPATH
-```
-Alternatively, set PYTHONPATH through the Windows Control Panel <br>
+Alternatively, in Windows you may set PYTHONPATH through the Control Panel <br>
 If you put multivarious in a Code folder on your Desktop ... <br>
 Control Panel > search for ... User envonment variables ...  and add:  
 ```powershell
