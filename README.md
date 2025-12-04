@@ -135,7 +135,9 @@ Set the PYTHONPATH environment variable <br>
 Add a .env file to all folders containing code that will make use of multivarious. <br>
 The .env file has this single line ... 
 ```bash
-PYTHONPATH=/Users/my_user_name/Desktop/Code/multivarious 
+PYTHONPATH=C:\Users\my_user_name\Desktop\Code\multivarious     # Windows
+PYTHONPATH=/Users/my_user_name/Desktop/Code/multivarious       # macOS
+PYTHONPATH=/home/my_user_name/Desktop/Code/multivarious        # linux
 ```
 You may use VS Code to create and save this file ...
 VS Code > File > New File ... Text File > cut and paste the line above and
