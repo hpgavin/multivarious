@@ -124,8 +124,8 @@ methods: distribution.pdf(), distribution.cdf(), distribution.inv(), distributio
   [VS Code](https://code.visualstudio.com/) (optionally)
 
 * Configure VS Code:  <br>
-  VS Code > File > Preferenes > Settings > Search Settings and enter: python terminal execute ... click the checkbox <br>
-  VS Code > File > Preferenes > Settings > Search Settings and enter: python terminal lauch > Enter in settings.json ... and enter <br>
+  VS Code > File > Preferences > Settings > Search Settings ... enter: python terminal execute ... click the checkbox <br>
+  VS Code > File > Preferences > Settings > Search Settings ... enter: python terminal launch > Enter in settings.json ... and enter <br>
   <span style="font-family: Courier"> "python.terminal.launchArgs": ["-i"] </span>  <br>
   Save and exit settings.json
 
