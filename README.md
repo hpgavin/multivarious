@@ -46,8 +46,6 @@ _t_ is time, _**x**_ is a state vector, _**u**_ is a time series of exogeneous i
 | --------------- | ---------------------------------------------------------------------------- |
 | **ode4u**       | the ODE solution via a fixed-time step, 4th order method                     |
 | **ode45u**      | the ODE solution via the adaptive time step, 4th-5th method by Cash and Karp |
-| **ode_example** | test ode4u and ode45u using ode_fctn.py                                      |
-| **ode_fctn**    | a library of multivariable ordinary differential equations, for testing      |
 
 ## opt . optimization
 
@@ -59,22 +57,12 @@ _**g**_(_**v**_) is a vector of inequality constraints.
 
 | module                 | description                                                               |
 | ---------------------- | ------------------------------------------------------------------------- |
-| **avg_cov_func**       | estimate the value of an uncertain computation to desired precision       |
 | **fsolve**             | solve a system of nonlinear algebraic equations                           |
 | **L1_fit**             | linear least-squares curve fitting with l_1 regularization                |
-| **L1_fit_example**     | example for L1_fit                                                        |
-| **L1_plots**           | plot results from L1_fit                                                  |
-| **LP_analysis**        | to solve any LP using ors, nms, or sqp                                    |
 | **mimoSHORSA**         | multi-input multi-output Stochastic High Order Response Surface Algorithm |
-| **mimoSHORSA_example** | example of running mimoSHORSA                                             |
 | **nms**                | nonlinear constrained optimization - Nelder Mead Simplex                  |
-| **opt_example**        | example for ors, nms, sqp                                                 |
-| **opt_options**        | adjust algorithmic options for ors, nms, and sqp                          |
 | **ors**                | nonlinear constrained optimization - Optimized Random Search              |
-| **plot_cvg_hist**      | plot the convergence historyof ors, nms and sqp                           |
-| **plot_opt_surface**   | plot the objective function landscape in any selected 2D slice            |
 | **poly_fit**           | power polynomial curve fitting with arbitrary exponents                   |
-| **poly_fit_example**   | example for poly_fit                                                      |
 | **sqp**                | nonlinear constrained optimization - Sequential Quadratic Programming     |
 
 ## rvs . random variables
@@ -95,7 +83,6 @@ methods: distribution.pdf(), distribution.cdf(), distribution.inv(), distributio
 | **laplace**          | [Laplace](http://en.wikipedia.org/wiki/Laplace_distribution)                                        |
 | **lognormal**        | [lognormal](http://en.wikipedia.org/wiki/Log-normal_distribution)                                   |
 | **normal**           | [Gaussian](http://en.wikipedia.org/wiki/Normal_distribution) (normal)                               |
-| **plot_CDF_ci**      | plot the cumulative distribution function from data and its confidence interval                     |
 | **poisson**          | [Poisson](http://en.wikipedia.org/wiki/Poisson_distribution)                                        |
 | **quadratic**        | [quadratic](http://en.wikipedia.org/wiki/Beta_distribution) (special case of the beta distribution) |
 | **rayleigh**         | [Rayleigh](http://en.wikipedia.org/wiki/Rayleigh_distribution)                                      |
@@ -105,11 +92,18 @@ methods: distribution.pdf(), distribution.cdf(), distribution.inv(), distributio
 
 ## utl . utility functions
 
-| module          | description                                    |
-| --------------- | ---------------------------------------------- |
-| **format_bank** | format a numerical string                      |
-| **format_plot** | set the font size, line width, and marker size |
-| **rainbow**     | rainbow line colors                            |
+| module               | description                                    |
+| -------------------- | ---------------------------------------------- |
+| **L1_plots**         | plot results from L1_fit                                                  |
+| **LP_analysis**      | to solve any LP using ors, nms, or sqp                                    |
+| **avg_cov_func**     | estimate the value of an uncertain computation to desired precision       |
+| **format_bank**      | format a numerical string                      |
+| **format_plot**      | set the font size, line width, and marker size |
+| **opt_options**      | adjust algorithmic options for ors, nms, and sqp                          |
+| **plot_CDF_ci**      | plot the cumulative distribution function from data and its confidence interval                     |
+| **plot_cvg_hist**    | plot the convergence historyof ors, nms and sqp                           |
+| **plot_opt_surface** | plot the objective function landscape in any selected 2D slice            |
+| **rainbow**          | rainbow line colors                            |
 
 # installation
 
@@ -139,7 +133,7 @@ methods: distribution.pdf(), distribution.cdf(), distribution.inv(), distributio
       PYTHONPATH=/home/my_user_name/Desktop/Code/multivarious        # linux
       ```
       You may use VS Code to create and save the .env file ... <br>
-      VS Code > File > New File ... Text File > cut the appropriate line above and paste into the VS Code editor.   <br>
+      VS Code > File > New File ... Text File > cut the appropriate line above and paste it into the VS Code editor.   <br>
       Change "my_user_name" to your computer login ID. <br>
       Change the path to match the multivarious installation directory on your computer. <br>
       Save-As using the filename .env and save to the directory containing python code that will make use of multivarious. 
@@ -160,7 +154,7 @@ methods: distribution.pdf(), distribution.cdf(), distribution.inv(), distributio
     TextEdit ~/.zprofile   # macOS
     pico ~/.profile        # linux
     ```
-    If you saved multivarious to the Code directory on your Desktop, copy one or two of the following four lines below and paste it into your profile. <br> 
+    If you saved multivarious to the Code directory on your Desktop, copy one or two of the following four lines below and paste into your profile. <br> 
     ```bash
     $env:PYTHONPATH="$env:PYTHONPATH;C:\Users\my_user_name\Desktop\Code\multivarious/" # Windows
     PYTHONPATH="$PYTHONPATH:/Users/my_user_name/Desktop/Code/multivarious/" # macOS
