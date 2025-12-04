@@ -139,7 +139,7 @@ methods: distribution.pdf(), distribution.cdf(), distribution.inv(), distributio
       PYTHONPATH=/home/my_user_name/Desktop/Code/multivarious        # linux
       ```
       You may use VS Code to create and save the .env file ... <br>
-      VS Code > File > New File ... Text File > cut the appropriate line above and paste it into the VS Code editor.   <br>
+      VS Code > File > New File ... Text File > cut the appropriate line above and paste into the VS Code editor.   <br>
       Change "my_user_name" to your computer login ID. <br>
       Change the path to match the multivarious installation directory on your computer. <br>
       Save-As using the filename .env and save to the directory containing python code that will make use of multivarious. 
@@ -170,13 +170,13 @@ methods: distribution.pdf(), distribution.cdf(), distribution.inv(), distributio
     Change "my_user_name" to your computer login ID. <br> 
     Change the path to match the multivarious installation directory on your computer. <br>
     Save your profile and close your editor.  
-    Activate the changes by typing one of the following two commands into the terminal ...  
+    Activate the changes by typing one of the following three commands into the terminal ...  
     ```bash
     . $PROFILE             # Windows
     source ~/.zprofile     # macOS
     source ~/.profile      # linux
     ```
-    Confirm the change has taken effect by typing the following into the terminal ... 
+    Confirm the change has taken effect by typing the one of the following two commands into the terminal ... 
     ```bash
     echo $env:PYTHONPATH   # Windows
     echo $PYTHONPATH       # macOS and linux 
