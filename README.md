@@ -120,7 +120,7 @@ methods: distribution.pdf(), distribution.cdf(), distribution.inv(), distributio
   git clone https://github.com/hpgavin/multivarious
   ```
 
-* If not yet installed, install Python (via [miniconda](https://www.anaconda.com/docs/getting-started/miniconda/install)) and 
+* If you have not yet installed Python or VS Code, install Python (via [miniconda](https://www.anaconda.com/docs/getting-started/miniconda/install)) and 
   [VS Code](https://code.visualstudio.com/) (optionally)
 
 * If using VS Code:  <br>
@@ -138,12 +138,12 @@ Set the PYTHONPATH environment variable <br>
 
 * **For  your OS ... Windows, macOS, linux:** <br>
 (optional if only using VS Code) <br>
-Edit the profile file directly:  <br>
+Edit your profile directly:  <br>
 Open a terminal (e.g., PowerShell in Windows) to edit your profile ... 
 ```bash
-notepad $PROFILE        # Windows
-TextEdit ~/.zprofile    # macOS
-pico ~/.profile         # linux
+notepad $PROFILE       # Windows
+TextEdit ~/.zprofile   # macOS
+pico ~/.profile        # linux
 ```
 If you saved multivarious to a Code folder on your Desktop, add one of the following three lines
 (change "my_user_name" to your login ID, and otherwise edit the line for your particular case) ... 
@@ -155,19 +155,19 @@ export PYTHONPATH                                    # only for macOS and linux
 ```
 Save and exit your editor.  
 Activate the changes by typing one of the following into the terminal ...  
-```
-. $PROFILE               # Windows
-source ~/.zprofile       # macOS
-source ~/.profile        # linux
+```bash
+. $PROFILE             # Windows
+source ~/.zprofile     # macOS
+source ~/.profile      # linux
 ```
 Confirm the change has taken effect by typing the following into the terminal ... 
-```
+```bash
 echo $env:PYTHONPATH   # Windows
 echo $PYTHONPATH       # macOS and linux 
 ```
 
-Alternatively, in Windows you may set PYTHONPATH through the Control Panel <br>
-If you put multivarious in a Code folder on your Desktop ... <br>
+Alternatively, in Windows you may set PYTHONPATH through the Control Panel. <br>
+If you put multivarious in a Code folder on your Desktop:  <br>
 Control Panel > search for ... User envonment variables ...  and add:  
 ```powershell
 PYTHONPATH | "C:\Users\my_user_name\Desktop\Code\multivarious/"
