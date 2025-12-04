@@ -139,9 +139,9 @@ PYTHONPATH=C:\Users\my_user_name\Desktop\Code\multivarious     # Windows
 PYTHONPATH=/Users/my_user_name/Desktop/Code/multivarious       # macOS
 PYTHONPATH=/home/my_user_name/Desktop/Code/multivarious        # linux
 ```
-You may use VS Code to create and save this file ...
-VS Code > File > New File ... Text File > cut and paste the line above and
-(replace "my_user_name" to your computer login ID, change the path to match your installation location for multivariou ) <br>
+You may use VS Code to create and save this file ... <br>
+VS Code > File > New File ... Text File > cut and paste the appropriate line above.   <br>
+Replace "my_user_name" to your computer login ID, change the path to match your installation location for multivariou  <br>
 Save As using a filename .env and in the directory containing your python code that will use multivarious
 
 Edit a VS Code setting <br>
