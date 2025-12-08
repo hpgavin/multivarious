@@ -122,7 +122,7 @@ methods: distribution.pdf(), distribution.cdf(), distribution.inv(), distributio
   ```
   "python.terminal.launchArgs": ["-i"] 
   ```
-  Save your change to the settings.json file and close the VS Code edit window. 
+  Save your changes to this settings.json file and close the VS Code edit window. 
 
 * Set the PYTHONPATH environment variable <br>
 
