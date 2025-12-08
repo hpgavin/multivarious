@@ -114,7 +114,7 @@ methods: distribution.pdf(), distribution.cdf(), distribution.inv(), distributio
   git clone https://github.com/hpgavin/multivarious
   ```
 
-* If you have not yet installed Python or VS Code, install Python (via [miniconda](https://www.anaconda.com/docs/getting-started/miniconda/install)) and [VS Code](https://code.visualstudio.com/) 
+* If you have not yet installed Python or VS Code, install Python (via [miniconda](https://www.anaconda.com/docs/getting-started/miniconda/install)) and VS Codevia its [download page](https://code.visualstudio.com/Download) 
 
 * Configure VS Code:  <br>
   VS Code > File > Preferences > Settings > Search Settings ... enter: python terminal execute ... click the checkbox <br>
@@ -147,7 +147,7 @@ methods: distribution.pdf(), distribution.cdf(), distribution.inv(), distributio
       ${workspaceFolder}/.env
       ```
   
-  * **For  your OS ... Windows, macOS, linux:** <br>
+  * **For your OS ... Windows, macOS, linux:** <br>
     (uneccessary if you are using only VS Code and if the .env file is saved to your workspace directory) <br>
     Edit your profile directly:  <br>
     Open a terminal application and edit your profile using one of the following three commands ... 
@@ -177,6 +177,6 @@ methods: distribution.pdf(), distribution.cdf(), distribution.inv(), distributio
     echo $env:PYTHONPATH   # Windows
     echo $PYTHONPATH       # macOS and linux 
     ```
-    If the terminal shows that your PYTHONPATH is set as indended, it has worked. 
+    If the terminal shows that your PYTHONPATH is set as indended, it has worked. <br>
     VS Code will now find multivarious without the need for a .env file.  
   
