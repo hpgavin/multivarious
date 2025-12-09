@@ -153,13 +153,12 @@ methods: distribution.pdf(), distribution.cdf(), distribution.inv(), distributio
     ```bash
     notepad $PROFILE       # Windows
     TextEdit ~/.zprofile   # macOS
-    pico ~/.profile        # linux
+    Gedit ~/.profile       # linux
     ```
-    Copy one or two of the following three lines below and paste into your profile. <br> 
+    Copy one of the following two lines below and paste into your profile. <br> 
     ```bash
     $env:PYTHONPATH="$env:PYTHONPATH;%USERPROFILE%\Desktop\Code\multivarious/" # Windows
-    PYTHONPATH="$PYTHONPATH:$HOME/Desktop/Code/multivarious/"                  # macOS and linux
-    export PYTHONPATH                                                          # macOS and linux
+    export PYTHONPATH="$PYTHONPATH:$HOME/Desktop/Code/multivarious/"           # macOS and linux
     ```
     If you did not install multivarious into the Code directory on your Desktop, change "Desktop/Code" to match your selected installation directory <br> 
     Save your profile and close your editor.  
