@@ -1,4 +1,4 @@
-// VS Code allows for // --- comments witnin launch.jason files
+// VS Code allows for // --- comments within launch.json files
 // Change ... <USERNAME> ... to your computer login name 
 // Edit the path  ... Desktop/Code/module ... " to match your needs
 
@@ -13,7 +13,7 @@
       "program": "${file}",
       "console": "integratedTerminal",
 
-      // Linux 
+      // linux 
       "linux": {
         "env": {
           "PYTHONPATH": "/home/hpgavin/Code/multivarious"

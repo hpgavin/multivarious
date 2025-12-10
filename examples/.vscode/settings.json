@@ -1,9 +1,8 @@
-// VS Code allows for // --- comments within settings.jason files
+// VS Code allows for // --- comments within settings.json files
 // Change ... <USERNAME> ... to your computer login name
 // Edit the path ... Desktop/Code ... to match your installation
 
-
-
+{
   // linux
   "terminal.integrated.env.linux": {
     "PYTHONPATH": "/home/hpgavin/Code/multivarious"
