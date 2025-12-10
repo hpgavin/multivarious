@@ -3,13 +3,19 @@
 // Edit the path "Code/modules/etc" to match your needs
 
 {
+
+  // linux
   "terminal.integrated.env.linux": {
     "PYTHONPATH": "/home/hpgavin/Code/multivarious"
   },
+
+  // macOS
   "terminal.integrated.env.osx": {
-    "PYTHONPATH": "/Users/<USERNAME>/Code/modules/module_1:/Users/<USERNAME>/Code/modules/module_2"
+    "PYTHONPATH": "/Users/<USERNAME>/Desktop/Code/multivarious"
   },
+
+  // Windows 
   "terminal.integrated.env.windows": {
-    "PYTHONPATH": "C:\\Users\\<USERNAME>\\Code\\modules\\module_1;C:\\Users\\<USERNAME>\\Code\\modules\\module_2"
+    "PYTHONPATH": "C:\\Users\\<USERNAME>\\Desktop\\Code\\multivarious"
   }
 }

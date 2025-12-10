@@ -107,7 +107,8 @@ methods: distribution.pdf(), distribution.cdf(), distribution.inv(), distributio
 
 # installation
 
-* Install multivarious using git (for example, into a Code folder on your Desktop).<br> 
+* Install multivarious using git (for example, into a Code folder on your Desktop).
+
   Open a terminal window (Win11: (Win+X) and choose Windows Terminal) or (macOS: (Cmd+Space), type Terminal) and enter the two commands:
   ```
   cd ~/Desktop/Code
@@ -116,63 +117,69 @@ methods: distribution.pdf(), distribution.cdf(), distribution.inv(), distributio
 
 * If you have not yet installed Python or VS Code, install Python (via [miniconda](https://www.anaconda.com/docs/getting-started/miniconda/install)) and VS Code (via its [download page](https://code.visualstudio.com/Download)) 
 
-* Configure VS Code:  <br>
-  VS Code > File > Preferences > Settings > Search Settings ... enter: python terminal execute ... click the checkbox <br>
-  VS Code > File > Preferences > Settings > Search Settings ... enter: python terminal launch > Enter in settings.json ... and edit the following line, as shown below 
+* To configure VS Code, open VS Code and ...
+
+  VS Code > File > Preferences > Settings > Search Settings ... <br> enter: python terminal execute ... <br> click the checkbox 
+
+  VS Code > File > Preferences > Settings > Search Settings ... <br> enter: python terminal launch > Enter in settings.json ... <br> edit the following line, as shown below 
   ```
   "python.terminal.launchArgs": ["-i"] 
   ```
   Save your changes to this settings.json file and close the VS Code edit window. 
 
-* Set the PYTHONPATH environment variable <br>
+* Set the PYTHONPATH environment variable using (A) or (B) below 
 
-  * **Within VS Code:** <br>
-    * Save a .env file to directories containing code that will make use of multivarious. <br>
-      The .env file contains one of the following two lines ... 
-      ```bash
-      PYTHONPATH=%USERPROFILE%\Desktop\Code\multivarious     # Windows
-      PYTHONPATH=$HOME/Desktop/Code/multivarious             # macOS and linux
-      ```
-      You may use VS Code to create and save the .env file ... <br>
-      VS Code > File > New File ... Text File > copy the appropriate line above and paste it into the VS Code editor.   <br>
-      If you did not install multivarious into the Code directory on your Desktop, change "Desktop/Code" to match your selected installation directory. <br> 
-      Save-As using the filename .env <br>
-      Now that you have a .env file, you may copy it to any directory containing python code that will make use of multivarious
-  
-    * Tell VS Code to use .env in any directory containing python <br>
-      VS Code > File > Preferences > Settings > Search Settings ... python env file <br>
-      Within the textbox enter:
-      ```bash
-      ${workspaceFolder}/.env
-      ```
-  
-  * **For your OS ... Windows, macOS, linux:** <br>
-    (uneccessary if you are using only VS Code and if the .env file is saved to your workspace directory) <br>
-    Edit your profile directly:  <br>
-    Open a terminal application and edit your profile using one of the following three commands ... 
+  * **(A) For your VS Code installation, edit .vscode/settings.json :** 
+
+    Open a terminal application and navigate to your multivarious/examples/.vscode directory
     ```bash
-    notepad $PROFILE       # Windows
-    TextEdit ~/.zprofile   # macOS
-    Gedit ~/.profile       # linux
+    cd ~/Desktop/Code/multivarious/examples/.vscode 
     ```
-    Copy one of the following two lines below and paste into your profile. <br> 
+    open your settings.json file using one of these commands ... 
+    ```bash
+    notepad  settings.json     # Windows
+    TextEdit settings.json     # macOS
+    Gedit    settings.json     # linux
+    ```
+    and edit the section your settings.json file corresponding to your OS by:
+
+    * changing ... <USERNAME> ... to the login ID for your computer
+    * changing ... Desktop/Code ... (or Desktop\\\\Code) to the path of your multivarious installation (e.g., Desktop/stuff/Code)
+
+    Save and exit your editor. 
+
+    Verify that your edits have taken effect by running verify_path_import.py from the multivarious/examples folder. 
+
+    Copy your edited .vscode directory to any directory that contains python code which makes use of multivarious. 
+  
+  * **(B) For your computer, edit your profile directly :** 
+
+    Open a terminal application and edit your profile using one of these commands ... 
+    ```bash
+    notepad     $PROFILE       # Windows
+    TextEdit ~/.zprofile       # macOS
+    Gedit     ~/.profile       # linux
+    ```
+    Copy one of the lines below and paste it into your profile. 
     ```bash
     $env:PYTHONPATH="$env:PYTHONPATH;%USERPROFILE%\Desktop\Code\multivarious/" # Windows
     export PYTHONPATH="$PYTHONPATH:$HOME/Desktop/Code/multivarious/"           # macOS and linux
     ```
-    If you did not install multivarious into the Code directory on your Desktop, change "Desktop/Code" to match your selected installation directory <br> 
+    If you did not install multivarious into the Code directory on your Desktop, change ... Desktop/Code ... (or Desktop\\Code) to match your selected installation directory. 
+
     Save your profile and close your editor.  
-    Activate these changes by typing one of the following three commands into the terminal ...  
+
+    Activate your edits by typing one of theses commands into the terminal ...  
     ```bash
-    . $PROFILE             # Windows
-    source ~/.zprofile     # macOS
-    source ~/.profile      # linux
+    . $PROFILE                 # Windows
+    source ~/.zprofile         # macOS
+    source ~/.profile          # linux
     ```
-    Confirm the change has taken effect by typing the one of the following two commands into the terminal ... 
+    Verify the edits have taken effect by typing the one of these commands into the terminal ... 
     ```bash
-    echo $env:PYTHONPATH   # Windows
-    echo $PYTHONPATH       # macOS and linux 
+    echo $env:PYTHONPATH       # Windows
+    echo $PYTHONPATH           # macOS and linux 
     ```
-    If the terminal shows that your PYTHONPATH is set as indended, it has worked. <br>
-    VS Code will now find multivarious without the need for a .env file.  
+    If the terminal shows that your PYTHONPATH is set as indended, it has worked. 
+    VS Code will now find multivarious without the need for a .vscode/settings.json file.  
   

@@ -3,14 +3,18 @@
 // Edit the path "Code/modules/etc" to match your needs
 
 {
+
+  // linux
   "terminal.integrated.env.linux": {
     "PYTHONPATH": "/home/<USERNAME>/Code/modules/module_1:/home/<USERNAME>/Code/modules/module_2"
   },
 
+  // macOS
   "terminal.integrated.env.osx": {
     "PYTHONPATH": "/Users/<USERNAME>/Code/modules/module_1:/Users/<USERNAME>/Code/modules/module_2"
   },
 
+  // Windows
   "terminal.integrated.env.windows": {
     "PYTHONPATH": "C:\\Users\\<USERNAME>\\Code\\modules\\module_1;C:\\Users\\<USERNAME>\\Code\\modules\\module_2"
   }

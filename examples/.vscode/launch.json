@@ -6,41 +6,36 @@
   "version": "0.2.0",
   "configurations": [
     
-    // Linux + macOS configuration
     {
-      "name": "Run Project (Linux/macOS)",
+      "name": "Run Project (debug with selected PYTHONPATH)",
       "type": "python",
       "request": "launch",
       "program": "${file}",
       "console": "integratedTerminal",
 
+      // Linux 
       "linux": {
         "env": {
           "PYTHONPATH": "/home/hpgavin/Code/multivarious"
         }
       },
 
+      // macOS 
       "osx": {
         "env": {
-          "PYTHONPATH": "/Users/<USERNAME>/Code/modules/module_1:/Users/<USERNAME>/Code/modules/module_2"
+          "PYTHONPATH": "/Users/<USERNAME>/Desktop/Code/module_1:/Users/<USERNAME>/Desktop/Code/module_2"
         }
-      }
-    }, 
+      },
 
-    // Windows configuration
-    {
-      "name": "Run Project (Windows)",
-      "type": "python",
-      "request": "launch",
-      "program": "${file}",
-      "console": "integratedTerminal",
-
+      // Windows 
       "windows": {
         "env": {
-          "PYTHONPATH": "C:\\Users\\<USERNAME>\\Code\\modules\\module_1;C:\\Users\\<USERNAME>\\Code\\modules\\module_2"
+          "PYTHONPATH": "C:\\Users\\<USERNAME>\\Desktop\\Code\\module_1;C:\\Users\\<USERNAME>\\Desktop\\Code\\module_2"
         }
       }
+
     }
+
   ]
 }
 
