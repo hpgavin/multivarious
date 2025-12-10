@@ -1,0 +1,17 @@
+// VS Code allows for // --- comments witin in settings.jason files
+// Change <USERNAME> to your computer login name
+// Edit the path "Code/modules/etc" to match your needs
+
+{
+  "terminal.integrated.env.linux": {
+    "PYTHONPATH": "/home/<USERNAME>/Code/modules/module_1:/home/<USERNAME>/Code/modules/module_2"
+  },
+
+  "terminal.integrated.env.osx": {
+    "PYTHONPATH": "/Users/<USERNAME>/Code/modules/module_1:/Users/<USERNAME>/Code/modules/module_2"
+  },
+
+  "terminal.integrated.env.windows": {
+    "PYTHONPATH": "C:\\Users\\<USERNAME>\\Code\\modules\\module_1;C:\\Users\\<USERNAME>\\Code\\modules\\module_2"
+  }
+}

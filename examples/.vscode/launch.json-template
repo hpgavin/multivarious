@@ -1,0 +1,46 @@
+// VS Code allows for // --- comments witin in launch.jason files
+// Change <USERNAME> to your computer login name
+// Edit the path "Code/modules/etc" to match your needs
+
+{
+  "version": "0.2.0",
+  "configurations": [
+
+    // Linux + macOS configuration
+    {
+      "name": "Run Project (Linux/macOS)",
+      "type": "python",
+      "request": "launch",
+      "program": "${file}",
+      "console": "integratedTerminal",
+
+      "linux": {
+        "env": {
+          "PYTHONPATH": "/home/<USERNAME>/Code/modules/module_1:/home/<USERNAME>/Code/modules/module_2"
+        }
+      },
+
+      "osx": {
+        "env": {
+          "PYTHONPATH": "/Users/<USERNAME>/Code/modules/module_1:/Users/<USERNAME>/Code/modules/module_2"
+        }
+      }
+    },
+
+    // Windows configuration
+    {
+      "name": "Run Project (Windows)",
+      "type": "python",
+      "request": "launch",
+      "program": "${file}",
+      "console": "integratedTerminal",
+
+      "windows": {
+        "env": {
+          "PYTHONPATH": "C:\\Users\\<USERNAME>\\Code\\modules\\module_1;C:\\Users\\<USERNAME>\\Code\\modules\\module_2"
+        }
+      }
+    }
+  ]
+}
+
