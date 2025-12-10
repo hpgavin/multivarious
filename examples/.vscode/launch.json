@@ -1,6 +1,6 @@
-// VS Code allows for // --- comments witin in launch.jason files
-// Change <USERNAME> to your computer login name 
-// Edit the path "Code/modules/etc" to match your needs
+// VS Code allows for // --- comments witnin launch.jason files
+// Change ... <USERNAME> ... to your computer login name 
+// Edit the path  ... Desktop/Code/module ... " to match your needs
 
 {
   "version": "0.2.0",

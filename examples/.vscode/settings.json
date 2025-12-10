@@ -1,8 +1,8 @@
-// VS Code allows for // --- comments witin in settings.jason files
-// Change <USERNAME> to your computer login name
-// Edit the path "Code/modules/etc" to match your needs
+// VS Code allows for // --- comments within settings.jason files
+// Change ... <USERNAME> ... to your computer login name
+// Edit the path ... Desktop/Code ... to match your installation
 
-{
+
 
   // linux
   "terminal.integrated.env.linux": {
