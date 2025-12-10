@@ -143,7 +143,7 @@ methods: distribution.pdf(), distribution.cdf(), distribution.inv(), distributio
     ```
     and edit the section your settings.json file corresponding to your OS by:
 
-    * changing ... <USERNAME> ... to the login ID for your computer
+    * changing ... \<USERNAME\> ... to the login ID for your computer
     * changing ... Desktop/Code ... (or Desktop\\\\Code) to the path of your multivarious installation (e.g., Desktop/stuff/Code)
 
     Save and exit your editor. 
