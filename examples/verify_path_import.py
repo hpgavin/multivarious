@@ -9,9 +9,9 @@ print("hello")
 print("verifying that PYTHONPATH has been set ... ")
 print("PYTHONPATH env:", os.environ.get("PYTHONPATH"))
 print("sys.path (first 5):", sys.path[:5])
-print("... and yes, it has. Great!  ")
+print("... and yes, yes it has. Great!  ")
 
 print("verifying that multivariou can be imported ... ")
-import multivarious
-print("... and yes, it can. Great!  ")
+import multivarious 
+print("... and yes, yes it can. Great!  ")
 
