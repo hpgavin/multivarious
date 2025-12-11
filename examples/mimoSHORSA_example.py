@@ -295,21 +295,19 @@ def main():
     # Run examples
     print("\n\nRunning examples (this may take a few minutes)...\n")
 
-    '''
     # Example 1 - simple polynomial
     order1, coeff1, testModelY1, testX1, testY1 = example_1_simple_polynomial()
 
+    '''
     # Example 2: multi-output
     order2, coeff2, testModelY2, testX2, testY2 = example_2_multi_output()
     
     # Example 3: multi-input
     order3, coeff3, testModelY3, testX3, testY3 = example_3_multi_input()
     
-    '''
     # Example 4: scaling and decorrelation
     example_4_with_decorrelation()
 
-    '''
     # Example 5: Basis comparison
     example_5_basis_comparison()
 

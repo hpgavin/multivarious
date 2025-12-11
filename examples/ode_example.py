@@ -4,7 +4,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from multivarious.ode import ode4u
 from multivarious.ode import ode45u
-from ode_fctn import ode_test_fctn
+from ode_fctn import ode_example_fctn
 
 def ode_example(number, tolerance, constant):
     """
@@ -36,8 +36,8 @@ def ode_example(number, tolerance, constant):
         u = np.zeros((1, len(t)))
         params = [constant, number]
         
-        _, x4, _, _ = ode4u(ode_test_fctn, t, x0, u, params)
-        _, x5, _, _ = ode45u(ode_test_fctnf, t, x0, u, params, tolerance, 2)
+        _, x4, _, _ = ode4u(ode_example_fctn, t, x0, u, params)
+        _, x5, _, _ = ode45u(ode_example_fctn, t, x0, u, params, tolerance, 2)
         
         plt.figure(number)
         plt.clf()
@@ -65,8 +65,8 @@ def ode_example(number, tolerance, constant):
         u = np.zeros((1, len(t)))
         params = [constant, number]
         
-        _, x4, _, _ = ode4u(ode_test_fctn, t, x0, u, params)
-        _, x5, _, _ = ode45u(ode_test_fctnf, t, x0, u, params, tolerance, 2)
+        _, x4, _, _ = ode4u(ode_example_fctn, t, x0, u, params)
+        _, x5, _, _ = ode45u(ode_example_fctn, t, x0, u, params, tolerance, 2)
         
         plt.figure(number)
         plt.clf()
@@ -83,8 +83,8 @@ def ode_example(number, tolerance, constant):
         u = np.zeros((1, len(t)))
         params = [constant, number]
         
-        _, x4, _, _ = ode4u(ode_test_fctn, t, x0, u, params)
-        _, x5, _, _ = ode45u(ode_test_fctnf, t, x0, u, params, tolerance, 2)
+        _, x4, _, _ = ode4u(ode_example_fctn, t, x0, u, params)
+        _, x5, _, _ = ode45u(ode_example_fctn, t, x0, u, params, tolerance, 2)
         
         plt.figure(number)
         plt.clf()
@@ -101,8 +101,8 @@ def ode_example(number, tolerance, constant):
         u = np.zeros((1, len(t)))
         params = [constant, number]
         
-        _, x4, _, _ = ode4u(ode_test_fctn, t, x0, u, params)
-        _, x5, _, _ = ode45u(ode_test_fctn, t, x0, u, params, tolerance, 2)
+        _, x4, _, _ = ode4u(ode_example_fctn, t, x0, u, params)
+        _, x5, _, _ = ode45u(ode_example_fctn, t, x0, u, params, tolerance, 2)
         
         plt.figure(number)
         plt.clf()
@@ -119,8 +119,8 @@ def ode_example(number, tolerance, constant):
         u = np.zeros((1, len(t)))
         params = [constant, number]
         
-        _, x4, _, _ = ode4u(ode_test_fctn, t, x0, u, params)
-        _, x5, _, _ = ode45u(ode_test_fctn, t, x0, u, params, tolerance, 2)
+        _, x4, _, _ = ode4u(ode_example_fctn, t, x0, u, params)
+        _, x5, _, _ = ode45u(ode_example_fctn, t, x0, u, params, tolerance, 2)
         
         plt.figure(number)
         plt.clf()
@@ -153,8 +153,8 @@ def ode_example(number, tolerance, constant):
         
         x0_vec = x0.flatten()  # make the state a column vector
         
-        _, x4, _, _ = ode4u(ode_test_fctn, t, x0_vec, u, params)
-        _, x5, _, _ = ode45u(ode_test_fctn, t, x0_vec, u, params, tolerance, 2)
+        _, x4, _, _ = ode4u(ode_example_fctn, t, x0_vec, u, params)
+        _, x5, _, _ = ode45u(ode_example_fctn, t, x0_vec, u, params, tolerance, 2)
         
         plt.figure(number + 1)
         plt.clf()
@@ -232,8 +232,8 @@ def ode_example(number, tolerance, constant):
             if u.shape[1] < points:
                 u = np.pad(u, ((0, 0), (0, points - u.shape[1])), mode='constant')
         
-        _, x4, xdot4, _ = ode4u(ode_test_fctn, t, x0, u, [A, B])
-        _, x5, xdot5, _ = ode45u(ode_test_fctn, t, x0, u, [A, B], tolerance, 2)
+        _, x4, xdot4, _ = ode4u(ode_example_fctn, t, x0, u, [A, B])
+        _, x5, xdot5, _ = ode45u(ode_example_fctn, t, x0, u, [A, B], tolerance, 2)
         
         # Rows and columns of output data to plot
         r1 = 11
@@ -241,6 +241,7 @@ def ode_example(number, tolerance, constant):
         c1 = 100
         c2 = 995
         
+        plt.ion()
         plt.figure(1)
         plt.clf()
         plt.plot(t[c1:c2], x4[r1:r2, c1:c2].T)
