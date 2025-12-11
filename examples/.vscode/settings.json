@@ -1,20 +1,23 @@
+// .../multivarious/examples/.vscode/settings.json
+
 // VS Code allows for // --- comments within settings.json files
 // Change ... <USERNAME> ... to your computer login name
 // Edit the path ... Desktop/Code ... to match your installation
 
 {
-  // linux
+  // linux -  HPG's installation path 
   "terminal.integrated.env.linux": {
     "PYTHONPATH": "/home/hpgavin/Code/multivarious"
   },
 
-  // macOS
+  // macOS -  edit this if you use macOS 
   "terminal.integrated.env.osx": {
     "PYTHONPATH": "/Users/<USERNAME>/Desktop/Code/multivarious"
   },
 
-  // Windows 
+  // Windows -  edit this if you use Windows 
   "terminal.integrated.env.windows": {
     "PYTHONPATH": "C:\\Users\\<USERNAME>\\Desktop\\Code\\multivarious"
   }
 }
+

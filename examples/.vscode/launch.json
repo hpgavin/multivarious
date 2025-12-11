@@ -13,21 +13,21 @@
       "program": "${file}",
       "console": "integratedTerminal",
 
-      // linux 
+      // linux - HPG's installation path 
       "linux": {
         "env": {
           "PYTHONPATH": "/home/hpgavin/Code/multivarious"
         }
       },
 
-      // macOS 
+      // macOS - edit this if you use macOS 
       "osx": {
         "env": {
           "PYTHONPATH": "/Users/<USERNAME>/Desktop/Code/module_1:/Users/<USERNAME>/Desktop/Code/module_2"
         }
       },
 
-      // Windows 
+      // Windows - edit this if you use Windows 
       "windows": {
         "env": {
           "PYTHONPATH": "C:\\Users\\<USERNAME>\\Desktop\\Code\\module_1;C:\\Users\\<USERNAME>\\Desktop\\Code\\module_2"

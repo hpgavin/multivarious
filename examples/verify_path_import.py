@@ -1,4 +1,4 @@
-# verify_path_import.py
+# ~/Code/multivarious/examples/verify_path_import.py
 # verify that:  
 #  (1) the PYTHONPATH has been set
 #  (2) multivarious can be imported 
