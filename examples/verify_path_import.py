@@ -8,7 +8,6 @@ import os, sys
 print("hello")
 print("verifying that PYTHONPATH has been set ... ")
 print("PYTHONPATH env:", os.environ.get("PYTHONPATH"))
-print("sys.path (first 5):", sys.path[:5])
 print("... and yes, yes it has. Great!  ")
 
 print("verifying that multivarious can be imported ... ")
