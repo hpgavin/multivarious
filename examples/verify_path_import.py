@@ -11,7 +11,7 @@ print("PYTHONPATH env:", os.environ.get("PYTHONPATH"))
 print("sys.path (first 5):", sys.path[:5])
 print("... and yes, yes it has. Great!  ")
 
-print("verifying that multivariou can be imported ... ")
-import multivarious 
+print("verifying that multivarious can be imported ... ")
+import multivarious  
 print("... and yes, yes it can. Great!  ")
 

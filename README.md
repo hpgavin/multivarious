@@ -141,7 +141,7 @@ methods: distribution.pdf(), distribution.cdf(), distribution.inv(), distributio
     TextEdit settings.json     # macOS
     Gedit    settings.json     # linux
     ```
-    and edit the section your settings.json file corresponding to your OS by:
+    and edit the section of your settings.json file corresponding to your OS by:
 
     * changing ... \<USERNAME\> ... to the login ID for your computer
     * changing ... Desktop/Code ... (or Desktop\\\\Code) to the path of your multivarious installation (e.g., Desktop/stuff/Code)
