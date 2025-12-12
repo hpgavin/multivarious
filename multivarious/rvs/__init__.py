@@ -19,6 +19,8 @@ so callers must use the module namespace (helpful for clarity and avoiding
 name collisions).
 """
 
+# multivarious/rvs/__init__.py
+
 from typing import TYPE_CHECKING
 
 from .plot_CDF_ci import plot_CDF_ci
