@@ -17,7 +17,7 @@ Original: chirp.m by Henri Gavin, Duke University, 1999
 
 import numpy as np
 import matplotlib.pyplot as plt
-from multivarious.dsp.chirp import cdiff
+from multivarious.dsp.cdiff import cdiff
 from multivarious.dsp.taper import taper
 
 

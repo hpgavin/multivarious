@@ -3,7 +3,7 @@ from scipy.linalg import expm
 from multivarious.lti import abcd_dim 
 # from abcd_dim import abcd_dim
 
-def con2dis(Ac, Bc, Cc, Dc, dt, ntrp='foh'):
+def con2dis(Ac, Bc, Cc, Dc, dt, method='foh'):
     """
     Continuous-time to discrete-time transformation for state-space systems.
     
@@ -16,12 +16,12 @@ def con2dis(Ac, Bc, Cc, Dc, dt, ntrp='foh'):
         y[k]   = Cd*x[k] + Dd*u[k]
     
     Parameters:
-        Ac   : continuous-time dynamics matrix (n x n)
-        Bc   : continuous-time input matrix (n x r)
-        Cc   : continuous-time output matrix (m x n)
-        Dc   : continuous-time feedthrough matrix (m x r)
-        dt   : sample period
-        ntrp : interpolation method
+        Ac     : continuous-time dynamics matrix (n x n)
+        Bc     : continuous-time input matrix (n x r)
+        Cc     : continuous-time output matrix (m x n)
+        Dc     : continuous-time feedthrough matrix (m x r)
+        dt     : sample period
+        method : interpolation method
                'foh' - first order hold (default)
                'zoh' - zero order hold
     
@@ -44,7 +44,7 @@ def con2dis(Ac, Bc, Cc, Dc, dt, ntrp='foh'):
     n, r, m = abcd_dim(Ac, Bc, Cc, Dc)
     
     # Continuous-time to discrete-time conversion
-    if ntrp.lower() == 'zoh':  # Zero-order hold on inputs
+    if method.lower() == 'zoh':  # Zero-order hold on inputs
         M = np.block([
             [Ac, Bc],
             [np.zeros((r, n+r))]
@@ -60,7 +60,7 @@ def con2dis(Ac, Bc, Cc, Dc, dt, ntrp='foh'):
     Ad = eMdt[:n, :n]    # Discrete-time dynamics matrix
     Bd = eMdt[:n, n:n+r] # Discrete-time input matrix
     
-    if ntrp.lower() == 'zoh':
+    if method.lower() == 'zoh':
         Cd = Cc.copy()
         Dd = Dc.copy()
     else:  # FOH
@@ -98,7 +98,7 @@ if __name__ == "__main__":
     print("Zero-Order Hold (ZOH) Conversion")
     print("="*60 + "\n")
     
-    Ad_zoh, Bd_zoh, Cd_zoh, Dd_zoh = con2dis(Ac, Bc, Cc, Dc, dt, ntrp='zoh')
+    Ad_zoh, Bd_zoh, Cd_zoh, Dd_zoh = con2dis(Ac, Bc, Cc, Dc, dt, method='zoh')
     
     print(f"Discrete-time system (ZOH, dt={dt}):")
     print(f"Ad =\n{Ad_zoh}\n")
@@ -111,7 +111,7 @@ if __name__ == "__main__":
     print("First-Order Hold (FOH) Conversion")
     print("="*60 + "\n")
     
-    Ad_foh, Bd_foh, Cd_foh, Dd_foh = con2dis(Ac, Bc, Cc, Dc, dt, ntrp='foh')
+    Ad_foh, Bd_foh, Cd_foh, Dd_foh = con2dis(Ac, Bc, Cc, Dc, dt, method='foh')
     
     print(f"Discrete-time system (FOH, dt={dt}):")
     print(f"Ad =\n{Ad_foh}\n")
@@ -144,7 +144,7 @@ if __name__ == "__main__":
         
         # ZOH round-trip
         Ac_rec_zoh, Bc_rec_zoh, Cc_rec_zoh, Dc_rec_zoh = dis2con(
-            Ad_zoh, Bd_zoh, Cd_zoh, Dd_zoh, dt, ntrp='zoh'
+            Ad_zoh, Bd_zoh, Cd_zoh, Dd_zoh, dt, method='zoh'
         )
         
         print("ZOH Round-trip errors:")
@@ -153,7 +153,7 @@ if __name__ == "__main__":
         
         # FOH round-trip
         Ac_rec_foh, Bc_rec_foh, Cc_rec_foh, Dc_rec_foh = dis2con(
-            Ad_foh, Bd_foh, Cd_foh, Dd_foh, dt, ntrp='foh'
+            Ad_foh, Bd_foh, Cd_foh, Dd_foh, dt, method='foh'
         )
         
         print("\nFOH Round-trip errors:")

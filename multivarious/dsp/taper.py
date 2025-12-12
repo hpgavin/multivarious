@@ -273,7 +273,7 @@ if __name__ == '__main__':
     # Test 1: Window comparison
     print("\nTest 1: Smoothness Comparison")
     fig = compare_windows(Ni=50, Nf=50, N=500)
-    plt.savefig('/mnt/user-data/outputs/planck_vs_tukey.png', dpi=150, bbox_inches='tight')
+    plt.savefig('planck_vs_tukey.png', dpi=150, bbox_inches='tight')
     print("  ✓ Saved: planck_vs_tukey.png")
     print("  → Planck: Smooth derivatives (C∞)")
     print("  → Tukey: Discontinuous 2nd derivative (C¹)")
@@ -306,7 +306,7 @@ if __name__ == '__main__':
         ax.set_xlim([0, 2])
     
     plt.tight_layout()
-    plt.savefig('/mnt/user-data/outputs/planck_transient.png', dpi=150, bbox_inches='tight')
+    plt.savefig('planck_transient.png', dpi=150, bbox_inches='tight')
     print("  ✓ Saved: planck_transient.png")
     print("  → Planck provides gentler startup")
     

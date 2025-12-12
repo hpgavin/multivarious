@@ -248,7 +248,7 @@ if __name__ == '__main__':
     ax4.grid(True, alpha=0.3)
     
     plt.tight_layout()
-    plt.savefig('/mnt/user-data/outputs/cdiff_demo.png', dpi=150, bbox_inches='tight')
+    plt.savefig('cdiff_demo.png', dpi=150, bbox_inches='tight')
     print("  ✓ Saved: cdiff_demo.png")
     
     print("\n" + "=" * 70)
