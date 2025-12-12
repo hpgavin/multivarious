@@ -11,6 +11,7 @@ To generate, transform, and plot multivariate discrete time sequences
 | module          | description                                                                          |
 | --------------- | ------------------------------------------------------------------------------------ |
 | **accel2displ** | acceleration, velocity and displacement without much bias or drift from acceleration |
+| **butter_synth_ss** | state space butterworth filter design using the matrix expnential |
 | **cdiff** | central differences along the rows of a 2D array |
 | **chrip** | generate a sine-sweep signal with its derivitive and integral |
 | **taper** | taper the ends of the rows of a 2D array - Planck or Tukey windows |
