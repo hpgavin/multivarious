@@ -14,6 +14,7 @@ To generate, transform, and plot multivariate discrete time sequences
 | **butter_synth_ss** | state space butterworth filter design using the matrix expnential |
 | **cdiff** | central differences along the rows of a 2D array |
 | **chrip** | generate a sine-sweep signal with its derivitive and integral |
+| **ftdsp** | Fourier transform based digitial signal processing | 
 | **taper** | taper the ends of the rows of a 2D array - Planck or Tukey windows |
 
 ## lti . linear time invariant systems
