@@ -36,7 +36,7 @@ and corresponding system outputs, _**y**_ = _**C x**_ + _**D u**_
 | **dis2con**       | a continuous time LTI system from a discrete time LTI system               |
 | **dlsym**         | the response of a discrete time LTI system                                 |
 | **kalman_decomp** | Kalman canonical form from an LTI state-space realization                  |
-| **liap**          | wrapper for the ScyPi Sylvester equation (and Lyapunov equation) wrapper   |
+| **liap**          | wrapper for the ScyPi Sylvester equation (and Lyapunov equation) solver    |
 | **lsym**          | the response of a continuous time LTI system                               |
 | **mimo_bode**     | the Bode spectrum of a MIMO LTI system                                     |
 | **mimo_tfe**      | the estimate of a frequency response matrix from MIMO data                 |
