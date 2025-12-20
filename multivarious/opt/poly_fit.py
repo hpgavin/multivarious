@@ -20,7 +20,7 @@ https://people.duke.edu/~hpgavin/SystemID/linear-least-sqaures.pdf
 import numpy as np
 import matplotlib.pyplot as plt
 from scipy.stats import norm
-from multivarious.rvs.plot_CDF_ci import plot_CDF_ci
+from multivarious.utl.plot_CDF_ci import plot_CDF_ci
 
 
 def poly_fit(x, y, p, figNo=0, Sy=None, rof=None, b=0.0):

@@ -25,10 +25,10 @@ import matplotlib.pyplot as plt
 import time
 from datetime import datetime, timedelta
 
-from multivarious.opt.avg_cov_func import avg_cov_func
-from multivarious.opt.box_constraint import box_constraint
-from multivarious.opt.opt_options import opt_options
-from multivarious.opt.plot_opt_surface import plot_opt_surface  # ??
+from multivarious.utl.avg_cov_func import avg_cov_func
+from multivarious.utl.box_constraint import box_constraint
+from multivarious.utl.opt_options import opt_options
+from multivarious.utl.plot_opt_surface import plot_opt_surface  # ??
 
 def ors(func, v_init, v_lb=None, v_ub=None, options=None, consts=None):
     """

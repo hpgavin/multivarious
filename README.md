@@ -68,6 +68,7 @@ _**g**_(_**v**_) is a vector of inequality constraints.
 | **nms**        | nonlinear constrained optimization - Nelder Mead Simplex                  |
 | **ors**        | nonlinear constrained optimization - Optimized Random Search              |
 | **poly_fit**   | power polynomial curve fitting with arbitrary exponents                   |
+| **prony_fit**  | Prony function curve fitting with L1 regularization | 
 | **sqp**        | nonlinear constrained optimization - Sequential Quadratic Programming     |
 
 ## rvs . random variables

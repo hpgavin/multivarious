@@ -11,4 +11,4 @@ from .chirp import chirp
 from .ftdsp import ftdsp
 from .taper import taper
 
-__all__ = [ "accel2displ" , "butter_synth_ss" , "cdiff" , "chirp" , "ftdsp' , "taper" ]
+__all__ = [ "accel2displ" , "butter_synth_ss" , "cdiff" , "chirp", "ftdsp", "taper", ]

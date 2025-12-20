@@ -4,13 +4,11 @@
 L1_fit_example.py - Test script for L1 regularization
 
 Demonstrates L1_fit on synthetic polynomial data with various true functions.
-
-Translation from MATLAB by Claude, 2025-10-24
 """
 
 import numpy as np
 import matplotlib.pyplot as plt
-from multivarious.opt import L1_fit, L1_plots 
+from multivarious.utl import L1_fit, L1_plots 
 from multivarious.utl import format_plot
 
 

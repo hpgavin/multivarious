@@ -7,7 +7,7 @@ from collections import namedtuple
 from multivarious.opt import ors
 from multivarious.opt import nms
 from multivarious.opt import sqp
-from multivarious.opt import plot_cvg_hst
+from multivarious.utl import plot_cvg_hst
 
 def opt_example_analysis(v,C):
     '''

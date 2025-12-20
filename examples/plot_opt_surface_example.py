@@ -15,7 +15,7 @@ Updated 2015-09-29, 2016-03-23, 2016-09-12, 2020-01-20, 2021-12-31, 2025-01-26
 import numpy as np
 import matplotlib.pyplot as plt
 
-from multivarious.opt import plot_opt_surface
+from multivarious.utl import plot_opt_surface
 
 print("\n" + "="*70)
 print("Testing plot_opt_surface.py")

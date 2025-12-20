@@ -809,8 +809,8 @@ def fit_model(Zx, Zy, ordr, nTerm, mData, L1_pnlty, basis_fctn):
     if L1_pnlty > 0:
         # Use L1_fit for regularization
         try:
-            from L1_fit import L1_fit
-            from L1_plots import L1_plots
+            from multivarious.opt.L1_fit import L1_fit
+            from multivarious.utl.L1_plots import L1_plots
 
             for io in range(nZy):
                 Zy_col = Zy[io,:].T # Zy needs to be column vector for L1_fit

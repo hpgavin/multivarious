@@ -14,9 +14,9 @@ import numpy as np
 from matplotlib import pyplot as plt
 import time
 
-from multivarious.opt.avg_cov_func import avg_cov_func
-from multivarious.opt.plot_opt_surface import plot_opt_surface
-from multivarious.opt.opt_options import opt_options
+from multivarious.utl.avg_cov_func import avg_cov_func
+from multivarious.utl.plot_opt_surface import plot_opt_surface
+from multivarious.utl.opt_options import opt_options
 
 
 def nms(func, v_init, v_lb=None, v_ub=None, options_in=None, consts=1.0):
