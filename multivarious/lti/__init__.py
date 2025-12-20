@@ -12,6 +12,7 @@ from .con2dis import con2dis
 from .dis2con import dis2con
 from .dlsym import dlsym
 from .damp import damp
+from .liap import liap
 from .lsym import lsym
 from .mimo_bode import mimo_bode
 from .mimo_tfe import mimo_tfe
@@ -27,6 +28,7 @@ __all__ = [
     "dis2con",
     "dlsym",
     "damp",
+    "liap", 
     "lsym",
     "mimo_bode",
     "mimo_tfe",

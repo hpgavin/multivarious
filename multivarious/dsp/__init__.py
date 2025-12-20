@@ -8,7 +8,8 @@ from .accel2displ import accel2displ
 from .butter_synth_ss import butter_synth_ss
 from .cdiff import cdiff
 from .chirp import chirp
+from .eqgm_1d import eqgm_1d
 from .ftdsp import ftdsp
 from .taper import taper
 
-__all__ = [ "accel2displ" , "butter_synth_ss" , "cdiff" , "chirp", "ftdsp", "taper", ]
+__all__ = [ "accel2displ" , "butter_synth_ss" , "cdiff" , "chirp", "eqgm_1d", "ftdsp", "taper", ]
