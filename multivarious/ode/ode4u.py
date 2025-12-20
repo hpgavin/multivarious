@@ -22,6 +22,11 @@ def ode4u(odefun, time, x0, u=None, c=None):
         y  : ndarray, shape (m, p)
     """
 
+
+    time   = np.asarray(time)
+    x0     = np.asarray(x0).flatten()
+    points = len(time) # the total number of time steps
+
     # create defaults if not provided
     if c is None:
         c = 0
@@ -29,10 +34,6 @@ def ode4u(odefun, time, x0, u=None, c=None):
         u = np.zeros((1, points))
     else:
         u = np.asarray(u)
-
-    time   = np.asarray(time)
-    x0     = np.asarray(x0).flatten()
-    points = len(time) # the total number of time steps
 
     # state derivitives and outputs at time[0]
     dxdt0, y0 = odefun(time[0], x0, u[:, 0], c)

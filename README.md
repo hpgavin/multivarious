@@ -49,10 +49,31 @@ and corresponding system outputs, _**y**_ = _**C x**_ + _**D u**_
 To solve systems of ordinary differential equations _d**x**_/_dt_ = _f_(_t_,_**x**_,_**u**_,_c_) where 
 _t_ is time, _**x**_ is a state vector, _**u**_ is a time series of exogeneous inputs, and _c_ contains a set of system constants. 
 
-| module     | description                                                                  |
-| ---------- | ---------------------------------------------------------------------------- |
-| **ode4u**  | the ODE solution via a fixed-time step, 4th order method                     |
-| **ode45u** | the ODE solution via the adaptive time step, 4th-5th method by Cash and Karp |
+| module      | description                                                                 |
+| ----------- | --------------------------------------------------------------------------- |
+| **ode4u**   | ODE solution via a fixed-time step, 4th order method                     |
+| **ode45u**  | ODE solution via the adaptive time step, 4th-5th method by Cash and Karp |
+| **ode4ucc** | ODE solution via a fixed-time step, 4th order method, and constraint correction |
+| **ode45ucc** | ODE solution via the adaptive time step, 4th-5th method by Cash and Karp, and constraint correction |
+
+## opt . optimization
+
+To minimize a function of multiple variables subject to a set of inequality constraints:
+minimize _f_(_**v**_) such that _**g**_(_**v**_) < **0**,
+where _**v**_ is a vector of design variables,
+_f_(_**v**_) is a scalar-valued objective function, and
+_**g**_(_**v**_) is a vector of inequality constraints. 
+
+| module         | description                                                               |
+| -------------- | ------------------------------------------------------------------------- |
+| **fsolve**     | solve a system of nonlinear algebraic equations                           |
+| **L1_fit**     | linear least-squares curve fitting with l_1 regularization                |
+| **mimoSHORSA** | multi-input multi-output Stochastic High Order Response Surface Algorithm |
+| **nms**        | nonlinear constrained optimization - Nelder Mead Simplex                  |
+| **ors**        | nonlinear constrained optimization - Optimized Random Search              |
+| **poly_fit**   | power polynomial curve fitting with arbitrary exponents                   |
+| **prony_fit**  | Prony function curve fitting with L1 regularization | 
+| **sqp**        | nonlinear constrained optimization - Sequential Quadratic Programming     |
 
 ## opt . optimization
 
