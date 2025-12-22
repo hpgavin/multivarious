@@ -2,6 +2,9 @@
 
 A multitude of various Python modules for multivariable things like digital signal processing, linear time invariant systems, optimization, ordinary differential equations and random variables. 
 
+This repository has a pedagogical focus and emphasizes a transparent implementation of numerical methods for uncertainty quantification and optimization of multivariate systems with integrated visualization tools. 
+For decades, this package has served undergraduate and graduate engineering courses.  
+
 This repository is under development.  Updates to this README lag the addition of code.  Stay tuned!!! 
 
 ## dsp . digitial signal processing
@@ -70,6 +73,7 @@ _**g**_(_**v**_) is a vector of inequality constraints.
 | ------------- | ---------------------------------------------------------------------- |
 | **fsolve**    | solve a system of nonlinear algebraic equations                        |
 | **L1_fit**    | linear least-squares curve fitting with l_1 regularization             |
+| **lm**        | Levenberg-Marquardt for nonlinear least squares curve-fitting problems |
 | **mimo_rs**   | multi-input multi-output response surface                              |
 | **nms**       | nonlinear constrained optimization - Nelder Mead Simplex               |
 | **ors**       | nonlinear constrained optimization - Optimized Random Search           |

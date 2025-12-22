@@ -8,10 +8,14 @@ module filename (case-sensitive). Re-export all of them here so users may call:
     m.utl.avg_cov_func(...)
     m.opt.sqp(...)
     m.opt.poly_fit(...)
+    m.opt.lm.levenberg_marquardt
+
 
 or:
 
     from multivarious.opt import sqp
+    from multivarious.opt.lm import levenberg_marquardt, lm
+
     y = sqp(...)
 
 """
@@ -20,6 +24,8 @@ or:
 
 from .L1_fit import L1_fit
 from .fsolve import fsolve
+from .lm import lm
+from .lm import levenberg_marquardt
 from .mimo_rs import mimo_rs
 from .nms import nms
 from .ors import ors
@@ -30,6 +36,8 @@ from .sqp import sqp
 __all__ = [
     "L1_fit",
     "fsolve",
+    "lm", 
+    "levenberg_marquardt", 
     "mimo_rs",
     "nms",
     "ors",
