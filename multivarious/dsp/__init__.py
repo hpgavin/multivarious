@@ -10,6 +10,7 @@ from .cdiff import cdiff
 from .chirp import chirp
 from .eqgm_1d import eqgm_1d
 from .ftdsp import ftdsp
+from .psd import psd
 from .taper import taper
 
-__all__ = [ "accel2displ" , "butter_synth_ss" , "cdiff" , "chirp", "eqgm_1d", "ftdsp", "taper", ]
+__all__ = [ "accel2displ" , "butter_synth_ss" , "cdiff" , "chirp", "eqgm_1d", "ftdsp", "psd", "taper", ]

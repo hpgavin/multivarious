@@ -16,6 +16,7 @@ To generate, transform, and plot multivariate discrete time sequences
 | **chrip** | generate a sine-sweep signal with its derivitive and integral |
 | **eqgm_1d** | a single axis of simulated earthquake ground motions |
 | **ftdsp** | Fourier transform based digitial signal processing | 
+| **psd**   | estimate the power spectral density of a signal and its chi^2 confidence interval |
 | **taper** | taper the ends of the rows of a 2D array - Planck or Tukey windows |
 
 ## lti . linear time invariant systems
