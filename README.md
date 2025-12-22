@@ -114,8 +114,10 @@ methods: distribution.pdf(), distribution.cdf(), distribution.inv(), distributio
 | **format_plot**      | set the font size, line width, and marker size                                  |
 | **opt_options**      | adjust algorithmic options for ors, nms, and sqp                                |
 | **plot_CDF_ci**      | plot the cumulative distribution function from data and its confidence interval |
+| **plot_ensemble**    | plot three sets of corresponding ensemble time series |
 | **plot_cvg_hist**    | plot the convergence historyof ors, nms and sqp                                 |
 | **plot_opt_surface** | plot the objective function landscape in any selected 2D slice                  |
+| **plot_spectra**     | plot three sets of corresponding ensemble spectra or transfer functions |
 | **rainbow**          | rainbow line colors                                                             |
 
 # installation

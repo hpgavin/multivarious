@@ -24,7 +24,9 @@ from .format_bank import format_bank
 from .format_plot import format_plot
 from .opt_options import opt_options
 from .plot_cvg_hst import plot_cvg_hst
+from .plot_ensemble import plot_ensemble
 from .plot_opt_surface import plot_opt_surface
+from .plot_spectra import plot_spectra 
 from .plot_CDF_ci import plot_CDF_ci
 from .rainbow import rainbow
 from .L1_plots import L1_plots
