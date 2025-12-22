@@ -20,7 +20,7 @@ or:
 
 from .L1_fit import L1_fit
 from .fsolve import fsolve
-from .mimoSHORSA import mimoSHORSA
+from .mimo_rs import mimo_rs
 from .nms import nms
 from .ors import ors
 from .poly_fit import poly_fit
@@ -30,7 +30,7 @@ from .sqp import sqp
 __all__ = [
     "L1_fit",
     "fsolve",
-    "mimoSHORSA",
+    "mimo_rs",
     "nms",
     "ors",
     "poly_fit",

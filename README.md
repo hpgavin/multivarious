@@ -65,34 +65,16 @@ _f_(_**v**_) is a scalar-valued objective function, and
 _**g**_(_**v**_) is a vector of inequality constraints. 
 
 | module         | description                                                               |
-| -------------- | ------------------------------------------------------------------------- |
-| **fsolve**     | solve a system of nonlinear algebraic equations                           |
-| **L1_fit**     | linear least-squares curve fitting with l_1 regularization                |
-| **mimoSHORSA** | multi-input multi-output Stochastic High Order Response Surface Algorithm |
-| **nms**        | nonlinear constrained optimization - Nelder Mead Simplex                  |
-| **ors**        | nonlinear constrained optimization - Optimized Random Search              |
-| **poly_fit**   | power polynomial curve fitting with arbitrary exponents                   |
-| **prony_fit**  | Prony function curve fitting with L1 regularization | 
-| **sqp**        | nonlinear constrained optimization - Sequential Quadratic Programming     |
+| ------------- | ---------------------------------------------------------------------- |
+| **fsolve**    | solve a system of nonlinear algebraic equations                        |
+| **L1_fit**    | linear least-squares curve fitting with l_1 regularization             |
+| **mimo_rs**   | multi-input multi-output response surface                              |
+| **nms**       | nonlinear constrained optimization - Nelder Mead Simplex               |
+| **ors**       | nonlinear constrained optimization - Optimized Random Search           |
+| **poly_fit**  | power polynomial curve fitting with arbitrary exponents                |
+| **prony_fit** | Prony function curve fitting with L1 regularization                    |
+| **sqp**       | nonlinear constrained optimization - Sequential Quadratic Programming  |
 
-## opt . optimization
-
-To minimize a function of multiple variables subject to a set of inequality constraints:
-minimize _f_(_**v**_) such that _**g**_(_**v**_) < **0**,
-where _**v**_ is a vector of design variables,
-_f_(_**v**_) is a scalar-valued objective function, and
-_**g**_(_**v**_) is a vector of inequality constraints. 
-
-| module         | description                                                               |
-| -------------- | ------------------------------------------------------------------------- |
-| **fsolve**     | solve a system of nonlinear algebraic equations                           |
-| **L1_fit**     | linear least-squares curve fitting with l_1 regularization                |
-| **mimoSHORSA** | multi-input multi-output Stochastic High Order Response Surface Algorithm |
-| **nms**        | nonlinear constrained optimization - Nelder Mead Simplex                  |
-| **ors**        | nonlinear constrained optimization - Optimized Random Search              |
-| **poly_fit**   | power polynomial curve fitting with arbitrary exponents                   |
-| **prony_fit**  | Prony function curve fitting with L1 regularization | 
-| **sqp**        | nonlinear constrained optimization - Sequential Quadratic Programming     |
 
 ## rvs . random variables
 

@@ -1,30 +1,29 @@
 import numpy as np
 import matplotlib.pyplot as plt
 
-def mimoSHORSA(dataX, dataY, max_order=2, pTrain=70, scaling=1, L1_pnlty=1.0, basis_fctn='H', var_names=None ):
+def mimo_rs(dataX, dataY, max_order=2, pTrain=70, scaling=1, L1_pnlty=1.0, basis_fctn='H', var_names=None ):
     '''
-    [ ordr, coeff, meanX, meanY, invTX, TY, testModelY, testX, testY ] = mimoSHORSA( dataX, dataY, max_order, pTrain, scaling, L1_pntly, basis_fctn  )
+    [ ordr, coeff, meanX, meanY, invTX, TY, testModelY, testX, testY ] = mimo_rs( dataX, dataY, max_order, pTrain, scaling, L1_pntly, basis_fctn, var_names=None )
     
-    mimoSHORSA
-    multi-input multi-output Stochastic High Order Response Surface Algorithm
+    mimo_rs: multi-input multi-output response surface 
     
-    This program fits a high order polynomial to multidimensional data via
-    the high order response surface (mimoSHORSA) method 
+    This program fits a polynomial to multidimensional data 
+    by projecting the data onto a polynomial basis of oder up to 10 (or more)
+    Data may be scaled, standardized or decorrelated before fitting. 
+    The polynomial basis may be Hermite, Legendre, or Power polynomials. 
+    The model complexity is managed via L1 regularization. 
     
-     mimoSHORSA approximates the data with a polynomial of arbitrary order,
+    
+     mimo_rs approximates data with a polynomial of arbitrary order,
+
        y(X) = a + \sum_{i=1}^n \sum_{j=1}^{k_i) b_ij X_i^j + 
               \sum_{q=1}^m c_q \prod_{i=1}^n X_i^{p_iq}.
-    The first stage of the algorithm determines the correct polynomial order,
-    k_i in the response surace. Then the formulation of the mixed terms 
-    \sum_{q=1}^m c_q \prod_{i=1}^n X_i^{p_iq} are derived by the second stage
-    based on previous results. In the third stage, the response surface 
-    is approximated.
     
     INPUT       DESCRIPTION                                              DEFAULT
     --------    -------------------------------------------------------- -------
-    dataX       m observations of n input  features in a (nx x m) matrix
-    dataY       m observations of m output features in a (ny x m) matrix
-    max_order    maximum allowable polynomial order                          3
+    dataX       m observations of nx input  features in a (nx x m) matrix
+    dataY       m observations of ny output features in a (ny x m) matrix
+    max_order   maximum allowable polynomial order                          3
     pTrain      percentage of data for training (remaining for testing)    50
     scaling     scale the X data and the Y data before fitting             [1,1] 
                 scaling = 0 : no scaling
@@ -32,7 +31,7 @@ def mimoSHORSA(dataX, dataY, max_order=2, pTrain=70, scaling=1, L1_pnlty=1.0, ba
                 scaling = 2 : subtract mean and decorrelate
                 scaling = 3 : log-transform, subtract mean and divide by std.dev
                 scaling = 4 : log-transform, subtract mean and decorrelate
-    L1_pnlty    coefficient for L1 regularization                           1.0
+    L1_pnlty    penalty coefficient for L1 regularization                   1.0
     basis_fctn  basis function type                                         'H'
                 'H': Hermite functions
                 'L': Legendre polynomials
@@ -63,7 +62,7 @@ def mimoSHORSA(dataX, dataY, max_order=2, pTrain=70, scaling=1, L1_pnlty=1.0, ba
     Siu Chung Yau, Henri P. Gavin, January 2006, 2023
     '''
 
-    print('\n Multi-Input Multi-Output High Order Response Surface (mimoSHORSA)\n')
+    print('\n Multi-Input Multi-Output Response Surface (mimo_rs)\n')
 
     # Handle default arguments and convert to appropriate types
     max_order = int(round(abs(max_order)))
@@ -80,11 +79,11 @@ def mimoSHORSA(dataX, dataY, max_order=2, pTrain=70, scaling=1, L1_pnlty=1.0, ba
          4: "log transform and decorrelation" }
    
     if not np.isfinite(dataX).all():
-        print(' mimoSHORSA: dataX has infinite or NaN values\n\n')
+        print(' mimo_rs: dataX has infinite or NaN values\n\n')
         exit(100)
 
     if not np.isfinite(dataY).all():
-        print(' mimoSHORSA: dataY has infinite or NaN values\n\n')
+        print(' mimo_rs: dataY has infinite or NaN values\n\n')
         exit(100)
 
     nInp, mDataX = dataX.shape   # number of columns in dataX is mData
@@ -351,7 +350,7 @@ def scale_data(Data, scaling):
 
     if scaling in [ 3 , 4 ]:  # log-transform
         if np.any(Data <= 0):
-            print('  mimoSHORSA: Data has negative values, can not log-transform\n\n')
+            print('  mimo_rs: Data has negative values, can not log-transform\n\n')
             exit(300)
         Data = np.log(Data);
 
@@ -359,7 +358,7 @@ def scale_data(Data, scaling):
     covData =  np.cov(Data, ddof=1)
 
     if not np.isfinite(covData).all():
-        print('  mimoSHORSA: data covariance has infinite or NaN values \n\n')
+        print('  mimo_rs: data covariance has infinite or NaN values \n\n')
         exit(200)
 
     if scaling <= 0: # no scaling

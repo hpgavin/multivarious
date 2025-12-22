@@ -2,14 +2,15 @@
 
 import numpy as np
 import matplotlib.pyplot as plt
-from multivarious.opt import mimoSHORSA
+from multivarious.opt import mimo_rs
+from multivarious.rvs import lognormal 
 
 
-def mimoSHORSA_test():
+def mimo_rs_test():
     '''
-    mimoSHORSA_test
+    mimo_rs_test
     
-    Test mimoSHORSA for fitting high dimensional multi-input, multi-output data
+    Test mimo_rs for fitting high dimensional multi-input, multi-output data
     
     ... Is this the fundamental problem statement of all data-science?
     '''
@@ -19,7 +20,7 @@ def mimoSHORSA_test():
     # "seed" rand() and randn() to generate a certain random sequence
     np.random.seed(30)
     
-    if data == 'SyntheticData':  # apply mimoSHORSA to synthetic data
+    if data == 'SyntheticData':  # apply mimo_rs to synthetic data
         
         nInp = 5      # number of input features
         nOut = 2      # number of output features
@@ -39,12 +40,12 @@ def mimoSHORSA_test():
             R = R + rr * np.diag(np.ones(nInp - ii - 1), -(ii + 1))  # lower off diagonal
         
         # a sample of m observations of n correlated lognormal variables
-        xData = corr_logn_rnd(medX, covX, R, nData)
+        xData = lognormal.rnd( medX, covX, nData, R )
         
         # presume that the output feature is a specific function of n variables ...
         yData, lgd, maxN, rmsN = test_function(xData, nOut, pNoise)
     
-    elif data == 'MeasuredData':  # apply mimoSHORSA from data loaded from a data file
+    elif data == 'MeasuredData':  # apply mimo_rs from data loaded from a data file
         
         # Update this path to your actual data file
         Data = np.loadtxt('/home/hpgavin/Research/Nepal-EEWS/m-files/data_20220606_csv.csv',
@@ -95,7 +96,7 @@ def mimoSHORSA_test():
         plt.draw()
         plt.pause(0.001)
     
-    # mimoSHORSA parameters
+    # mimo_rs parameters
     maxOrder = 5     # maximum polynomial order for the model
     pTrain = 80      # percentage of the data for training (remaining for testing)
     pCull = 80       # percentage of the model to be culled
@@ -107,7 +108,7 @@ def mimoSHORSA_test():
     scaling = 4      # log-transform, subtract mean and decorrelate
     
     order, coeff, meanX, meanY, trfrmX, trfrmY, testModelY, testX, testY = \
-        mimoSHORSA(xData, yData, maxOrder, pTrain, pCull, tol, scaling)
+        mimo_rs(xData, yData, maxOrder, pTrain, pCull, tol, scaling)
     
     if data == 'SyntheticData':
         print(f'\nSynthetic data statistics:')
@@ -142,7 +143,7 @@ def mimoSHORSA_test():
 def test_function(X, nOut, pNoise):
     '''
     [Y, lgd, maxN, rmsN] = test_function(X, nOut, pNoise)
-    generate synthetic data to test mimoSHORSA
+    generate synthetic data to test mimo_rs
     
     INPUT       DESCRIPTION                                           DIMENSION
     --------    ---------------------------------------------------   ---------
@@ -220,56 +221,16 @@ def test_function(X, nOut, pNoise):
     return Y, lgd, maxN, rmsN
 
 
-def corr_logn_rnd(medX, covX, R, nData):
-    '''
-    Generate correlated lognormal random variables
-    
-    INPUT       DESCRIPTION                                           DIMENSION
-    --------    ---------------------------------------------------   ---------
-    medX        median values for each variable                       nInp x 1
-    covX        coefficients of variation for each variable           nInp x 1
-    R           correlation matrix                                    nInp x nInp
-    nData       number of samples to generate                         1 x 1
-    
-    OUTPUT      DESCRIPTION                                           DIMENSION
-    --------    ---------------------------------------------------   ---------
-    X           correlated lognormal random variables                 nInp x nData
-    '''
-    
-    nInp = len(medX)
-    
-    # Convert lognormal parameters to underlying normal parameters
-    # For lognormal: median = exp(mu), COV = sqrt(exp(sigma^2) - 1)
-    # Therefore: sigma = sqrt(log(1 + COV^2)), mu = log(median)
-    
-    sigma = np.sqrt(np.log(1 + covX**2))
-    mu = np.log(medX)
-    
-    # Generate correlated standard normal variables
-    # Using Cholesky decomposition of correlation matrix
-    L = np.linalg.cholesky(R)
-    Z = np.random.randn(nInp, nData)
-    Y = L @ Z  # Correlated standard normal
-    
-    # Transform to correlated normal with desired mean and std
-    X_normal = mu[:, np.newaxis] + sigma[:, np.newaxis] * Y
-    
-    # Transform to lognormal
-    X = np.exp(X_normal)
-    
-    return X
-
-
 if __name__ == '__main__':
     '''
-    Run the mimoSHORSA test when this script is executed directly
+    Run the mimo_rs test when this script is executed directly
     '''
     print('=' * 70)
-    print('mimoSHORSA Test Function')
+    print('mimo_rs Test Function')
     print('Testing high-dimensional multi-input multi-output polynomial fitting')
     print('=' * 70)
     
-    results = mimoSHORSA_test()
+    results = mimo_rs_test()
     
     print('\n' + '=' * 70)
     print('Test completed successfully!')

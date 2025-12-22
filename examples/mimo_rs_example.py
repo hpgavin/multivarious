@@ -5,7 +5,7 @@ import importlib , example_usage
 importlib.reload(example_usage)     # to reload edits
 '''
 """
-Example usage of mimoSHORSA for polynomial response surface fitting
+Example usage of mimo_rs for polynomial response surface fitting
 
 This script demonstrates:
 1. Creating synthetic nonlinear data
@@ -24,7 +24,7 @@ This script demonstrates:
 
 import numpy as np
 import matplotlib.pyplot as plt
-from multivarious.opt import mimoSHORSA
+from multivarious.opt import mimo_rs
 
 def example_1_simple_polynomial():
     """
@@ -55,7 +55,7 @@ def example_1_simple_polynomial():
 
     # Fit model
     order, coeff, meanX, meanY, trfrmX, trfrmY, testX, testY, testModelY = \
-        mimoSHORSA(dataX, dataY, 
+        mimo_rs(dataX, dataY, 
                    max_order=2,       # Maximum polynomial order
                    pTrain=70,         # 70% training, 30% testing
                    scaling= np.array([ 2, 2 ]), # scaling type 
@@ -104,7 +104,7 @@ def example_2_multi_output():
     # Fit model
     print("\nFitting multi-output model...")
     order, coeff, meanX, meanY, trfrmX, trfrmY, testX, testY, testModelY = \
-        mimoSHORSA(dataX, dataY,
+        mimo_rs(dataX, dataY,
                    max_order=2,
                    pTrain=75, 
                    scaling= np.array([ 2, 2 ]),  # scaling type 
@@ -146,7 +146,7 @@ def example_3_multi_input():
     # Fit model with lower maximum order due to curse of dimensionality
     print("\nFitting high-dimensional model...")
     order, coeff, meanX, meanY, trfrmX, trfrmY, testX, testY, testModelY = \
-        mimoSHORSA(dataX, dataY,
+        mimo_rs(dataX, dataY,
                    max_order=2,
                    pTrain=70,
                    scaling= np.array([ 1 , 1 ]), # scaling type
@@ -193,7 +193,7 @@ def example_4_with_decorrelation():
     xy_names = { 'X': [ 'temperature', 'pressure', 'humidity' ] ,
                  'Y': [ 'morning dew', 'cool breeze' ] }
 
-    order, coeff, *_ = mimoSHORSA(
+    order, coeff, *_ = mimo_rs(
         dataX, dataY,
         max_order=2,
         pTrain=70,
@@ -249,7 +249,7 @@ def example_5_basis_comparison():
         print(f"\n--- Testing {basis_names[basis]} ---")
 
         order, coeff, meanX, meanY, trfrmX, trfrmY, testX, testY, testModelY = \
-            mimoSHORSA(dataX, dataY,
+            mimo_rs(dataX, dataY,
                        max_order=3,
                        pTrain=70,
                        scaling = np.array([ 2 , 2 ]),  # decorrelation
@@ -289,7 +289,7 @@ def main():
     Run all examples
     """
     print("\n" + "#"*70)
-    print("# mimoSHORSA Example Usage")
+    print("# mimo_rs Example Usage")
     print("#"*70)
     
     # Run examples
@@ -320,7 +320,7 @@ def main():
     print("# All examples completed successfully!")
     print("#"*70)
     print("\nKey Takeaways:")
-    print("  1. mimoSHORSA automatically identifies important polynomial terms")
+    print("  1. mimo_rs automatically identifies important polynomial terms")
     print("  2. Model reduction removes uncertain coefficients iteratively")
     print("  3. Scaling is important for numerical stability")
     print("  4. The method works for single and multiple outputs")
