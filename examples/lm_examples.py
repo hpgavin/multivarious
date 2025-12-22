@@ -14,6 +14,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from typing import Tuple, List
 from multivarious.opt.lm import lm
+from multivarious.utl.plot_lm import plot_lm
 #from multivarious.opt.lm import levenberg_marquardt
 
 
@@ -72,145 +73,6 @@ def lm_func(t: np.ndarray, coeffs: np.ndarray, example_number: int = 1) -> np.nd
         raise ValueError(f"Unknown example_number: {example_number}. Use 1, 2, or 3")
     
     return y_hat
-
-
-def lm_plots(t: np.ndarray,
-             y_data: np.ndarray,
-             y_fit: np.ndarray,
-             sigma_y: np.ndarray,
-             cvg_history: np.ndarray,
-             title_prefix: str = "LM_fit") -> None:
-    """
-    Plot convergence history and fit results for Levenberg-Marquardt.
-    
-    Creates three figures:
-    1. Convergence history (coefficients and chi-squared vs iterations)
-    2. Data, fit, and confidence intervals
-    3. Histogram of residuals
-    
-    Parameters
-    ----------
-    t : ndarray
-        Independent variable
-    y_data : ndarray
-        Measured data
-    y_fit : ndarray
-        Fitted model
-    sigma_y : ndarray
-        Standard errors of fit
-    cvg_history : ndarray
-        Convergence history from LM algorithm
-    title_prefix : str
-        Prefix for plot titles and filenames
-    """
-    plt.ion()
-    
-    max_iter, n_cols = cvg_history.shape
-    n_coeffs = n_cols - 3
-    
-    # ========================================================================
-    # Figure 1: Convergence history
-    # ========================================================================
-    fig1, (ax1, ax2) = plt.subplots(2, 1, figsize=(10, 8))
-    
-    # Plot coefficient evolution
-    for i in range(n_coeffs):
-        ax1.plot(cvg_history[:, 0], cvg_history[:, i+1], '-o', 
-                linewidth=2, markersize=4, label=f'$a_{i+1}$')
-        # Label final values
-        ax1.text(cvg_history[-1, 0] * 1.02, cvg_history[-1, i+1], 
-                f'{i+1}', fontsize=10)
-    
-    ax1.set_ylabel('Coefficient Values', fontsize=12)
-    ax1.legend(loc='best', fontsize=10)
-    ax1.grid(True, alpha=0.3)
-    ax1.set_title(f'{title_prefix}: Convergence History', fontsize=14, fontweight='bold')
-    
-    # Plot chi-squared and lambda
-    ax2.semilogy(cvg_history[:, 0], cvg_history[:, n_coeffs+1], 
-                '-o', linewidth=2, markersize=4, label='$\\chi^2_\\nu$')
-    ax2.semilogy(cvg_history[:, 0], cvg_history[:, n_coeffs+2], 
-                '-s', linewidth=2, markersize=4, label='$\\lambda$')
-    
-    # Label start and end points
-    ax2.text(cvg_history[0, 0], cvg_history[0, n_coeffs+1], 
-            '$\\chi^2_\\nu$', fontsize=12, ha='right')
-    ax2.text(cvg_history[0, 0], cvg_history[0, n_coeffs+2], 
-            '$\\lambda$', fontsize=12, ha='right')
-    ax2.text(cvg_history[-1, 0], cvg_history[-1, n_coeffs+1], 
-            '$\\chi^2_\\nu$', fontsize=12)
-    ax2.text(cvg_history[-1, 0], cvg_history[-1, n_coeffs+2], 
-            '$\\lambda$', fontsize=12)
-    
-    ax2.set_xlabel('Number of Function Evaluations', fontsize=12)
-    ax2.set_ylabel('$\\chi^2_\\nu$ and $\\lambda$', fontsize=12)
-    ax2.legend(loc='best', fontsize=10)
-    ax2.grid(True, alpha=0.3)
-    
-    plt.tight_layout()
-    
-    # ========================================================================
-    # Figure 2: Data, fit, and confidence intervals
-    # ========================================================================
-    fig2, ax = plt.subplots(figsize=(10, 6))
-    
-    # Confidence interval patches
-    color_95 = [0.95, 0.95, 0.1]
-    color_99 = [0.2, 0.95, 0.2]
-    
-    # 95% confidence interval
-    y_upper_95 = y_fit + 1.96 * sigma_y
-    y_lower_95 = y_fit - 1.96 * sigma_y
-    
-    # 99% confidence interval
-    y_upper_99 = y_fit + 2.58 * sigma_y
-    y_lower_99 = y_fit - 2.58 * sigma_y
-    
-    # Plot confidence intervals as filled regions
-    ax.fill_between(t, y_lower_99, y_upper_99, 
-                    color=color_99, alpha=0.6, label='99% C.I.')
-    ax.fill_between(t, y_lower_95, y_upper_95, 
-                    color=color_95, alpha=0.8, label='95% C.I.')
-    
-    # Plot data and fit
-    ax.plot(t, y_data, 'ob', markersize=4, label='$y_{data}$')
-    ax.plot(t, y_fit, '-k', linewidth=2, label='$y_{fit}$')
-    
-    ax.set_xlabel('$t$', fontsize=12)
-    ax.set_ylabel('$y(t)$', fontsize=12)
-    ax.set_title(f'{title_prefix}: Data and Fit with Confidence Intervals', 
-                fontsize=14, fontweight='bold')
-    ax.legend(loc='best', fontsize=10)
-    ax.grid(True, alpha=0.3)
-    
-    plt.tight_layout()
-    
-    # ========================================================================
-    # Figure 3: Histogram of residuals
-    # ========================================================================
-    fig3, ax = plt.subplots(figsize=(10, 6))
-    
-    residuals = y_data - y_fit
-    ax.hist(residuals, bins=20, color='blue', alpha=0.7, edgecolor='black')
-    
-    ax.set_xlabel('$y_{data} - y_{fit}$', fontsize=12)
-    ax.set_ylabel('Count', fontsize=12)
-    ax.set_title(f'{title_prefix}: Histogram of Residuals', 
-                fontsize=14, fontweight='bold')
-    ax.grid(True, alpha=0.3, axis='y')
-    
-    # Add statistics to plot
-    mean_res = np.mean(residuals)
-    std_res = np.std(residuals)
-    ax.axvline(mean_res, color='r', linestyle='--', linewidth=2, 
-              label=f'Mean = {mean_res:.3f}')
-    ax.axvline(mean_res + std_res, color='orange', linestyle=':', linewidth=2)
-    ax.axvline(mean_res - std_res, color='orange', linestyle=':', linewidth=2,
-              label=f'Std = {std_res:.3f}')
-    ax.legend(loc='best', fontsize=10)
-    
-    plt.tight_layout()
-    plt.show()
 
 
 def run_example(example_number: int = 1, 
@@ -310,7 +172,7 @@ def run_example(example_number: int = 1,
     # Create plots
     # ========================================================================
     y_fit = lm_func(t, coeffs_fit, example_number)
-    lm_plots(t, y_dat, y_fit, sigma_y, cvg_history, 
+    plot_lm(t, y_dat, y_fit, sigma_y, cvg_history, 
             f"Example_{example_number}")
     
     return result
