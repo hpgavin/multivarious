@@ -22,14 +22,17 @@ or:
 
 # multivarious/opt/__init__.py
 
-from .fsolve import fsolve
-from .nms import nms
-from .ors import ors
-from .sqp import sqp
+from .L1_fit import L1_fit
+from .lm import lm
+from .lm import levenberg_marquardt
+from .mimo_rs import mimo_rs
+from .poly_fit import poly_fit
+from .prony_fit import prony_fit
 
 __all__ = [
-    "fsolve",
-    "nms",
-    "ors",
-    "sqp",
+    "L1_fit",
+    "lm", 
+    "levenberg_marquardt", 
+    "poly_fit",
+    "prony_fit", 
 ]

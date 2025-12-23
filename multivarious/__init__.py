@@ -39,6 +39,6 @@ except PackageNotFoundError:
 #  not necessarily every function inside them unless those subpackages import
 #  their modules eagerly in their own __init__.py)
 
-from . import dsp, lti, ode, opt, rvs, utl  # noqa: F401
+from . import dsp, fit, lti, ode, opt, rvs, utl  # noqa: F401
 
-__all__ = [" dsp", "lti", "ode", "opt", "rvs", "utl", "__version__" ]
+__all__ = [" dsp", "fit", "lti", "ode", "opt", "rvs", "utl", "__version__" ]

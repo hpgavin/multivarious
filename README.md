@@ -23,6 +23,15 @@ To generate, transform, and plot multivariate discrete time sequences
 | **psd**   | estimate the auto-power spectral density of a signal and its chi^2 confidence interval |
 | **taper** | taper the ends of the rows of a 2D array - Planck or Tukey windows |
 
+## fit . fit mathematical models to data 
+| module        | description                                                                          |
+| ------------- | ---------------------------------------------------------------------- |
+| **L1_fit**    | linear least-squares curve fitting with l_1 regularization             |
+| **lm**        | Levenberg-Marquardt for nonlinear least squares curve-fitting problems |
+| **mimo_rs**   | multi-input multi-output response surface                              |
+| **poly_fit**  | power polynomial curve fitting with arbitrary exponents                |
+| **prony_fit** | Prony function curve fitting with L1 regularization                    |
+
 ## lti . linear time invariant systems
 
 To analyze and transform linear time invariant systems
@@ -72,13 +81,8 @@ _**g**_(_**v**_) is a vector of inequality constraints.
 | module         | description                                                               |
 | ------------- | ---------------------------------------------------------------------- |
 | **fsolve**    | solve a system of nonlinear algebraic equations                        |
-| **L1_fit**    | linear least-squares curve fitting with l_1 regularization             |
-| **lm**        | Levenberg-Marquardt for nonlinear least squares curve-fitting problems |
-| **mimo_rs**   | multi-input multi-output response surface                              |
 | **nms**       | nonlinear constrained optimization - Nelder Mead Simplex               |
 | **ors**       | nonlinear constrained optimization - Optimized Random Search           |
-| **poly_fit**  | power polynomial curve fitting with arbitrary exponents                |
-| **prony_fit** | Prony function curve fitting with L1 regularization                    |
 | **sqp**       | nonlinear constrained optimization - Sequential Quadratic Programming  |
 
 
