@@ -126,6 +126,27 @@ Each example:
 | **Speed**                   | ⚠️ Good (pure Python)            | ✅ Excellent (compiled)      |
 | **Recommended use**         | **Learning, Teaching, Research** | **Production**              |
 
+
+
+
+
+| Feature                  | Your `lm.py` | SciPy        | statsmodels |
+| ------------------------ | ------------ | ------------ | ----------- |
+| **Parameters**           | ✅            | ✅            | ✅           |
+| **Standard errors**      | ✅ Auto       | ❌ Manual     | ✅           |
+| **Covariance**           | ✅ Auto       | ⚠️ Sometimes | ✅           |
+| **Correlation**          | ✅ Auto       | ❌ Manual     | ✅           |
+| **R²**                   | ✅ Auto       | ❌ Manual     | ✅           |
+| **Reduced χ²**           | ✅ Auto       | ❌ Manual     | ⚠️          |
+| **AIC/BIC**              | ✅ Auto       | ❌ Manual     | ✅           |
+| **Confidence intervals** | ✅ Auto       | ❌ Manual     | ✅           |
+| **Convergence history**  | ✅ Auto       | ⚠️ Limited   | ❌           |
+| **Iteration plots**      | ✅ Auto       | ❌            | ❌           |
+| **Nonlinear models**     | ✅ Easy       | ✅ Easy       | ⚠️ Complex  |
+| **Educational clarity**  | ✅ Excellent  | ⚠️ Opaque    | ⚠️ Complex  |
+
+
+
 ### When to Use Each
 
 **Use this implementation when:**
@@ -359,7 +380,6 @@ This module is part of the **multivarious** educational signal processing and op
 ```python
 # When installed via pip:
 from multivarious.lm import levenberg_marquardt
-
 ```
 
 All modules emphasize:
@@ -408,8 +428,6 @@ All modules emphasize:
 ## Author & Acknowledgments
 
 Henri Gavin, Department of Civil & Environmental Engineering, Duke University
-
-
 
 **Part of the `multivarious` package:**
 

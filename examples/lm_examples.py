@@ -93,7 +93,7 @@ def run_example(example_number: int = 1,
     Returns
     -------
     result : tuple
-        (coeffs_fit, chi_sq, sigma_coeffs, sigma_y, corr, R_sq, cvg_history)
+        (coeffs_fit, chi_sq, sigma_coeffs, sigma_y, corr, R_sq, cvg_history, message, aic, bic)
     """
     np.random.seed(42)  # Reproducible results
     
@@ -146,7 +146,7 @@ def run_example(example_number: int = 1,
         coeffs_lb, coeffs_ub, (), opts
     )
     
-    coeffs_fit, chi_sq, sigma_coeffs, sigma_y, corr, R_sq, cvg_history = result
+    coeffs_fit, chi_sq, sigma_coeffs, sigma_y, corr, R_sq, cvg_history, message, aic,bic = result
     
     # ========================================================================
     # Print results
@@ -163,7 +163,9 @@ def run_example(example_number: int = 1,
     
     print("\n" + "-"*80)
     print(f"Reduced χ²: {chi_sq:.6f}")
-    print(f"R²:         {R_sq:.6f}")
+    print(f"R²:          {R_sq:.6f}")
+    print(f"AIC:          {aic:.6f}")
+    print(f"BIC:          {bic:.6f}")
     print("\nCorrelation matrix:")
     print(corr)
     print("="*80 + "\n")
@@ -172,7 +174,7 @@ def run_example(example_number: int = 1,
     # Create plots
     # ========================================================================
     y_fit = lm_func(t, coeffs_fit, example_number)
-    plot_lm(t, y_dat, y_fit, sigma_y, cvg_history, 
+    plot_lm(t, y_dat, y_fit, sigma_y, chi_sq, aic, bic, cvg_history, 
             f"Example_{example_number}")
     
     return result

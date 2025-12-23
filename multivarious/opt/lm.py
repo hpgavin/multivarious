@@ -46,6 +46,10 @@ class LMResult:
         Total number of function evaluations
     message : str
         Convergence message
+    aic : float
+        Akaike Information Criterion
+    bic : float
+        Bayes Information Criterion
     """
     coefficients: np.ndarray
     reduced_chi_sq: float
@@ -56,6 +60,8 @@ class LMResult:
     convergence_history: np.ndarray
     func_calls: int
     message: str
+    aic: float 
+    bic: float
 
 
 def levenberg_marquardt(
@@ -513,13 +519,22 @@ def levenberg_marquardt(
         weight = dof / (delta_y_final.T @ delta_y_final) * np.ones(n_points)
     
     # Final matrix computation
-    JtWJ, JtWdy, chi_sq, y_hat, J, calls_used = _compute_matrices(
+    JtWJ, JtWdy, _, y_hat, J, calls_used = _compute_matrices(
         func, t, coeffs_old, y_old, -1, J, coeffs, y_data, weight, delta_coeffs, func_args, iteration
     )
     func_calls += calls_used
+    # Note: The chi_sq from this call is always = dof, so we ignore it
     
     # Reduced chi-squared
     reduced_chi_sq = chi_sq / dof if dof > 0 else chi_sq
+    log_likelihood = -0.5*chi_sq
+
+    aic = 2*n_coeffs - 2*log_likelihood
+    # Small sample correction
+    if n_points / n_coeffs < 40:
+        aic += (2 * n_coeffs * (n_coeffs + 1)) / (n_points - n_coeffs - 1)
+
+    bic = n_coeffs * np.log(n_points) - 2*log_likelihood
     
     # Covariance matrix
     if np.linalg.cond(JtWJ) > 1e15:
@@ -553,6 +568,8 @@ def levenberg_marquardt(
         print(f"Function calls: {func_calls}")
         print(f"Reduced χ²: {reduced_chi_sq:.6f}")
         print(f"R²: {r_squared:.6f}")
+        print(f"AIC: {aic:.6f}")
+        print(f"BIC: {bic:.6f}")
         if print_level >= 2:
             print("\nFinal coefficients:")
             print(f"{'Index':<8} {'Value':>15} {'Std Error':>15} {'Rel Error %':>15}")
@@ -571,7 +588,9 @@ def levenberg_marquardt(
         r_squared=r_squared,
         convergence_history=cvg_history,
         func_calls=func_calls,
-        message=message
+        message=message,
+        aic=aic,
+        bic=bic
     )
 
 
@@ -801,7 +820,7 @@ def lm(func: Callable,
     
     return (result.coefficients, result.reduced_chi_sq, result.sigma_coefficients,
             result.sigma_fit, result.correlation, result.r_squared, 
-            result.convergence_history)
+            result.convergence_history, result.message, result.aic, result.bic )
 
 
 # ============================================================================
