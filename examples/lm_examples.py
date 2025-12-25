@@ -13,7 +13,7 @@ Example Functions:
 import numpy as np
 import matplotlib.pyplot as plt
 from typing import Tuple, List
-from multivarious.opt.lm import lm
+from multivarious.fit.lm import lm
 from multivarious.utl.plot_lm import plot_lm
 #from multivarious.opt.lm import levenberg_marquardt
 
@@ -39,36 +39,36 @@ def lm_func(t: np.ndarray, coeffs: np.ndarray, example_number: int = 1) -> np.nd
     Examples
     --------
     Example 1: Polynomial (medium difficulty)
-        y = a₀(t/T) + a₁(t/T)² + a₂(t/T)³ + a₃(t/T)⁴
+        y = c1 (t/T) + x2 (t/T)² +c3 (t/T)³ +c4 (t/T)⁴
         Has local minima, moderately difficult for LM
     
     Example 2: Exponential decay (easy)
-        y = a₀exp(-t/a₁) + a₂t·exp(-t/a₃)
+        y = c1 exp(-t/c2)  + c3 t·exp(-tc4)
         Easy for LM, poor initial guess is acceptable
     
     Example 3: Mixed exponential-sinusoidal (difficult)
-        y = a₀exp(-t/a₁) + a₂sin(t/a₃)
-        Difficult for LM, needs good initial guess for a₃
+        y = c1 exp(-t/c2) + c2 sin(t/c2)
+        Difficult for LM, needs good initial guess for c
     """
     if example_number == 1:
         # Polynomial: medium difficulty
         T = np.max(t)
         tau = t / T
         y_hat = (coeffs[0] * tau + 
-                coeffs[1] * tau**2 + 
-                coeffs[2] * tau**3 + 
-                coeffs[3] * tau**4)
+                 coeffs[1] * tau**2 + 
+                 coeffs[2] * tau**3 + 
+                 coeffs[3] * tau**4)
     
     elif example_number == 2:
         # Exponential decay: easy
         y_hat = (coeffs[0] * np.exp(-t / coeffs[1]) + 
-                coeffs[2] * t * np.exp(-t / coeffs[3]))
+                 coeffs[2] * t * np.exp(-t / coeffs[3]))
     
     elif example_number == 3:
         # Exponential + sinusoidal: difficult
         y_hat = (coeffs[0] * np.exp(-t / coeffs[1]) + 
-                coeffs[2] * np.sin(t / coeffs[3]))
-    
+                 coeffs[2] * np.sin(t / coeffs[3]))
+     
     else:
         raise ValueError(f"Unknown example_number: {example_number}. Use 1, 2, or 3")
     
@@ -76,7 +76,7 @@ def lm_func(t: np.ndarray, coeffs: np.ndarray, example_number: int = 1) -> np.nd
 
 
 def run_example(example_number: int = 1, 
-               print_level: int = 2) -> Tuple:
+                print_level: int = 3 ) -> Tuple:
     """
     Run a complete Levenberg-Marquardt curve fitting example.
     
@@ -348,7 +348,7 @@ if __name__ == "__main__":
     # Run each example
     for ex_num in [1, 2, 3]:
         input(f"Press Enter to run Example {ex_num}...")
-        run_example(ex_num, print_level=2)
+        run_example(ex_num, print_level=3)
     
     # Sensitivity analysis
     input("\nPress Enter to run sensitivity analysis (Example 3)...")

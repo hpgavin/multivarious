@@ -10,9 +10,7 @@ The Levenberg-Marquardt algorithm interpolates between Gauss-Newton (good near
 the minimum) and gradient descent (good far from the minimum) by adaptively
 adjusting a damping parameter λ.
 
-Author: Translated from MATLAB by Claude
-Original: Henri Gavin, Duke University
-Date: December 2024
+Henri P Gavin, Duke University, 2001-2025
 """
 
 import numpy as np
@@ -84,7 +82,7 @@ def levenberg_marquardt(
     lambda_up_factor: float = 11.0,
     lambda_dn_factor: float = 9.0,
     update_type: Literal[1, 2, 3] = 1,
-    plot_iterations: bool = False
+    plot_iterations: bool = True
 ) -> LMResult:
     """
     Levenberg-Marquardt curve fitting: minimize sum of weighted squared residuals.
@@ -148,7 +146,7 @@ def levenberg_marquardt(
         2: Quadratic 
         3: Nielsen
     plot_iterations : bool, optional
-        If True, plot data and current fit at each iteration (like MATLAB prnt>2)
+        If True, plot data and current fit at each iteration (
         Default: False
     
     Returns
@@ -277,7 +275,7 @@ def levenberg_marquardt(
     # Convergence history: [iteration, coeffs..., chi_sq, lambda]
     cvg_history = np.zeros((max_iter, n_coeffs + 3))
     
-    # Setup for iteration plotting (like MATLAB prnt > 2)
+    # Setup for iteration plotting 
     if plot_iterations or print_level > 2:
         plt.ion()
         fig_iter, ax_iter = plt.subplots(figsize=(10, 6))
@@ -420,8 +418,8 @@ def levenberg_marquardt(
             # Plot current fit if requested
             if plot_iterations or print_level > 2:
                 ax_iter.clear()
-                ax_iter.plot(t if t.ndim == 1 else t[:, 0], y_init, '-k', 
-                           linewidth=1, label='Initial')
+                # ax_iter.plot(t if t.ndim == 1 else t[:, 0], y_init, '-k', 
+                #            linewidth=1, label='Initial')
                 ax_iter.plot(t if t.ndim == 1 else t[:, 0], y_hat, '-b', 
                            linewidth=2, label='Current fit')
                 ax_iter.plot(t if t.ndim == 1 else t[:, 0], y_data, 'o', 
@@ -429,7 +427,8 @@ def levenberg_marquardt(
                 ax_iter.set_title(f'Iteration {iteration}: $\\chi^2_\\nu$ = {chi_sq/dof:.6f}')
                 ax_iter.legend()
                 ax_iter.grid(True, alpha=0.3)
-                plt.pause(0.01)
+                plt.show()
+                plt.pause(1.0)
         
         else:  # REJECT STEP - not better
             chi_sq = chi_sq_old  # Restore old chi-squared
@@ -475,7 +474,7 @@ def levenberg_marquardt(
         cvg_history[iteration-1, n_coeffs+2] = lambda_param
         
         # ====================================================================
-        # Check convergence criteria (MATLAB-style)
+        # Check convergence criteria 
         # ====================================================================
         
         # Gradient convergence
@@ -486,7 +485,7 @@ def levenberg_marquardt(
             message = f"Gradient convergence"
             stop = True
         
-        # Coefficient convergence (element-wise relative change - MATLAB style)
+        # Coefficient convergence (element-wise relative change) 
         if np.max(np.abs(h) / (np.abs(coeffs) + 1e-12)) < tol_coeffs and iteration > 2:
             if print_level >= 1:
                 print(' **** Convergence in Parameters ****')
@@ -494,7 +493,7 @@ def levenberg_marquardt(
             message = f"Parameter convergence"
             stop = True
         
-        # Chi-squared convergence (absolute criterion on reduced chi-sq - MATLAB style)
+        # Chi-squared convergence (absolute criterion on reduced chi-sq) 
         if chi_sq / dof < tol_chi_sq and iteration > 2:
             if print_level >= 1:
                 print(' **** Convergence in reduced Chi-square  ****')
@@ -513,7 +512,7 @@ def levenberg_marquardt(
     # Convergence achieved - final computations
     # ========================================================================
     
-    # Recompute weights if they were uniform (MATLAB lines 299-301)
+    # Recompute weights if they were uniform 
     if np.var(weight) == 0:
         delta_y_final = y_data - y_hat
         weight = dof / (delta_y_final.T @ delta_y_final) * np.ones(n_points)
@@ -757,7 +756,6 @@ def _compute_matrices(
     
     return JtWJ, JtWdy, chi_sq, y_hat, J, func_calls_used
 
-
 # Convenience function with simpler interface
 def lm(func: Callable,
        coeffs_init: np.ndarray,
@@ -770,7 +768,7 @@ def lm(func: Callable,
        func_args: Tuple = (),
        opts: Optional[np.ndarray] = None) -> Tuple:
     """
-    Simplified interface matching MATLAB lm.m function signature.
+    Simplified interface to levenberg_marquardt
     
     Parameters
     ----------
@@ -795,7 +793,7 @@ def lm(func: Callable,
     cvg_history : ndarray
         Convergence history
     """
-    # Parse options array (MATLAB-style interface)
+    # Parse options array 
     if opts is None:
         n_coeffs = len(coeffs_init)
         opts = np.array([0, 10*n_coeffs**2, 1e-3, 1e-3, 1e-1, 1e-1, 1e-2, 11, 9, 1])
@@ -815,7 +813,7 @@ def lm(func: Callable,
         lambda_up_factor=opts[7],
         lambda_dn_factor=opts[8],
         update_type=int(opts[9]),
-        plot_iterations=(prnt > 2)  # Plot at each iteration like MATLAB
+        plot_iterations=(prnt > 2)  # Plot at each iteration 
     )
     
     return (result.coefficients, result.reduced_chi_sq, result.sigma_coefficients,

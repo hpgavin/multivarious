@@ -13,7 +13,6 @@ def mimo_rs(dataX, dataY, max_order=2, pTrain=70, scaling=1, L1_pnlty=1.0, basis
     The polynomial basis may be Hermite, Legendre, or Power polynomials. 
     The model complexity is managed via L1 regularization. 
     
-    
      mimo_rs approximates data with a polynomial of arbitrary order,
 
        y(X) = a + \sum_{i=1}^n \sum_{j=1}^{k_i) b_ij X_i^j + 
