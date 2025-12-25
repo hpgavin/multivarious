@@ -559,25 +559,50 @@ def levenberg_marquardt(
     cvg_history = cvg_history[:iteration, :]
     
     # ========================================================================
-    # Print final results
+    # Print converged results
     # ========================================================================
     if print_level >= 1:
         print("="*80)
         print(f"Convergence: {message}")
         print(f"Function calls: {func_calls}")
-        print(f"Reduced χ²: {reduced_chi_sq:.6f}")
-        print(f"R²: {r_squared:.6f}")
-        print(f"AIC: {aic:.6f}")
-        print(f"BIC: {bic:.6f}")
         if print_level >= 2:
-            print("\nFinal coefficients:")
-            print(f"{'Index':<8} {'Value':>15} {'Std Error':>15} {'Rel Error %':>15}")
-            print("-"*60)
+
+            #"""
+    # ========================================================================
+    # Print results
+    # ========================================================================
+            print("\n" + "="*80)
+            print("RESULTS SUMMARY")
+            print("="*80)
+            print(f"{'':>8} {'Initial':>12}  {'Fitted':>12} {'Std Err':>12} {'% Error':>10}")
+            print("-"*80)
             for i in range(n_coeffs):
-                rel_err = 100 * sigma_coeffs[i] / abs(coeffs[i]) if coeffs[i] != 0 else np.inf
-                print(f"{i:<8d} {coeffs[i]:15.6e} {sigma_coeffs[i]:15.6e} {rel_err:15.2f}")
-        print("="*80 + "\n")
-    
+                pct_err = 100 * abs(sigma_coeffs[i] / coeffs[i]) if coeffs[i] != 0 else np.inf
+                print(f"c[{i}]  {coeffs_init[i]:12.4f}  "
+                      f"{coeffs[i]:12.4f} {sigma_coeffs[i]:12.4f} {pct_err:10.2f}")
+        
+            print("\n" + "-"*80)
+            print(f"\nFit Quality Assessment:")
+            print(f"  Reduced χ² = {reduced_chi_sq:.3f}")
+            if 0.8 <= reduced_chi_sq <= 1.2:
+                print("  ✓ Excellent fit - errors well-estimated")
+            elif reduced_chi_sq > 1.2:
+                print(f"  ⚠ χ²_ν > 1 suggests:")
+                print(f"    - Measurement errors underestimated by factor ~{np.sqrt(reduced_chi_sq):.2f}")
+                print(f"    - OR model inadequacy")
+                print(f"  → Multiply reported uncertainties by {np.sqrt(reduced_chi_sq):.2f}")
+            else:
+                print(f"  ⚠ χ²_ν < 1 suggests errors overestimated or overfitting")
+            print(f"   R²: {r_squared:.6f}")
+            print(f"   AIC:          {aic:.6f}")
+            print(f"   BIC:          {bic:.6f}")
+            print("\nCorrelation matrix:")
+            print(correlation)
+            print("="*80 + "\n")
+
+
+            #"""
+        
     return LMResult(
         coefficients=coeffs,
         reduced_chi_sq=reduced_chi_sq,

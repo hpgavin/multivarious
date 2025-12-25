@@ -148,6 +148,7 @@ def run_example(example_number: int = 1,
     
     coeffs_fit, chi_sq, sigma_coeffs, sigma_y, corr, R_sq, cvg_history, message, aic,bic = result
     
+    """
     # ========================================================================
     # Print results
     # ========================================================================
@@ -158,7 +159,7 @@ def run_example(example_number: int = 1,
     print("-"*80)
     for i in range(len(coeffs_true)):
         pct_err = 100 * abs(sigma_coeffs[i] / coeffs_fit[i]) if coeffs_fit[i] != 0 else np.inf
-        print(f"a[{i}]  {coeffs_init[i]:12.4f} {coeffs_true[i]:12.4f} "
+        print(f"c[{i}]  {coeffs_init[i]:12.4f} {coeffs_true[i]:12.4f} "
               f"{coeffs_fit[i]:12.4f} {sigma_coeffs[i]:12.4f} {pct_err:10.2f}")
     
     print("\n" + "-"*80)
@@ -169,6 +170,8 @@ def run_example(example_number: int = 1,
     print("\nCorrelation matrix:")
     print(corr)
     print("="*80 + "\n")
+    """
+   
     
     # ========================================================================
     # Create plots
