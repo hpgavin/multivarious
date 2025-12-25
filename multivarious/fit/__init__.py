@@ -1,26 +1,23 @@
 """
-multivarious.opt: a multivarious subpackage for optimization
+multivarious.fit: a multivarious subpackage for fitimization
 
 Each module in this package defines one function whose name matches the
 module filename (case-sensitive). Re-export all of them here so users may call:
 
     import multivarious as m
-    m.utl.avg_cov_func(...)
-    m.opt.sqp(...)
-    m.opt.poly_fit(...)
-    m.opt.lm.levenberg_marquardt
-
+    m.fit.lm.lm(...)
+    m.fit.poly_fit(...)
 
 or:
 
-    from multivarious.opt import sqp
-    from multivarious.opt.lm import levenberg_marquardt, lm
+    from multivarious.fit.lm import lm
+    from multivarious.fit.lm import levenberg_marquardt
 
     y = sqp(...)
 
 """
 
-# multivarious/opt/__init__.py
+# multivarious/fit/__init__.py
 
 from .L1_fit import L1_fit
 from .lm import lm
