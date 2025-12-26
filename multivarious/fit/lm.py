@@ -219,8 +219,14 @@ def levenberg_marquardt(
     dof = n_points - n_coeffs  # degrees of freedom
     
     # Validate dimensions
-    if t.ndim == 1 and len(t) != n_points:
-        raise ValueError(f"Length of t ({len(t)}) must match length of y_data ({n_points})")
+    if t.ndim == 1:
+        if len(t) != n_points:
+            raise ValueError(f"Length of t ({len(t)}) must match length of y_data ({n_points})")
+    elif t.ndim == 2:
+        if t.shape[0] != n_points:
+            raise ValueError(f"First dimension of t ({t.shape[0]}) must match length of y_data ({n_points})")
+    else:
+        raise ValueError(f"t must be 1D or 2D array, got {t.ndim}D")
     
     # Set default parameters
     if weight is None:
@@ -599,10 +605,7 @@ def levenberg_marquardt(
             print("\nCorrelation matrix:")
             print(correlation)
             print("="*80 + "\n")
-
-
             #"""
-        
     return LMResult(
         coefficients=coeffs,
         reduced_chi_sq=reduced_chi_sq,
@@ -843,7 +846,7 @@ def lm(func: Callable,
     
     return (result.coefficients, result.reduced_chi_sq, result.sigma_coefficients,
             result.sigma_fit, result.correlation, result.r_squared, 
-            result.convergence_history, result.message, result.aic, result.bic )
+            result.convergence_history, result.func_calls, result.message, result.aic, result.bic )
 
 
 # ============================================================================
