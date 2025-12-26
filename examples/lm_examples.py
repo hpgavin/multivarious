@@ -20,7 +20,7 @@ from multivarious.fit.lm import levenberg_marquardt, lm
 from multivarious.utl.plot_lm import plot_lm
 
 
-def lm_func(t: np.ndarray, coeffs: np.ndarray, example_number: int = 1) -> np.ndarray:
+def lm_func(t: np.ndarray, coeffs: np.ndarray, example_number: float = 1.0) -> np.ndarray:
     """
     Example functions for nonlinear least squares curve fitting.
     
@@ -70,64 +70,22 @@ def lm_func(t: np.ndarray, coeffs: np.ndarray, example_number: int = 1) -> np.nd
         # Exponential + sinusoidal: difficult
         y_hat = (coeffs[0] * np.exp(-t / coeffs[1]) + 
                 coeffs[2] * np.sin(t / coeffs[3]))
+
+    elif example_number == 4:
+        x1 = t[:, 0]
+        x2 = t[:, 1]
+        w = coeffs[0]
+        q = coeffs[1]
     
+        y_hat = (w * x1**q + (1 - w) * x2**q) ** (1 / q)
+   
     else:
         raise ValueError(f"Unknown example_number: {example_number}. Use 1, 2, or 3")
     
     return y_hat
 
 
-def lm_func2d(t: np.ndarray, coeffs: np.ndarray, const: float = 1.0) -> np.ndarray:
-    """
-    Two-dimensional example function for nonlinear least squares curve fitting.
-    
-    Demonstrates fitting with multiple independent variables (x and y).
-    
-    Parameters
-    ----------
-    t : ndarray
-        Independent variables, shape (m, 2) where:
-        - t[:, 0] = x values
-        - t[:, 1] = y values
-    coeffs : ndarray
-        Coefficient values [w, q], shape (2,)
-        - w: weight parameter (0 < w < 1)
-        - q: power parameter  
-    const : float, optional
-        Optional constant (not used in this example)
-    
-    Returns
-    -------
-    z_hat : ndarray
-        Model prediction, shape (m,)
-        z = (w*x^q + (1-w)*y^q)^(1/q)
-    
-    Notes
-    -----
-    This is a generalized mean function:
-    - q → 0: geometric mean
-    - q = 1: arithmetic mean  
-    - q = 2: quadratic mean (RMS)
-    - q → ∞: maximum
-    
-    Example
-    -------
-    >>> t = np.column_stack([x, y])  # Stack x and y as columns
-    >>> coeffs = [0.7, -2.1]
-    >>> z = lm_func2d(t, coeffs)
-    """
-    x = t[:, 0]
-    y = t[:, 1]
-    w = coeffs[0]
-    q = coeffs[1]
-    
-    z_hat = (w * x**q + (1 - w) * y**q) ** (1 / q)
-    
-    return z_hat
-
-
-def run_example(example_number: int = 1, 
-               print_level: int = 3) -> Tuple:
+def run_example(example_number: int = 1, print_level: int = 3) -> Tuple:
     """
     Run a complete Levenberg-Marquardt curve fitting example.
     
@@ -156,58 +114,44 @@ def run_example(example_number: int = 1,
     # Generate synthetic data
     # ========================================================================
     
-    # Example 4 is different - it has 2D independent variables
-    if example_number == 4:
-        # Two-dimensional example
-        n_points = 200
-        x = 2 * np.random.rand(n_points)
-        y = 3 * np.random.rand(n_points)
-        t = np.column_stack([x, y])  # Shape: (200, 2)
+    n_points = 100
+    t = np.arange(1, n_points + 1, dtype=float)
+        
+    # True coefficient values
+    if example_number == 1:
+        coeffs_true = np.array([20.0, -24.0, 30.0, -40.0])
+        coeffs_init = np.array([4.0, -5.0, 6.0, 10.0])
+        msmnt_err = 0.5
+    elif example_number == 2:
+        coeffs_true = np.array([20.0, 10.0, 1.0, 50.0])
+        coeffs_init = np.array([5.0, 2.0, 0.2, 10.0])
+        msmnt_err = 0.5
+    elif example_number == 3:
+        coeffs_true = np.array([6.0, 20.0, 1.0, 5.0])
+        coeffs_init = np.array([10.0, 50.0, 5.0, 5.7])
+        msmnt_err = 0.5
+    elif example_number == 4: 
+        x1 = 2 * np.random.rand(n_points)
+        x2 = 3 * np.random.rand(n_points)
+        t = np.column_stack([x1, x2])  # Shape: (200, 2)
         
         coeffs_true = np.array([0.7, -2.1])
         coeffs_init = np.array([0.5, 1.0])
-        
-        # Generate noisy data
-        msmnt_err = 0.01
-        z_dat = lm_func2d(t, coeffs_true)
-        z_dat = z_dat + msmnt_err * np.random.randn(n_points)
-        
-        # Weights
-        weight = n_points / np.sqrt(z_dat.T @ z_dat)
-        
-        # Bounds
-        coeffs_lb = np.array([0.01, -5.0])
-        coeffs_ub = np.array([0.99, 5.0])
-        
+        msmnt_err = 0.10
+ 
     else:
-        # Examples 1-3 are 1D
-        n_points = 100
-        t = np.arange(1, n_points + 1, dtype=float)
+        raise ValueError(f"example_number must be 1, 2, 3, or 4, got {example_number}")
         
-        # True coefficient values
-        if example_number == 1:
-            coeffs_true = np.array([20.0, -24.0, 30.0, -40.0])
-            coeffs_init = np.array([4.0, -5.0, 6.0, 10.0])
-        elif example_number == 2:
-            coeffs_true = np.array([20.0, 10.0, 1.0, 50.0])
-            coeffs_init = np.array([5.0, 2.0, 0.2, 10.0])
-        elif example_number == 3:
-            coeffs_true = np.array([6.0, 20.0, 1.0, 5.0])
-            coeffs_init = np.array([10.0, 50.0, 5.0, 5.7])
-        else:
-            raise ValueError(f"example_number must be 1, 2, 3, or 4, got {example_number}")
+    # Generate noisy data
+    y_dat = lm_func(t, coeffs_true, example_number)
+    y_dat = y_dat + msmnt_err * np.random.randn(n_points)
         
-        # Generate noisy data
-        msmnt_err = 0.5
-        y_dat = lm_func(t, coeffs_true, example_number)
-        y_dat = y_dat + msmnt_err * np.random.randn(n_points)
+    # Weights (inverse of measurement variance)
+    weight = 1.0 / msmnt_err**2
         
-        # Weights (inverse of measurement variance)
-        weight = 1.0 / msmnt_err**2
-        
-        # Bounds
-        coeffs_lb = -10 * np.abs(coeffs_init)
-        coeffs_ub = 10 * np.abs(coeffs_init)
+    # Bounds
+    coeffs_lb = -10 * np.abs(coeffs_init)
+    coeffs_ub = 10 * np.abs(coeffs_init)
     
     # ========================================================================
     # Perform curve fitting
@@ -232,37 +176,18 @@ def run_example(example_number: int = 1,
     print("\n" + "-"*80)
      
     # Run optimization
-    if example_number == 4:
-        # 2D fitting
-        result = lm(
-            lm_func2d,
-            coeffs_init, t, z_dat, weight, 0.01,
-            coeffs_lb, coeffs_ub, (), opts
-        )
-    else:
-        # 1D fitting
-        result = lm(
-            lambda t_in, c: lm_func(t_in, c, example_number),
+    result = lm( lm_func,  
             coeffs_init, t, y_dat, weight, -0.01,
-            coeffs_lb, coeffs_ub, (), opts
-        )
-
+            coeffs_lb, coeffs_ub, (example_number,), opts  # Pass example_number here
+    )
 
     coeffs_fit, chi_sq, sigma_coeffs, sigma_y, corr, R_sq, cvg_history, func_calls, message, aic, bic  = result
 
     # ========================================================================
     # Create plots
     # ========================================================================
-    if example_number == 4:
-
-        print(f't_shape = {t.shape}')
-        print(f'z_shape = {z_dat.shape}')
-    
-        z_fit = lm_func2d(t, coeffs_fit)
-        plot_lm(t, z_dat, z_fit, sigma_y, chi_sq, aic, bic, cvg_history, f"Example_{example_number}")
-    else:
-        y_fit = lm_func(t, coeffs_fit, example_number)
-        plot_lm(t, y_dat, y_fit, sigma_y, chi_sq, aic, bic, cvg_history, f"Example_{example_number}")
+    y_fit = lm_func(t, coeffs_fit, example_number)
+    plot_lm(t, y_dat, y_fit, sigma_y, chi_sq, aic, bic, cvg_history, f"Example_{example_number}")
     
     return result
 
