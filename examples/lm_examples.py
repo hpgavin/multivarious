@@ -17,6 +17,7 @@ import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D  # For 3D plotting in Example 4
 from typing import Tuple, List
 from multivarious.fit.lm import levenberg_marquardt, lm
+from multivarious.utl.plot_lm import plot_lm
 
 
 def lm_func(t: np.ndarray, coeffs: np.ndarray, example_number: int = 1) -> np.ndarray:
@@ -125,257 +126,8 @@ def lm_func2d(t: np.ndarray, coeffs: np.ndarray, const: float = 1.0) -> np.ndarr
     return z_hat
 
 
-def lm_plots(t: np.ndarray,
-             y_data: np.ndarray,
-             y_fit: np.ndarray,
-             sigma_y: np.ndarray,
-             cvg_history: np.ndarray,
-             title_prefix: str = "LM_fit") -> None:
-    """
-    Plot convergence history and fit results for Levenberg-Marquardt.
-    
-    Creates three figures:
-    1. Convergence history (coefficients and chi-squared vs iterations)
-    2. Data, fit, and confidence intervals
-    3. Histogram of residuals
-    
-    Parameters
-    ----------
-    t : ndarray
-        Independent variable
-    y_data : ndarray
-        Measured data
-    y_fit : ndarray
-        Fitted model
-    sigma_y : ndarray
-        Standard errors of fit
-    cvg_history : ndarray
-        Convergence history from LM algorithm
-    title_prefix : str
-        Prefix for plot titles and filenames
-    """
-    plt.ion()
-    
-    max_iter, n_cols = cvg_history.shape
-    n_coeffs = n_cols - 3
-    
-    # ========================================================================
-    # Figure 1: Convergence history
-    # ========================================================================
-    fig1, (ax1, ax2) = plt.subplots(2, 1, figsize=(10, 8))
-    
-    # Plot coefficient evolution
-    for i in range(n_coeffs):
-        ax1.plot(cvg_history[:, 0], cvg_history[:, i+1], '-o', 
-                linewidth=2, markersize=4, label=f'$a_{i+1}$')
-        # Label final values
-        ax1.text(cvg_history[-1, 0] * 1.02, cvg_history[-1, i+1], 
-                f'{i+1}', fontsize=10)
-    
-    ax1.set_ylabel('Coefficient Values', fontsize=12)
-    ax1.legend(loc='best', fontsize=10)
-    ax1.grid(True, alpha=0.3)
-    ax1.set_title(f'{title_prefix}: Convergence History', fontsize=14, fontweight='bold')
-    
-    # Plot chi-squared and lambda
-    ax2.semilogy(cvg_history[:, 0], cvg_history[:, n_coeffs+1], 
-                '-o', linewidth=2, markersize=4, label='$\\chi^2_\\nu$')
-    ax2.semilogy(cvg_history[:, 0], cvg_history[:, n_coeffs+2], 
-                '-s', linewidth=2, markersize=4, label='$\\lambda$')
-    
-    # Label start and end points
-    ax2.text(cvg_history[0, 0], cvg_history[0, n_coeffs+1], 
-            '$\\chi^2_\\nu$', fontsize=12, ha='right')
-    ax2.text(cvg_history[0, 0], cvg_history[0, n_coeffs+2], 
-            '$\\lambda$', fontsize=12, ha='right')
-    ax2.text(cvg_history[-1, 0], cvg_history[-1, n_coeffs+1], 
-            '$\\chi^2_\\nu$', fontsize=12)
-    ax2.text(cvg_history[-1, 0], cvg_history[-1, n_coeffs+2], 
-            '$\\lambda$', fontsize=12)
-    
-    ax2.set_xlabel('Number of Function Evaluations', fontsize=12)
-    ax2.set_ylabel('$\\chi^2_\\nu$ and $\\lambda$', fontsize=12)
-    ax2.legend(loc='best', fontsize=10)
-    ax2.grid(True, alpha=0.3)
-    
-    plt.tight_layout()
-    
-    # ========================================================================
-    # Figure 2: Data, fit, and confidence intervals
-    # ========================================================================
-    fig2, ax = plt.subplots(figsize=(10, 6))
-    
-    # Confidence interval patches
-    color_95 = [0.95, 0.95, 0.1]
-    color_99 = [0.2, 0.95, 0.2]
-    
-    # 95% confidence interval
-    y_upper_95 = y_fit + 1.96 * sigma_y
-    y_lower_95 = y_fit - 1.96 * sigma_y
-    
-    # 99% confidence interval
-    y_upper_99 = y_fit + 2.58 * sigma_y
-    y_lower_99 = y_fit - 2.58 * sigma_y
-    
-    # Plot confidence intervals as filled regions
-    ax.fill_between(t, y_lower_99, y_upper_99, 
-                    color=color_99, alpha=0.6, label='99% C.I.')
-    ax.fill_between(t, y_lower_95, y_upper_95, 
-                    color=color_95, alpha=0.8, label='95% C.I.')
-    
-    # Plot data and fit
-    ax.plot(t, y_data, 'ob', markersize=4, label='$y_{data}$')
-    ax.plot(t, y_fit, '-k', linewidth=2, label='$y_{fit}$')
-    
-    ax.set_xlabel('$t$', fontsize=12)
-    ax.set_ylabel('$y(t)$', fontsize=12)
-    ax.set_title(f'{title_prefix}: Data and Fit with Confidence Intervals', 
-                fontsize=14, fontweight='bold')
-    ax.legend(loc='best', fontsize=10)
-    ax.grid(True, alpha=0.3)
-    
-    plt.tight_layout()
-    
-    # ========================================================================
-    # Figure 3: Histogram of residuals
-    # ========================================================================
-    fig3, ax = plt.subplots(figsize=(10, 6))
-    
-    residuals = y_data - y_fit
-    ax.hist(residuals, bins=20, color='blue', alpha=0.7, edgecolor='black')
-    
-    ax.set_xlabel('$y_{data} - y_{fit}$', fontsize=12)
-    ax.set_ylabel('Count', fontsize=12)
-    ax.set_title(f'{title_prefix}: Histogram of Residuals', 
-                fontsize=14, fontweight='bold')
-    ax.grid(True, alpha=0.3, axis='y')
-    
-    # Add statistics to plot
-    mean_res = np.mean(residuals)
-    std_res = np.std(residuals)
-    ax.axvline(mean_res, color='r', linestyle='--', linewidth=2, 
-              label=f'Mean = {mean_res:.3f}')
-    ax.axvline(mean_res + std_res, color='orange', linestyle=':', linewidth=2)
-    ax.axvline(mean_res - std_res, color='orange', linestyle=':', linewidth=2,
-              label=f'Std = {std_res:.3f}')
-    ax.legend(loc='best', fontsize=10)
-    
-    plt.tight_layout()
-    plt.show()
-
-
-def lm_plots2d(t: np.ndarray,
-               z_data: np.ndarray,
-               z_fit: np.ndarray,
-               sigma_z: np.ndarray,
-               cvg_history: np.ndarray,
-               title_prefix: str = "LM_fit_2D") -> None:
-    """
-    Plot convergence history and 3D fit results for 2D Levenberg-Marquardt.
-    
-    Creates three figures for two-dimensional (x,y) → z fitting:
-    1. Convergence history (parameters, χ², λ)
-    2. 3D scatter plot of data, fit, and confidence bounds
-    3. Histogram of residuals
-    
-    Parameters
-    ----------
-    t : ndarray, shape (m, 2)
-        Independent variables [x, y]
-    z_data : ndarray, shape (m,)
-        Measured data points
-    z_fit : ndarray, shape (m,)
-        Fitted model values
-    sigma_z : ndarray, shape (m,)
-        Standard error of fit at each point
-    cvg_history : ndarray
-        Convergence history from LM algorithm
-    title_prefix : str, optional
-        Prefix for plot titles
-    """
-    x = t[:, 0]
-    y = t[:, 1]
-    n_coeffs = cvg_history.shape[1] - 3
-    
-    # ========================================================================
-    # Figure 1: Convergence history
-    # ========================================================================
-    fig1 = plt.figure(figsize=(12, 10))
-    
-    # Plot 1: Parameter evolution
-    ax1 = fig1.add_subplot(2, 1, 1)
-    for i in range(n_coeffs):
-        ax1.plot(cvg_history[:, 0], cvg_history[:, i+1], 
-                linewidth=3, label=f'$a_{i}$')
-    
-    ax1.set_xlabel('Number of Function Evaluations', fontsize=12)
-    ax1.set_ylabel('Parameter Values', fontsize=12)
-    ax1.set_title(f'{title_prefix}: Parameter Convergence', 
-                 fontsize=14, fontweight='bold')
-    ax1.legend(loc='best', fontsize=10)
-    ax1.grid(True, alpha=0.3)
-    
-    # Plot 2: Chi-squared and lambda
-    ax2 = fig1.add_subplot(2, 1, 2)
-    ax2.semilogy(cvg_history[:, 0], cvg_history[:, n_coeffs+1], 
-                'b-', linewidth=3, label='$\\chi^2_\\nu$')
-    ax2.semilogy(cvg_history[:, 0], cvg_history[:, n_coeffs+2], 
-                'r-', linewidth=3, label='$\\lambda$')
-    
-    ax2.set_xlabel('Number of Function Evaluations', fontsize=12)
-    ax2.set_ylabel('$\\chi^2_\\nu$ and $\\lambda$', fontsize=12)
-    ax2.legend(loc='best', fontsize=10)
-    ax2.grid(True, alpha=0.3)
-    
-    plt.tight_layout()
-    
-    # ========================================================================
-    # Figure 2: 3D scatter plot of data and fit
-    # ========================================================================
-    fig2 = plt.figure(figsize=(14, 10))
-    ax = fig2.add_subplot(111, projection='3d')
-    
-    # Plot data
-    ax.scatter(x, y, z_data, c='black', marker='o', s=30, 
-              label='$z_{data}$', alpha=0.6)
-    
-    # Plot fit
-    ax.scatter(x, y, z_fit, c='green', marker='*', s=50, 
-              label='$z_{fit}$', alpha=0.8)
-    
-    # Plot 95% confidence interval bounds
-    ax.scatter(x, y, z_fit + 1.96*sigma_z, c='red', marker='+', s=20,
-              label='$z_{fit} \\pm 1.96\\sigma_z$', alpha=0.5)
-    ax.scatter(x, y, z_fit - 1.96*sigma_z, c='red', marker='+', s=20, alpha=0.5)
-    
-    ax.set_xlabel('$x$', fontsize=12)
-    ax.set_ylabel('$y$', fontsize=12)
-    ax.set_zlabel('$z(x,y)$', fontsize=12)
-    ax.set_title(f'{title_prefix}: Data and Fit with 95% Confidence Intervals',
-                fontsize=14, fontweight='bold')
-    ax.legend(loc='best', fontsize=10)
-    ax.grid(True, alpha=0.3)
-    
-    # ========================================================================
-    # Figure 3: Histogram of residuals
-    # ========================================================================
-    fig3, ax = plt.subplots(figsize=(10, 6))
-    
-    residuals = z_data - z_fit
-    ax.hist(residuals, bins=20, color='blue', alpha=0.7, edgecolor='black')
-    
-    ax.set_xlabel('$z_{data} - z_{fit}$', fontsize=12)
-    ax.set_ylabel('Count', fontsize=12)
-    ax.set_title(f'{title_prefix}: Histogram of Residuals',
-                fontsize=14, fontweight='bold')
-    ax.grid(True, alpha=0.3, axis='y')
-    
-    plt.tight_layout()
-    plt.show()
-
-
 def run_example(example_number: int = 1, 
-               print_level: int = 2) -> Tuple:
+               print_level: int = 3) -> Tuple:
     """
     Run a complete Levenberg-Marquardt curve fitting example.
     
@@ -467,7 +219,18 @@ def run_example(example_number: int = 1,
     # Algorithm options
     # [prnt, MaxEvals, eps1, eps2, eps3, eps4, lam0, lamUP, lamDN, UpdateType]
     opts = np.array([print_level, 100, 1e-3, 1e-3, 1e-1, 1e-1, 1e-2, 11, 9, 1])
+
+    # ========================================================================
+    # Print true and initial guess of coefficient values 
+    # ========================================================================
+    print("\n" + "="*80)
+    print(f"Example {example_number}  Initial  and  True    Coefficient Values")
+    print("-"*80)
+    for i in range(len(coeffs_true)):
+        print(f"a[{i}]  {coeffs_init[i]:12.4f} {coeffs_true[i]:12.4f} ")
     
+    print("\n" + "-"*80)
+     
     # Run optimization
     if example_number == 4:
         # 2D fitting
@@ -483,46 +246,28 @@ def run_example(example_number: int = 1,
             coeffs_init, t, y_dat, weight, -0.01,
             coeffs_lb, coeffs_ub, (), opts
         )
-    
+
+
     coeffs_fit, chi_sq, sigma_coeffs, sigma_y, corr, R_sq, cvg_history, func_calls, message, aic, bic  = result
-    
-    # ========================================================================
-    # Print results
-    # ========================================================================
-    print("\n" + "="*80)
-    print("RESULTS SUMMARY")
-    print("="*80)
-    print(f"{'':>8} {'Initial':>12} {'True':>12} {'Fitted':>12} {'Std Err':>12} {'% Error':>10}")
-    print("-"*80)
-    for i in range(len(coeffs_true)):
-        pct_err = 100 * abs(sigma_coeffs[i] / coeffs_fit[i]) if coeffs_fit[i] != 0 else np.inf
-        print(f"a[{i}]  {coeffs_init[i]:12.4f} {coeffs_true[i]:12.4f} "
-              f"{coeffs_fit[i]:12.4f} {sigma_coeffs[i]:12.4f} {pct_err:10.2f}")
-    
-    print("\n" + "-"*80)
-    print(f"Reduced χ²: {chi_sq:.6f}")
-    print(f"R²:         {R_sq:.6f}")
-    print("\nCorrelation matrix:")
-    print(corr)
-    print("="*80 + "\n")
-    
+
     # ========================================================================
     # Create plots
     # ========================================================================
     if example_number == 4:
+
+        print(f't_shape = {t.shape}')
+        print(f'z_shape = {z_dat.shape}')
+    
         z_fit = lm_func2d(t, coeffs_fit)
-        lm_plots2d(t, z_dat, z_fit, sigma_y, cvg_history,
-                  f"Example_{example_number}")
+        plot_lm(t, z_dat, z_fit, sigma_y, chi_sq, aic, bic, cvg_history, f"Example_{example_number}")
     else:
         y_fit = lm_func(t, coeffs_fit, example_number)
-        lm_plots(t, y_dat, y_fit, sigma_y, cvg_history,
-                f"Example_{example_number}")
+        plot_lm(t, y_dat, y_fit, sigma_y, chi_sq, aic, bic, cvg_history, f"Example_{example_number}")
     
     return result
 
 
-def sensitivity_to_initial_guess(example_number: int = 3,
-                                 n_trials: int = 100) -> None:
+def sensitivity_to_initial_guess(example_number: int = 3, n_trials: int = 100) -> None:
     """
     Demonstrate sensitivity to initial guess by running many random starts.
     
@@ -690,7 +435,7 @@ if __name__ == "__main__":
     # Run each example
     for ex_num in [1, 2, 3, 4]:
         input(f"Press Enter to run Example {ex_num}...")
-        run_example(ex_num, print_level=2)
+        run_example(ex_num, print_level=3)
     
     # Sensitivity analysis
     input("\nPress Enter to run sensitivity analysis (Example 3)...")

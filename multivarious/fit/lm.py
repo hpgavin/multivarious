@@ -17,6 +17,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from typing import Callable, Optional, Tuple, Any, Literal
 from dataclasses import dataclass
+from multivarious.utl.plot_lm import plot_lm
 
 
 @dataclass
@@ -96,7 +97,7 @@ def levenberg_marquardt(
     Parameters
     ----------
     func : callable
-        Model function: y_hat = func(t, coeffs, *func_args)
+        Model function: y_fit = func(t, coeffs, *func_args)
         Must return array of shape (m,)
     coeffs_init : ndarray
         Initial guess for coefficient values, shape (n,)
@@ -288,7 +289,7 @@ def levenberg_marquardt(
         y_init = func(t, coeffs, *func_args)  # Initial model for plotting
     
     # Initialize Jacobian and matrices
-    JtWJ, JtWdy, chi_sq, y_hat, J, calls_used = _compute_matrices(
+    JtWJ, JtWdy, chi_sq, y_fit, J, calls_used = _compute_matrices(
         func, t, coeffs_old, y_old, 1, J, coeffs, y_data, weight, delta_coeffs, func_args, 0
     )
     func_calls += calls_used
@@ -402,11 +403,11 @@ def levenberg_marquardt(
             dchi_sq = chi_sq - chi_sq_old
             chi_sq_old = chi_sq
             coeffs_old = coeffs.copy()
-            y_old = y_hat.copy()
+            y_old = y_fit.copy()
             coeffs = coeffs_try.copy()
             
             # Recompute matrices with new coefficients
-            JtWJ, JtWdy, chi_sq, y_hat, J, calls_used = _compute_matrices(
+            JtWJ, JtWdy, chi_sq, y_fit, J, calls_used = _compute_matrices(
                 func, t, coeffs_old, y_old, dchi_sq, J, coeffs, y_data, 
                 weight, delta_coeffs, func_args, iteration
             )
@@ -426,7 +427,11 @@ def levenberg_marquardt(
                 ax_iter.clear()
                 # ax_iter.plot(t if t.ndim == 1 else t[:, 0], y_init, '-k', 
                 #            linewidth=1, label='Initial')
-                ax_iter.plot(t if t.ndim == 1 else t[:, 0], y_hat, '-b', 
+                if t.ndim == 1:
+                    ax_iter.plot(t if t.ndim == 1 else t[:, 0], y_fit, '-b', 
+                           linewidth=2, label='Current fit')
+                else:
+                    ax_iter.plot(t if t.ndim == 1 else t[:, 0], y_fit, 'ob', 
                            linewidth=2, label='Current fit')
                 ax_iter.plot(t if t.ndim == 1 else t[:, 0], y_data, 'o', 
                            color=[0, 0.6, 0], markersize=4, label='Data')
@@ -434,14 +439,14 @@ def levenberg_marquardt(
                 ax_iter.legend()
                 ax_iter.grid(True, alpha=0.3)
                 plt.show()
-                plt.pause(1.0)
+                #plt.pause(1.0)
         
         else:  # REJECT STEP - not better
             chi_sq = chi_sq_old  # Restore old chi-squared
             
             # If we're at a multiple of 2*n_coeffs iterations, recompute Jacobian
             if iteration % (2 * n_coeffs) == 0:
-                JtWJ, JtWdy, _, y_hat, J, calls_used = _compute_matrices(
+                JtWJ, JtWdy, _, y_fit, J, calls_used = _compute_matrices(
                     func, t, coeffs_old, y_old, -1, J, coeffs, y_data,
                     weight, delta_coeffs, func_args, iteration
                 )
@@ -520,11 +525,11 @@ def levenberg_marquardt(
     
     # Recompute weights if they were uniform 
     if np.var(weight) == 0:
-        delta_y_final = y_data - y_hat
+        delta_y_final = y_data - y_fit
         weight = dof / (delta_y_final.T @ delta_y_final) * np.ones(n_points)
     
     # Final matrix computation
-    JtWJ, JtWdy, _, y_hat, J, calls_used = _compute_matrices(
+    JtWJ, JtWdy, _, y_fit, J, calls_used = _compute_matrices(
         func, t, coeffs_old, y_old, -1, J, coeffs, y_data, weight, delta_coeffs, func_args, iteration
     )
     func_calls += calls_used
@@ -559,7 +564,7 @@ def levenberg_marquardt(
     correlation = covar / np.outer(sigma_coeffs, sigma_coeffs)
     
     # R-squared (coefficient of determination)
-    r_squared = np.corrcoef(y_data, y_hat)[0, 1] ** 2
+    r_squared = np.corrcoef(y_data, y_fit)[0, 1] ** 2
     
     # Trim convergence history
     cvg_history = cvg_history[:iteration, :]
@@ -580,7 +585,7 @@ def levenberg_marquardt(
             print("\n" + "="*80)
             print("RESULTS SUMMARY")
             print("="*80)
-            print(f"{'':>8} {'Initial':>12}  {'Fitted':>12} {'Std Err':>12} {'% Error':>10}")
+            print(f"{'':>9} {'Initial':>9}  {'Fitted':>12} {'Std Err':>13} {'% Error':>10}")
             print("-"*80)
             for i in range(n_coeffs):
                 pct_err = 100 * abs(sigma_coeffs[i] / coeffs[i]) if coeffs[i] != 0 else np.inf
@@ -590,16 +595,16 @@ def levenberg_marquardt(
             print("\n" + "-"*80)
             print(f"\nFit Quality Assessment:")
             print(f"  Reduced χ² = {reduced_chi_sq:.3f}")
-            if 0.8 <= reduced_chi_sq <= 1.2:
+            if 0.5 <= reduced_chi_sq <= 1.5:
                 print("  ✓ Excellent fit - errors well-estimated")
-            elif reduced_chi_sq > 1.2:
-                print(f"  ⚠ χ²_ν > 1 suggests:")
+            elif reduced_chi_sq > 1.5:
+                print(f"  ⚠ χ²_ν 1.5 1 suggests:")
                 print(f"    - Measurement errors underestimated by factor ~{np.sqrt(reduced_chi_sq):.2f}")
                 print(f"    - OR model inadequacy")
                 print(f"  → Multiply reported uncertainties by {np.sqrt(reduced_chi_sq):.2f}")
             else:
-                print(f"  ⚠ χ²_ν < 1 suggests errors overestimated or overfitting")
-            print(f"   R²: {r_squared:.6f}")
+                print(f"  ⚠ χ²_ν 0.5  suggests errors overestimated or overfitting")
+            print(f"   R²: { r_squared:.6f}")
             print(f"   AIC:          {aic:.6f}")
             print(f"   BIC:          {bic:.6f}")
             print("\nCorrelation matrix:")
@@ -751,7 +756,7 @@ def _compute_matrices(
         Gradient vector, shape (n,)
     chi_sq : float
         Chi-squared error
-    y_hat : ndarray
+    y_fit : ndarray
         Model prediction, shape (m,)
     J : ndarray
         Jacobian matrix, shape (m, n)
@@ -761,18 +766,18 @@ def _compute_matrices(
     n_coeffs = len(coeffs)
     
     # Evaluate model (costs 1 function call)
-    y_hat = func(t, coeffs, *func_args)
+    y_fit = func(t, coeffs, *func_args)
     func_calls_used = 1
     
     # Update Jacobian (finite differences every 2n iterations or if chi-sq increased)
     if iteration % (2 * n_coeffs) == 0 or dchi_sq > 0:
-        J, jac_calls = _compute_jacobian_fd(func, t, coeffs, y_hat, delta_coeffs, func_args)
+        J, jac_calls = _compute_jacobian_fd(func, t, coeffs, y_fit, delta_coeffs, func_args)
         func_calls_used += jac_calls
     else:
-        J = _compute_jacobian_broyden(coeffs_old, y_old, J, coeffs, y_hat)
+        J = _compute_jacobian_broyden(coeffs_old, y_old, J, coeffs, y_fit)
     
     # Residuals
-    delta_y = y_data - y_hat
+    delta_y = y_data - y_fit
     
     # Chi-squared
     chi_sq = delta_y.T @ (delta_y * weight)
@@ -782,7 +787,7 @@ def _compute_matrices(
     JtWJ = J.T @ (J * W_diag[:, np.newaxis])
     JtWdy = J.T @ (W_diag * delta_y)
     
-    return JtWJ, JtWdy, chi_sq, y_hat, J, func_calls_used
+    return JtWJ, JtWdy, chi_sq, y_fit, J, func_calls_used
 
 # Convenience function with simpler interface
 def lm(func: Callable,

@@ -1,35 +1,26 @@
 # Multi-Dimensional Fitting with lm.py
 
-## The Answer: YES, It Works for ANY Number of Variables! ✓
+## This implementation of levenberg-marquard works for ANY Number of Variables without modification
 
-Your `lm.py` already handles 2, 5, 10, 100, or even 1000 independent variables without modification!
 
-## Why It Works
 
-### Key Insight: Always 2D Array
-
-No matter how many independent variables you have, you use a **2D array**:
+No matter how many independent variables you have, the independent variables are in a **2D array**:
 
 ```python
 # 1 variable (just time t)
 t.shape = (100,)           # 1D array - special case
 
-# 2 variables (x, y)
+# 2 variables (x(t), y(t)
 t.shape = (200, 2)         # 2D array
 
-# 5 variables (p, q, r, s, u)
+# 5 variables ( p(t), q(t), r(t), s(t), u(t) )
 t.shape = (300, 5)         # 2D array
 
-# 10 variables (p, q, r, s, u, v, w, x, y, z)
-t.shape = (500, 10)        # 2D array
-
-# 1000 variables
-t.shape = (1000, 1000)     # 2D array
 ```
 
 **The pattern:**
 
-- Rows = number of data points
+- Rows = number of observations 
 - Columns = number of independent variables
 - Always `t.ndim = 2` (except single-variable case)
 
