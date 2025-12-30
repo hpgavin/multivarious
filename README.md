@@ -201,7 +201,7 @@ methods: distribution.pdf(), distribution.cdf(), distribution.inv(), distributio
     
     Additional help on using settings.json to set the `PYTHONPATH` is provided in multivarious/examples/.vscode/SETTINGS_HELP.md 
   
-  * **(B) For your computer, edit your profile directly :** 
+  * **(B) For your entire login profile, edit your profile directly :** 
     
     Open a terminal application and edit your profile using one of these commands ... 
     
