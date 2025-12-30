@@ -127,7 +127,6 @@ methods: distribution.pdf(), distribution.cdf(), distribution.inv(), distributio
 | **plot_lm**          | plot the converence history and fit statistics from an lm analysis |
 | **plot_opt_surface** | plot the objective function landscape in any selected 2D slice                  |
 | **plot_spectra**     | plot three sets of corresponding ensemble spectra or transfer functions |
-| **rainbow**          | rainbow line colors                                                             |
 
 # installation
 

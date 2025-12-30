@@ -29,7 +29,6 @@ from .plot_lm import plot_lm
 from .plot_opt_surface import plot_opt_surface
 from .plot_spectra import plot_spectra 
 from .plot_CDF_ci import plot_CDF_ci
-from .rainbow import rainbow
 from .L1_plots import L1_plots
 from .LP_analysis import LP_analysis
 
@@ -45,7 +44,6 @@ __all__ = [ "avg_cov_func",
             "plot_opt_surface", 
             "plot_spectra", 
             "plot_CDF_ci", 
-            "rainbow", 
             "L1_plots", 
             "LP_analysis", 
           ]

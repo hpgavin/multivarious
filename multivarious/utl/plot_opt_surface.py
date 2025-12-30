@@ -12,6 +12,7 @@ Updated 2015-09-29, 2016-03-23, 2016-09-12, 2020-01-20, 2021-12-31, 2025-01-26
 
 import numpy as np
 import matplotlib.pyplot as plt
+import matplotlib.cm as cm
 from mpl_toolkits.mplot3d import Axes3D
 
 
@@ -141,15 +142,42 @@ def plot_opt_surface(func, x, v_lb, v_ub, options, consts=None, fig_no=1):
     ax = fig.add_subplot(111, projection='3d')
     
     # Create meshgrid for plotting
-    X_i, X_j = np.meshgrid(v_i, v_j, indexing='ij')
+    V_i, V_j = np.meshgrid(v_i, v_j, indexing='ij')
+
+    cmap = cm.rainbow# set color scheme here
+    norm = plt.Normalize(f_mesh.min(), f_mesh.max())
     
-    # Plot the surface mesh
-    # ax.plot_wireframe(X_i, X_j, f_mesh, linewidth=1.5, alpha=0.7)
+    """
+    # Alternative #1: Plot the surface mesh - all lines the same color
+    ax.plot_wireframe(V_i, V_j, f_mesh, linewidth=1.5, alpha=0.7)
+    """
+
+    # Alternative #2: use plot_surface for filled surface
+    ax.plot_surface(V_i, V_j, f_mesh, cmap='rainbow', alpha=0.5, linewidth=0.5, edgecolor='k')
     
-    # Alternative: use plot_surface for filled surface
-    ax.plot_surface(X_i, X_j, f_mesh, cmap='viridis', alpha=0.5, \
-                    linewidth=0.5, edgecolor='k')
+    """
+    # Alternative #3: Plot the surface mesh - lines colored separately 
+    # Plot lines along the rows
+    for ii in range(V_i.shape[0]):
+        xis = V_i[ii, :]
+        xjs = V_j[ii, :]
+        fs  = f_mesh[ii, :]
+        for jj in range(len(xis)-1):
+            z_avg = (fs[jj] + fs[jj+1]) / 2
+            ax.plot(xis[jj:jj+2], xjs[jj:jj+2], fs[jj:jj+2], color=cmap(norm(z_avg)))
     
+    # Plot lines along the columns
+    for jj in range(V_j.shape[1]):
+        xis = V_i[:, jj]
+        xjs = V_j[:, jj]
+        fs = f_mesh[:, jj]
+        for ii in range(len(xis)-1):
+            z_avg = (fs[ii] + fs[ii+1]) / 2
+            ax.plot(xis[ii:ii+2], xjs[ii:ii+2], fs[ii:ii+2], color=cmap(norm(z_avg)))
+
+    plt.show()
+    """
+
     # Set labels with LaTeX-style formatting
     ax.set_xlabel(f'$v_{{{i+1}}}$', fontsize=14)
     ax.set_ylabel(f'$v_{{{j+1}}}$', fontsize=14)
@@ -197,10 +225,13 @@ def plot_opt_surface(func, x, v_lb, v_ub, options, consts=None, fig_no=1):
     # Tight layout
     plt.tight_layout()
     
+    """
     # Save figure
+    plt.show()
     filename = f'plot_opt_surface-{fig_no}.png'
     plt.savefig(f'{filename}', dpi=150)
     print(f"Saved: {filename}")
+    """
     
     return fmin, fmax, ax
 

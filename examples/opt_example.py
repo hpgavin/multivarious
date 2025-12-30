@@ -58,7 +58,7 @@ v_init = np.array([ 0.8 , 0.8 ])
 # with ORS, convergence tolerances should be kind of large
 # with NMA, convergence tolerances should be smaller than ORS
 #  msg_level tol_v  tol_f  tol_g  max_evals  pnlty  expn
-opts = [ 3 , 1e-2 , 1e-2 , 1e-3 , 100*n**3 , 0.5  , 0.5 ]  
+opts = [ 3 , 1e-2 , 1e-2 , 1e-3 , 50*n**3 , 0.5  , 0.5 ]  
 
 # solve the optimization problem using one of ... ors , nms , sqp 
 v_opt, f_opt, g_opt, cvg_hst, _,_  = sqp(opt_example_analysis, v_init, v_lb, v_ub, opts, C)
