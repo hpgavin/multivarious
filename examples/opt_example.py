@@ -12,7 +12,7 @@ from multivarious.utl import plot_cvg_hst
 def opt_example_analysis(v,C):
     '''
     A simple 2D constrained optimization test problem.
-    ''' 
+    '''
     v1 = v[0]                   # description of design variable 0, units
     v2 = v[1]                   # description of design variable 1, units
 
@@ -22,7 +22,7 @@ def opt_example_analysis(v,C):
 
     # the objective function 
     f = ( v1 - c[0] )**2 + ( v2 - c[1] )**2 +  c[2]*np.random.randn(1)
-    
+
     # the array of constraints 
     g = np.array([
         a[0] * ( (v1 - a[1])**2 + (v2 - a[2])**2 )/a[3] - 1,  # g1
@@ -31,7 +31,7 @@ def opt_example_analysis(v,C):
 
     f = f[0]                    # make f a scalar
     g = np.array([g]).T         # make g a column vector
-    
+
     return f, g
 
 # -------------------------------------------------------------------------
@@ -52,17 +52,17 @@ n = len(v_lb)
 
 # random initial guess or a specified initial guess 
 #v_init = v_lb + np.random.randn(n)*(v_ub - v_lb) 
-v_init = np.array([ 0.8 , 0.8 ])                
+v_init = np.array([ 0.8 , 0.8 ])
 
 # adjust the optimization options ...
 # with ORS, convergence tolerances should be kind of large
 # with NMA, convergence tolerances should be smaller than ORS
 #  msg_level tol_v  tol_f  tol_g  max_evals  pnlty  expn
-opts = [ 3 , 1e-2 , 1e-2 , 1e-3 , 50*n**3 , 0.5  , 0.5 ]  
+opts = [ 3 , 1e-2 , 1e-2 , 1e-3 , 50*n**3 , 0.5  , 0.5 ]
 
 # solve the optimization problem using one of ... ors , nms , sqp 
 v_opt, f_opt, g_opt, cvg_hst, _,_  = sqp(opt_example_analysis, v_init, v_lb, v_ub, opts, C)
 
 # plot the convergence history
-plot_cvg_hst( cvg_hst , v_opt )  
+plot_cvg_hst( cvg_hst , v_opt )
 
