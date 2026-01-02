@@ -15,7 +15,7 @@ def avg_cov_func(func, x, s0, s1, options, consts=None, BOX=1):
     func : callable
         Function to optimize: f, g = func(x, consts)
     x : np.ndarray
-        Parameter vector (column-like)
+        Scaled parameter vector (column-like) ( -1 < x < +1 )
     s0, s1 : np.ndarray or float
         Linear scaling factors mapping [x_lb, x_ub] -> [-1, +1]
     options : np.ndarray
@@ -75,6 +75,10 @@ def avg_cov_func(func, x, s0, s1, options, consts=None, BOX=1):
 
     F_risk = avg_F
     if m > 1:
-        F_risk = avg_F * (1 + cov_F / np.sqrt(m))
+#       CHOOSE ONE OF THE FOLLOWING RISK-BASED PERFORMANCE MEASURES ...
+#       F_risk = avg_F;                            # average-of-N values
+        F_risk = avg_F * ( 1 + cov_F/np.sqrt(m) )  # 84th percentile of the avg. of F
+#       F_risk = avg_F * ( 1 + cov_F )             # 84th percentile of F
+#       F_risk = max_F;                            # largest-of-N values
 
     return F_risk, g_avg, x, cov_F, m
