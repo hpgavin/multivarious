@@ -199,19 +199,17 @@ def plot_opt_surface(func, x, v_lb, v_ub, options, consts=None, fig_no=1):
     constraint_penalty_init = np.sum(g_init * (g_init > tol_g)) ** q
     fa_init = f_init + penalty * constraint_penalty_init
 
-    # Offset points slightly above surface for visibility
-    z_offset = (fmax - fmin) / 50
-
-    ax.plot([v_init[i]], [v_init[j]], [fa_init + z_offset],
+    # Plot optimization end point (red circle)
+    ax.plot([v_init[i]], [v_init[j]], [fa_init],
             'o', alpha=1.0, color='green', markersize=22, markeredgewidth=3,
             markerfacecolor='green', markeredgecolor='darkgreen',
             label='Initial point')
 
-    # Plot grid minimum (red circle)
-    ax.plot([v_i[ii_min]], [v_j[jj_min]], [f_mesh[ii_min, jj_min] + z_offset],
-            'o', alpha=1.0, color='red', markersize=22, markeredgewidth=3,
-            markerfacecolor='red', markeredgecolor='darkred',
-            label='Grid minimum')
+    # Plot optimization end point (red circle)
+    #ax.plot([v_i[ii_min]], [v_j[jj_min]], [f_mesh[ii_min, jj_min]],
+    #        'o', alpha=1.0, color='red', markersize=22, markeredgewidth=3,
+    #        markerfacecolor='red', markeredgecolor='darkred',
+    #        label='Grid minimum')
 
     # Add legend
     #ax.legend(fontsize=11)

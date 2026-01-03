@@ -40,7 +40,7 @@ def opt_example_analysis(v,C):
 # define constants used within the optimization analysis ... in a named tuple
 a = np.array([  1.0 ,  0.2 ,  0.5 ,  0.3 ])
 b = np.array([ -2.0 , -0.5 ,  0.5 , -1.5 ])
-c = np.array([  0.8 ,  0.2 ,  0.1 ])
+c = np.array([  0.8 ,  0.2 ,  0.00 ])
 
 Constant = namedtuple('Constant', [ 'a', 'b', 'c' ])
 C = Constant( a , b , c )
@@ -55,12 +55,12 @@ v_init = np.array([ 0.8 , 0.8 ])                  # a specified initial guess
 
 # adjust the optimization options ...
 # with ORS, convergence tolerances should be kind of large
-# with NMA, convergence tolerances should be smaller than ORS
+# with NMS, convergence tolerances  could be smaller than with ORS
 
-#  msg_level   tol_v    tol_f    tol_g    max_evals  pnlty  expn  m_max  cov_f
-opts = [ 3 ,   1e-2 ,   1e-2 ,   1e-3 ,    50*n**3 ,  0.5 , 0.5 ,   1 ,   0.1 ]
+#  msg_level   tol_v    tol_f    tol_g    max_evals  pnlty  expn  m_max  cov_F
+opts = [ 3 ,   1e-2 ,   1e-2 ,   1e-3 ,    50*n**3 ,  0.5 , 0.5 ,   1 ,   0.05 ]
 
 # Solve the optimization problem using one of ... ors , nms , sqp 
-v_opt, f_opt, g_opt, cvg_hst, _,_  = nms(opt_example_analysis, v_init, v_lb, v_ub, opts, C)
+v_opt, f_opt, g_opt, cvg_hst, _,_  = ors(opt_example_analysis, v_init, v_lb, v_ub, opts, C)
 
 plot_cvg_hst( cvg_hst , v_opt )   # plot the convergence history

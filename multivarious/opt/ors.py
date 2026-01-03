@@ -298,9 +298,9 @@ def ors(func, v_init, v_lb=None, v_ub=None, options=None, consts=None):
                     print(f'{val:11.3e}', end='')
                 print()
                 print(f' max constraint          = {max_g:11.3e} ({idx_ub_g})')
-                print(f' objective convergence   = {cvg_f:11.4e}    tolF = {tol_f:8.6f}')
-                print(f' variable  convergence   = {cvg_v:11.4e}    tolX = {tol_v:8.6f}')
-                print(f' c.o.v. of f_A           = {c1:11.3e}')
+                print(f' objective convergence   = {cvg_f:11.4e}    tol_f = {tol_f:8.6f}')
+                print(f' variable  convergence   = {cvg_v:11.4e}    tol_v = {tol_v:8.6f}')
+                print(f' c.o.v. of F_A           = {c1:11.3e}')
                 print(f' step std.dev (sigma)    = {sigma:5.3f}')
                 print(' -+-+-+-+-+-+-+-+-+-+- ORS -+-+-+-+-+-+-+-+-+-+-+-+-+')
                 if quad_update:
@@ -408,6 +408,12 @@ def ors(func, v_init, v_lb=None, v_ub=None, options=None, consts=None):
                 binding = ' ** not ok  ** '
             print(f' *     g({j:3d}) = {g_opt[j]:12.5f}  {binding}')
         print(' *\n * --------------------------------------------------------------\n')
+
+    if msg > 2:
+        plt.figure(103)
+        ii = int(options[10])
+        jj = int(options[11])
+        plt.plot( v_opt[ii], v_opt[jj], f_opt, '-or', markersize=14 )
     
     # save final iteration
     cvg_hst[:, iteration] = np.concatenate([

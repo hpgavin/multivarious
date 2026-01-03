@@ -14,6 +14,7 @@
 import numpy as np
 from matplotlib import pyplot as plt
 import time
+from datetime import datetime, timedelta
 
 from scipy.linalg import cho_factor, cho_solve
 from scipy.optimize import minimize
@@ -99,7 +100,7 @@ def sqp(func, v_init, v_lb=None, v_ub=None, options_in=None, consts=1.0):
     iteration = 1
     cvg_hst = np.full((n + 5, max(1, max_evals)), np.nan)
 
-    t0 = time.time()
+    start_time = time.time()
 
     # First function evaluation
     f, g = func((x - s0) / s1, consts)
@@ -318,10 +319,9 @@ def sqp(func, v_init, v_lb=None, v_ub=None, options_in=None, consts=1.0):
 
         # ----- Display progress -----
         if msg:
-            elapsed = time.time() - t0
-            rate = function_count / max(elapsed, 1e-9)
-            remaining = max_evals - function_count
-            eta_sec = int(remaining / max(rate, 1e-9))
+            elapsed = time.time() - start_time
+            secs_left = int((max_evals - function_count) * elapsed / function_count)
+            eta = (datetime.now() + timedelta(seconds=secs_left)).strftime('%H:%M:%S')
 
             g_max, idx_max_g = np.max(g), np.argmax(g)
             cvg_f = abs(absSL * np.dot(gradf, SD) / f) if f != 0 else 0
@@ -333,15 +333,15 @@ def sqp(func, v_init, v_lb=None, v_ub=None, options_in=None, consts=1.0):
                   f"{'*** feasible ***' if g_max <= tol_g and np.all(x >= -1) and np.all(x <= 1) else '!!! infeasible !!!'}")
             print(f" function evaluations     = {function_count:5d} of {max_evals:5d}"
                   f" ({100.0*function_count/max_evals:4.1f}%)")
-            print(f" e.t.a.                   = ~{eta_sec//60}m{eta_sec%60:02d}s")
+            print(f" e.t.a.                   = {eta} ")
             print(f" objective                = {f:11.3e}")
             print(" variables                 = " + " ".join(f"{v:11.3e}" for v in (x-s0)/s1))
             print(f" max constraint           = {g_max:11.3e}  ({idx_max_g+1})")
             print(f" Step Size                = {StepLength:11.3e}")
             print(f" BFGS method              : {how}")
             print(f" QP method                : {howqp}")
-            print(f" objective convergence    = {cvg_f:11.4e}   tolF = {tol_f:8.6f}")
-            print(f" variable  convergence    = {cvg_v:11.4e}   tolX = {tol_v:8.6f}")
+            print(f" objective convergence    = {cvg_f:11.4e}   tol_f = {tol_f:8.6f}")
+            print(f" variable  convergence    = {cvg_v:11.4e}   tol_v = {tol_v:8.6f}")
             print("\n")
 
         # Save convergence history
@@ -408,7 +408,7 @@ def sqp(func, v_init, v_lb=None, v_ub=None, options_in=None, consts=1.0):
 
     # ----- Summary -----
     if msg:
-        dur = time.time() - t0
+        dur = time.time() - start_time
         print(f" *          objective = {f_opt:11.3e}   evals = {function_count}   "
               f"time = {dur:.2f}s")
         print(" * ----------------------------------------------------------------------------")
@@ -439,6 +439,12 @@ def sqp(func, v_init, v_lb=None, v_ub=None, options_in=None, consts=1.0):
         if len(active_cstr) > 0:
             print(" * Active Constraints: " + "  ".join(f"{i+1:2d}" for i in active_cstr))
         print()
+
+    if msg > 2:
+        plt.figure(103)
+        ii = int(options[10])
+        jj = int(options[11])
+        plt.plot( v_opt[ii], v_opt[jj], f_opt, '-or', markersize=14 )
 
     # Trim history
     cvg_hist = cvg_hst[:, :iteration].copy()

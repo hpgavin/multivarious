@@ -13,6 +13,7 @@
 import numpy as np
 from matplotlib import pyplot as plt
 import time
+from datetime import datetime, timedelta
 
 from multivarious.utl.avg_cov_func import avg_cov_func
 from multivarious.utl.plot_opt_surface import plot_opt_surface
@@ -128,7 +129,7 @@ def nms(func, v_init, v_lb=None, v_ub=None, options_in=None, consts=1.0):
         f_min, f_max, ax = plot_opt_surface(func, (x1-s0)/s1, v_lb, v_ub, 
                                             options, consts, 103)
 
-    t0 = time.time()
+    start_time = time.time()
 
     # ----- Nelder-Mead algorithm coefficients -----
     # Gao + Han, Comput Optim Appl (2012) 51:259-277
@@ -192,7 +193,7 @@ def nms(func, v_init, v_lb=None, v_ub=None, options_in=None, consts=1.0):
                               (simplex[:, :n] + simplex[:, 1:n+1] + 1e-9)))
     cvg_f = abs((fx_all[n] - fx_all[0]) / (fx_all[0] + 1e-9))
 
-    xtx = " simplex :  vertex 1 "
+    xtx = " simplex :    vertex 1 "
     for i in range(n):
         xtx += f"   vertex {(i+2):1d} "
 
@@ -211,7 +212,7 @@ def nms(func, v_init, v_lb=None, v_ub=None, options_in=None, consts=1.0):
             xx = (simplex - s0[:, np.newaxis]) / s1[:, np.newaxis]
             print(xtx)
             for j in range(n):
-                xstr = "         " + " ".join(f"{xp:11.3e}" for xp in xx[j,:])
+                xstr = "           " + " ".join(f"{xp:11.3e}" for xp in xx[j,:])
                 print(xstr)
             print(" f_A    = " + " ".join(f"{f:11.3e}" for f in fx_all))
             print(" max(g) = " + " ".join(f"{g:11.3e}" for g in g_max))
@@ -363,10 +364,9 @@ def nms(func, v_init, v_lb=None, v_ub=None, options_in=None, consts=1.0):
 
         # ----- Display progress -----
         if msg:
-            elapsed = time.time() - t0
-            rate = function_count / max(elapsed, 1e-9)
-            remaining = max_evals - function_count
-            eta_sec = int(remaining / max(rate, 1e-9))
+            elapsed = time.time() - start_time
+            secs_left = int((max_evals - function_count) * elapsed / function_count)
+            eta = (datetime.now() + timedelta(seconds=secs_left)).strftime('%H:%M:%S')
 
             print('\033[H\033[J', end='')  # clear screen
             print(" ======================= NMS ============================")
@@ -375,26 +375,26 @@ def nms(func, v_init, v_lb=None, v_ub=None, options_in=None, consts=1.0):
             print(f"                                             {move_type}")
             print(f" function evaluations     = {function_count:5d} of {max_evals:5d}"
                   f" ({100.0*function_count/max_evals:4.1f}%)")
-            print(f" e.t.a.                   = ~{eta_sec//60}m{eta_sec%60:02d}s")
+            print(f" e.t.a.                   = {eta} ")
             print(f" objective                = {f_opt:11.3e}")
 
             if n < 10:
                 xx = (simplex - s0[:, np.newaxis]) / s1[:, np.newaxis]
                 print(xtx)
                 for j in range(n):
-                    xstr = "         " + " ".join(f"{xp:11.3e}" for xp in xx[j,:])
+                    xstr = "           " + " ".join(f"{xp:11.3e}" for xp in xx[j,:])
                     print(xstr)
-                print(" f_A      " + " ".join(f"{f:11.3e}" for f in fx_all))
-                print(" max(g) = " + " ".join(f"{g:11.3e}" for g in g_max))
-                print(" cov(f) = " + " ".join(f"{c:11.3e}" for c in cJ_all))
+                print(" f_A       " + " ".join(f"{f:11.3e}" for f in fx_all))
+                print(" max(g)   =" + " ".join(f"{g:11.3e}" for g in g_max))
+                print(" cov(F_A) =" + " ".join(f"{c:11.3e}" for c in cJ_all))
             else:
                 xx = (x_opt - s0) / s1
                 print(" variables             = " + " ".join(f"{v:11.3e}" for v in xx))
                 print(f" max constraint       = {np.max(g_opt):11.3e}")
 
-            print(f" objective convergence    = {cvg_f:11.4e}   tolF = {tol_f:8.6f}")
-            print(f" variable  convergence    = {cvg_v:11.4e}   tolX = {tol_v:8.6f}")
-            print(f" c.o.v. of f_A            = {cJ_all[0]:11.4e}")
+            print(f" objective convergence    = {cvg_f:11.4e}   tol_f = {tol_f:8.6f}")
+            print(f" variable  convergence    = {cvg_v:11.4e}   tol_v = {tol_v:8.6f}")
+            print(f" c.o.v. of F_A            = {cJ_all[0]:11.4e}")
             print("\n")
 
         # ----- Plot simplex on surface -----
@@ -460,7 +460,7 @@ def nms(func, v_init, v_lb=None, v_ub=None, options_in=None, consts=1.0):
 
     # ----- Summary -----
     if msg:
-        dur = time.time() - t0
+        dur = time.time() - start_time
         print(f" *          objective = {f_opt:11.3e}   evals = {function_count}   " f"time = {dur:.2f}s")
         print(" * ----------------------------------------------------------------------------")
         print(" *                v_init      v_lb     <    v_opt     <    v_ub      ")
@@ -480,6 +480,13 @@ def nms(func, v_init, v_lb=None, v_ub=None, options_in=None, consts=1.0):
             print(f" *  g[{j:3d}] = {gj:12.5f}  {tag}")
 
         print(" *\n *  ---------------------------------------------------------------------------")
+
+    if msg > 2:
+        plt.figure(103)
+        ii = int(options[10])
+        jj = int(options[11])
+        plt.plot( v_opt[ii], v_opt[jj], f_opt, '-or', markersize=14 )
+
     # Trim history
     cvg_hist = cvg_hst[:, :iteration].copy()
 
