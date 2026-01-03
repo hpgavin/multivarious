@@ -14,8 +14,8 @@ def opt_example_analysis(v,C):
     '''
     A simple 2D constrained optimization test problem.
     '''
-    v1 = v[0]                   # description of design variable 0, units
-    v2 = v[1]                   # description of design variable 1, units
+    v1 = v[0]                   # description of design variable "v1", units
+    v2 = v[1]                   # description of design variable "v2", units
 
     a = C.a                     # description of constant a, units
     b = C.b                     # description of constant b, units
@@ -26,12 +26,12 @@ def opt_example_analysis(v,C):
 
     # the array of constraints 
     g = np.array([
-        a[0] * ( (v1 - a[1])**2 + (v2 - a[2])**2 )/a[3] - 1,  # g1
-        1 - b[0]*( (v1 - b[1])**2 + (v2 - b[2])**2 )/b[3]     # g2
+        a[0] * ( (v1 - a[1])**2 + (v2 - a[2])**2 )/a[3] - 1,  # "g1"
+        1 - b[0]*( (v1 - b[1])**2 + (v2 - b[2])**2 )/b[3]     # "g2"
     ])
 
-    f = f[0]                    # the objective   - make f a scalar  
-    g = np.array([g]).T         # the constraints - make g a column vector
+    f = f[0]                    # the design objective   - make f a scalar  
+    g = np.array([g]).T         # the design constraints - make g a column vector
 
     return f, g
 
