@@ -78,7 +78,7 @@ def sqp(func, v_init, v_lb=None, v_ub=None, options_in=None, consts=1.0):
     v_init = np.clip(v_init, 0.9 * v_lb, 0.9 * v_ub)
 
     options   = opt_options(options_in)
-    msglev    = int(options[0])    # display level
+    msg    = int(options[0])    # display level
     tol_v     = float(options[1])  # design var convergence tol
     tol_f     = float(options[2])  # objective convergence tol
     tol_g     = float(options[3])  # constraint tol
@@ -119,7 +119,7 @@ def sqp(func, v_init, v_lb=None, v_ub=None, options_in=None, consts=1.0):
     cvg_hst[:, iteration - 1] = np.concatenate([(x - s0) / s1,
                                                 [f, np.max(g), function_count, 1.0, 1.0]])
 
-    if msglev > 2:
+    if msg > 2:
         f_min, f_max, ax = plot_opt_surface(func, (x-s0)/s1, v_lb, v_ub, options, consts, 103)
 
     # Initialize gradient and Hessian storage
@@ -140,7 +140,7 @@ def sqp(func, v_init, v_lb=None, v_ub=None, options_in=None, consts=1.0):
     StepLength = 1.0
     end_iterations = False
 
-    if msglev:
+    if msg:
         print(" *********************** SQP ****************************")
         print(f" iteration                = {iteration:5d}   "
               f"{'*** feasible ***' if np.max(g) <= tol_g else '!!! infeasible !!!'}")
@@ -170,7 +170,7 @@ def sqp(func, v_init, v_lb=None, v_ub=None, options_in=None, consts=1.0):
 
             # Update best solution if improved
             if np.max(g_fd) < tol_g and f_fd < f_opt:
-                if msglev > 1:
+                if msg > 1:
                     print(' update optimum point')
                 f_opt = f_fd
                 g_opt = g_fd.copy()
@@ -269,7 +269,7 @@ def sqp(func, v_init, v_lb=None, v_ub=None, options_in=None, consts=1.0):
         COST_1 = GOAL_1 + 1
         COST_2 = GOAL_2 + 1
 
-        if msglev > 1:
+        if msg > 1:
             print('   alpha      max{g}          COST_1           COST_2')
 
         StepLength = 2.0
@@ -286,7 +286,7 @@ def sqp(func, v_init, v_lb=None, v_ub=None, options_in=None, consts=1.0):
 
             # Update best solution
             if np.max(g) < tol_g and f < f_opt:
-                if msglev > 1:
+                if msg > 1:
                     print(' update optimum')
                 f_opt = f
                 g_opt = g.copy()
@@ -303,7 +303,7 @@ def sqp(func, v_init, v_lb=None, v_ub=None, options_in=None, consts=1.0):
             if not infeas and f < 0:
                 COST_2 = COST_2 + f - 1
 
-            if msglev > 1:
+            if msg > 1:
                 print(f'  {StepLength:9.2e}   {g_max:9.2e}  {COST_1:9.2e} '
                       f'{COST_1/GOAL_1:6.3f} {COST_2:9.2e} {COST_2/GOAL_2:6.3f}')
 
@@ -317,7 +317,7 @@ def sqp(func, v_init, v_lb=None, v_ub=None, options_in=None, consts=1.0):
         iteration += 1
 
         # ----- Display progress -----
-        if msglev:
+        if msg:
             elapsed = time.time() - t0
             rate = function_count / max(elapsed, 1e-9)
             remaining = max_evals - function_count
@@ -335,13 +335,13 @@ def sqp(func, v_init, v_lb=None, v_ub=None, options_in=None, consts=1.0):
                   f" ({100.0*function_count/max_evals:4.1f}%)")
             print(f" e.t.a.                   = ~{eta_sec//60}m{eta_sec%60:02d}s")
             print(f" objective                = {f:11.3e}")
-            print(" variables                = " + " ".join(f"{v:11.3e}" for v in (x-s0)/s1))
+            print(" variables                 = " + " ".join(f"{v:11.3e}" for v in (x-s0)/s1))
             print(f" max constraint           = {g_max:11.3e}  ({idx_max_g+1})")
             print(f" Step Size                = {StepLength:11.3e}")
             print(f" BFGS method              : {how}")
             print(f" QP method                : {howqp}")
-            print(f" Convergence F            = {cvg_f:11.4e}   tolF = {tol_f:8.6f}")
-            print(f" Convergence X            = {cvg_v:11.4e}   tolX = {tol_v:8.6f}")
+            print(f" objective convergence    = {cvg_f:11.4e}   tolF = {tol_f:8.6f}")
+            print(f" variable  convergence    = {cvg_v:11.4e}   tolX = {tol_v:8.6f}")
             print("\n")
 
         # Save convergence history
@@ -351,7 +351,7 @@ def sqp(func, v_init, v_lb=None, v_ub=None, options_in=None, consts=1.0):
         ])
 
         # Plot current point
-        if msglev > 2:
+        if msg > 2:
             ii = int(options[10])
             jj = int(options[11])
             x_plot = (x - s0) / s1
@@ -407,7 +407,7 @@ def sqp(func, v_init, v_lb=None, v_ub=None, options_in=None, consts=1.0):
     g_opt = g
 
     # ----- Summary -----
-    if msglev:
+    if msg:
         dur = time.time() - t0
         print(f" *          objective = {f_opt:11.3e}   evals = {function_count}   "
               f"time = {dur:.2f}s")

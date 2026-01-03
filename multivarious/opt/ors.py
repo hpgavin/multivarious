@@ -100,7 +100,7 @@ def ors(func, v_init, v_lb=None, v_ub=None, options=None, consts=None):
         consts = 1.0
     
     # extract options
-    msglev = int(options[0])
+    msg   = int(options[0])
     tol_v = options[1]
     tol_f = options[2]
     tol_g = options[3]
@@ -144,7 +144,7 @@ def ors(func, v_init, v_lb=None, v_ub=None, options=None, consts=None):
         raise ValueError('Constraints must be a column vector')
     
     # optional: plot objective surface
-    if msglev > 2:
+    if msg > 2:
         f_min, f_max, ax = plot_opt_surface(
             func, (x_init - s0) / s1, v_lb, v_ub, options, consts, 103)
 
@@ -153,7 +153,7 @@ def ors(func, v_init, v_lb=None, v_ub=None, options=None, consts=None):
     sigma = 0.200  # standard deviation of random perturbations
     nu = 2.5       # exponent for reducing sigma
     
-    if msglev:
+    if msg:
         start_time = time.time()
     
     # analyze initial guess
@@ -172,7 +172,7 @@ def ors(func, v_init, v_lb=None, v_ub=None, options=None, consts=None):
         [function_count], [sigma], [1.0]
     ])
     
-    if msglev:
+    if msg:
         print()  # clear screen effect
     
     x4 = x1.copy()
@@ -274,7 +274,7 @@ def ors(func, v_init, v_lb=None, v_ub=None, options=None, consts=None):
             iteration += 1
             
             # Display progress
-            if msglev:
+            if msg:
                 elapsed = time.time() - start_time
                 secs_left = int((max_evals - function_count) * elapsed / function_count)
                 eta = (datetime.now() + timedelta(seconds=secs_left)).strftime('%H:%M:%S')
@@ -298,16 +298,16 @@ def ors(func, v_init, v_lb=None, v_ub=None, options=None, consts=None):
                     print(f'{val:11.3e}', end='')
                 print()
                 print(f' max constraint          = {max_g:11.3e} ({idx_ub_g})')
-                print(f' Convergence Criterion F = {cvg_f:11.4e}    tolF = {tol_f:8.6f}')
-                print(f' Convergence Criterion X = {cvg_v:11.4e}    tolX = {tol_v:8.6f}')
-                print(f' c.o.v. of f_a           = {c1:11.3e}')
+                print(f' objective convergence   = {cvg_f:11.4e}    tolF = {tol_f:8.6f}')
+                print(f' variable  convergence   = {cvg_v:11.4e}    tolX = {tol_v:8.6f}')
+                print(f' c.o.v. of f_A           = {c1:11.3e}')
                 print(f' step std.dev (sigma)    = {sigma:5.3f}')
                 print(' -+-+-+-+-+-+-+-+-+-+- ORS -+-+-+-+-+-+-+-+-+-+-+-+-+')
                 if quad_update:
                     print(' line quadratic update successful')
         
         # optional: plot on surface
-        if msglev > 2:
+        if msg > 2:
             try:
                 v1 = (x1 - s0) / s1
                 v2 = (x2 - s0) / s1
@@ -366,7 +366,7 @@ def ors(func, v_init, v_lb=None, v_ub=None, options=None, consts=None):
     
     # check if maximum evaluations exceeded
     if function_count >= max_evals:
-        if msglev:
+        if msg:
             print(f'\n * Enough!! Maximum number of function evaluations ({max_evals}) '
                   'has been exceeded')
             print(' *   ... Increase tol_v (options[1]) or max_evals (options[4]) '
@@ -377,7 +377,7 @@ def ors(func, v_init, v_lb=None, v_ub=None, options=None, consts=None):
     v_opt = (x_opt - s0) / s1
     
     # final report
-    if msglev:
+    if msg:
         elapsed = time.time() - start_time
         completion_time = datetime.now().strftime('%H:%M:%S')
         elapsed_str = str(timedelta(seconds=int(elapsed)))

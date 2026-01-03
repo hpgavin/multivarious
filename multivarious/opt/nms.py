@@ -91,7 +91,7 @@ def nms(func, v_init, v_lb=None, v_ub=None, options_in=None, consts=1.0):
         raise ValueError("v_ub must be greater than v_lb for all parameters")
 
     options   = opt_options(options_in)
-    msglev    = int(options[0])   # display level
+    msg       = int(options[0])   # display level
     tol_v     = float(options[1]) # design var convergence tol
     tol_f     = float(options[2]) # objective convergence tol
     tol_g     = float(options[3]) # constraint tol
@@ -124,7 +124,7 @@ def nms(func, v_init, v_lb=None, v_ub=None, options_in=None, consts=1.0):
     cvg_hst[:, iteration - 1] = np.concatenate([(x1 - s0) / s1,
                                 [fx, np.max(gx), function_count, 1.0, 1.0]])
 
-    if msglev > 2:
+    if msg > 2:
         f_min, f_max, ax = plot_opt_surface(func, (x1-s0)/s1, v_lb, v_ub, 
                                             options, consts, 103)
 
@@ -200,7 +200,7 @@ def nms(func, v_init, v_lb=None, v_ub=None, options_in=None, consts=1.0):
     cvg_hst[:, iteration - 1] = np.concatenate([(simplex[:, 0] - s0) / s1,
                       [fx_all[0], g_max[0], function_count, cvg_v, cvg_f]])
 
-    if msglev:
+    if msg:
         print('\033[H\033[J', end='')  # Clear screen
         print(" ======================= NMS ============================")
         print(f" iteration                = {iteration:5d}   "
@@ -213,8 +213,8 @@ def nms(func, v_init, v_lb=None, v_ub=None, options_in=None, consts=1.0):
             for j in range(n):
                 xstr = "         " + " ".join(f"{xp:11.3e}" for xp in xx[j,:])
                 print(xstr)
-            print(" F =     " + " ".join(f"{f:11.3e}" for f in fx_all))
-            print(" G_max = " + " ".join(f"{g:11.3e}" for g in g_max))
+            print(" f_A    = " + " ".join(f"{f:11.3e}" for f in fx_all))
+            print(" max(g) = " + " ".join(f"{g:11.3e}" for g in g_max))
         print("\n")
 
     # ============================ main loop ============================
@@ -362,7 +362,7 @@ def nms(func, v_init, v_lb=None, v_ub=None, options_in=None, consts=1.0):
                                                     [f_opt, np.max(g_opt), function_count, cvg_v, cvg_f]])
 
         # ----- Display progress -----
-        if msglev:
+        if msg:
             elapsed = time.time() - t0
             rate = function_count / max(elapsed, 1e-9)
             remaining = max_evals - function_count
@@ -384,21 +384,21 @@ def nms(func, v_init, v_lb=None, v_ub=None, options_in=None, consts=1.0):
                 for j in range(n):
                     xstr = "         " + " ".join(f"{xp:11.3e}" for xp in xx[j,:])
                     print(xstr)
-                print(" F =     " + " ".join(f"{f:11.3e}" for f in fx_all))
-                print(" G_max = " + " ".join(f"{g:11.3e}" for g in g_max))
-                print(" COV =   " + " ".join(f"{c:11.3e}" for c in cJ_all))
+                print(" f_A      " + " ".join(f"{f:11.3e}" for f in fx_all))
+                print(" max(g) = " + " ".join(f"{g:11.3e}" for g in g_max))
+                print(" cov(f) = " + " ".join(f"{c:11.3e}" for c in cJ_all))
             else:
                 xx = (x_opt - s0) / s1
-                print(" variables                = " + " ".join(f"{v:11.3e}" for v in xx))
-                print(f" max constraint           = {np.max(g_opt):11.3e}")
+                print(" variables             = " + " ".join(f"{v:11.3e}" for v in xx))
+                print(f" max constraint       = {np.max(g_opt):11.3e}")
 
-            print(f" Convergence F            = {cvg_f:11.4e}   tolF = {tol_f:8.6f}")
-            print(f" Convergence X            = {cvg_v:11.4e}   tolX = {tol_v:8.6f}")
-            print(f" c.o.v. of J_a            = {cJ_all[0]:11.4e}")
+            print(f" objective convergence    = {cvg_f:11.4e}   tolF = {tol_f:8.6f}")
+            print(f" variable  convergence    = {cvg_v:11.4e}   tolX = {tol_v:8.6f}")
+            print(f" c.o.v. of f_A            = {cJ_all[0]:11.4e}")
             print("\n")
 
         # ----- Plot simplex on surface -----
-        if msglev > 2:
+        if msg > 2:
             ii = int(options[10])
             jj = int(options[11])
             simplex_plot = (simplex - s0[:, np.newaxis]) / s1[:, np.newaxis]
@@ -417,13 +417,13 @@ def nms(func, v_init, v_lb=None, v_ub=None, options_in=None, consts=1.0):
 
         # ----- Termination checks -----
         if np.max(g_opt) < tol_g and find_feas:
-            if msglev:
+            if msg:
                 print(" * Woo Hoo!  Feasible solution found!")
                 print(" *           ... and that is all we are asking for.")
             break
 
         if cvg_v < tol_v or cvg_f < tol_f:
-            if msglev:
+            if msg:
                 print(" * Woo Hoo!  Converged solution found!")
                 if cvg_v < tol_v:
                     print(" *           convergence in design variables")
@@ -437,7 +437,7 @@ def nms(func, v_init, v_lb=None, v_ub=None, options_in=None, consts=1.0):
             break
 
         if function_count - last_update > 0.20 * max_evals:
-            if msglev:
+            if msg:
                 print(f" * Hmmm ... Best solution not improved in last "
                       f"{function_count - last_update} evaluations")
                 print(" * Increase tol_v (options[1]) or tol_f (options[2]) "
@@ -450,7 +450,7 @@ def nms(func, v_init, v_lb=None, v_ub=None, options_in=None, consts=1.0):
             break
 
     # ----- Time-out message -----
-    if function_count >= max_evals and msglev:
+    if function_count >= max_evals and msg:
         print(f" * Enough! max evaluations ({max_evals}) exceeded.")
         print(" * Increase tol_v (options[1]) or tol_f (options[2]) "
               "or max_evals (options[4]) and try again")
@@ -459,7 +459,7 @@ def nms(func, v_init, v_lb=None, v_ub=None, options_in=None, consts=1.0):
     v_opt = (x_opt - s0) / s1
 
     # ----- Summary -----
-    if msglev:
+    if msg:
         dur = time.time() - t0
         print(f" *          objective = {f_opt:11.3e}   evals = {function_count}   " f"time = {dur:.2f}s")
         print(" * ----------------------------------------------------------------------------")

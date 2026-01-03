@@ -18,7 +18,7 @@ def plot_cvg_hst(cvg_hst, v_opt, figNo=1002, clr=None):
     Plot the convergence history for optimization solutions.
     
     Creates two figures:
-    - Figure figNo+1: F and X convergence criteria
+    - Figure figNo+1: F and V convergence criteria
     - Figure figNo: Objective function, design variables, and constraints
     
     Parameters
@@ -29,7 +29,7 @@ def plot_cvg_hst(cvg_hst, v_opt, figNo=1002, clr=None):
         - Row n contains objective function values
         - Row n+1 contains max constraint values
         - Row n+2 contains function count
-        - Row n+3 contains X convergence criterion
+        - Row n+3 contains V convergence criterion
         - Row n+4 contains F convergence criterion
     v_opt : ndarray, shape (n,)
         Optimal design variables computed by optimizer
@@ -102,10 +102,10 @@ def plot_cvg_hst(cvg_hst, v_opt, figNo=1002, clr=None):
             else:
                 plt.plot(fc, f_conv, linewidth=lw)
         
-        plt.ylabel(r'$F$ convergence')
+        plt.ylabel(r'objective convergence')
         plt.grid(True, alpha=0.3)
         
-        # Subplot 2: X convergence criterion
+        # Subplot 2: V convergence criterion
         plt.subplot(2, 1, 2)
         x_conv = cvg_hst[n + 3, :]
         
@@ -121,7 +121,7 @@ def plot_cvg_hst(cvg_hst, v_opt, figNo=1002, clr=None):
             else:
                 plt.plot(fc, x_conv, linewidth=lw)
         
-        plt.ylabel(r'$X$ convergence')
+        plt.ylabel(r'variable convergence')
         plt.xlabel('function evaluations')
         plt.grid(True, alpha=0.3)
         
@@ -244,7 +244,7 @@ if __name__ == "__main__":
     # Function count
     cvg_hst[n + 2, :] = fc
     
-    # X convergence criterion
+    # V convergence criterion
     cvg_hst[n + 3, :] = 10 * np.exp(-0.12 * fc)
     
     # F convergence criterion
