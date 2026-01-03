@@ -62,7 +62,7 @@ def avg_cov_func(func, v, s0, s1, options, consts=None, BOX=1):
         g = np.asarray(g, dtype=float).flatten()       # constraints as a vector
         F_A = f + penalty * np.sum(g * (g > tol_g))**q # augmented objective
 
-        # Knuth's recursive update of a mean and a standard deviation 
+        # Welford's recursive update of a mean and a standard deviation 
         dF = F_A - M_F
         M_F += dF / m                 # update the mean of F
         ssq_F += dF * (F_A - M_F)     # update the sum of squares of F
@@ -83,3 +83,14 @@ def avg_cov_func(func, v, s0, s1, options, consts=None, BOX=1):
 #       F_risk = max_F;                       # largest-of-N values
 
     return F_risk, avg_g, v, C_F, m
+
+"""
+Welford, B. P. (1962).
+"Note on a method for calculating corrected sums of squares and products".
+Technometrics. 4 (3): 419–420. doi:10.2307/1266577. JSTOR 1266577.
+
+Donald E. Knuth (1998).
+The Art of Computer Programming, volume 2: Seminumerical Algorithms, 3rd edn.,
+p. 232. Boston: Addison-Wesley.
+See Section 4.2.2, Exercise 12, and the accompanying discussion on updating variance and mean recursively.
+"""
