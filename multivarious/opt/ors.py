@@ -283,7 +283,7 @@ def ors(func, v_init, v_lb=None, v_ub=None, options=None, consts=None):
                 idx_ub_g = np.argmax(g_opt)
                 
                 print('\033[H\033[J', end='')  # clear screen
-                print(' -+-+-+-+-+-+-+-+-+-+- ORS -+-+-+-+-+-+-+-+-+-+-+-+-+')
+                print(' +-+-+-+-+-+-+-+-+-+-+- ORS -+-+-+-+-+-+-+-+-+-+-+-+-+')
                 print(f' iteration               = {iteration:5d}', end='')
                 if max_g > tol_g:
                     print('     !!! infeasible !!!')
@@ -302,7 +302,7 @@ def ors(func, v_init, v_lb=None, v_ub=None, options=None, consts=None):
                 print(f' variable  convergence   = {cvg_v:11.4e}    tol_v = {tol_v:8.6f}')
                 print(f' c.o.v. of F_A           = {c1:11.3e}')
                 print(f' step std.dev (sigma)    = {sigma:5.3f}')
-                print(' -+-+-+-+-+-+-+-+-+-+- ORS -+-+-+-+-+-+-+-+-+-+-+-+-+')
+                print(' +-+-+-+-+-+-+-+-+-+-+- ORS -+-+-+-+-+-+-+-+-+-+-+-+-+')
                 if quad_update:
                     print(' line quadratic update successful')
         
@@ -378,7 +378,8 @@ def ors(func, v_init, v_lb=None, v_ub=None, options=None, consts=None):
     
     # final report
     if msg:
-        print(f' * Objective   : {f_opt:11.3e}')
+        dur = time.time() - start_time
+        print(f" * objective = {f_opt:11.3e}   evals = {function_count}   " f"time = {dur:.2f}s")
         print(' * --------------------------------------------------------------')
         print(' *             v_init         v_lb     <     v_opt    <     v_ub')
         print(' * --------------------------------------------------------------')

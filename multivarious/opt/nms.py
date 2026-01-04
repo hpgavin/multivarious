@@ -461,7 +461,7 @@ def nms(func, v_init, v_lb=None, v_ub=None, options_in=None, consts=1.0):
     # ----- Summary -----
     if msg:
         dur = time.time() - start_time
-        print(f" *          objective = {f_opt:11.3e}   evals = {function_count}   " f"time = {dur:.2f}s")
+        print(f" * objective = {f_opt:11.3e}   evals = {function_count}   " f"time = {dur:.2f}s")
         print(" * ----------------------------------------------------------------------------")
         print(" *                v_init      v_lb     <    v_opt     <    v_ub      ")
         print(" * ----------------------------------------------------------------------------")
