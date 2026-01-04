@@ -147,7 +147,7 @@ def sqp(func, v_init, v_lb=None, v_ub=None, options_in=None, consts=1.0):
               f"{'*** feasible ***' if np.max(g) <= tol_g else '!!! infeasible !!!'}")
         print(f" function evaluations     = {function_count:5d} of {max_evals:5d}")
         print(f" objective                = {f:11.3e}")
-        print(" variables                = " + " ".join(f"{v:11.3e}" for v in (x-s0)/s1))
+        print(" variables                 = " + " ".join(f"{v:11.3e}" for v in (x-s0)/s1))
         print(f" max constraint           = {np.max(g):11.3e}")
         print(" *********************** SQP ****************************")
 
@@ -335,7 +335,7 @@ def sqp(func, v_init, v_lb=None, v_ub=None, options_in=None, consts=1.0):
                   f" ({100.0*function_count/max_evals:4.1f}%)")
             print(f" e.t.a.                   = {eta} ")
             print(f" objective                = {f:11.3e}")
-            print(" variables                 = " + " ".join(f"{v:11.3e}" for v in (x-s0)/s1))
+            print(f" variables                = " + " ".join(f"{v:11.3e}" for v in (x-s0)/s1))
             print(f" max constraint           = {g_max:11.3e}  ({idx_max_g+1})")
             print(f" Step Size                = {StepLength:11.3e}")
             print(f" BFGS method              : {how}")
@@ -438,7 +438,7 @@ def sqp(func, v_init, v_lb=None, v_ub=None, options_in=None, consts=1.0):
         active_cstr = np.where(LAMBDA > 0)[0]
         if len(active_cstr) > 0:
             print(" * Active Constraints: " + "  ".join(f"{i+1:2d}" for i in active_cstr))
-        print()
+        print(" * ----------------------------------------------------------------------------")
 
     if msg > 2:
         plt.figure(103)
@@ -448,6 +448,11 @@ def sqp(func, v_init, v_lb=None, v_ub=None, options_in=None, consts=1.0):
 
     # Trim history
     cvg_hist = cvg_hst[:, :iteration].copy()
+
+    elapsed = time.time() - start_time
+    completion_time = datetime.now().strftime('%H:%M:%S')
+    elapsed_str = str(timedelta(seconds=int(elapsed)))
+    print(f' * Completion  : {completion_time} ({elapsed_str})')
 
     return v_opt, f_opt, g_opt, cvg_hist, lambda_qp, HESS
 

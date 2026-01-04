@@ -378,13 +378,8 @@ def ors(func, v_init, v_lb=None, v_ub=None, options=None, consts=None):
     
     # final report
     if msg:
-        elapsed = time.time() - start_time
-        completion_time = datetime.now().strftime('%H:%M:%S')
-        elapsed_str = str(timedelta(seconds=int(elapsed)))
-        
-        print(f' * \n * Completion  : {completion_time} ({elapsed_str})')
         print(f' * Objective   : {f_opt:11.3e}')
-        print(' * Variables   :')
+        print(' * --------------------------------------------------------------')
         print(' *             v_init         v_lb     <     v_opt    <     v_ub')
         print(' * --------------------------------------------------------------')
         
@@ -407,7 +402,7 @@ def ors(func, v_init, v_lb=None, v_ub=None, options=None, consts=None):
             if g_opt[j] > tol_g:
                 binding = ' ** not ok  ** '
             print(f' *     g({j:3d}) = {g_opt[j]:12.5f}  {binding}')
-        print(' *\n * --------------------------------------------------------------\n')
+        print(' *\n * --------------------------------------------------------------')
 
     if msg > 2:
         plt.figure(103)
@@ -421,7 +416,12 @@ def ors(func, v_init, v_lb=None, v_ub=None, options=None, consts=None):
     ])
     cvg_hst[n+4, 0:2] = cvg_hst[n+4, 2]
     cvg_hst = cvg_hst[:, 0:iteration+1]
-    
+
+    elapsed = time.time() - start_time
+    completion_time = datetime.now().strftime('%H:%M:%S')
+    elapsed_str = str(timedelta(seconds=int(elapsed)))
+    print(f' * Completion  : {completion_time} ({elapsed_str})')
+   
     return v_opt, f_opt, g_opt, cvg_hst, iteration, function_count
 
 # ======================================================================
