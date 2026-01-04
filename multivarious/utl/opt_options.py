@@ -38,7 +38,7 @@ def opt_options(options_in=None):
         35,      # [13] # of second-index values for plotting
         1e-6,    # [14] finite diff minimum param. change
         2,       # [15] penalty type
-        1e-6,    # [17] min param. change for finite diff gradients
+        1e-6,    # [16] min param. change for finite diff gradients
         1e-1,    # [17] max param. change for finite diff gradients
         0        # [18] number of equality constraints
     ], dtype=float)

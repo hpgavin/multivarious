@@ -216,7 +216,7 @@ def nms(func, v_init, v_lb=None, v_ub=None, options_in=None, consts=1.0):
                 print(xstr)
             print(" f_A    = " + " ".join(f"{f:11.3e}" for f in fx_all))
             print(" max(g) = " + " ".join(f"{g:11.3e}" for g in g_max))
-        print("\n")
+        print(" ======================= NMS ============================\n")
 
     # ============================ main loop ============================
     while function_count < max_evals:
@@ -395,7 +395,7 @@ def nms(func, v_init, v_lb=None, v_ub=None, options_in=None, consts=1.0):
             print(f" objective convergence    = {cvg_f:11.4e}   tol_f = {tol_f:8.6f}")
             print(f" variable  convergence    = {cvg_v:11.4e}   tol_v = {tol_v:8.6f}")
             print(f" c.o.v. of F_A            = {cJ_all[0]:11.4e}")
-            print("\n")
+            print(" ======================= NMS ============================\n")
 
         # ----- Plot simplex on surface -----
         if msg > 2:

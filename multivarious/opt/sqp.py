@@ -149,7 +149,7 @@ def sqp(func, v_init, v_lb=None, v_ub=None, options_in=None, consts=1.0):
         print(f" objective                = {f:11.3e}")
         print(" variables                = " + " ".join(f"{v:11.3e}" for v in (x-s0)/s1))
         print(f" max constraint           = {np.max(g):11.3e}")
-        print("\n")
+        print(" *********************** SQP ****************************")
 
     # ============================ main loop ============================
     while not end_iterations:
@@ -342,7 +342,7 @@ def sqp(func, v_init, v_lb=None, v_ub=None, options_in=None, consts=1.0):
             print(f" QP method                : {howqp}")
             print(f" objective convergence    = {cvg_f:11.4e}   tol_f = {tol_f:8.6f}")
             print(f" variable  convergence    = {cvg_v:11.4e}   tol_v = {tol_v:8.6f}")
-            print("\n")
+            print(" *********************** SQP ****************************\n")
 
         # Save convergence history
         cvg_hst[:, iteration - 1] = np.concatenate([
