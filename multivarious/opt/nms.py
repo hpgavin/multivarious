@@ -471,7 +471,7 @@ def nms(func, v_init, v_lb=None, v_ub=None, options_in=None, consts=1.0):
             binding = ' ** binding **' if eqlb == '=' or equb == '=' else ''
             print(f" *  v[{i+1:3d}]  {v_init[i]:11.4f} "
                   f"{v_lb[i]:11.4f} {eqlb} {v_opt[i]:12.5f} {equb} {v_ub[i]:11.4f} {binding}")
-        print(" * ---------------------------------------------------------------------------")
+        print(" * ----------------------------------------------------------------------------")
         print(" * Constraints:")
         for j, gj in enumerate(np.atleast_1d(g_opt).flatten(), 1):
             tag = " ** binding **" if gj > -tol_g else ""
@@ -479,7 +479,7 @@ def nms(func, v_init, v_lb=None, v_ub=None, options_in=None, consts=1.0):
                 tag = " ** not ok **"
             print(f" *  g[{j:3d}] = {gj:12.5f}  {tag}")
 
-        print(" *\n * ---------------------------------------------------------------------------")
+        print(" *\n * ----------------------------------------------------------------------------")
 
     if msg > 2:
         plt.figure(103)
