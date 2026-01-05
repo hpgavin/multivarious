@@ -35,31 +35,36 @@ def LP_analysis( v , C ):
     b = C.b             # constraint vector (dimension m by 1)
     c = C.c             # cost coefficient vector (dimension n by 1)
 
-    f = np.dot(c.T, v)  # the cost function
+    f = c @ v           # the cost function
 
     g = A @ v - b       # the constraint inequalities, compared to zero
 
-    return f[0], g
+    return f, g
 
 # Set-up and Solve the optimization problem. ===============================
 
 # Constants used within the optimization analysis ... 
-n = 3                                # the number of design variables
-m = 4                                # the number of design constraints
 
 C = SimpleNamespace()        
-C.A = np.random.randn(m,n)           # g = A@v - b 
-C.b = np.random.randn(m,1)
-C.c = np.random.randn(n,1)           # f = c@v
 
-v_init = np.zeros(n) 
+C.A = np.array([ [ 2, 1, 1, 3 ] , 
+                 [ 1, 3, 2, 1 ] , 
+                 [ 1, 1, 4, 2 ] ]) 
+
+C.b =  np.array([ 10, 15, 20 ]) 
+
+C.c = -np.array([ 3, 5, 2, 4 ])       # f = c@v
+
+(m,n) = C.A.shape
+
+v_init = np.ones(n) 
 v_lb   = np.zeros(n)
-v_ub   = np.ones(n)
+v_ub   = 10*np.ones(n)
 
 # optimization options ...
 #        0      1        2        3         4          5      6      7     8
 #       msg    tol_v    tol_f    tol_g    max_evals  pnlty  expn  m_max  cov_F
-opts = [ 3 ,   1e-2 ,   1e-2 ,   1e-3 ,    50*n**3 ,  0.5 ,  0.5 ,   1 ,  0.05 ]
+opts = [ 1 ,   1e-2 ,   1e-2 ,   1e-3 ,    50*n**3 ,  0.5 ,  0.5 ,   1 ,  0.05 ]
 
 # Solve the optimization problem using one of ... ors , nms , sqp 
 v_opt, f_opt, g_opt, cvg_hst, _,_  = sqp(LP_analysis, v_init, v_lb, v_ub, opts, C)

@@ -116,7 +116,6 @@ methods: distribution.pdf(), distribution.cdf(), distribution.inv(), distributio
 | module               | description                                                                     |
 | -------------------- | ------------------------------------------------------------------------------- |
 | **L1_plots**         | plot results from L1_fit                                                        |
-| **LP_analysis**      | to solve any LP using ors, nms, or sqp                                          |
 | **avg_cov_func**     | estimate the value of an uncertain computation to desired precision             |
 | **format_bank**      | format a numerical string                                                       |
 | **format_plot**      | set the font size, line width, and marker size                                  |
