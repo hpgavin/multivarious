@@ -45,7 +45,7 @@ def LP_analysis( v , C ):
 
 # Constants used within the optimization analysis ... 
 
-C = SimpleNamespace()        
+C = SimpleNamespace()
 
 C.A = np.array([ [ 2, 1, 1, 3 ] , 
                  [ 1, 3, 2, 1 ] , 
@@ -53,7 +53,7 @@ C.A = np.array([ [ 2, 1, 1, 3 ] ,
 
 C.b =  np.array([ 10, 15, 20 ]) 
 
-C.c = -np.array([ 3, 5, 2, 4 ])       # f = c@v
+C.c = -np.array([ 3, 5, 2, 4 ])       # minimize f(v) = c@v
 
 (m,n) = C.A.shape
 
@@ -67,7 +67,7 @@ v_ub   = 10*np.ones(n)
 opts = [ 1 ,   1e-2 ,   1e-2 ,   1e-3 ,    50*n**3 ,  0.5 ,  0.5 ,   1 ,  0.05 ]
 
 # Solve the optimization problem using one of ... ors , nms , sqp 
-v_opt, f_opt, g_opt, cvg_hst, _,_  = sqp(LP_analysis, v_init, v_lb, v_ub, opts, C)
+v_opt, f_opt, g_opt, cvg_hst, _,_ = sqp(LP_analysis, v_init, v_lb, v_ub, opts, C)
 
 # plot the convergence history
 plot_cvg_hst( cvg_hst , v_opt )
