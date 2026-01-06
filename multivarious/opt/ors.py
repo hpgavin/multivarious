@@ -189,6 +189,7 @@ def ors(func, v_init, v_lb=None, v_ub=None, options=None, consts=None):
         
         # 1st perturbation: +1*r
         aa, _ = box_constraint(x1, r)
+        # aa, bb = 1 , -1   # no box constraint
         x2 = x1 + aa * r
         
         fa[1], g2, x2, c2, nAvg = avg_cov_func(func, x2, s0, s1, options, consts, BOX)
@@ -198,14 +199,15 @@ def ors(func, v_init, v_lb=None, v_ub=None, options=None, consts=None):
         if fa[1] < fa[0]:
             step = +2
         else:
-            step = -1
+            step = -2 # -1 or -2  
         
-        # 2nd perturbation: -1*r or +2*r
+        # 2nd perturbation: step*r 
         aa, bb = box_constraint(x1, step * r)
+        # aa, bb = 1 , -1   # no box constraint
         if step > 0:
             x3 = x1 + aa * step * r
         else:
-            x3 = x1 + bb * r
+            x3 = x1 + bb * step * r
         
         fa[2], g3, x3, c3, nAvg = avg_cov_func(func, x3, s0, s1, options, consts, BOX)
         function_count += nAvg
@@ -236,11 +238,17 @@ def ors(func, v_init, v_lb=None, v_ub=None, options=None, consts=None):
             
             fa[3], g4, x4, c4, nAvg = avg_cov_func(func, x4, s0, s1, options, consts, BOX)
             function_count += nAvg
+
+        # save variables and functions for plotting (msg > 2)
+        v1 , f1 = (x1 - s0) / s1 , fa[0]
+        v2 , f2 = (x2 - s0) / s1 , fa[1]
+        v3 , f3 = (x3 - s0) / s1 , fa[2]
+        v4 , f4 = (x4 - s0) / s1 , fa[3]
         
         # find best of the 4 evaluations
         i_min = np.argmin(fa)
         fa[0] = fa[i_min]
-        
+
         if i_min == 1:
             x1, g1, c1 = x2, g2, c2
         elif i_min == 2:
@@ -306,36 +314,27 @@ def ors(func, v_init, v_lb=None, v_ub=None, options=None, consts=None):
                 if quad_update:
                     print(' line quadratic update successful')
         
-        # optional: plot on surface
-        if msg > 2:
-            try:
-                v1 = (x1 - s0) / s1
-                v2 = (x2 - s0) / s1
-                v3 = (x3 - s0) / s1
-                v4 = (x4 - s0) / s1
-                f_offset = (f_max - f_min) / 100
-                
+            # plot on surface
+            if msg > 2:
+           
                 plt.figure(103)
                 ii = int(options[10])
                 jj = int(options[11])
-                
-                if step == -1:
-                    plt.plot([v2[ii], v1[ii], v3[ii]], 
-                            [v2[jj], v1[jj], v3[jj]],
-                            fa[[1, 0, 2]] + f_offset, '-or', markersize=4)
+            
+                if step > 0:
+                    plt.plot([ v1[ii], v2[ii], v3[ii] ], 
+                             [ v1[jj], v2[jj], v3[jj] ],
+                             [ f1,     f2,     f3 ], '-or', markersize=4) 
                 else:
-                    plt.plot([v1[ii], v2[ii], v3[ii]], 
-                            [v1[jj], v2[jj], v3[jj]],
-                            fa[[0, 1, 2]] + f_offset, '-or', markersize=4)
-                
+                    plt.plot([v2[ii], v1[ii], v3[ii] ], 
+                             [v2[jj], v1[jj], v3[jj] ],
+                             [f2,     f1,     f3 ], '-or', markersize=4) 
                 if quad_update:
-                    plt.plot([v4[ii]], [v4[jj]], fa[3] + f_offset, 
+                    plt.plot([v4[ii]], [v4[jj]], fa[3], 
                             'ob', markersize=9, linewidth=3)
                 
                 plt.draw()
-                plt.pause(0.01)
-            except:
-                pass
+                #plt.pause(0.01)
         
         # check for feasible solution
         if np.max(g_opt) < tol_g and find_feas:
