@@ -15,7 +15,7 @@ def plot_ensemble(t: np.ndarray,
                   y1: Optional[np.ndarray] = None,
                   y2: Optional[np.ndarray] = None, 
                   y3: Optional[np.ndarray] = None,
-                  fig: Optional[int] = None,
+                  fig_num: Optional[int] = None,
                   t_min: Optional[float] = None,
                   t_max: Optional[float] = None,
                   lbl: str = 'y',
@@ -40,7 +40,7 @@ def plot_ensemble(t: np.ndarray,
     y3 : ndarray, optional
         Third dataset, shape (m3, N) where m3 is number of channels
         Plotted in purple, medium line
-    fig : int, optional
+    fig_num : int, optional
         Figure number. If None, creates new figure
     t_min : float, optional
         Minimum time for x-axis. Default: t[0]
@@ -72,6 +72,7 @@ def plot_ensemble(t: np.ndarray,
     >>> y2 = y1 + 0.2*np.random.randn(3, len(t))
     >>> fig = plot_ensemble(t, y1, y2, lbl='channel')
     """
+
     # Handle empty arrays
     if y1 is None:
         y1 = np.array([])
@@ -126,8 +127,8 @@ def plot_ensemble(t: np.ndarray,
     
     # Create or get figure and axes
     if ax is None:
-        if fig is not None:
-            fig_obj = plt.figure(fig)
+        if fig_num is not None:
+            fig_obj = plt.figure(fig_num)
             plt.clf()
         else:
             fig_obj = plt.figure(figsize=(12, 2*m + 2))
@@ -199,9 +200,8 @@ def plot_ensemble(t: np.ndarray,
     ax.set_clip_on(False)
     
     plt.tight_layout()
-    
+   
     return fig_obj
-
 
 # ============================================================================
 # Example usage
@@ -210,10 +210,14 @@ if __name__ == "__main__":
     """
     Demonstration of the plot_ensemble function with synthetic data.
     """
-    # Enable interactive mode
-    plt.ion()
-    plt.rcParams['text.usetex'] = False  # Set to True if LaTeX is installed
+    #plt.rcParams['text.usetex'] = True # Set to True if LaTeX is installed
     
+    pdf_plots = True # Set to True to save PDF files
+    interactive = True # Enable interactive mode for matplotlib
+
+    if interactive:
+        plt.ion() # plot interactive mode: on
+
     # ========================================================================
     # Generate synthetic ensemble data
     # ========================================================================
@@ -250,8 +254,9 @@ if __name__ == "__main__":
     # ========================================================================
     # Example 1: Plot all three datasets
     # ========================================================================
+    fig_num = 1
     fig1 = plot_ensemble(t, y1, y2, y3, 
-                        fig=1,
+                        fig_num=fig_num,
                         t_min=0, 
                         t_max=10,
                         lbl='channel')
@@ -267,21 +272,43 @@ if __name__ == "__main__":
         Line2D([0], [0], color=[0.8, 0.2, 0.8], lw=2.0, label='Filtered (y3)')
     ]
     ax.legend(handles=legend_elements, loc='upper right', fontsize=12)
-    
+
+    # Display plots
+    if not interactive:
+        plt.show()
+
+    # Save plots to .pdf
+    if pdf_plots:
+        filename = f'plot_ensemble-{fig_num:04d}.pdf'
+        plt.savefig(filename, bbox_inches='tight', dpi=300)
+        print(f"Saved: {filename}")
+
     # ========================================================================
     # Example 2: Plot single dataset with zoom
     # ========================================================================
+    fig_num = 2
     fig2 = plot_ensemble(t, y1=None, y2=y2, y3=None,
-                        fig=2,
+                        fig_num=fig_num,
                         t_min=2.0,
                         t_max=4.0,
                         lbl='signal')
     fig2.suptitle('Ensemble Plot: Zoomed View (2-4 seconds)', 
                   fontsize=16, fontweight='bold')
-    
+
+    # Display plots
+    if not interactive:
+        plt.show()
+
+    # Save plots to .pdf
+    if pdf_plots:
+        filename = f'plot_ensemble-{fig_num:04d}.pdf'
+        plt.savefig(filename, bbox_inches='tight', dpi=300)
+        print(f"Saved: {filename}")
+
     # ========================================================================
     # Example 3: Many channels (stress test)
     # ========================================================================
+    fig_num = 3
     t_long = np.linspace(0, 5, 1000)
     m_many = 8
     y_many = np.zeros((m_many, len(t_long)))
@@ -291,14 +318,27 @@ if __name__ == "__main__":
         y_many[i, :] += 3 * np.random.randn(len(t_long))
     
     fig3 = plot_ensemble(t_long, y1=None, y2=y_many, y3=None,
-                        fig=3,
+                        fig_num=fig_num,
                         lbl='response')
     fig3.suptitle('Ensemble Plot: 8 Channels with Decay', 
                   fontsize=16, fontweight='bold')
     fig3.set_size_inches(12, 12)
     
-    plt.show()
-    
+    # Display plots
+    if not interactive:
+        plt.show()
+
+    # Save plots to .pdf
+    if pdf_plots:
+        filename = f'plot_ensemble-{fig_num:04d}.pdf'
+        plt.savefig(filename, bbox_inches='tight', dpi=300)
+        print(f"Saved: {filename}")
+
+
+    if interactive: 
+        input("Press Enter to close all figures...")
+        plt.close('all')
+  
     # ========================================================================
     # Print usage information
     # ========================================================================

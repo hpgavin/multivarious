@@ -3,7 +3,7 @@ import matplotlib.pyplot as plt
 from scipy.special import betaincinv
 from scipy.stats import norm
 
-def plot_CDF_ci(data, confidence_level, fig_no, x_label='sorted sample values', norm_inv_CDF=False ):
+def plot_CDF_ci(data, confidence_level, fig_num, x_label='sorted sample values', norm_inv_CDF=False ):
     """
     Plot empirical CDF of data with confidence intervals.
     
@@ -13,14 +13,22 @@ def plot_CDF_ci(data, confidence_level, fig_no, x_label='sorted sample values', 
         Data values
     confidence_level : float
         Confidence level (e.g., 95 for 95%)
-    fig_no : int
+    fig_num : int
         Figure number
     x_label : string
         label for the x axis
     norm_inv_CDF : boolean
         True: plot norm inverse of F , False: plot F (default)
     """
+
+    #plt.rcParams['text.usetex'] = True # Set to True if LaTeX is installed
+
+    pdf_plots = True  # Set to True to save PDF files
+    interactive = True # Enable interactive mode for matplotlib
     
+    if interactive:
+        plt.ion() # plot interactive mode: on
+
     data = np.asarray(data).flatten()
     N = len(data)
     
@@ -75,8 +83,7 @@ def plot_CDF_ci(data, confidence_level, fig_no, x_label='sorted sample values', 
     #cdf_theory = norm.cdf(z_theory)  
     
     # Plotting ---------------------------------------------------
-    plt.ion() # plot interactive mode: on
-    fig = plt.figure(fig_no, figsize=(10, 7))
+    fig = plt.figure(fig_num, figsize=(10, 7))
     fig.clf()
 
     # select which confidence interval to plot
@@ -139,7 +146,20 @@ def plot_CDF_ci(data, confidence_level, fig_no, x_label='sorted sample values', 
         plt.ylim([0, 1])
     
     plt.tight_layout()
-    plt.draw()
+
+    # Display plots
+    if not interactive:
+        plt.show()
+
+    # Save plots to .pdf
+    if pdf_plots:
+        filename = f'plot_CDF_ci-{fig_num:04d}.pdf'
+        plt.savefig(filename, bbox_inches='tight', dpi=300)
+        print(f"Saved: {filename}")
+
+    if interactive: 
+        input("Press Enter to close all figures...")
+        plt.close('all')
 
     '''
     Dvoretzky, A., Kiefer, J., Wolfowitz, J. (1956),

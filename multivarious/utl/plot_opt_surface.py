@@ -16,7 +16,7 @@ import matplotlib.cm as cm
 from mpl_toolkits.mplot3d import Axes3D
 
 
-def plot_opt_surface(func, x, v_lb, v_ub, options, consts=None, fig_no=1):
+def plot_opt_surface(func, x, v_lb, v_ub, options, consts=None, fig_num=1):
     """
     Draw a surface plot of objective function J(x) vs. x(i), x(j).
 
@@ -47,7 +47,7 @@ def plot_opt_surface(func, x, v_lb, v_ub, options, consts=None, fig_no=1):
         options[13] = Nj - number of points in 2nd dimension
     consts : optional
         Optional vector of constants to be passed to func(x, consts)
-    fig_no : int, optional
+    fig_num : int, optional
         Figure number for the plot (default: 1)
 
     Returns
@@ -66,6 +66,13 @@ def plot_opt_surface(func, x, v_lb, v_ub, options, consts=None, fig_no=1):
     - Marks initial point (green) and grid minimum (red) on surface
     - If penalty <= 0 and constraints violated, point is set to NaN
     """
+
+    #plt.rcParams['text.usetex'] = True # Set to True if LaTeX is installed
+    
+    interactive = True # Enable interactive mode for matplotlib
+        
+    if interactive:
+        plt.ion() # plot interactive mode: on
 
     # Convert inputs to numpy arrays
     x = np.asarray(x).flatten()
@@ -136,8 +143,7 @@ def plot_opt_surface(func, x, v_lb, v_ub, options, consts=None, fig_no=1):
         jj_min = jj_min[0]
 
     # Create the plot
-    plt.ion() # interactive plot mode: on
-    fig = plt.figure(fig_no, figsize=(12, 9))
+    fig = plt.figure(fig_num, figsize=(12, 9))
     fig.clf()
     ax = fig.add_subplot(111, projection='3d')
 
@@ -222,14 +228,6 @@ def plot_opt_surface(func, x, v_lb, v_ub, options, consts=None, fig_no=1):
 
     # Tight layout
     plt.tight_layout()
-
-    """
-    # Save figure
-    plt.show()
-    filename = f'plot_opt_surface-{fig_no}.pdf'
-    plt.savefig(f'{filename}', dpi=150)
-    print(f"Saved: {filename}")
-    """
 
     return fmin, fmax, ax
 

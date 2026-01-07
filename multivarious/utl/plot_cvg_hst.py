@@ -13,13 +13,13 @@ import matplotlib.pyplot as plt
 import matplotlib.cm as cm
 
 
-def plot_cvg_hst(cvg_hst, v_opt, figNo=1002, clr=None):
+def plot_cvg_hst(cvg_hst, v_opt, fig_num=1000, clr=None):
     """
     Plot the convergence history for optimization solutions.
     
     Creates two figures:
-    - Figure figNo+1: F and V convergence criteria
-    - Figure figNo: Objective function, design variables, and constraints
+    - Figure fig_num+1: F and V convergence criteria
+    - Figure fig_num+2: Objective function, design variables, and constraints
     
     Parameters
     ----------
@@ -33,7 +33,7 @@ def plot_cvg_hst(cvg_hst, v_opt, figNo=1002, clr=None):
         - Row n+4 contains F convergence criterion
     v_opt : ndarray, shape (n,)
         Optimal design variables computed by optimizer
-    figNo : int, optional
+    fig_num : int, optional
         Figure number for plotting (default: 1002)
     clr : ndarray, optional
         Colormap for plotting (default: matplotlib tab10 colormap)
@@ -43,6 +43,11 @@ def plot_cvg_hst(cvg_hst, v_opt, figNo=1002, clr=None):
     None
         Displays and saves matplotlib figures
     """
+
+    #plt.rcParams['text.usetex'] = True # Set to True if LaTeX is installed
+
+    interactive = True        # Enable interactive mode for matplotlib
+    pdf_plots = False         # Save PDF files
     
     # Convert inputs to numpy arrays
     cvg_hst = np.asarray(cvg_hst)
@@ -73,17 +78,18 @@ def plot_cvg_hst(cvg_hst, v_opt, figNo=1002, clr=None):
     lw = 3                   # Line width
     ms = 6                   # Marker size
     
-    if figNo:  # Make plots
+    if fig_num:  # Make plots
         # Set up plot formatting
-        plt.ion() # interactive plot mode: on
+        if interactive:
+            plt.ion() # interactive plot mode: on
         plt.rcParams['font.size'] = 14
         plt.rcParams['lines.linewidth'] = 2
         #plt.rcParams['axes.linewidth'] = 1
         
         # ====================================================================
-        # FIGURE figNo+1: Convergence Criteria
+        # FIGURE fig_num+1: Convergence Criteria
         # ====================================================================
-        fig1 = plt.figure(figNo + 1, figsize=(10, 8))
+        fig1 = plt.figure(fig_num+1, figsize=(10, 8))
         fig1.clf()
         
         # Subplot 1: F convergence criterion
@@ -126,14 +132,11 @@ def plot_cvg_hst(cvg_hst, v_opt, figNo=1002, clr=None):
         plt.grid(True, alpha=0.3)
         
         plt.tight_layout()
-        filename1 = f'plot_cvg_hst-{figNo+1}.png'
-        #plt.savefig(f'/mnt/user-data/outputs/{filename1}', dpi=150, bbox_inches='tight')
-        #print(f"Saved: {filename1}")
         
         # ====================================================================
-        # FIGURE figNo: Objective, Variables, and Constraints
+        # FIGURE fig_num: Objective, Variables, and Constraints
         # ====================================================================
-        fig2 = plt.figure(figNo, figsize=(10, 10))
+        fig2 = plt.figure(fig_num+2, figsize=(10, 10))
         fig2.clf()
         
         # Subplot 1: Objective function convergence
@@ -210,10 +213,26 @@ def plot_cvg_hst(cvg_hst, v_opt, figNo=1002, clr=None):
         plt.grid(True, alpha=0.3)
         
         plt.tight_layout()
-        #filename2 = f'plot_cvg_hst-{figNo}.png'
-        #plt.savefig(f'/mnt/user-data/outputs/{filename2}', dpi=150, bbox_inches='tight')
-        #print(f"Saved: {filename2}")
 
+    # Display plots
+    if not interactive:
+        plt.show()
+    
+    # Save plots to .pdf
+    if pdf_plots:
+        plt.figure(fig_num+1)
+        filename = f'plot_cvg_hst-{fig_num+1:04d}.pdf'
+        plt.savefig(filename, bbox_inches='tight', dpi=300)
+        print(f"Saved: {filename}")
+
+        plt.figure(fig_num+2)
+        filename = f'plot_cvg_hst-{fig_num+2:04d}.pdf'
+        plt.savefig(filename, bbox_inches='tight', dpi=300)
+        print(f"Saved: {filename}")
+
+    if interactive: 
+        input("Press Enter to close all figures...")
+        plt.close('all')
 
 # Example usage / test
 if __name__ == "__main__":
@@ -254,11 +273,5 @@ if __name__ == "__main__":
     v_opt = np.array([1.0, 2.0, 3.0])
     
     # Call the plotting function
-    plot_cvg_hst(cvg_hst, v_opt, figNo=1002)
-    
-    plt.show()
-    
-    #print("\n" + "="*70)
-    #print("plot_cvg_hst test completed successfully!")
-    #print("Figures saved to /mnt/user-data/outputs/")
-    #print("="*70 + "\n")
+    plot_cvg_hst(cvg_hst, v_opt, fig_num=1000)
+

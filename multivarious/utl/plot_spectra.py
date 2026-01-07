@@ -18,7 +18,7 @@ def plot_spectra(fa: Optional[np.ndarray] = None,
                  fc: Optional[np.ndarray] = None,
                  Sc: Optional[np.ndarray] = None,
                  frf_psd: Literal['FRF', 'PSD'] = 'PSD',
-                 fig: Optional[int] = None) -> plt.Figure:
+                 fig_num: Optional[int] = None) -> plt.Figure:
     """
     Plot a matrix of frequency response functions or power spectral densities.
     
@@ -52,7 +52,7 @@ def plot_spectra(fa: Optional[np.ndarray] = None,
         - 'FRF': Frequency Response Function (magnitude, log-log)
         - 'PSD': Power Spectral Density (semilog, real/imaginary)
         Default: 'PSD'
-    fig : int, optional
+    fig_num : int, optional
         Figure number. If None, creates new figure
     
     Returns
@@ -115,11 +115,11 @@ def plot_spectra(fa: Optional[np.ndarray] = None,
     
     # Plot parameters
     lw = 2.0  # line width
-    fs = 18   # font size
+    fs = 14   # font size
     
     # Create or get figure
-    if fig is not None:
-        fig_obj = plt.figure(fig)
+    if fig_num  is not None:
+        fig_obj = plt.figure(fig_num )
         plt.clf()
     else:
         if frf_psd == 'FRF':
@@ -240,13 +240,19 @@ if __name__ == "__main__":
     """
     Demonstration of the plot_spectra function with synthetic spectral data.
     """
-    # Enable interactive mode
-    plt.ion()
-    plt.rcParams['text.usetex'] = False  # Set to True if LaTeX is installed
-    
+
+    #plt.rcParams['text.usetex'] = True # Set to True if LaTeX is installed
+
+    pdf_plots = True  # Set to True to save PDF files
+    interactive = True # Enable interactive mode for matplotlib
+
+    if interactive:
+        plt.ion() # plot interactive mode: on
+
     # ========================================================================
     # Example 1: PSD Mode - Cross-spectral density matrix
     # ========================================================================
+    fig_num = 1
     print("\n" + "="*70)
     print("Generating synthetic cross-spectral density data...")
     print("="*70)
@@ -269,7 +275,7 @@ if __name__ == "__main__":
     
     # Import csd function (assumes it's available)
     try:
-        from csd import csd
+        from multivarious.dsp import csd
         
         # Compute all cross-spectra
         print("Computing cross-spectral densities...")
@@ -299,9 +305,10 @@ if __name__ == "__main__":
         print(f"Frequency range: {f[0]:.2f} - {f[-1]:.2f} Hz")
         
         # Plot PSD matrix
-        fig1 = plot_spectra(fb=f, Sb=S_psd, frf_psd='PSD', fig=1)
+        fig1 = plot_spectra(fb=f, Sb=S_psd, frf_psd='PSD', fig_num=fig_num)
         fig1.suptitle('Cross-Spectral Density Matrix (3×3)', 
-                     fontsize=20, fontweight='bold', y=0.995)
+                     fontsize=10, fontweight='bold', y=0.995)
+
         
         print("\nFigure 1: PSD matrix")
         print("  - Diagonal: Auto-spectra (power spectral densities)")
@@ -329,13 +336,25 @@ if __name__ == "__main__":
                     phase = np.pi/4 * (ii - jj)
                     S_psd[:, ii, jj] = (peak + 1.0) * np.exp(1j * phase)
         
-        fig1 = plot_spectra(fb=f, Sb=S_psd, frf_psd='PSD', fig=1)
+        fig1 = plot_spectra(fb=f, Sb=S_psd, frf_psd='PSD', fig_num=fig_num)
         fig1.suptitle('Synthetic Cross-Spectral Density Matrix (3×3)', 
-                     fontsize=20, fontweight='bold', y=0.995)
+                     fontsize=10, fontweight='bold', y=0.995)
+
+    # Display plots
+    if not interactive:
+        plt.show()
     
+    # Save plots to .pdf
+    if pdf_plots:
+        filename = f'plot_spectra-{fig_num:04d}.pdf'
+        plt.savefig(filename, bbox_inches='tight', dpi=300)
+        print(f"Saved: {filename}")
+
+   
     # ========================================================================
     # Example 2: FRF Mode - Frequency Response Functions
     # ========================================================================
+    fig_num = 2
     print("\n" + "="*70)
     print("Generating synthetic frequency response function data...")
     print("="*70)
@@ -371,10 +390,21 @@ if __name__ == "__main__":
     
     fig2 = plot_spectra(fa=f_frf, Sa=S_frf_theory,
                        fb=f_frf, Sb=S_frf_experimental,
-                       frf_psd='FRF', fig=2)
+                       frf_psd='FRF', fig_num=fig_num)
+
     fig2.suptitle('Frequency Response Functions - Theory vs Experiment', 
-                 fontsize=20, fontweight='bold')
+                 fontsize=10, fontweight='bold')
+
+    # Display plots
+    if not interactive:
+        plt.show()
     
+    # Save plots to .pdf
+    if pdf_plots:
+        filename = f'plot_spectra-{fig_num:04d}.pdf'
+        plt.savefig(filename, bbox_inches='tight', dpi=300)
+        print(f"Saved: {filename}")
+
     print("\nFigure 2: FRF comparison")
     print("  - Black lines: Theoretical FRF")
     print("  - Black circles: Experimental FRF")
@@ -384,6 +414,7 @@ if __name__ == "__main__":
     # ========================================================================
     # Example 3: Comparison of three datasets (PSD mode)
     # ========================================================================
+    fig_num = 3
     print("\n" + "="*70)
     print("Generating three-dataset comparison...")
     print("="*70)
@@ -396,16 +427,24 @@ if __name__ == "__main__":
     fig3 = plot_spectra(fa=f, Sa=S_model,
                        fb=f, Sb=S_exp1,
                        fc=f, Sc=S_exp2,
-                       frf_psd='PSD', fig=3)
+                       frf_psd='PSD', fig_num=fig_num)
     fig3.suptitle('Three-Dataset Comparison: Model vs Experiments', 
-                 fontsize=20, fontweight='bold', y=0.995)
+                 fontsize=10, fontweight='bold', y=0.995)
     
     print("\nFigure 3: Three-dataset comparison")
     print("  - Black: Model prediction")
     print("  - Green: Experiment 1")
     print("  - Red: Experiment 2")
     
-    plt.show()
+    # Display plots
+    if not interactive:
+        plt.show()
+    
+    # Save plots to .pdf
+    if pdf_plots:
+        filename = f'plot_spectra-{fig_num:04d}.pdf'
+        plt.savefig(filename, bbox_inches='tight', dpi=300)
+        print(f"Saved: {filename}")
     
     # ========================================================================
     # Summary
