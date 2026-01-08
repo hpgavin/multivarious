@@ -11,20 +11,21 @@ This repository is under development.  Updates to this README lag the addition o
 
 To generate, transform, and plot multivariate discrete time sequences 
 
-| module          | description                                                                          |
-| --------------- | ------------------------------------------------------------------------------------ |
-| **accel2displ** | acceleration, velocity and displacement without much bias or drift from acceleration |
-| **butter_synth_ss** | state space butterworth filter design using the matrix expnential |
-| **cdiff** | central differences along the rows of a 2D array |
-| **chrip** | generate a sine-sweep signal with its derivitive and integral |
-| **csd**   | estimate the cross-power spectra of a pair of signals and its chi^2 confidince interval | 
-| **eqgm_1d** | a single axis of simulated earthquake ground motions |
-| **ftdsp** | Fourier transform based digitial signal processing | 
-| **psd**   | estimate the auto-power spectral density of a signal and its chi^2 confidence interval |
-| **taper** | taper the ends of the rows of a 2D array - Planck or Tukey windows |
+| module              | description                                                                             |
+| ------------------- | --------------------------------------------------------------------------------------- |
+| **accel2displ**     | acceleration, velocity and displacement without much bias or drift from acceleration    |
+| **butter_synth_ss** | state space butterworth filter design using the matrix expnential                       |
+| **cdiff**           | central differences along the rows of a 2D array                                        |
+| **chrip**           | onomatopoeia for bird sounds and <br> sine-sweep signals with derivitives and integrals |
+| **csd**             | estimate the cross-power spectra of a pair of signals and its chi^2 confidince interval |
+| **eqgm_1d**         | a single axis of simulated earthquake ground motions                                    |
+| **ftdsp**           | Fourier transform based digitial signal processing                                      |
+| **psd**             | estimate the auto-power spectral density of a signal and its chi^2 confidence interval  |
+| **taper**           | taper the ends of the rows of a 2D array - Planck or Tukey windows                      |
 
-## fit . fit mathematical models to data 
-| module        | description                                                                          |
+## fit . fit mathematical models to data
+
+| module        | description                                                            |
 | ------------- | ---------------------------------------------------------------------- |
 | **L1_fit**    | linear least-squares curve fitting with l_1 regularization             |
 | **lm**        | Levenberg-Marquardt for nonlinear least squares curve-fitting problems |
@@ -63,11 +64,11 @@ and corresponding system outputs, _**y**_ = _**C x**_ + _**D u**_
 To solve systems of ordinary differential equations _d**x**_/_dt_ = _f_(_t_,_**x**_,_**u**_,_c_) where 
 _t_ is time, _**x**_ is a state vector, _**u**_ is a time series of exogeneous inputs, and _c_ contains a set of system constants. 
 
-| module      | description                                                                 |
-| ----------- | --------------------------------------------------------------------------- |
-| **ode4u**   | ODE solution via a fixed-time step, 4th order method                     |
-| **ode45u**  | ODE solution via the adaptive time step, 4th-5th method by Cash and Karp |
-| **ode4ucc** | ODE solution via a fixed-time step, 4th order method, and constraint correction |
+| module       | description                                                                                         |
+| ------------ | --------------------------------------------------------------------------------------------------- |
+| **ode4u**    | ODE solution via a fixed-time step, 4th order method                                                |
+| **ode45u**   | ODE solution via the adaptive time step, 4th-5th method by Cash and Karp                            |
+| **ode4ucc**  | ODE solution via a fixed-time step, 4th order method, and constraint correction                     |
 | **ode45ucc** | ODE solution via the adaptive time step, 4th-5th method by Cash and Karp, and constraint correction |
 
 ## opt . optimization
@@ -78,13 +79,12 @@ where _**v**_ is a vector of design variables,
 _f_(_**v**_) is a scalar-valued objective function, and
 _**g**_(_**v**_) is a vector of inequality constraints. 
 
-| module         | description                                                               |
-| ------------- | ---------------------------------------------------------------------- |
-| **fsolve**    | solve a system of nonlinear algebraic equations                        |
-| **nms**       | nonlinear constrained optimization - Nelder Mead Simplex               |
-| **ors**       | nonlinear constrained optimization - Optimized Random Search           |
-| **sqp**       | nonlinear constrained optimization - Sequential Quadratic Programming  |
-
+| module     | description                                                           |
+| ---------- | --------------------------------------------------------------------- |
+| **fsolve** | solve a system of nonlinear algebraic equations                       |
+| **nms**    | nonlinear constrained optimization - Nelder Mead Simplex              |
+| **ors**    | nonlinear constrained optimization - Optimized Random Search          |
+| **sqp**    | nonlinear constrained optimization - Sequential Quadratic Programming |
 
 ## rvs . random variables
 
@@ -121,11 +121,11 @@ methods: distribution.pdf(), distribution.cdf(), distribution.inv(), distributio
 | **format_plot**      | set the font size, line width, and marker size                                  |
 | **opt_options**      | adjust algorithmic options for ors, nms, and sqp                                |
 | **plot_CDF_ci**      | plot the cumulative distribution function from data and its confidence interval |
-| **plot_ensemble**    | plot three sets of corresponding ensemble time series |
-| **plot_cvg_hist**    | plot the convergence history from ors, nms and sqp                                 |
-| **plot_lm**          | plot the converence history and fit statistics from an lm analysis |
+| **plot_ensemble**    | plot three sets of corresponding ensemble time series                           |
+| **plot_cvg_hist**    | plot the convergence history from ors, nms and sqp                              |
+| **plot_lm**          | plot the converence history and fit statistics from an lm analysis              |
 | **plot_opt_surface** | plot the objective function landscape in any selected 2D slice                  |
-| **plot_spectra**     | plot three sets of corresponding ensemble spectra or transfer functions |
+| **plot_spectra**     | plot three sets of corresponding ensemble spectra or transfer functions         |
 
 # installation
 
@@ -185,6 +185,7 @@ methods: distribution.pdf(), distribution.cdf(), distribution.inv(), distributio
     2. VS Code > File Explorer > select verify_path_import.py > click the right arrow in the Edit menu [Run Python File]
     
     3. This will open a new Terminal Window which should display ...
+       
        ```
        hello
        verifying that PYTHONPATH has been set ... 
