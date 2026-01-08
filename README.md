@@ -46,15 +46,18 @@ and corresponding system outputs, _**y**_ = _**C x**_ + _**D u**_
 | **abcd_dim**      | dimensions of an LTI realization                                           |
 | **blk_hankel**    | a block Hankel matrix from a matrix-valued time series                     |
 | **blk_toeplitz**  | a block Toeplitz matrix from a matrix-valued time series                   |
+| **ctrb**          | controllability gramian of (A,B) 
 | **con2dis**       | a discrete time LTI system from a continuous time LTI system               |
 | **damp**          | natural frequencies and damping ratios of a dynamics matrix                |
 | **dis2con**       | a continuous time LTI system from a discrete time LTI system               |
+| **dliap**         | wrapper for the ScyPi Sylvester equation (and Lyapunov equation) solver    |
 | **dlsym**         | the response of a discrete time LTI system                                 |
 | **kalman_decomp** | Kalman canonical form from an LTI state-space realization                  |
 | **liap**          | wrapper for the ScyPi Sylvester equation (and Lyapunov equation) solver    |
 | **lsym**          | the response of a continuous time LTI system                               |
 | **mimo_bode**     | the Bode spectrum of a MIMO LTI system                                     |
 | **mimo_tfe**      | the estimate of a frequency response matrix from MIMO data                 |
+| **obsv**          | observability gramian of (A,C) 
 | **pz_plot**       | a plot of the poles and zeros on the complex plane                         |
 | **sys_zero**      | MIMO system, invariant, transmissions, and decoupling zeros from (A,B,C,D) |
 | **wiener_filter** | Markov parameters from time series: identification and simulation          |
