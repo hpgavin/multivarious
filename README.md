@@ -5,7 +5,7 @@ A multitude of various Python modules for multivariable things like digital sign
 This repository is pedagogical and emphasizes a transparent implementation of numerical methods for multivariate problems with integrated visualization tools. 
 This repository stems from decades of undergraduate and graduate engineering instruction.  
 
-This repository is under development.  Updates to this README lag the addition of code. 
+This repository is under development.  Updates to this README lead or lag the addition of code. 
 
 Stay tuned and keep pulling!!! 
 
@@ -166,13 +166,13 @@ methods: distribution.pdf(), distribution.cdf(), distribution.inv(), distributio
     ```bash
     cd ~/Desktop/Code/multivarious/examples/.vscode 
     ```
-    
+
     open your settings.json file using one of these commands ... 
     
     ```bash
     notepad  settings.json     # Windows
-    TextEdit settings.json     # macOS
-    Gedit    settings.json     # linux
+    open     settings.json     # macOS
+    gedit    settings.json     # linux
     ```
     
     and edit the section of your settings.json file corresponding to your OS by:
@@ -212,8 +212,8 @@ methods: distribution.pdf(), distribution.cdf(), distribution.inv(), distributio
     
     ```bash
     notepad     $PROFILE       # Windows
-    TextEdit ~/.zprofile       # macOS
-    Gedit     ~/.profile       # linux
+    open      ~/.zprofile      # macOS
+    gedit     ~/.profile       # linux
     ```
     
     Copy one of the lines below and paste it into your profile. 
