@@ -96,8 +96,7 @@ def sqp(func, v_init, v_lb=None, v_ub=None, options_in=None, consts=1.0):
     x_ub = +1.0 * np.ones(n)
 
     # ----- initialize -----
-    function_count = 0
-    iteration = 1
+    function_count = iteration = 0
     cvg_hst = np.full((n + 5, max(1, max_evals)), np.nan)
 
     start_time = time.time()
@@ -117,11 +116,11 @@ def sqp(func, v_init, v_lb=None, v_ub=None, options_in=None, consts=1.0):
     g_opt = g.copy()
 
     # Save initial state
-    cvg_hst[:, iteration - 1] = np.concatenate([(x - s0) / s1,
+    cvg_hst[:, iteration] = np.concatenate([(x - s0) / s1,
                                                 [f, np.max(g), function_count, 1.0, 1.0]])
 
     if msg > 2:
-        f_min, f_max, ax = plot_opt_surface(func, (x-s0)/s1, v_lb, v_ub, options, consts, 103)
+        f_min, f_max, ax = plot_opt_surface(func, (x-s0)/s1, v_lb, v_ub, options, consts, 1003)
 
     # Initialize gradient and Hessian storage
     OLDX = x.copy()
@@ -185,7 +184,7 @@ def sqp(func, v_init, v_lb=None, v_ub=None, options_in=None, consts=1.0):
         g = oldg.copy()
 
         # Initialize penalty on first iteration
-        if iteration == 1:
+        if iteration == 0:
             PENALTY = (np.finfo(float).eps + np.dot(gradf, gradf)) * np.ones(m) / \
                      (np.sum(gradg**2, axis=1) + np.finfo(float).eps)
 
@@ -324,8 +323,8 @@ def sqp(func, v_init, v_lb=None, v_ub=None, options_in=None, consts=1.0):
             eta = (datetime.now() + timedelta(seconds=secs_left)).strftime('%H:%M:%S')
 
             g_max, idx_max_g = np.max(g), np.argmax(g)
-            cvg_f = abs(absSL * np.dot(gradf, SD) / f) if f != 0 else 0
-            cvg_v = np.max(np.abs(absSL * SD / (x + np.finfo(float).eps)))
+            cvg_f = abs(absSL * np.dot(gradf, SD) / (f + 1e-9)) 
+            cvg_v = np.max(np.abs(absSL * SD / (x + 1e-9)))
 
             print('\033[H\033[J', end='')  # clear screen
             print("\n *********************** SQP ****************************")
@@ -345,7 +344,7 @@ def sqp(func, v_init, v_lb=None, v_ub=None, options_in=None, consts=1.0):
             print(" *********************** SQP ****************************\n")
 
         # Save convergence history
-        cvg_hst[:, iteration - 1] = np.concatenate([
+        cvg_hst[:, iteration] = np.concatenate([
             (x - s0) / s1,
             [f, g_max, function_count, cvg_v, cvg_f]
         ])
@@ -359,11 +358,11 @@ def sqp(func, v_init, v_lb=None, v_ub=None, options_in=None, consts=1.0):
                    'ro', alpha=1.0, markersize=8, linewidth=4,
                    markerfacecolor='red', markeredgecolor='darkred')
             plt.draw()
-            plt.pause(0.01)
+            plt.pause(0.10)
 
         # ----- Check convergence -----
-        cvg_f = abs(absSL * np.dot(gradf, SD) / f) if f != 0 else 0
-        cvg_v = np.max(np.abs(absSL * SD / ( (x-s0)/s1 + 1e-6 )))
+        cvg_f = abs(absSL * np.dot(gradf, SD) / (f + 1e-9)) 
+        cvg_v = np.max(np.abs(absSL * SD / ( (x-s0)/s1 + 1e-9 )))
 
         if ((cvg_v < tol_v or cvg_f < tol_f) and
             ((g_max < tol_g) or (howqp == 'infeasible' and g_max > 0))):
@@ -441,7 +440,7 @@ def sqp(func, v_init, v_lb=None, v_ub=None, options_in=None, consts=1.0):
         print(" * ----------------------------------------------------------------------------")
 
     if msg > 2:
-        plt.figure(103)
+        plt.figure(1003)
         ii = int(options[10])
         jj = int(options[11])
         plt.plot( v_opt[ii], v_opt[jj], f_opt, '-or', markersize=14 )
