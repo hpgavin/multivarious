@@ -15,8 +15,8 @@ def mimo_rs(dataX, dataY, max_order=2, pTrain=70, scaling=1, L1_pnlty=1.0, basis
     
      mimo_rs approximates data with a polynomial of arbitrary order,
 
-       y(X) = a + \sum_{i=1}^n \sum_{j=1}^{k_i) b_ij X_i^j + 
-              \sum_{q=1}^m c_q \prod_{i=1}^n X_i^{p_iq}.
+       y(X) = a + sum_i=1 ^n sum j=1^k_i b_ij X_i^j + 
+                  sum q=1 ^m c_q prod i=1 ^n X_i^{p_iq}.
     
     INPUT       DESCRIPTION                                              DEFAULT
     --------    -------------------------------------------------------- -------
