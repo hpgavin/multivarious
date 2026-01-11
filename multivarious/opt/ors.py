@@ -80,9 +80,9 @@ def ors(func, v_init, v_lb=None, v_ub=None, options=None, consts=None):
     """
     
     # algorithm hyper-parameters
-    BOX = 1        # use box constraints
-    sigma = 0.200  # standard deviation of random perturbations
-    nu = 2.5       # exponent for reducing sigma
+    BOX = 1             # use box constraints
+    step_stdev = 0.200  # standard deviation of random step, S
+    nu = 2.5            # exponent for reducing step_stdev
     regularization = 1e-6 * np.eye(3) # regularization for matrix inversion
     
     # handle missing arguments
@@ -166,7 +166,7 @@ def ors(func, v_init, v_lb=None, v_ub=None, options=None, consts=None):
     # save the initial guess to the convergence history
     cvg_hst[:, iteration] = np.concatenate([
         (x_opt - s0) / s1, [f_opt], [np.max(g_opt)], 
-        [function_count], [sigma], [1.0]
+        [function_count], [step_stdev], [1.0]
     ])
     
     if msg:
@@ -177,12 +177,12 @@ def ors(func, v_init, v_lb=None, v_ub=None, options=None, consts=None):
     # ========== main optimization loop ==========
     while function_count < max_evals:
         
-        # a random search perturbation with standard deviation 'sigma'
-        r = sigma * np.random.randn(n)
+        # a random search perturbation with standard deviation 'step_stdev'
+        sr = step_stdev * np.random.randn(n)
         
         # 1st perturbation: +1*r : "random single step"
-        aa, _ = box_constraint(x0, r) # keep x1 within bounds
-        x1 = x0 + aa * r
+        aa, _ = box_constraint(x0, sr) # keep x1 within bounds
+        x1 = x0 + aa * sr
         
         fa[1], g1, x1, c0, nAvg = avg_cov_func(func, x1, s0, s1, options, consts, BOX)
         function_count += nAvg
@@ -190,19 +190,19 @@ def ors(func, v_init, v_lb=None, v_ub=None, options=None, consts=None):
         # is fa[1] downhill from fa[0]?
         downhill = np.sign(fa[0] - fa[1]) # +1: yes, -1: no
         
-        # 2nd perturbation: 2*downhill*r : "downhill double step"
-        aa, bb = box_constraint(x0, 2*downhill*r) # keep x2 within bounds
+        # 2nd perturbation: 2*downhill*s*r : "downhill double step"
+        aa, bb = box_constraint(x0, 2*downhill*sr) # keep x2 within bounds
         if downhill > 0:
-            x2 = x0 + aa * 2*downhill * r
+            x2 = x0 + aa * 2*downhill * sr
         else:
-            x2 = x0 + bb * 2*downhill * r
+            x2 = x0 + bb * 2*downhill * sr
         
         fa[2], g2, x2, c2, nAvg = avg_cov_func(func, x2, s0, s1, options, consts, BOX)
         function_count += nAvg
         
         # distances from (x0 to x1) and from (x0 to x2) for quadratic fit
-        dx1 = norm(x1 - x0) / norm(r)
-        dx2 = norm(x2 - x0) / norm(r)
+        dx1 = norm(x1 - x0) / norm(sr)
+        dx2 = norm(x2 - x0) / norm(sr)
         
         # fit quadratic: f(d) = 0.5*a*d^2 + b*d + c
         A = np.array([
@@ -218,11 +218,11 @@ def ors(func, v_init, v_lb=None, v_ub=None, options=None, consts=None):
         quad_update = False
         if a > 0:       # positive curvature ... so look for a minimum
             d = -b / a  # d*r is the distance from x0 to the zero-slope point
-            aa, bb = box_constraint(x0, d * r) # keep x3 within bounds
+            aa, bb = box_constraint(x0, d * sr) # keep x3 within bounds
             if d > 0:
-                x3 = x0 + aa * d * r
+                x3 = x0 + aa * d * sr
             else:
-                x3 = x0 + bb * d * r
+                x3 = x0 + bb * d * sr
             
             fa[3], g3, x3, c3, nAvg = avg_cov_func(func, x3, s0, s1, options, consts, BOX)
             function_count += nAvg
@@ -232,9 +232,34 @@ def ors(func, v_init, v_lb=None, v_ub=None, options=None, consts=None):
         v1 , f1 = (x1 - s0) / s1 , fa[1]
         v2 , f2 = (x2 - s0) / s1 , fa[2]
         v3 , f3 = (x3 - s0) / s1 , fa[3]
-        
-        # find the best (min(fa)) objective value of the 4 evaluations
+
         i_min = np.argmin(fa)
+
+        # adaptive step size
+        if i_min > 0:
+            step_txt = '          none'
+            FA = (f2-f0)/(f1-f0)
+            FB = (f0-f2)/(f1-f0)
+            FC = (f2-f1)/(f0-f1)
+            FD = (f1-f2)/(f0-f1)
+            if f1 > f0:                 # step 1 is uphill
+                if FA > 1:              # (f2-f0) > (f1-f0) reduce step
+                   step_stdev /= FA
+                   step_txt = '       uphill reduction'
+                if FB > 1:              # (f0-f2) > (f1-f0) extend step
+                   step_stdev *= FB
+                   step_txt = '       uphill extension'
+            if f1 < f0:                 # step 1 is downhill
+                if FC > 1:              # (f2-f1) > (f0-f1) reduce step
+                   step_stdev /= FC
+                   step_txt = '     downhill reduction'
+                if FD > 1:              # (f1-f2) > (f0-f1) extend step
+                   step_stdev *= FD
+                   step_txt = '     downhill extension'
+
+        step_stdev = max(step_stdev,5*tol_v)
+            
+        # find the best (min(fa)) objective value of the 4 evaluations
         fa[0] = fa[i_min]
 
         if i_min == 1:
@@ -246,9 +271,8 @@ def ors(func, v_init, v_lb=None, v_ub=None, options=None, consts=None):
             quad_update = True
         
         # if the solution improved, reduce the scope of the search 
-        if i_min > 0:
-            sigma = sigma * (1 - function_count / max_evals) ** nu
-        
+            # step_stdev = step_stdev * (1 - function_count / max_evals) ** nu
+       
         x0 = np.clip(x0, -1.0, 1.0)  # keep x0 within bounds, just to be sure
         
         # update optimal solution if improved
@@ -279,7 +303,7 @@ def ors(func, v_init, v_lb=None, v_ub=None, options=None, consts=None):
                 max_g = np.max(g_opt)
                 idx_ub_g = np.argmax(g_opt)
                 
-                print('\033[H\033[J', end='')  # clear screen
+                #print('\033[H\033[J', end='')  # clear screen
                 print(' +-+-+-+-+-+-+-+-+-+-+- ORS -+-+-+-+-+-+-+-+-+-+-+-+-+')
                 print(f' iteration               = {iteration:5d}', end='')
                 if max_g > tol_g:
@@ -298,7 +322,7 @@ def ors(func, v_init, v_lb=None, v_ub=None, options=None, consts=None):
                 print(f' objective convergence   = {cvg_f:11.4e}    tol_f = {tol_f:8.6f}')
                 print(f' variable  convergence   = {cvg_v:11.4e}    tol_v = {tol_v:8.6f}')
                 print(f' c.o.v. of F_A           = {c0:11.3e}')
-                print(f' step std.dev (sigma)    = {sigma:5.3f}')
+                print(f' step std.dev            = {step_stdev:7.3f}{step_txt}')
                 print(' +-+-+-+-+-+-+-+-+-+-+- ORS -+-+-+-+-+-+-+-+-+-+-+-+-+')
                 if quad_update:
                     print(' line quadratic update successful')
