@@ -1,0 +1,5 @@
+#! /bin/bash
+# yet another way to set the PYTHONPATH ...
+# ... just cd to this directory and, in the terminal, run ./ppath.sh
+
+export PYTHONPATH=$PWD
