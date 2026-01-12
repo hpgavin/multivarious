@@ -178,8 +178,7 @@ C. Verify that VS Code has access to the multivarious library.
  
 D. (**linux**) Set the `PYTHONPATH` environment variable 
  
-   1. Open and edit your ~/.profile 
-      Copy the line below and paste it into your profile. 
+   1. Open your `~/.profile` and copy and paste the line below it into your `~\.profile`. 
       ```bash
       export PYTHONPATH="$PYTHONPATH:$HOME/Desktop/Code/multivarious/"           
       ```
