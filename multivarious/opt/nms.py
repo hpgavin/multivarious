@@ -57,6 +57,10 @@ def nms(func, v_init, v_lb=None, v_ub=None, options_in=None, consts=1.0):
     g_opt : np.ndarray (m,)
     cvg_hst : np.ndarray (n+5, k)
         Columns store [v; f; max(g); func_count; cvg_v; cvg_f] per iteration.
+    iteration : int
+        Number of iterations completed
+    function_evals : int
+        Total number of function evaluations
 
     References
     ----------
@@ -113,6 +117,8 @@ def nms(func, v_init, v_lb=None, v_ub=None, options_in=None, consts=1.0):
 
     optimize_contraction = False  # Option to optimize contraction step
 
+    feasible = converged = stalled = 0 # convergence criteria
+
     # ----- scale variables linearly to [-1, +1]  -----
     s0 = (v_lb + v_ub) / (v_lb - v_ub)
     s1 = 2.0 / (v_ub - v_lb)
@@ -120,12 +126,12 @@ def nms(func, v_init, v_lb=None, v_ub=None, options_in=None, consts=1.0):
     x0 = np.clip(x0, -0.8, 0.8)  # Not too close to edges
 
     # book-keeping
-    function_count = iteration = 0
+    function_evals = iteration = 0
     cvg_hst = np.full((n + 5, max(1, max_evals)), np.nan)
 
     # ----- analyze the initial guess -----
     fx, gx, x0, cJ, nAvg = avg_cov_func(func, x0, s0, s1, options, consts, BOX)
-    function_count += nAvg
+    function_evals += nAvg
     if not np.isscalar(fx):
         raise ValueError("Objective returned by func(v,consts) must be scalar.")
     gx = np.atleast_1d(gx).astype(float).flatten()
@@ -169,7 +175,7 @@ def nms(func, v_init, v_lb=None, v_ub=None, options_in=None, consts=1.0):
         gx_all[:, j] = gz
         g_max[j] = np.max(gz)
         cJ_all[j] = cx
-        function_count += nAvg
+        function_evals += nAvg
 
     # SORT vertices by increasing objective value
     idx = np.argsort(fx_all)
@@ -184,7 +190,7 @@ def nms(func, v_init, v_lb=None, v_ub=None, options_in=None, consts=1.0):
     f_opt = fx_all[0]
     g_opt = gx_all[:, 0].copy()
     f_old = f_opt
-    last_update = function_count
+    last_update = function_evals
 
     # Convergence criteria for initial simplex
     cvg_v = 2.0*norm( simplex[:, n] - simplex[:, 0] ) / ( norm( simplex[:, n] + simplex[:, 0] ) + 1e-9 )
@@ -196,14 +202,14 @@ def nms(func, v_init, v_lb=None, v_ub=None, options_in=None, consts=1.0):
 
     iteration += 1
     cvg_hst[:, iteration] = np.concatenate([(simplex[:, 0] - s0) / s1,
-                      [fx_all[0], g_max[0], function_count, cvg_v, cvg_f]])
+                      [fx_all[0], g_max[0], function_evals, cvg_v, cvg_f]])
 
     if msg:
         print('\033[H\033[J', end='')  # Clear screen
         print(" ======================= NMS ============================")
         print(f" iteration                = {iteration:5d}   "
               f"{'*** feasible ***' if np.max(g_opt) <= tol_g else '!!! infeasible !!!'}")
-        print(f" function evaluations     = {function_count:5d} of {max_evals:5d}")
+        print(f" function evaluations     = {function_evals:5d} of {max_evals:5d}")
         print(f" objective                = {f_opt:11.3e}")
         if n < 10:
             xx = (simplex - s0[:, np.newaxis]) / s1[:, np.newaxis]
@@ -216,7 +222,7 @@ def nms(func, v_init, v_lb=None, v_ub=None, options_in=None, consts=1.0):
         print(" ======================= NMS ============================\n")
 
     # ============================ main loop ============================
-    while function_count < max_evals:
+    while function_evals < max_evals:
         accept_point = False
         move_type = ""
 
@@ -226,7 +232,7 @@ def nms(func, v_init, v_lb=None, v_ub=None, options_in=None, consts=1.0):
         # ----- REFLECT -----
         xr = xo + a_reflect * (xo - simplex[:, n])
         fr, gr, xr, cj, nAvg = avg_cov_func(func, xr, s0, s1, options, consts, BOX)
-        function_count += nAvg
+        function_evals += nAvg
 
         if fx_all[0] <= fr < fx_all[n - 1]:  # fr between best and second-worst
             xw, fw, gw, cw = xr, fr, gr, cj
@@ -237,7 +243,7 @@ def nms(func, v_init, v_lb=None, v_ub=None, options_in=None, consts=1.0):
         if not accept_point and fr < fx_all[0]:  # fr better than best
             xe = xo + a_extend * (xr - xo)
             fe, ge, xe, cj, nAvg = avg_cov_func(func, xe, s0, s1, options, consts, BOX)
-            function_count += nAvg
+            function_evals += nAvg
 
             if fe < fr:
                 xw, fw, gw, cw = xe, fe, ge, cj
@@ -253,10 +259,10 @@ def nms(func, v_init, v_lb=None, v_ub=None, options_in=None, consts=1.0):
             xco = xo + a_contract * (xr - xo)  # outside contraction
 
             fci, gci, xci, ci, nAvg = avg_cov_func(func, xci, s0, s1, options, consts, BOX)
-            function_count += nAvg
+            function_evals += nAvg
 
             fco, gco, xco, co, nAvg = avg_cov_func(func, xco, s0, s1, options, consts, BOX)
-            function_count += nAvg
+            function_evals += nAvg
 
             # Optional: optimize contraction step
             if optimize_contraction:
@@ -274,7 +280,7 @@ def nms(func, v_init, v_lb=None, v_ub=None, options_in=None, consts=1.0):
                     xc_opt = xo + dx * (xr - xo) / d[3]
                     fc_opt, gc_opt, xc_opt, cj, nAvg = avg_cov_func(func, xc_opt, s0, s1,
                                                                       options, consts, BOX)
-                    function_count += nAvg
+                    function_evals += nAvg
 
                     if fc_opt < min(fci, fco) and fc_opt < fx_all[n - 1]:
                         xw, fw, gw, cw = xc_opt, fc_opt, gc_opt, cj
@@ -310,7 +316,7 @@ def nms(func, v_init, v_lb=None, v_ub=None, options_in=None, consts=1.0):
                 gx_all[:, i] = gk
                 g_max[i] = np.max(gk)
                 cJ_all[i] = cj
-                function_count += nAvg
+                function_evals += nAvg
             move_type = 'shrink'
 
         # ----- EXPAND elongated (degenerate) simplex -----
@@ -331,7 +337,7 @@ def nms(func, v_init, v_lb=None, v_ub=None, options_in=None, consts=1.0):
             gx_all[:, j] = gz
             g_max[j] = np.max(gz)
             cJ_all[j] = cj
-            function_count += nAvg
+            function_evals += nAvg
 
         # ----- SORT vertices by increasing objective -----
         idx = np.argsort(fx_all)
@@ -347,7 +353,7 @@ def nms(func, v_init, v_lb=None, v_ub=None, options_in=None, consts=1.0):
         g_opt = gx_all[:, 0].copy()
 
         if f_opt < f_old:
-            last_update = function_count
+            last_update = function_evals
             f_old = f_opt
 
         # ----- Convergence criteria -----
@@ -356,21 +362,21 @@ def nms(func, v_init, v_lb=None, v_ub=None, options_in=None, consts=1.0):
 
         iteration += 1
         cvg_hst[:, iteration] = np.concatenate([(x_opt - s0) / s1,
-                         [f_opt, np.max(g_opt), function_count, cvg_v, cvg_f]])
+                         [f_opt, np.max(g_opt), function_evals, cvg_v, cvg_f]])
 
         # ----- Display progress -----
         if msg:
             elapsed = time.time() - start_time
-            secs_left = int((max_evals - function_count) * elapsed / function_count)
+            secs_left = int((max_evals - function_evals) * elapsed / function_evals)
             eta = (datetime.now() + timedelta(seconds=secs_left)).strftime('%H:%M:%S')
 
-            print('\033[H\033[J', end='')  # clear screen
+            # print('\033[H\033[J', end='')  # clear screen
             print(" ======================= NMS ============================")
             print(f" iteration                = {iteration:5d}   "
                   f"{'*** feasible ***' if np.max(g_opt) <= tol_g else '!!! infeasible !!!'}")
             print(f"                                             {move_type}")
-            print(f" function evaluations     = {function_count:5d} of {max_evals:5d}"
-                  f" ({100.0*function_count/max_evals:4.1f}%)")
+            print(f" function evaluations     = {function_evals:5d} of {max_evals:5d}"
+                  f" ({100.0*function_evals/max_evals:4.1f}%)")
             print(f" e.t.a.                   = {eta} ")
             print(f" objective                = {f_opt:11.3e}")
 
@@ -411,53 +417,64 @@ def nms(func, v_init, v_lb=None, v_ub=None, options_in=None, consts=1.0):
             plt.draw()
             plt.pause(0.01)
 
+ 
         # ----- Termination checks -----
-        if np.max(g_opt) < tol_g and find_feas:
-            if msg:
-                print(" * Woo Hoo!  Feasible solution found!")
-                print(" *           ... and that is all we are asking for.")
-            break
+        # check for feasibility of constraints 
+        if np.max(g_opt) < tol_g and find_feas:                   # :)
+            feasible = 1;
+        # check for convergence in variables and objective 
+        if iteration > n*n and (cvg_v < tol_v and cvg_f < tol_f): # :)
+            converged = 1 
+        # check for stalled computations
+        if function_evals - last_update > 0.2*max_evals:          # :(
+            stalled = 1   
+        if feasible or converged or stalled:
+            break 
 
-        if cvg_v < tol_v or cvg_f < tol_f:
-            if msg:
-                print(" * Woo Hoo!  Converged solution found!")
-                if cvg_v < tol_v:
-                    print(" *           convergence in design variables")
-                if cvg_f < tol_f:
-                    print(" *           convergence in design objective")
-                if np.max(g_opt) < tol_g:
-                    print(" * Woo Hoo!  Converged solution is feasible")
-                else:
-                    print(" * Boo Hoo!  Converged solution is NOT feasible!")
-                    print(" *            ... Increase options[5] and try, try again ...")
-            break
-
-        if function_count - last_update > 0.20 * max_evals:
-            if msg:
-                print(f" * Hmmm ... Best solution not improved in last "
-                      f"{function_count - last_update} evaluations")
-                print(" * Increase tol_v (options[1]) or tol_f (options[2]) "
-                      "or max_evals (options[4]) and try again")
-                if np.max(g_opt) < tol_g:
-                    print(" * Woo Hoo!  Best solution is feasible!")
-                else:
-                    print(" * Boo Hoo!  Best solution is NOT feasible!")
-                    print(" *            ... Increase options[5] and try, try again ...")
-            break
-
-    # ----- Time-out message -----
-    if function_count >= max_evals and msg:
-        print(f" * Enough! max evaluations ({max_evals}) exceeded.")
-        print(" * Increase tol_v (options[1]) or tol_f (options[2]) "
-              "or max_evals (options[4]) and try again")
+    # ========== end main loop ==========
 
     # Scale back to original units
     v_opt = (x_opt - s0) / s1
 
-    # ----- Summary -----
+    # trim the convergence history
+    cvg_hst = cvg_hst[:, :iteration]
+
+    # plot the converged point
+    if msg > 2:
+        plt.figure(1003)
+        ii = int(options[10])
+        jj = int(options[11])
+        plt.plot( v_opt[ii], v_opt[jj], f_opt, '-or', markersize=14 )
+
+    # final report
     if msg:
+        if feasible:
+            print('\n * Woo Hoo! Feasible solution found!', end='')
+            print(' *          ... and that is all we are asking for.')
+        if converged:
+            print('\n * Woo-Hoo! Convergence in design variables and design objective!')
+            if np.max(g_opt) < tol_g:
+                print(' * Woo-Hoo! Converged solution is feasible!')
+            else:
+                print(' * Boo-Hoo! Converged solution is NOT feasible!')
+                print(' *   ... Increase options[5] (penalty) and try, try again ...')
+        else:
+            print('\n * Boo-Hoo! Solution NOT converged!')
+
+        if stalled:
+            print(f' * Hmmm ... no improvement in the last {0.2*max_evals:.0f} function evaluations ...')
+            print(' *      ... Increase tol_v (options[1]), tol_f (options[2]) or max_evals (options[4]) ...')
+            print(' *      ... and try try again.')
+
+        # check if the maximum function evaluation limit was exceeded
+        if function_evals >= max_evals:
+            print(f" * Enough! max evaluations ({max_evals}) exceeded.")
+            print(" *   ... Increase tol_v (options[1]) or tol_f (options[2]) "
+                      "or max_evals (options[4]) and try again")
+
         dur = time.time() - start_time
-        print(f" * objective = {f_opt:11.3e}   evals = {function_count}   " f"time = {dur:.2f}s")
+
+        print(f" * objective = {f_opt:11.3e}   evals = {function_evals}   " f"time = {dur:.2f}s")
         print(" * ----------------------------------------------------------------------------")
         print(" *                v_init      v_lb     <    v_opt     <    v_ub      ")
         print(" * ----------------------------------------------------------------------------")
@@ -477,18 +494,9 @@ def nms(func, v_init, v_lb=None, v_ub=None, options_in=None, consts=1.0):
 
         print(" *\n * ----------------------------------------------------------------------------")
 
-    if msg > 2:
-        plt.figure(1003)
-        ii = int(options[10])
-        jj = int(options[11])
-        plt.plot( v_opt[ii], v_opt[jj], f_opt, '-or', markersize=14 )
+        elapsed = time.time() - start_time
+        completion_time = datetime.now().strftime('%H:%M:%S')
+        elapsed_str = str(timedelta(seconds=int(elapsed)))
+        print(f' * Completion  : {completion_time} ({elapsed_str})\n')
 
-    # Trim history
-    cvg_hist = cvg_hst[:, :iteration].copy()
-
-    elapsed = time.time() - start_time
-    completion_time = datetime.now().strftime('%H:%M:%S')
-    elapsed_str = str(timedelta(seconds=int(elapsed)))
-    print(f' * Completion  : {completion_time} ({elapsed_str})')
-
-    return v_opt, f_opt, g_opt, cvg_hist, 0, 0
+    return v_opt, f_opt, g_opt, cvg_hst, function_evals, iteration

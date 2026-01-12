@@ -72,10 +72,10 @@ def ors(func, v_init, v_lb=None, v_ub=None, options=None, consts=None):
     g_opt : ndarray
         Constraint values at optimum
     cvg_hst : ndarray
-        Convergence history: [v; f; max(g); func_count; cvg_v; cvg_f]
+        Convergence history: [v; f; max(g); function_evals; cvg_v; cvg_f]
     iteration : int
         Number of iterations completed
-    function_count : int
+    function_evals : int
         Total number of function evaluations
     """
     
@@ -121,11 +121,13 @@ def ors(func, v_init, v_lb=None, v_ub=None, options=None, consts=None):
         return v_init, (np.sqrt(5)-1)/2, np.array([1.0]), None, 0, 0
     
     # initialize
-    function_count = iteration = 0
+    function_evals = iteration = 0
     cvg_f = 1.0
     cvg_hst = np.full((n + 5, max_evals), np.nan)
     fa = np.zeros(4)
     
+    feasible = converged = stalled = 0 # convergence criteria
+
     # scale v from bounds [v_lb, v_ub] to x in bounds [-1, +1]
     s0 = (v_lb + v_ub) / (v_lb - v_ub)
     s1 = 2.0 / (v_ub - v_lb)
@@ -135,7 +137,7 @@ def ors(func, v_init, v_lb=None, v_ub=None, options=None, consts=None):
     # analyze the initial guess
     x0 = x_init.copy() # use .copy() to keep changes in x0 from changing x_init
     f0, g0, x0, c0, nAvg = avg_cov_func(func, x0, s0, s1, options, consts, BOX)
-    function_count += nAvg
+    function_evals += nAvg
     
     # check dimensions
     if np.prod(np.shape(f0)) != 1:
@@ -166,16 +168,16 @@ def ors(func, v_init, v_lb=None, v_ub=None, options=None, consts=None):
     # save the initial guess to the convergence history
     cvg_hst[:, iteration] = np.concatenate([
         (x_opt - s0) / s1, [f_opt], [np.max(g_opt)], 
-        [function_count], [step_stdev], [1.0]
+        [function_evals], [step_stdev], [1.0]
     ])
     
     if msg:
         print()  # clear screen effect
     
-    last_update = function_count
+    last_update = function_evals
     
     # ========== main optimization loop ==========
-    while function_count < max_evals:
+    while function_evals < max_evals:
         
         # a random search perturbation with standard deviation 'step_stdev'
         sr = step_stdev * np.random.randn(n)
@@ -184,8 +186,8 @@ def ors(func, v_init, v_lb=None, v_ub=None, options=None, consts=None):
         aa, _ = box_constraint(x0, sr) # keep x1 within bounds
         x1 = x0 + aa * sr
         
-        fa[1], g1, x1, c0, nAvg = avg_cov_func(func, x1, s0, s1, options, consts, BOX)
-        function_count += nAvg
+        fa[1], g1, x1, c1, nAvg = avg_cov_func(func, x1, s0, s1, options, consts, BOX)
+        function_evals += nAvg
         
         # is fa[1] downhill from fa[0]?
         downhill = np.sign(fa[0] - fa[1]) # +1: yes, -1: no
@@ -198,7 +200,7 @@ def ors(func, v_init, v_lb=None, v_ub=None, options=None, consts=None):
             x2 = x0 + bb * 2*downhill * sr
         
         fa[2], g2, x2, c2, nAvg = avg_cov_func(func, x2, s0, s1, options, consts, BOX)
-        function_count += nAvg
+        function_evals += nAvg
         
         # distances from (x0 to x1) and from (x0 to x2) for quadratic fit
         dx1 = norm(x1 - x0) / norm(sr)
@@ -225,17 +227,18 @@ def ors(func, v_init, v_lb=None, v_ub=None, options=None, consts=None):
                 x3 = x0 + bb * d * sr
             
             fa[3], g3, x3, c3, nAvg = avg_cov_func(func, x3, s0, s1, options, consts, BOX)
-            function_count += nAvg
+            function_evals += nAvg
 
-        # save values of variables and functions for plotting (msg > 2)
+        # save values of variables and functions for plotting 
         v0 , f0 = (x0 - s0) / s1 , fa[0]
         v1 , f1 = (x1 - s0) / s1 , fa[1]
         v2 , f2 = (x2 - s0) / s1 , fa[2]
         v3 , f3 = (x3 - s0) / s1 , fa[3]
 
+        # find the best (min(fa)) objective value of the 4 evaluations in fa
         i_min = np.argmin(fa)
 
-        # adaptive step size
+        # adaptive update to the step size
         if i_min > 0:
             step_txt = '          none'
             FA = (f2-f0)/(f1-f0)
@@ -244,36 +247,39 @@ def ors(func, v_init, v_lb=None, v_ub=None, options=None, consts=None):
             FD = (f1-f2)/(f0-f1)
             if f1 > f0:                 # step 1 is uphill
                 if FA > 1:              # (f2-f0) > (f1-f0) reduce step
-                   step_stdev /= FA
-                   step_txt = '       uphill reduction'
+                    step_stdev /= FA
+                    step_txt = '        uphill reduction'
                 if FB > 1:              # (f0-f2) > (f1-f0) extend step
-                   step_stdev *= FB
-                   step_txt = '       uphill extension'
+                    step_stdev *= FB
+                    step_txt = '        uphill extension'
             if f1 < f0:                 # step 1 is downhill
                 if FC > 1:              # (f2-f1) > (f0-f1) reduce step
-                   step_stdev /= FC
-                   step_txt = '     downhill reduction'
+                    step_stdev /= FC
+                    step_txt = '      downhill reduction'
                 if FD > 1:              # (f1-f2) > (f0-f1) extend step
-                   step_stdev *= FD
-                   step_txt = '     downhill extension'
+                    step_stdev *= FD
+                    step_txt = '      downhill extension'
 
-        step_stdev = max(step_stdev,5*tol_v)
-            
-        # find the best (min(fa)) objective value of the 4 evaluations
-        fa[0] = fa[i_min]
+        '''
+        # scripted update to the step size (alternative to adaptive update)
+        # if the solution improved, reduce the scope of the search 
+        if i_min > 0:
+            step_stdev = step_stdev * (1 - function_evals / max_evals) ** nu
+        '''
 
+        step_stdev = min(max(step_stdev,2*tol_v),0.2) # bound the step size
+
+        # update the best point out the four trials
         if i_min == 1:
-            x0, g0, c0 = x1, g1, c0
+            x0, g0, c0 = x1, g1, c1
         elif i_min == 2:
             x0, g0, c0 = x2, g2, c2
         elif i_min == 3:
             x0, g0, c0 = x3, g3, c3
             quad_update = True
         
-        # if the solution improved, reduce the scope of the search 
-            # step_stdev = step_stdev * (1 - function_count / max_evals) ** nu
-       
         x0 = np.clip(x0, -1.0, 1.0)  # keep x0 within bounds, just to be sure
+        fa[0] = fa[i_min]
         
         # update optimal solution if improved
         if fa[0] < f_opt:
@@ -290,28 +296,28 @@ def ors(func, v_init, v_lb=None, v_ub=None, options=None, consts=None):
             iteration += 1
             cvg_hst[:, iteration] = np.concatenate([
                 v_opt, [f_opt], [np.max(g_opt)],
-                [function_count], [cvg_v], [cvg_f]
+                [function_evals], [cvg_v], [cvg_f]
             ])
-            last_update = function_count
+            last_update = function_evals
             
-            # Display progress
+            # Display progress for this iteration
             if msg:
                 elapsed = time.time() - start_time
-                secs_left = int((max_evals - function_count) * elapsed / function_count)
+                secs_left = int((max_evals - function_evals) * elapsed / function_evals)
                 eta = (datetime.now() + timedelta(seconds=secs_left)).strftime('%H:%M:%S')
                 
                 max_g = np.max(g_opt)
                 idx_ub_g = np.argmax(g_opt)
                 
                 #print('\033[H\033[J', end='')  # clear screen
-                print(' +-+-+-+-+-+-+-+-+-+-+- ORS -+-+-+-+-+-+-+-+-+-+-+-+-+')
+                print('\n +-+-+-+-+-+-+-+-+-+-+- ORS -+-+-+-+-+-+-+-+-+-+-+-+-+')
                 print(f' iteration               = {iteration:5d}', end='')
                 if max_g > tol_g:
                     print('     !!! infeasible !!!')
                 else:
                     print('     ***  feasible  ***')
-                print(f' function evaluations    = {function_count:5d}  of  {max_evals:5d}  '
-                      f'({100*function_count/max_evals:4.1f}%)')
+                print(f' function evaluations    = {function_evals:5d}  of  {max_evals:5d}  '
+                      f'({100*function_evals/max_evals:4.1f}%)')
                 print(f' e.t.a.                  = {eta}')
                 print(f' objective               = {f_opt:11.3e}')
                 print(f' variables               = ', end='')
@@ -327,7 +333,7 @@ def ors(func, v_init, v_lb=None, v_ub=None, options=None, consts=None):
                 if quad_update:
                     print(' line quadratic update successful')
         
-            # plot on surface
+            # plot on surface for this iteration
             if msg > 2:
            
                 plt.figure(1003)
@@ -348,50 +354,63 @@ def ors(func, v_init, v_lb=None, v_ub=None, options=None, consts=None):
                 
                 plt.draw()
                 plt.pause(0.01)
-        
-        # check for feasible solution
-        if np.max(g_opt) < tol_g and find_feas:
+
+        # ----- Termination checks -----
+        # check for feasibility of constraints 
+        if np.max(g_opt) < tol_g and find_feas:                   # :)
+            feasible = 1;
+        # check for convergence in variables and objective 
+        if iteration > n*n and (cvg_v < tol_v and cvg_f < tol_f): # :)
+            converged = 1 
+        # check for stalled computations
+        if function_evals - last_update > 0.2*max_evals:          # :(
+            stalled = 1   
+
+        if feasible or converged or stalled:
+            break 
+
+    # ========== end main loop ==========
+
+    # trim the convergence history
+    cvg_hst = cvg_hst[:, 0:iteration+1]
+
+    # plot the converged point
+    if msg > 2:
+        plt.figure(1003)
+        ii = int(options[10])
+        jj = int(options[11])
+        plt.plot( v_opt[ii], v_opt[jj], f_opt, '-or', markersize=14 )
+        plt.draw()
+        plt.pause(0.10)
+ 
+    # final report
+    if msg:
+        if feasible:
             print('\n * Woo Hoo! Feasible solution found!', end='')
             print(' *          ... and that is all we are asking for.')
-            break
-        
-        # check convergence
-        if iteration > n*n and (cvg_v < tol_v or cvg_f < tol_f or 
-                                (function_count - last_update) > 0.2*max_evals):
-            print('\n * Woo-Hoo! Converged solution found!')
-            if cvg_v < tol_v:
-                print(' *           convergence in design variables')
-            if cvg_f < tol_f:
-                print(' *           convergence in design objective')
-            
+        if converged:
+            print('\n * Woo-Hoo! Convergence in design variables and design objective!')
             if np.max(g_opt) < tol_g:
                 print(' * Woo-Hoo! Converged solution is feasible!')
             else:
                 print(' * Boo-Hoo! Converged solution is NOT feasible!')
-                if np.max(g_opt) > tol_g:
-                    print(' *   ... Increase options[5] (penalty) and try, try again ...')
-                else:
-                    print(' *   ... Decrease options[5] (penalty) and try, try again ...')
-            break
-    
-    # ========== end main loop ==========
-    
-    # check if maximum evaluations exceeded
-    if function_count >= max_evals:
-        if msg:
-            print(f'\n * Enough!! Maximum number of function evaluations ({max_evals}) '
-                  'has been exceeded')
-            print(' *   ... Increase tol_v (options[1]) or max_evals (options[4]) '
-                  'and try try again.')
-    
-    # scale back to original units
-#   v_init = (x_init - s0) / s1
-#   v_opt = (x_opt - s0) / s1
-    
-    # final report
-    if msg:
+                print(' *   ... Increase options[5] (penalty) and try, try again ...')
+        else:
+            print('\n * Boo-Hoo! Solution NOT converged!')
+
+        if stalled:
+            print(f' * Hmmm ... no improvement in the last {0.2*max_evals:.0f} function evaluations ...')
+            print(' *      ... Increase tol_v (options[1]), tol_f (options[2]) or max_evals (options[4]) ...')
+            print(' *      ... and try try again.')
+
+        # check if the maximum function evaluation limit was exceeded
+        if function_evals >= max_evals:
+            print(f" * Enough! max evaluations ({max_evals}) exceeded.")
+            print(" *   ... Increase tol_v (options[1]) or tol_f (options[2]) "
+                      "or max_evals (options[4]) and try again")
+  
         dur = time.time() - start_time
-        print(f" * objective = {f_opt:11.3e}   evals = {function_count}   " f"time = {dur:.2f}s")
+        print(f" * objective = {f_opt:11.3e}   evals = {function_evals}   " f"time = {dur:.2f}s")
         print(' * --------------------------------------------------------------')
         print(' *             v_init         v_lb     <     v_opt    <     v_ub')
         print(' * --------------------------------------------------------------')
@@ -417,27 +436,12 @@ def ors(func, v_init, v_lb=None, v_ub=None, options=None, consts=None):
             print(f' *     g({j:3d}) = {g_opt[j]:12.5f}  {binding}')
         print(' *\n * --------------------------------------------------------------')
 
-    if msg > 2:
-        plt.figure(1003)
-        ii = int(options[10])
-        jj = int(options[11])
-        plt.plot( v_opt[ii], v_opt[jj], f_opt, '-or', markersize=14 )
-        plt.draw()
-        plt.pause(0.10)
-    
-    # save the final iteration
-    cvg_hst[:, iteration] = np.concatenate([
-        v_opt, [f_opt], [np.max(g_opt)], [function_count], [cvg_v], [cvg_f]
-    ])
-    cvg_hst[n+4, 0:2] = cvg_hst[n+4, 2]
-    cvg_hst = cvg_hst[:, 0:iteration+1]
+        elapsed = time.time() - start_time
+        completion_time = datetime.now().strftime('%H:%M:%S')
+        elapsed_str = str(timedelta(seconds=int(elapsed)))
+        print(f' * Completion  : {completion_time} ({elapsed_str})\n')
 
-    elapsed = time.time() - start_time
-    completion_time = datetime.now().strftime('%H:%M:%S')
-    elapsed_str = str(timedelta(seconds=int(elapsed)))
-    print(f' * Completion  : {completion_time} ({elapsed_str})')
-   
-    return v_opt, f_opt, g_opt, cvg_hst, iteration, function_count
+    return v_opt, f_opt, g_opt, cvg_hst, iteration, function_evals
 
 # ======================================================================
 # updated 2011-04-13, 2014-01-12, 2015-03-14, (pi day 03.14.15), 2015-03-26, 
