@@ -72,4 +72,4 @@ opts = [ 3 ,   1e-2 ,   1e-2 ,   1e-3 ,    50*n**3 ,  0.5 ,  0.5 ,   1 ,  0.05 ]
 v_opt, f_opt, g_opt, cvg_hst, _,_  = ors(opt_example_analysis, v_init, v_lb, v_ub, opts, C)
 
 # plot the convergence history
-plot_cvg_hst( cvg_hst , v_opt )  
+plot_cvg_hst( cvg_hst , v_opt, opts[1], opts[2], opts[3] )  
