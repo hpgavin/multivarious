@@ -23,6 +23,7 @@ from .box_constraint import box_constraint
 from .format_bank import format_bank
 from .format_plot import format_plot
 from .opt_options import opt_options
+from .opt_report import opt_report
 from .plot_cvg_hst import plot_cvg_hst
 from .plot_ensemble import plot_ensemble
 from .plot_lm import plot_lm
@@ -37,6 +38,7 @@ __all__ = [ "avg_cov_func",
             "format_bank", 
             "format_plot", 
             "opt_options", 
+            "opt_report", 
             "plot_cvg_hst", 
             "plot_ensemble", 
             "plot_lm", 

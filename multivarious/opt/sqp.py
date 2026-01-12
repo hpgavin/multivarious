@@ -446,7 +446,7 @@ def sqp(func, v_init, v_lb=None, v_ub=None, options_in=None, consts=1.0):
         plt.plot( v_opt[ii], v_opt[jj], f_opt, '-or', markersize=14 )
 
     # Trim history
-    cvg_hist = cvg_hst[:, :iteration].copy()
+    cvg_hist = cvg_hst[:, :iteration+1].copy()
 
     elapsed = time.time() - start_time
     completion_time = datetime.now().strftime('%H:%M:%S')

@@ -13,7 +13,7 @@ import matplotlib.pyplot as plt
 import matplotlib.cm as cm
 
 
-def plot_cvg_hst(cvg_hst, v_opt, tol_v, tol_f, tol_g, fig_num=1000, clr=None):
+def plot_cvg_hst(cvg_hst, v_opt, opts=[1,np.nan,np.nan,np.nan], fig_num=1000, clr=None):
     """
     Plot the convergence history for optimization solutions.
     
@@ -33,6 +33,10 @@ def plot_cvg_hst(cvg_hst, v_opt, tol_v, tol_f, tol_g, fig_num=1000, clr=None):
         - Row n+4 contains F convergence criterion
     v_opt : ndarray, shape (n,)
         Optimal design variables computed by optimizer
+    opts : array-like, optimization options
+        opts[1] = tol_v - convergence tolerence on design variables 
+        opts[2] = tol_f - convergence tolerence on design objective
+        opts[3] = tol_g - convergence tolerence on design constraings
     fig_num : int, optional
         Figure number for plotting (default: 1002)
     clr : ndarray, optional
@@ -43,6 +47,11 @@ def plot_cvg_hst(cvg_hst, v_opt, tol_v, tol_f, tol_g, fig_num=1000, clr=None):
     None
         Displays and saves matplotlib figures
     """
+
+
+    tol_v = opts[1]
+    tol_f = opts[2]
+    tol_g = opts[3]
 
     #plt.rcParams['text.usetex'] = True # Set to True if LaTeX is installed
 
@@ -95,10 +104,10 @@ def plot_cvg_hst(cvg_hst, v_opt, tol_v, tol_f, tol_g, fig_num=1000, clr=None):
         
         # Subplot 1: F convergence criterion
         plt.subplot(2, 1, 1)
-        f_conv = cvg_hst[n + 4, :]
+        f_conv = cvg_hst[n+4, :]
         
         # Auto log-scale detection
-        if np.max(f_conv) > 100 * np.min(f_conv) and np.min(f_conv) > 0:
+        if np.max(f_conv) > 1e2 * np.min(f_conv) and np.min(f_conv) > 0:
             if marker:
                 plt.semilogy([fc[0],fc[-1]], tol_f*np.array([1,1]), '--g', linewidth=1)
                 plt.semilogy(fc, f_conv, pltstr, linewidth=lw, markersize=ms)
@@ -118,23 +127,23 @@ def plot_cvg_hst(cvg_hst, v_opt, tol_v, tol_f, tol_g, fig_num=1000, clr=None):
         
         # Subplot 2: V convergence criterion
         plt.subplot(2, 1, 2)
-        x_conv = cvg_hst[n + 3, :]
+        v_conv = cvg_hst[n+3, :]
         
         # Auto log-scale detection
-        if np.max(x_conv) > 100 * np.min(x_conv) and np.min(x_conv) > 0:
+        if np.max(v_conv) > (1e2 * np.min(v_conv)) and np.min(v_conv) > 0:
             if marker:
                 plt.semilogy([fc[0],fc[-1]], tol_v*np.array([1,1]), '--g', linewidth=1)
-                plt.semilogy(fc, x_conv, pltstr, linewidth=lw, markersize=ms)
+                plt.semilogy(fc, v_conv, pltstr, linewidth=lw, markersize=ms)
             else:
                 plt.semilogy([fc[0],fc[-1]], tol_v*np.array([1,1]), '--g', linewidth=1)
-                plt.semilogy(fc, x_conv, linewidth=lw)
+                plt.semilogy(fc, v_conv, linewidth=lw)
         else:
             if marker:
                 plt.plot([fc[0],fc[-1]], tol_v*np.array([1,1]), '--g', linewidth=1)
-                plt.plot(fc, x_conv, pltstr, linewidth=lw, markersize=ms)
+                plt.plot(fc, v_conv, pltstr, linewidth=lw, markersize=ms)
             else:
                 plt.plot([fc[0],fc[-1]], tol_v*np.array([1,1]), '--g', linewidth=1)
-                plt.plot(fc, x_conv, linewidth=lw)
+                plt.plot(fc, v_conv, linewidth=lw)
         
         plt.ylabel(r'variable convergence')
         plt.xlabel('function evaluations')
@@ -152,12 +161,12 @@ def plot_cvg_hst(cvg_hst, v_opt, tol_v, tol_f, tol_g, fig_num=1000, clr=None):
         plt.subplot(3, 1, 1)
         obj_vals = cvg_hst[n, :]
         
-        cmin = np.min(obj_vals)
-        cmax = np.max(obj_vals)
-        rnge = cmax - cmin
+        fmin = np.min(obj_vals)
+        fmax = np.max(obj_vals)
+        rnge = fmax - fmin
         
         # Auto log-scale detection
-        if (cmax > 100 * cmin and cmin + 0.01 * rnge > 0 and cmin > 0):
+        if (fmax > (1e2 * fmin) and fmin > 0 and fmin > 0):
             if marker:
                 plt.semilogy(fc, obj_vals, pltstr, linewidth=lw, markersize=ms)
             else:
@@ -173,7 +182,7 @@ def plot_cvg_hst(cvg_hst, v_opt, tol_v, tol_f, tol_g, fig_num=1000, clr=None):
         
         # Title with final values
         f_opt = obj_vals[-1]
-        g_opt = cvg_hst[n + 1, -1]
+        g_opt = cvg_hst[n+1, -1]
         plt.title(rf"$f_{{opt}}$ = {f_opt:10.3e}         max($g_{{opt}}$) = {g_opt:10.3e}")
         
         # Subplot 2: Design variable convergence
@@ -199,27 +208,18 @@ def plot_cvg_hst(cvg_hst, v_opt, tol_v, tol_f, tol_g, fig_num=1000, clr=None):
         
         # Subplot 3: Max constraint convergence
         plt.subplot(3, 1, 3)
-        constr_vals = cvg_hst[n + 1, :]
+        constr_vals = cvg_hst[n+1, :]
         
         gmin = np.min(constr_vals)
         gmax = np.max(constr_vals)
         rnge = gmax - gmin
         
-        # Auto log-scale detection
-        if (gmax / (gmin + 0.01) > 100 and gmin - 0.1 * rnge > 0):
-            if marker:
-                plt.plot([fc[0],fc[-1]], tol_g*np.array([1,1]), '--g', linewidth=1)
-                plt.plot(fc, constr_vals, pltstr, linewidth=lw, markersize=ms)
-            else:
-                plt.plot([fc[0],fc[-1]], tol_g*np.array([1,1]), '--g', linewidth=1)
-                plt.plot(fc, constr_vals, linewidth=lw)
+        if marker:
+            plt.plot([fc[0],fc[-1]], tol_g*np.array([1,1]), '--g', linewidth=1)
+            plt.plot(fc, constr_vals, pltstr, linewidth=lw, markersize=ms)
         else:
-            if marker:
-                plt.plot([fc[0],fc[-1]], tol_g*np.array([1,1]), '--g', linewidth=1)
-                plt.plot(fc, constr_vals, pltstr, linewidth=lw, markersize=ms)
-            else:
-                plt.plot([fc[0],fc[-1]], tol_g*np.array([1,1]), '--g', linewidth=1)
-                plt.plot(fc, constr_vals, linewidth=lw)
+            plt.plot([fc[0],fc[-1]], tol_g*np.array([1,1]), '--g', linewidth=1)
+            plt.plot(fc, constr_vals, linewidth=lw)
         
         plt.ylabel('max(constraints)')
         plt.xlabel('function evaluations')
@@ -258,7 +258,7 @@ if __name__ == "__main__":
     max_iter = 50  # Number of iterations
     
     # Initialize convergence history array
-    cvg_hst = np.zeros((n + 5, max_iter))
+    cvg_hst = np.zeros((n+5, max_iter))
     
     # Generate synthetic data
     fc = np.arange(1, max_iter + 1)  # Function count
@@ -271,16 +271,16 @@ if __name__ == "__main__":
     cvg_hst[n, :] = 100 * np.exp(-0.15 * fc) + 1.0
     
     # Max constraint decreasing (becoming feasible)
-    cvg_hst[n + 1, :] = 10 * np.exp(-0.2 * fc)
+    cvg_hst[n+1, :] = 10 * np.exp(-0.2 * fc)
     
     # Function count
-    cvg_hst[n + 2, :] = fc
+    cvg_hst[n+2, :] = fc
     
     # V convergence criterion
-    cvg_hst[n + 3, :] = 10 * np.exp(-0.12 * fc)
+    cvg_hst[n+3, :] = 10 * np.exp(-0.12 * fc)
     
     # F convergence criterion
-    cvg_hst[n + 4, :] = 50 * np.exp(-0.18 * fc)
+    cvg_hst[n+4, :] = 50 * np.exp(-0.18 * fc)
     
     # Optimal design variables
     v_opt = np.array([1.0, 2.0, 3.0])

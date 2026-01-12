@@ -19,7 +19,7 @@ from datetime import datetime, timedelta
 from multivarious.utl.avg_cov_func import avg_cov_func
 from multivarious.utl.plot_opt_surface import plot_opt_surface
 from multivarious.utl.opt_options import opt_options
-
+from multivarious.utl.opt_report import opt_report
 
 def nms(func, v_init, v_lb=None, v_ub=None, options_in=None, consts=1.0):
     """
@@ -437,7 +437,7 @@ def nms(func, v_init, v_lb=None, v_ub=None, options_in=None, consts=1.0):
     v_opt = (x_opt - s0) / s1
 
     # trim the convergence history
-    cvg_hst = cvg_hst[:, :iteration]
+    cvg_hst = cvg_hst[:, :iteration+1]
 
     # plot the converged point
     if msg > 2:
@@ -448,55 +448,8 @@ def nms(func, v_init, v_lb=None, v_ub=None, options_in=None, consts=1.0):
 
     # final report
     if msg:
-        if feasible:
-            print('\n * Woo Hoo! Feasible solution found!', end='')
-            print(' *          ... and that is all we are asking for.')
-        if converged:
-            print('\n * Woo-Hoo! Convergence in design variables and design objective!')
-            if np.max(g_opt) < tol_g:
-                print(' * Woo-Hoo! Converged solution is feasible!')
-            else:
-                print(' * Boo-Hoo! Converged solution is NOT feasible!')
-                print(' *   ... Increase options[5] (penalty) and try, try again ...')
-        else:
-            print('\n * Boo-Hoo! Solution NOT converged!')
-
-        if stalled:
-            print(f' * Hmmm ... no improvement in the last {0.2*max_evals:.0f} function evaluations ...')
-            print(' *      ... Increase tol_v (options[1]), tol_f (options[2]) or max_evals (options[4]) ...')
-            print(' *      ... and try try again.')
-
-        # check if the maximum function evaluation limit was exceeded
-        if function_evals >= max_evals:
-            print(f" * Enough! max evaluations ({max_evals}) exceeded.")
-            print(" *   ... Increase tol_v (options[1]) or tol_f (options[2]) "
-                      "or max_evals (options[4]) and try again")
-
-        dur = time.time() - start_time
-
-        print(f" * objective = {f_opt:11.3e}   evals = {function_evals}   " f"time = {dur:.2f}s")
-        print(" * ----------------------------------------------------------------------------")
-        print(" *                v_init      v_lb     <    v_opt     <    v_ub      ")
-        print(" * ----------------------------------------------------------------------------")
-        for i in range(n):
-            eqlb = '=' if v_opt[i] < v_lb[i] + tol_g + 10 * np.finfo(float).eps else ' '
-            equb = '=' if v_opt[i] > v_ub[i] - tol_g - 10 * np.finfo(float).eps else ' '
-            binding = ' ** binding **' if eqlb == '=' or equb == '=' else ''
-            print(f" *  v[{i+1:3d}]  {v_init[i]:11.4f} "
-                  f"{v_lb[i]:11.4f} {eqlb} {v_opt[i]:12.5f} {equb} {v_ub[i]:11.4f} {binding}")
-        print(" * ----------------------------------------------------------------------------")
-        print(" * Constraints:")
-        for j, gj in enumerate(np.atleast_1d(g_opt).flatten(), 1):
-            tag = " ** binding **" if gj > -tol_g else ""
-            if gj > tol_g:
-                tag = " ** not ok **"
-            print(f" *  g[{j:3d}] = {gj:12.5f}  {tag}")
-
-        print(" *\n * ----------------------------------------------------------------------------")
-
-        elapsed = time.time() - start_time
-        completion_time = datetime.now().strftime('%H:%M:%S')
-        elapsed_str = str(timedelta(seconds=int(elapsed)))
-        print(f' * Completion  : {completion_time} ({elapsed_str})\n')
+        opt_report(v_init, v_opt, f_opt, g_opt, v_lb, v_ub, tol_v, tol_f, tol_g,
+                   start_time, function_evals, max_evals,
+                   feasible, converged, stalled )
 
     return v_opt, f_opt, g_opt, cvg_hst, function_evals, iteration

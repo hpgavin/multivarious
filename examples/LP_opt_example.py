@@ -70,4 +70,4 @@ opts = [ 1 ,   1e-2 ,   1e-2 ,   1e-3 ,    50*n**3 ,  0.5 ,  0.5 ,   1 ,  0.05 ]
 v_opt, f_opt, g_opt, cvg_hst, _,_ = sqp(LP_analysis, v_init, v_lb, v_ub, opts, C)
 
 # plot the convergence history
-plot_cvg_hst( cvg_hst , v_opt )
+plot_cvg_hst( cvg_hst , v_opt , opts )
