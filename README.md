@@ -134,7 +134,7 @@ methods: distribution.pdf(), distribution.cdf(), distribution.inv(), distributio
 
 # installation
 
-* If you have not yet installed Python or VS Code, install Python (via [miniconda](https://www.anaconda.com/docs/getting-started/miniconda/install)) and VS Code ([via the termainal ](https://microsoft.github.io/vscode-essentials/en/01-getting-started.html))
+If you have not yet installed Python or VS Code, install Python (via [miniconda](https://www.anaconda.com/docs/getting-started/miniconda/install)) and VS Code ([via the termainal ](https://microsoft.github.io/vscode-essentials/en/01-getting-started.html))
 
 A. To configure VS Code, open VS Code and ...
   
