@@ -34,11 +34,13 @@ def box_constraint(x, r):
     b_vals = -np.ones(n)
     I = np.eye(n)
 
+    R = 1e-6 * np.eye(n)  # regularization
+
     for i in range(n):
         ei = np.zeros(n); ei[i] = 1.0
         Ii = I.copy()
         Ii[:, i] = -r
-        vab = np.linalg.solve(Ii, np.column_stack(((x - ei), (x + ei))))
+        vab = np.linalg.solve((Ii+R), np.column_stack(((x - ei), (x + ei))))
         aa_i, bb_i = vab[i, 0], vab[i, 1]
         if aa_i > 0:
             a_vals[i], b_vals[i] = aa_i, bb_i

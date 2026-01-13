@@ -221,7 +221,7 @@ def plot_opt_surface(func, x, v_lb, v_ub, options, consts=None, fig_num=1):
     #ax.legend(fontsize=11)
 
     # Improve viewing angle
-    ax.view_init(elev=25, azim=-60)
+    ax.view_init(elev=40, azim=-130)
 
     # Add grid
     ax.grid(True, alpha=0.3)
