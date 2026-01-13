@@ -2,6 +2,7 @@
 # -----------------------------------------------------------------------------
 # Translated from MATLAB's box_constraint.m
 # Determines box-scaling factors (aa, bb) for feasible perturbations.
+# H.P.Gavin: 2015-03-14  (pi day 3.14.15)
 # -----------------------------------------------------------------------------
 
 import numpy as np
@@ -11,6 +12,7 @@ def box_constraint(x, r):
     Determine box constraint scaling factors (aa, bb) such that:
         max(x + aa*r) < +1 and min(x + aa*r) > -1
         max(x - bb*r) < +1 and min(x - bb*r) > -1
+        aa>0 and bb>0
 
     Parameters
     ----------
@@ -34,7 +36,7 @@ def box_constraint(x, r):
     b_vals = -np.ones(n)
     I = np.eye(n)
 
-    R = 1e-6 * np.eye(n)  # regularization
+    R = 1e-6 * np.eye(n)  # a little regularization
 
     for i in range(n):
         ei = np.zeros(n); ei[i] = 1.0
