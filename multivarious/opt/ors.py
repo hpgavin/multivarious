@@ -127,7 +127,7 @@ def ors(func, v_init, v_lb=None, v_ub=None, options=None, consts=None):
     cvg_hst = np.full((n + 5, max_evals), np.nan)
     fa = np.zeros(4)
     
-    feasible = converged = stalled = 0 # convergence criteria
+    feasible = converged = stalled = False # convergence criteria
 
     # scale v from bounds [v_lb, v_ub] to x in bounds [-1, +1]
     s0 = (v_lb + v_ub) / (v_lb - v_ub)
@@ -356,13 +356,13 @@ def ors(func, v_init, v_lb=None, v_ub=None, options=None, consts=None):
         # ----- Termination checks -----
         # check for feasibility of constraints 
         if np.max(g_opt) < tol_g and find_feas:                   # :)
-            feasible = 1;
+            feasible = True
         # check for convergence in variables and objective 
         if iteration > n*n and (cvg_v < tol_v and cvg_f < tol_f): # :)
-            converged = 1 
+            converged = True 
         # check for stalled computations
         if function_evals - last_update > 0.2*max_evals:          # :(
-            stalled = 1   
+            stalled = True   
 
         if feasible or converged or stalled:
             break 

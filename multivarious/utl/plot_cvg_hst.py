@@ -13,7 +13,7 @@ import matplotlib.pyplot as plt
 import matplotlib.cm as cm
 
 
-def plot_cvg_hst(cvg_hst, v_opt, opts=[1,np.nan,np.nan,np.nan], fig_num=1000, clr=None):
+def plot_cvg_hst(cvg_hst, v_opt, opts=[1,np.nan,np.nan,np.nan], fig_num=1000, clr=None, pdf_plots=False):
     """
     Plot the convergence history for optimization solutions.
     
@@ -56,7 +56,6 @@ def plot_cvg_hst(cvg_hst, v_opt, opts=[1,np.nan,np.nan,np.nan], fig_num=1000, cl
     #plt.rcParams['text.usetex'] = True # Set to True if LaTeX is installed
 
     interactive = True        # Enable interactive mode for matplotlib
-    pdf_plots = False         # Save PDF files
     
     # Convert inputs to numpy arrays
     cvg_hst = np.asarray(cvg_hst)

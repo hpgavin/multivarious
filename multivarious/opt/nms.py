@@ -117,7 +117,7 @@ def nms(func, v_init, v_lb=None, v_ub=None, options_in=None, consts=1.0):
 
     optimize_contraction = False  # Option to optimize contraction step
 
-    feasible = converged = stalled = 0 # convergence criteria
+    feasible = converged = stalled = False # convergence criteria
 
     # ----- scale variables linearly to [-1, +1]  -----
     s0 = (v_lb + v_ub) / (v_lb - v_ub)
@@ -421,13 +421,13 @@ def nms(func, v_init, v_lb=None, v_ub=None, options_in=None, consts=1.0):
         # ----- Termination checks -----
         # check for feasibility of constraints 
         if np.max(g_opt) < tol_g and find_feas:                   # :)
-            feasible = 1;
+            feasible = True
         # check for convergence in variables and objective 
         if iteration > n*n and (cvg_v < tol_v and cvg_f < tol_f): # :)
-            converged = 1 
+            converged = True 
         # check for stalled computations
         if function_evals - last_update > 0.2*max_evals:          # :(
-            stalled = 1   
+            stalled = True   
         if feasible or converged or stalled:
             break 
 
