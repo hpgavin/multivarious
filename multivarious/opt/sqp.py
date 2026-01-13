@@ -326,7 +326,7 @@ def sqp(func, v_init, v_lb=None, v_ub=None, options_in=None, consts=1.0):
             cvg_f = abs(absSL * np.dot(gradf, SD) / (f + 1e-9)) 
             cvg_v = np.max(np.abs(absSL * SD / (x + 1e-9)))
 
-            print('\033[H\033[J', end='')  # clear screen
+            # print('\033[H\033[J', end='')  # clear screen
             print("\n *********************** SQP ****************************")
             print(f" iteration                = {iteration:5d}   "
                   f"{'*** feasible ***' if g_max <= tol_g and np.all(x >= -1) and np.all(x <= 1) else '!!! infeasible !!!'}")
@@ -451,7 +451,7 @@ def sqp(func, v_init, v_lb=None, v_ub=None, options_in=None, consts=1.0):
     elapsed = time.time() - start_time
     completion_time = datetime.now().strftime('%H:%M:%S')
     elapsed_str = str(timedelta(seconds=int(elapsed)))
-    print(f' * Completion  : {completion_time} ({elapsed_str})')
+    print(f' * Completion  : {completion_time} ({elapsed_str})\n')
 
     return v_opt, f_opt, g_opt, cvg_hist, lambda_qp, HESS
 

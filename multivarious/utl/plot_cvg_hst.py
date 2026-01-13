@@ -244,7 +244,7 @@ def plot_cvg_hst(cvg_hst, v_opt, opts=[1,np.nan,np.nan,np.nan], fig_num=1000, cl
         print(f"Saved: {filename}")
 
     if interactive: 
-        input("Press Enter to close all figures...")
+        input("Press Enter to close all figures ... ")
         plt.close('all')
 
 # Example usage / test

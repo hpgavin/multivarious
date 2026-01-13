@@ -200,7 +200,6 @@ def nms(func, v_init, v_lb=None, v_ub=None, options_in=None, consts=1.0):
     for i in range(n):
         xtx += f"   vertex {(i+2):1d} "
 
-    iteration += 1
     cvg_hst[:, iteration] = np.concatenate([(simplex[:, 0] - s0) / s1,
                       [fx_all[0], g_max[0], function_evals, cvg_v, cvg_f]])
 
