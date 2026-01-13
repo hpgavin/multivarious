@@ -148,50 +148,49 @@ A. To configure VS Code, open VS Code and ...
   
   Save your changes to this settings.json file and close the VS Code edit window. 
 
-B. Install multivarious using `git` and `pip` (for example, into a Code folder on your Desktop).
+B. (**Windows** and **macOS**) Install multivarious using `git` and `pip` (for example, into a Code folder on your Desktop).
   
   Open a terminal window (Win11: (Win+X) and choose Windows Terminal) or (macOS: (Cmd+Space), type Terminal) and enter the commands:
-  
   ``` bash
   cd ~/Desktop/Code
   git clone https://github.com/hpgavin/multivarious
-  pip install multivarious                          
+  pip install -e multivarious 
   ```
-  **Note:** For Linux installations, replace the usage of `pip` with a `PYTHONPATH` environment variable in your `~/.bashrc` or `~/.profile` (See part D. below.)
 
-C. Verify that VS Code has access to the multivarious library. 
+C. (**linux**) Install multivarious using `git` (for example into Desktop/Code) and set the `PYTHONPATH` 
+ 
+  ``` bash
+  cd ~/Desktop/Code
+  git clone https://github.com/hpgavin/multivarious
+  ```
+  Open your `~/.profile` and copy and paste the line below it into your `~\.profile`. 
+  ```bash
+  export PYTHONPATH="$PYTHONPATH:$HOME/Desktop/Code/multivarious/"           
+  ```
+  Verify the edits have taken effect system-wide ...
+  ```bash
+  source ~/.profile   
+  echo $PYTHONPATH  
+  ```
+  If the terminal shows that your `PYTHONPATH` is set as intended, it has worked. 
+  VS Code will now find multivarious.
+
+    
+D. Verify that VS Code has access to the multivarious library. 
   
-    VS Code > File > Open Folder ... > navigate to your multivarious/examples folder > Open
+   VS Code > File > Open Folder ... > navigate to your multivarious/examples folder > Open
     
-    VS Code > File Explorer > select `verify_path_import.py` > click the right arrow in the Edit menu [Run Python File]
+   VS Code > File Explorer > select `verify_path_import.py` > click the right arrow in the Edit menu [Run Python File]
     
-    This will open a new Terminal Window which should display ...
+   This will open a new Terminal Window which should display ...
        
-       ```
-       hello
-       verifying that PYTHONPATH has been set ... 
-       PYTHONPATH env: /home/hpgavin/Code/multivarious
-       ... and yes, yes it has. Great!  
-       verifying that multivarious can be imported ... 
-       ... and yes, yes it can. Great!  
-       ```
+   ```
+   hello
+   verifying that PYTHONPATH has been set ... 
+   PYTHONPATH env: /home/USERNAME/Desktop/Code/multivarious <<< via PYTHONPATH
+   ... and yes, yes it has. Great!  
+   verifying that multivarious can be imported ... 
+   ... and yes, yes it can. Great!  
+   ```
  
-D. (**linux**) Set the `PYTHONPATH` environment variable 
- 
-   1. Open your `~/.profile` and copy and paste the line below it into your `~\.profile`. 
-      ```bash
-      export PYTHONPATH="$PYTHONPATH:$HOME/Desktop/Code/multivarious/"           
-      ```
-   2. Verify the edits have taken effect system-wide ...
-      ```bash
-      source ~/.profile   
-      echo $PYTHONPATH  
-      ```
-      If the terminal shows that your `PYTHONPATH` is set as indended, it has worked. 
-      VS Code will now find multivarious.
-
-   3. Verify that VS Code has access to the multivarious library (as in part C. above). 
-  
-   4. [CTRL-D] - at the `>>>` Python prompt to exit the Python Interactive mode and return to the terminal prompt.   
-    
-
+   [CTRL-D] - at the `>>>` Python prompt to exit the Python Interactive mode and return to the terminal prompt.   
