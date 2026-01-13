@@ -192,16 +192,17 @@ def nms(func, v_init, v_lb=None, v_ub=None, options_in=None, consts=1.0):
     f_old = f_opt
     last_update = function_evals
 
-    # Convergence criteria for initial simplex
-    cvg_v = 2.0*norm( simplex[:, n] - simplex[:, 0] ) / ( norm( simplex[:, n] + simplex[:, 0] ) + 1e-9 )
-    cvg_f = 2.0*norm( fx_all[n] - fx_all[0] ) / ( fx_all[n] + fx_all[0] + 1e-9 )
+    # Convergence metrics for initial simplex
+    cvg_v = norm(simplex[:, 1] - simplex[:, n])/norm(simplex[:, 1] + simplex[:, n]+1e-9)
+    cvg_f = 1.0; 
+    max_g = max(g_opt); 
+
+    cvg_hst[:, iteration] = np.concatenate([ (simplex[:, 0] - s0) / s1,
+                      [fx_all[0], max_g, function_evals, cvg_v, cvg_f ]])
 
     xtx = " simplex :    vertex 1 "
     for i in range(n):
         xtx += f"   vertex {(i+2):1d} "
-
-    cvg_hst[:, iteration] = np.concatenate([(simplex[:, 0] - s0) / s1,
-                      [fx_all[0], g_max[0], function_evals, cvg_v, cvg_f]])
 
     if msg:
         print('\033[H\033[J', end='')  # Clear screen
@@ -350,18 +351,18 @@ def nms(func, v_init, v_lb=None, v_ub=None, options_in=None, consts=1.0):
         x_opt = simplex[:, 0].copy()
         f_opt = fx_all[0]
         g_opt = gx_all[:, 0].copy()
+        v_opt = (x_opt - s0)/s1
 
         if f_opt < f_old:
             last_update = function_evals
             f_old = f_opt
 
-        # ----- Convergence criteria -----
-        cvg_v = 2.0*norm( simplex[:, n] - simplex[:, 0] ) / ( norm( simplex[:, n] + simplex[:, 0] ) + 1e-9 )
-        cvg_f = 2.0*norm( fx_all[n] - fx_all[0] ) / ( fx_all[n] + fx_all[0] + 1e-9 )
+        # ----- Convergence metrics -----
+        cvg_v, cvg_f, max_g = cvg_metrics( simplex, fx_all, g_opt)
 
         iteration += 1
-        cvg_hst[:, iteration] = np.concatenate([(x_opt - s0) / s1,
-                         [f_opt, np.max(g_opt), function_evals, cvg_v, cvg_f]])
+        cvg_hst[:, iteration] = np.concatenate([ v_opt,
+                      [ f_opt, max_g, function_evals, cvg_v, cvg_f ] ])
 
         # ----- Display progress -----
         if msg:
@@ -432,9 +433,6 @@ def nms(func, v_init, v_lb=None, v_ub=None, options_in=None, consts=1.0):
 
     # ========== end main loop ==========
 
-    # Scale back to original units
-    v_opt = (x_opt - s0) / s1
-
     # trim the convergence history
     cvg_hst = cvg_hst[:, :iteration+1]
 
@@ -452,3 +450,43 @@ def nms(func, v_init, v_lb=None, v_ub=None, options_in=None, consts=1.0):
                    feasible, converged, stalled )
 
     return v_opt, f_opt, g_opt, cvg_hst, function_evals, iteration
+
+
+def cvg_metrics(simplex, fv, g0):
+    '''
+    Compute consistent convergence metrics for ors, nms and sqp
+    
+    Parameters
+    ----------    
+    simplex ndarray (n,n+1)
+       the nelder mead simplex of design variables 
+    fv array
+       the design objective at each simplex point 
+    g0 array
+       constraints at the best simplex point
+
+    Returns
+    -------
+      cvg_v float
+        convergence metric for design variables
+      cvg_f float
+        convergence metric for design objective
+      max_g float
+        the maximum of the design constraints
+    '''
+
+    from numpy.linalg import norm
+    from numpy import max
+
+    n = np.shape(simplex)[0] # number of design variabls 
+
+    v0 = simplex[:,0]
+    vn = simplex[:,n]
+    f0 = fv[0]
+    fn = fv[n]
+
+    cvg_v = norm(vn - v0) / (norm(vn + v0)+1e-9)
+    cvg_f = norm(fn - f0) / (norm(fn + f0)+1e-9)
+    max_g = max(g0)
+
+    return cvg_v, cvg_f, max_g

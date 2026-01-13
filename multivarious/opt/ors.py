@@ -290,14 +290,12 @@ def ors(func, v_init, v_lb=None, v_ub=None, options=None, consts=None):
             g_opt = g0.copy()
             v_opt = (x_opt - s0) / s1 # scale (x) back to original units (v)
             
-            # Convergence criteria
-            cvg_v = norm(cvg_hst[0:n, iteration] - v_opt) / (norm(cvg_hst[0:n, iteration] + v_opt)+1e-9)
-            cvg_f = norm(cvg_hst[  n, iteration] - f_opt) / (norm(cvg_hst[  n, iteration] + f_opt)+1e-9)
-            
+            # Convergence metrics
+            cvg_v, cvg_f, max_g = cvg_metrics(cvg_hst, v_opt, f_opt, g_opt, iteration)
+
             iteration += 1
             cvg_hst[:, iteration] = np.concatenate([
-                v_opt, [f_opt], [np.max(g_opt)],
-                [function_evals], [cvg_v], [cvg_f]
+                v_opt, [f_opt], [max_g], [function_evals], [cvg_v], [cvg_f]
             ])
             last_update = function_evals
             
@@ -307,8 +305,7 @@ def ors(func, v_init, v_lb=None, v_ub=None, options=None, consts=None):
                 secs_left = int((max_evals - function_evals) * elapsed / function_evals)
                 eta = (datetime.now() + timedelta(seconds=secs_left)).strftime('%H:%M:%S')
                 
-                max_g = np.max(g_opt)
-                idx_ub_g = np.argmax(g_opt)
+                idx_max_g = np.argmax(g_opt) # the index of the largest constraint
                 
                 #print('\033[H\033[J', end='')  # clear screen
                 print('\n +-+-+-+-+-+-+-+-+-+-+- ORS -+-+-+-+-+-+-+-+-+-+-+-+-+')
@@ -325,7 +322,7 @@ def ors(func, v_init, v_lb=None, v_ub=None, options=None, consts=None):
                 for val in v_opt:
                     print(f'{val:11.3e}', end='')
                 print()
-                print(f' max constraint          = {max_g:11.3e} ({idx_ub_g})')
+                print(f' max constraint          = {max_g:11.3e} ({idx_max_g+1})')
                 print(f' objective convergence   = {cvg_f:11.4e}    tol_f = {tol_f:8.6f}')
                 print(f' variable  convergence   = {cvg_v:11.4e}    tol_v = {tol_v:8.6f}')
                 print(f' c.o.v. of F_A           = {c0:11.3e}')
@@ -392,7 +389,47 @@ def ors(func, v_init, v_lb=None, v_ub=None, options=None, consts=None):
 
     return v_opt, f_opt, g_opt, cvg_hst, iteration, function_evals
 
+def cvg_metrics(cvg_hst, v, f, g, iteration ):
+    '''
+    Compute consistent convergence metrics for ors, nms and sqp
+    
+    Parameters
+    ----------    
+    cvg_hst ndarray
+       convergence history 
+    v array
+       design variables
+    f float
+       objective function
+    g array
+       constraints 
+    iteration int
+       current iteration number 
+
+    Returns
+    -------
+      cvg_v float
+        convergence metric for design variables
+      cvg_f float
+        convergence metric for design objective
+      max_g float
+        the maximum of the design constraints
+    '''
+
+    from numpy.linalg import norm
+    from numpy import max
+
+    n = len(v) # number of design variabls 
+
+    cvg_v = norm(cvg_hst[0:n, iteration] - v) / (norm(cvg_hst[0:n, iteration] + v)+1e-9)
+    cvg_f = norm(cvg_hst[  n, iteration] - f) / (norm(cvg_hst[  n, iteration] + f)+1e-9)
+    max_g = max(g)     
+
+    return cvg_v, cvg_f, max_g
+
 # ======================================================================
 # updated 2011-04-13, 2014-01-12, 2015-03-14, (pi day 03.14.15), 2015-03-26, 
 # 2016-04-06, 2019-02-23, 2020-01-17, 2024-04-03, 2025-11-24
+
+
 
