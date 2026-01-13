@@ -53,7 +53,7 @@ def opt_example_analysis( v, C ):
 C = SimpleNamespace()
 C.a = np.array([  1.0,  0.2,  0.5,  0.3 ])
 C.b = np.array([ -2.0, -0.5,  0.5, -1.5 ])
-C.c = np.array([  0.8,  0.2,  0.10 ])
+C.c = np.array([  0.8,  0.2,  0.00 ])
 
 v_lb = np.array([ 0.0,  0.0])       # lower bound on the design variables 
 v_ub = np.array([ 1.0,  1.0])       # upper bound on the design variables 
@@ -66,7 +66,7 @@ v_init = np.array([ 0.8 , 0.8 ])                  # a specified initial guess
 # optimization options ...
 #        0      1        2        3         4          5      6      7     8
 #       msg    tol_v    tol_f    tol_g    max_evals  pnlty  expn  m_max  cov_F
-opts = [ 3 ,   2e-2 ,   2e-2 ,   1e-3 ,    50*n**3 ,  0.5 ,  0.5 ,  11 ,  0.05 ]
+opts = [ 3 ,   2e-2 ,   2e-2 ,   1e-3 ,    50*n**3 ,  0.5 ,  0.5 ,   1 ,  0.05 ]
 
 # Solve the optimization problem using one of ... ors , nms , sqp 
 v_opt, f_opt, g_opt, cvg_hst, _,_  = ors(opt_example_analysis, v_init, v_lb, v_ub, opts, C)
