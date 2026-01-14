@@ -415,7 +415,7 @@ def nms(func, v_init, v_lb=None, v_ub=None, options_in=None, consts=1.0):
                        '-or', alpha=1.0, markersize=6, linewidth=2,
                        markerfacecolor='red', markeredgecolor='darkred')
             plt.draw()
-            plt.pause(0.01)
+            plt.pause(0.10)
 
  
         # ----- Termination checks -----

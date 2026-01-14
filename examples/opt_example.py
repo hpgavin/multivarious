@@ -60,8 +60,8 @@ v_ub = np.array([ 1.0,  1.0])       # upper bound on the design variables
 
 n = len(v_lb)                       # the number of design variables 
 
-#v_init = v_lb + np.random.rand(n)*(v_ub - v_lb)   # a  random   initial guess
-v_init = np.array([ 0.8 , 0.8 ])                  # a specified initial guess 
+#v_init = v_lb + np.random.rand(n)*(v_ub - v_lb)   # a  random  initial guess
+v_init = np.array([ 0.8 , 0.8 ])                   # a specific initial guess 
 
 # optimization options ...
 #        0      1        2        3         4          5      6      7     8
@@ -69,8 +69,8 @@ v_init = np.array([ 0.8 , 0.8 ])                  # a specified initial guess
 opts = [ 3 ,   2e-2 ,   2e-2 ,   1e-3 ,    50*n**3 ,  0.5 ,  0.5 ,   1 ,  0.05 ]
 
 # Solve the optimization problem using one of ... ors , nms , sqp 
-v_opt, f_opt, g_opt, cvg_hst, _,_  = sqp(opt_example_analysis, v_init, v_lb, v_ub, opts, C)
+v_opt, f_opt, g_opt, cvg_hst, _,_  = ors(opt_example_analysis, v_init, v_lb, v_ub, opts, C)
 
 # plot the convergence history
-plot_cvg_hst( cvg_hst , v_opt, opts, pdf_plots=True )
+plot_cvg_hst( cvg_hst , v_opt, opts, pdf_plots=False ) 
 

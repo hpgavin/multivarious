@@ -16,8 +16,8 @@ Computer Methods in Applied Mechanics & Eng'g, Vol 19, 99-106, 1979
 
 S.Rao, Optimization Theory and Applications, 2nd ed, John Wiley, 1984
 
+H.P. Gavin, Civil & Environmental Eng'g, Duke Univ.
 Translation from MATLAB to Python, 2025-11-24
-Original by H.P. Gavin, Civil & Environmental Eng'g, Duke Univ.
 """
 
 import numpy as np
@@ -125,7 +125,7 @@ def ors(func, v_init, v_lb=None, v_ub=None, options=None, consts=None):
     function_evals = iteration = 0
     cvg_f = 1.0
     cvg_hst = np.full((n + 5, max_evals), np.nan)
-    fa = np.zeros(4)
+    f = np.zeros(4)
     
     feasible = converged = stalled = False # convergence criteria
 
@@ -146,8 +146,8 @@ def ors(func, v_init, v_lb=None, v_ub=None, options=None, consts=None):
     if g0.ndim == 2 and g0.shape[0] == 1:
         raise ValueError('Constraints must be a column vector')
     
-    fa[0] = f0 
-    fa[3] = f0
+    f[0] = f0 
+    f[3] = f0
     u3 = u0.copy() # use .copy() to keep changes in u3 from changing u0
     g3 = g0.copy() # use .copy() to keep changes in g3 from changing g0
     
@@ -162,7 +162,7 @@ def ors(func, v_init, v_lb=None, v_ub=None, options=None, consts=None):
             func, v_init, v_lb, v_ub, options, consts, 1003)
      
     # initialize optimal values
-    f_opt = fa[0]
+    f_opt = f[0]
     u_opt = u0.copy() # use .copy() to keep changes in u0 from changing u_opt
     g_opt = g0.copy() # use .copy() to keep changes in g0 from changing g_opt
     v_opt = s0 + s1*u_opt # scale (u) back to original units (v)
@@ -188,11 +188,11 @@ def ors(func, v_init, v_lb=None, v_ub=None, options=None, consts=None):
         aa, _ = box_constraint(u0, sr) # keep u1 within bounds
         u1 = u0 + aa * sr
         
-        fa[1], g1, u1, c1, nAvg = avg_cov_func(func, u1, s0, s1, options, consts, BOX)
+        f[1], g1, u1, c1, nAvg = avg_cov_func(func, u1, s0, s1, options, consts, BOX)
         function_evals += nAvg
         
-        # is fa[1] downhill from fa[0]?
-        downhill = np.sign(fa[0] - fa[1]) # +1: yes, -1: no
+        # is f[1] downhill from f[0]?
+        downhill = np.sign(f[0] - f[1]) # +1: yes, -1: no
         
         # 2nd perturbation: 2*downhill*s*r : "downhill double step"
         aa, bb = box_constraint(u0, 2*downhill*sr) # keep u2 within bounds
@@ -201,44 +201,43 @@ def ors(func, v_init, v_lb=None, v_ub=None, options=None, consts=None):
         else:
             u2 = u0 + bb * 2*downhill * sr
         
-        fa[2], g2, u2, c2, nAvg = avg_cov_func(func, u2, s0, s1, options, consts, BOX)
+        f[2], g2, u2, c2, nAvg = avg_cov_func(func, u2, s0, s1, options, consts, BOX)
         function_evals += nAvg
         
         # distances from (u0 to u1) and from (u0 to u2) for quadratic fit
         du1 = norm(u1 - u0) / norm(sr)
         du2 = norm(u2 - u0) / norm(sr)
         
-        # fit quadratic: f(d) = 0.5*a*d^2 + b*d + c
-        A = np.array([
-            [0,           0,    1],
-            [0.5*du1**2, du1,   1],
-            [0.5*du2**2, du2,   1]
+        # fit quadratic: f(d) = c[0] + c[1]*d + c[2]*d^2 
+        D = np.array([
+            [1,   0,      0, ],
+            [1, du1, du1**2, ],
+            [1, du2, du2**2, ]
         ]) + regularization
         
-        abc = solve(A, fa[0:3])
-        a, b, c = abc[0], abc[1], abc[2]
+        c = solve(D, f[0:3])
         
         # 3rd perturbation : try quadratic update if curvature is positive
         quad_update = False
-        if a > 0:       # positive curvature ... so look for a minimum
-            d = -b / a  # d*r is the distance from u0 to the zero-slope point
+        if c[2] > 0:            # positive curvature ... so look for a minimum
+            d = -c[1]/(2*c[2])  # d*r is the distance from u0 to the zero-slope point
             aa, bb = box_constraint(u0, d * sr) # keep u3 within bounds
             if d > 0:
                 u3 = u0 + aa * d * sr
             else:
                 u3 = u0 + bb * d * sr
             
-            fa[3], g3, u3, c3, nAvg = avg_cov_func(func, u3, s0, s1, options, consts, BOX)
+            f[3], g3, u3, c3, nAvg = avg_cov_func(func, u3, s0, s1, options, consts, BOX)
             function_evals += nAvg
 
         # save values of variables and functions for plotting 
-        v0 , f0 = s0 + s1*u0 , fa[0]
-        v1 , f1 = s0 + s1*u1 , fa[1]
-        v2 , f2 = s0 + s1*u2 , fa[2]
-        v3 , f3 = s0 + s1*u3 , fa[3]
+        v0 , f0 = s0 + s1*u0 , f[0]
+        v1 , f1 = s0 + s1*u1 , f[1]
+        v2 , f2 = s0 + s1*u2 , f[2]
+        v3 , f3 = s0 + s1*u3 , f[3]
 
-        # find the best (min(fa)) objective value of the 4 evaluations in fa
-        i_min = np.argmin(fa)
+        # find the best (min(f)) objective value of the 4 evaluations in f
+        i_min = np.argmin(f)
 
         # adaptive update to the step size
         if i_min > 0:
@@ -281,13 +280,13 @@ def ors(func, v_init, v_lb=None, v_ub=None, options=None, consts=None):
             quad_update = True
         
         u0 = np.clip(u0, -1.0, 1.0)  # keep u0 within bounds, just to be sure
-        fa[0] = fa[i_min]
+        f[0] = f[i_min]
         
         # update optimal solution if improved
-        if fa[0] < f_opt:
+        if f[0] < f_opt:
             # use .copy() to keep changes to u0 from changing u_opt!
             u_opt = u0.copy()
-            f_opt = fa[0].copy() # .copy() not needed since f_opt is immutable
+            f_opt = f[0].copy() # .copy() not needed since f_opt is immutable
             g_opt = g0.copy()
             v_opt = s0 + s1*u_opt # scale (u) back to original units (v)
             
@@ -348,11 +347,11 @@ def ors(func, v_init, v_lb=None, v_ub=None, options=None, consts=None):
                              [v1[jj], v0[jj], v2[jj] ],
                              [f1,     f0,     f2 ], '-or', markersize=4) 
                 if quad_update:
-                    plt.plot([v3[ii]], [v3[jj]], fa[3], 
+                    plt.plot([v3[ii]], [v3[jj]], f[3], 
                             'ob', markersize=9, linewidth=3)
                 
                 plt.draw()
-                plt.pause(0.01)
+                plt.pause(0.10)
 
         # ----- Termination checks -----
         # check for feasibility of constraints 
