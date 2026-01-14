@@ -76,7 +76,7 @@ def sqp(func, v_init, v_lb=None, v_ub=None, options_in=None, consts=1.0):
         raise ValueError("v_ub must be greater than v_lb for all parameters")
 
     # Put initial guess within bounds
-    v_init = np.clip(v_init, 0.9 * v_lb, 0.9 * v_ub)
+    v0 = np.clip(v_init, 0.9 * v_lb, 0.9 * v_ub)
 
     options   = opt_options(options_in)
     msg    = int(options[0])    # display level
@@ -89,11 +89,11 @@ def sqp(func, v_init, v_lb=None, v_ub=None, options_in=None, consts=1.0):
     options[5] = -1                # no penalty factor involved in SQP
 
     # ----- scale to [-1, +1] -----
-    s0 = (v_lb + v_ub) / (v_lb - v_ub)
-    s1 = 2.0 / (v_ub - v_lb)
-    x = s0 + s1 * v_init
-    x_lb = -1.0 * np.ones(n)
-    x_ub = +1.0 * np.ones(n)
+    s0 = (v_lb + v_ub) / 2.0
+    s1 = (v_ub - v_lb) / 2.0
+    u0 = (v0 - s0) / s1
+    u_lb = -1.0 * np.ones(n)
+    u_ub = +1.0 * np.ones(n)
 
     # ----- initialize -----
     function_evals = iteration = 0
@@ -102,29 +102,30 @@ def sqp(func, v_init, v_lb=None, v_ub=None, options_in=None, consts=1.0):
     start_time = time.time()
 
     # First function evaluation
-    f, g = func((x - s0) / s1, consts)
+    f0, g0 = func(v0, consts)
     function_evals += 1
 
-    if not np.isscalar(f):
+    if not np.isscalar(f0):
         raise ValueError("Objective returned by func(v,consts) must be a scalar.")
-    g = np.atleast_1d(g).astype(float).flatten()
-    m = g.size  # number of constraints
+    g0 = np.atleast_1d(g0).astype(float).flatten()
+    m = g0.size  # number of constraints
 
     # Initialize best solution
-    f_opt = float(f)
-    x_opt = x.copy()
-    g_opt = g.copy()
+    f_opt = float(f0)
+    u_opt = u0.copy()
+    v_opt = v0.copy()
+    g_opt = g0.copy()
 
     # Save initial state
-    cvg_hst[:, iteration] = np.concatenate([ (x - s0) / s1,
-              [f, np.max(g), function_evals, 1.0, 1.0] ])
+    cvg_hst[:, iteration] = np.concatenate([ v0,
+              [f0, np.max(g0), function_evals, 1.0, 1.0] ])
 
     if msg > 2:
-        f_min, f_max, ax = plot_opt_surface(func, (x-s0)/s1, v_lb, v_ub, options, consts, 1003)
+        f_min, f_max, ax = plot_opt_surface(func, v_init, v_lb, v_ub, options, consts, 1003)
 
     # Initialize gradient and Hessian storage
-    OLDX = x.copy()
-    OLDG = g.copy()
+    OLDU = u0.copy()
+    OLDG = g0.copy()
     gradf = np.zeros(n)
     OLDgradf = np.zeros(n)
     gradg = np.zeros((m, n))
@@ -134,7 +135,7 @@ def sqp(func, v_init, v_lb=None, v_ub=None, options_in=None, consts=1.0):
     PENALTY = np.ones(m)  # Penalty factors
 
     # Finite difference step sizes
-    CHG = 1e-7 * (1.0 + np.abs(x))
+    CHG = 1e-7 * (1.0 + np.abs(u0))
     GNEW = 1e8 * CHG
 
     StepLength = 1.0
@@ -143,12 +144,17 @@ def sqp(func, v_init, v_lb=None, v_ub=None, options_in=None, consts=1.0):
     if msg:
         print(" *********************** SQP ****************************")
         print(f" iteration                = {iteration:5d}   "
-              f"{'*** feasible ***' if np.max(g) <= tol_g else '!!! infeasible !!!'}")
+              f"{'*** feasible ***' if np.max(g0) <= tol_g else '!!! infeasible !!!'}")
         print(f" function evaluations     = {function_evals:5d} of {max_evals:5d}")
-        print(f" objective                = {f:11.3e}")
-        print(" variables                 = " + " ".join(f"{v:11.3e}" for v in (x-s0)/s1))
-        print(f" max constraint           = {np.max(g):11.3e}")
+        print(f" objective                = {f0:11.3e}")
+        print(" variables                 = " + " ".join(f"{v:11.3e}" for v in v0))
+        print(f" max constraint           = {np.max(g0):11.3e}")
         print(" *********************** SQP ****************************")
+
+    f = f0
+    u = u0.copy()
+    v = v0.copy()
+    g = g0.copy()
 
     # ============================ main loop ============================
     while not end_iterations:
@@ -162,9 +168,9 @@ def sqp(func, v_init, v_lb=None, v_ub=None, options_in=None, consts=1.0):
         CHG = np.sign(CHG + np.finfo(float).eps) * np.clip(np.abs(CHG), del_min, del_max)
 
         for i in range(n):
-            temp = x[i]
-            x[i] = temp + CHG[i]
-            f_fd, g_fd = func((x - s0) / s1, consts)
+            temp = u[i]
+            u[i] = temp + CHG[i]
+            f_fd, g_fd = func(s0+s1*u, consts)
             g_fd = np.atleast_1d(g_fd).astype(float).flatten()  # Ensure proper shape
             function_evals += 1
 
@@ -174,11 +180,11 @@ def sqp(func, v_init, v_lb=None, v_ub=None, options_in=None, consts=1.0):
                     print(' update optimum point')
                 f_opt = f_fd
                 g_opt = g_fd.copy()
-                x_opt = x.copy()
+                u_opt = u.copy()
 
             gradf[i] = (f_fd - oldf) / CHG[i]
             gradg[:, i] = (g_fd - oldg) / CHG[i]
-            x[i] = temp
+            u[i] = temp
 
         f = oldf
         g = oldg.copy()
@@ -192,7 +198,7 @@ def sqp(func, v_init, v_lb=None, v_ub=None, options_in=None, consts=1.0):
         GOLD = OLDgradf + np.dot(LAMBDA, OLDgradg)
         GNEW = gradf + np.dot(LAMBDA, gradg)
         q = GNEW - GOLD  # change in augmented gradient
-        p = x - OLDX     # change in design variables
+        p = u - OLDU     # change in design variables
 
         # ----- Update Hessian (BFGS) -----
         how = 'regular'
@@ -229,7 +235,7 @@ def sqp(func, v_init, v_lb=None, v_ub=None, options_in=None, consts=1.0):
             how = how + ', no Hessian update'
 
         # ----- Save old values -----
-        OLDX = x.copy()
+        OLDU = u.copy()
         OLDF = f
         OLDG = g.copy()
         OLDgradf = gradf.copy()
@@ -238,7 +244,7 @@ def sqp(func, v_init, v_lb=None, v_ub=None, options_in=None, consts=1.0):
 
         # ----- Solve QP subproblem for search direction -----
         # Append box constraints to nonlinear constraints
-        GT = np.concatenate([g, -x + x_lb, x - x_ub])
+        GT = np.concatenate([g, -u + u_lb, u - u_ub])
         gradg_augmented = np.vstack([gradg, -np.eye(n), np.eye(n)])
 
         # Solve QP: min 0.5*SD'*HESS*SD + gradf'*SD  s.t.  gradg_augmented*SD <= -GT
@@ -279,8 +285,8 @@ def sqp(func, v_init, v_lb=None, v_ub=None, options_in=None, consts=1.0):
             if StepLength < 1e-4:
                 StepLength = -StepLength  # change direction
 
-            x = OLDX + StepLength * SD
-            f, g = func((x - s0) / s1, consts)
+            u = OLDU + StepLength * SD
+            f, g = func(s0+s1*u, consts)
             g = np.atleast_1d(g).astype(float).flatten()  # Ensure proper shape
             function_evals += 1
 
@@ -290,7 +296,7 @@ def sqp(func, v_init, v_lb=None, v_ub=None, options_in=None, consts=1.0):
                     print(' update optimum')
                 f_opt = f
                 g_opt = g.copy()
-                x_opt = x.copy()
+                u_opt = u.copy()
 
             g_max = np.max(g)
             COST_1 = f + np.sum(PENALTY * (g > 0) * g)
@@ -324,17 +330,17 @@ def sqp(func, v_init, v_lb=None, v_ub=None, options_in=None, consts=1.0):
 
             g_max, idx_max_g = np.max(g), np.argmax(g)
             cvg_f = abs(absSL * np.dot(gradf, SD) / (f + 1e-9)) 
-            cvg_v = np.max(np.abs(absSL * SD / (x + 1e-9)))
+            cvg_v = np.max(np.abs(absSL * SD / (u + 1e-9)))
 
             # print('\033[H\033[J', end='')  # clear screen
             print("\n *********************** SQP ****************************")
             print(f" iteration                = {iteration:5d}   "
-                  f"{'*** feasible ***' if g_max <= tol_g and np.all(x >= -1) and np.all(x <= 1) else '!!! infeasible !!!'}")
+                  f"{'*** feasible ***' if g_max <= tol_g and np.all(u >= -1) and np.all(u <= 1) else '!!! infeasible !!!'}")
             print(f" function evaluations     = {function_evals:5d} of {max_evals:5d}"
                   f" ({100.0*function_evals/max_evals:4.1f}%)")
             print(f" e.t.a.                   = {eta} ")
             print(f" objective                = {f:11.3e}")
-            print(f" variables                = " + " ".join(f"{v:11.3e}" for v in (x-s0)/s1))
+            print(f" variables                = " + " ".join(f"{v:11.3e}" for v in (u-s0)/s1))
             print(f" max constraint           = {g_max:11.3e}  ({idx_max_g+1})")
             print(f" Step Size                = {StepLength:11.3e}")
             print(f" BFGS method              : {how}")
@@ -344,15 +350,15 @@ def sqp(func, v_init, v_lb=None, v_ub=None, options_in=None, consts=1.0):
             print(" *********************** SQP ****************************\n")
 
         # Save convergence history
-        cvg_hst[:, iteration] = np.concatenate([ (x - s0) / s1,
+        cvg_hst[:, iteration] = np.concatenate([ s0+s1*u,
             [f, g_max, function_evals, cvg_v, cvg_f] ])
 
         # Plot current point
         if msg > 2:
             ii = int(options[10])
             jj = int(options[11])
-            x_plot = (x - s0) / s1
-            ax.plot([x_plot[ii]], [x_plot[jj]], f ,
+            v_plot = s0 + s1*u
+            ax.plot([v_plot[ii]], [v_plot[jj]], f ,
                    'ro', alpha=1.0, markersize=8, linewidth=4,
                    markerfacecolor='red', markeredgecolor='darkred')
             plt.draw()
@@ -360,7 +366,7 @@ def sqp(func, v_init, v_lb=None, v_ub=None, options_in=None, consts=1.0):
 
         # ----- Check convergence -----
         cvg_f = abs(absSL * np.dot(gradf, SD) / (f + 1e-9)) 
-        cvg_v = np.max(np.abs(absSL * SD / ( (x-s0)/s1 + 1e-9 )))
+        cvg_v = np.max(np.abs(absSL * SD / ( s0+s1+u + 1e-9 )))
 
         if ((cvg_v < tol_v and cvg_f < tol_f) and
             ((g_max < tol_g) or (howqp == 'infeasible' and g_max > 0))):
@@ -382,7 +388,7 @@ def sqp(func, v_init, v_lb=None, v_ub=None, options_in=None, consts=1.0):
                     print(' * Boo Hoo Hoo!  No feasible solution found.')
 
         elif function_evals >= max_evals:
-            x_opt = OLDX
+            u_opt = OLDU
             f_opt = OLDF
             g_opt = OLDG
             print(f' * Enough! Maximum number of function evaluations ({max_evals}) exceeded')
@@ -394,12 +400,12 @@ def sqp(func, v_init, v_lb=None, v_ub=None, options_in=None, consts=1.0):
 
     # If better feasible solution was found during search, use it
     if f_opt < f and np.max(g_opt) < tol_g:
-        x = x_opt
+        u = u_opt
         f = f_opt
         g = g_opt
 
     # Scale back to original units
-    v_opt = (x - s0) / s1
+    v_opt = s0 + s1*u
     f_opt = f
     g_opt = g
 

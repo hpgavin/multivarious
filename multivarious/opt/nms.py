@@ -120,25 +120,25 @@ def nms(func, v_init, v_lb=None, v_ub=None, options_in=None, consts=1.0):
     feasible = converged = stalled = False # convergence criteria
 
     # ----- scale variables linearly to [-1, +1]  -----
-    s0 = (v_lb + v_ub) / (v_lb - v_ub)
-    s1 = 2.0 / (v_ub - v_lb)
-    x0 = s0 + s1 * v_init
-    x0 = np.clip(x0, -0.8, 0.8)  # Not too close to edges
+    s0 = (v_lb + v_ub) / 2.0  # average of v_lb and v_ub 
+    s1 = (v_ub - v_lb) / 2.0  # half distance from v_lb to v_ub
+    u0 = (v_init-s0)/s1
+    u0 = np.clip(u0, -0.8, 0.8)  # Not too close to edges
 
     # book-keeping
     function_evals = iteration = 0
     cvg_hst = np.full((n + 5, max(1, max_evals)), np.nan)
 
     # ----- analyze the initial guess -----
-    fx, gx, x0, cJ, nAvg = avg_cov_func(func, x0, s0, s1, options, consts, BOX)
+    f0, g0, u0, cJ, nAvg = avg_cov_func(func, u0, s0, s1, options, consts, BOX)
     function_evals += nAvg
-    if not np.isscalar(fx):
+    if not np.isscalar(f0):
         raise ValueError("Objective returned by func(v,consts) must be scalar.")
-    gx = np.atleast_1d(gx).astype(float).flatten()
-    m = gx.size  # number of constraints
+    g0 = np.atleast_1d(g0).astype(float).flatten()
+    m = g0.size  # number of constraints
 
     if msg > 2:
-        f_min, f_max, ax = plot_opt_surface(func, (x0-s0)/s1, v_lb, v_ub, 
+        f_min, f_max, ax = plot_opt_surface(func, u0, v_lb, v_ub, 
                                             options, consts, 1003)
 
     start_time = time.time()
@@ -146,16 +146,16 @@ def nms(func, v_init, v_lb=None, v_ub=None, options_in=None, consts=1.0):
     # ----- Set up initial simplex -----
     # Use equilateral simplex (Stanford AA-222 course notes)
     simplex = np.full((n, n + 1), np.nan)
-    fx_all = np.full(n + 1, np.nan)
-    gx_all = np.full((m, n + 1), np.nan)
+    f_all = np.full(n + 1, np.nan)
+    g_all = np.full((m, n + 1), np.nan)
     g_max = np.full(n + 1, np.nan)
     cJ_all = np.full(n + 1, np.nan)
 
     # Include initial guess as first vertex
-    simplex[:, 0] = x0
-    fx_all[0] = fx
-    gx_all[:, 0] = gx
-    g_max[0] = np.max(gx)
+    simplex[:, 0] = u0
+    f_all[0] = f0
+    g_all[:, 0] = g0
+    g_max[0] = np.max(g0)
     cJ_all[0] = cJ
 
     # Create equilateral simplex
@@ -164,31 +164,31 @@ def nms(func, v_init, v_lb=None, v_ub=None, options_in=None, consts=1.0):
     aa = bb + cc / np.sqrt(2)
 
     for i in range(n):
-        delta_x = bb * np.ones(n)
-        delta_x[i] = aa
-        x = x0 + delta_x
+        delta_u = bb * np.ones(n)
+        delta_u[i] = aa
+        u = u0 + delta_u
 
-        fz, gz, x, cx, nAvg = avg_cov_func(func, x, s0, s1, options, consts, BOX)
+        fz, gz, u, cu, nAvg = avg_cov_func(func, u, s0, s1, options, consts, BOX)
         j = i + 1
-        simplex[:, j] = x
-        fx_all[j] = fz
-        gx_all[:, j] = gz
+        simplex[:, j] = u
+        f_all[j] = fz
+        g_all[:, j] = gz
         g_max[j] = np.max(gz)
-        cJ_all[j] = cx
+        cJ_all[j] = cu
         function_evals += nAvg
 
     # SORT vertices by increasing objective value
-    idx = np.argsort(fx_all)
+    idx = np.argsort(f_all)
     simplex = simplex[:, idx]
-    fx_all = fx_all[idx]
-    gx_all = gx_all[:, idx]
+    f_all = f_all[idx]
+    g_all = g_all[:, idx]
     g_max = g_max[idx]
     cJ_all = cJ_all[idx]
 
     # Initialize best solution
-    x_opt = simplex[:, 0].copy()
-    f_opt = fx_all[0]
-    g_opt = gx_all[:, 0].copy()
+    u_opt = simplex[:, 0].copy()
+    f_opt = f_all[0]
+    g_opt = g_all[:, 0].copy()
     f_old = f_opt
     last_update = function_evals
 
@@ -197,8 +197,8 @@ def nms(func, v_init, v_lb=None, v_ub=None, options_in=None, consts=1.0):
     cvg_f = 1.0; 
     max_g = max(g_opt); 
 
-    cvg_hst[:, iteration] = np.concatenate([ (simplex[:, 0] - s0) / s1,
-                      [fx_all[0], max_g, function_evals, cvg_v, cvg_f ]])
+    cvg_hst[:, iteration] = np.concatenate([ s0+s1*simplex[:, 0],
+                      [f_all[0], max_g, function_evals, cvg_v, cvg_f ]])
 
     xtx = " simplex :    vertex 1 "
     for i in range(n):
@@ -212,12 +212,12 @@ def nms(func, v_init, v_lb=None, v_ub=None, options_in=None, consts=1.0):
         print(f" function evaluations     = {function_evals:5d} of {max_evals:5d}")
         print(f" objective                = {f_opt:11.3e}")
         if n < 10:
-            xx = (simplex - s0[:, np.newaxis]) / s1[:, np.newaxis]
+            vv = s0[:, np.newaxis] + s1[:, np.newaxis] * simplex
             print(xtx)
             for j in range(n):
-                xstr = "           " + " ".join(f"{xp:11.3e}" for xp in xx[j,:])
-                print(xstr)
-            print(" f_A    = " + " ".join(f"{f:11.3e}" for f in fx_all))
+                vstr = "           " + " ".join(f"{vp:11.3e}" for vp in vv[j,:])
+                print(vstr)
+            print(" f_A    = " + " ".join(f"{f:11.3e}" for f in f_all))
             print(" max(g) = " + " ".join(f"{g:11.3e}" for g in g_max))
         print(" ======================= NMS ============================\n")
 
@@ -227,93 +227,93 @@ def nms(func, v_init, v_lb=None, v_ub=None, options_in=None, consts=1.0):
         move_type = ""
 
         # Centroid of best n vertices (excluding worst)
-        xo = np.mean(simplex[:, :n], axis=1)
+        uo = np.mean(simplex[:, :n], axis=1)
 
-        # ----- REFLECT -----
-        xr = xo + a_reflect * (xo - simplex[:, n])
-        fr, gr, xr, cj, nAvg = avg_cov_func(func, xr, s0, s1, options, consts, BOX)
+        # ----- REFLECT ----u
+        ur = uo + a_reflect * (uo - simplex[:, n])
+        fr, gr, ur, cj, nAvg = avg_cov_func(func, ur, s0, s1, options, consts, BOX)
         function_evals += nAvg
 
-        if fx_all[0] <= fr < fx_all[n - 1]:  # fr between best and second-worst
-            xw, fw, gw, cw = xr, fr, gr, cj
+        if f_all[0] <= fr < f_all[n - 1]:  # fr between best and second-worst
+            uw, fw, gw, cw = ur, fr, gr, cj
             move_type = 'reflect'
             accept_point = True
 
         # ----- EXTEND -----
-        if not accept_point and fr < fx_all[0]:  # fr better than best
-            xe = xo + a_extend * (xr - xo)
-            fe, ge, xe, cj, nAvg = avg_cov_func(func, xe, s0, s1, options, consts, BOX)
+        if not accept_point and fr < f_all[0]:  # fr better than best
+            ue = uo + a_extend * (ur - uo)
+            fe, ge, ue, cj, nAvg = avg_cov_func(func, ue, s0, s1, options, consts, BOX)
             function_evals += nAvg
 
             if fe < fr:
-                xw, fw, gw, cw = xe, fe, ge, cj
+                uw, fw, gw, cw = ue, fe, ge, cj
                 move_type = 'extend'
             else:
-                xw, fw, gw, cw = xr, fr, gr, cj
+                uw, fw, gw, cw = ur, fr, gr, cj
                 move_type = 'reflect'
             accept_point = True
 
         # ----- CONTRACT -----
-        if not accept_point and fr > fx_all[n - 1]:  # fr worse than second-worst
-            xci = xo - a_contract * (xr - xo)  # inside contraction
-            xco = xo + a_contract * (xr - xo)  # outside contraction
+        if not accept_point and fr > f_all[n - 1]:  # fr worse than second-worst
+            uci = uo - a_contract * (ur - uo)  # inside contraction
+            uco = uo + a_contract * (ur - uo)  # outside contraction
 
-            fci, gci, xci, ci, nAvg = avg_cov_func(func, xci, s0, s1, options, consts, BOX)
+            fci, gci, uci, ci, nAvg = avg_cov_func(func, uci, s0, s1, options, consts, BOX)
             function_evals += nAvg
 
-            fco, gco, xco, co, nAvg = avg_cov_func(func, xco, s0, s1, options, consts, BOX)
+            fco, gco, uco, co, nAvg = avg_cov_func(func, uco, s0, s1, options, consts, BOX)
             function_evals += nAvg
 
             # Optional: optimize contraction step
             if optimize_contraction:
                 d = np.array([
-                    -norm(xo - simplex[:, n]),
-                    -norm(xo - xci),
-                     norm(xo - xco),
-                     norm(xo - xr)
+                    -norm(uo - simplex[:, n]),
+                    -norm(uo - uci),
+                     norm(uo - uco),
+                     norm(uo - ur)
                 ])
                 A = np.column_stack([np.ones(4), d, 0.5 * d**2])
-                a_coef = np.linalg.solve(A, np.array([fx_all[n], fci, fco, fr]))
-                dx = -a_coef[1] / a_coef[2]
+                a_coef = np.linalg.solve(A, np.array([f_all[n], fci, fco, fr]))
+                du = -a_coef[1] / a_coef[2]
 
-                if abs(dx) < d[3] and a_coef[2] > 0:
-                    xc_opt = xo + dx * (xr - xo) / d[3]
-                    fc_opt, gc_opt, xc_opt, cj, nAvg = avg_cov_func(func, xc_opt, s0, s1,
+                if abs(du) < d[3] and a_coef[2] > 0:
+                    uc_opt = uo + du * (ur - uo) / d[3]
+                    fc_opt, gc_opt, uc_opt, cj, nAvg = avg_cov_func(func, uc_opt, s0, s1,
                                                                       options, consts, BOX)
                     function_evals += nAvg
 
-                    if fc_opt < min(fci, fco) and fc_opt < fx_all[n - 1]:
-                        xw, fw, gw, cw = xc_opt, fc_opt, gc_opt, cj
+                    if fc_opt < min(fci, fco) and fc_opt < f_all[n - 1]:
+                        uw, fw, gw, cw = uc_opt, fc_opt, gc_opt, cj
                         move_type = 'contract opt'
                         accept_point = True
 
-            if not accept_point and fci < fco and fci < fx_all[n - 1]:
-                xw, fw, gw, cw = xci, fci, gci, ci
+            if not accept_point and fci < fco and fci < f_all[n - 1]:
+                uw, fw, gw, cw = uci, fci, gci, ci
                 move_type = 'contract in'
                 accept_point = True
 
-            if not accept_point and fco < fci and fco < fx_all[n - 1]:
-                xw, fw, gw, cw = xco, fco, gco, co
+            if not accept_point and fco < fci and fco < f_all[n - 1]:
+                uw, fw, gw, cw = uco, fco, gco, co
                 move_type = 'contract out'
                 accept_point = True
 
         # ----- ACCEPT or SHRINK -----
         if accept_point:
             # Replace worst point with new point
-            simplex[:, n] = xw
-            fx_all[n] = fw
-            gx_all[:, n] = gw
+            simplex[:, n] = uw
+            f_all[n] = fw
+            g_all[:, n] = gw
             g_max[n] = np.max(gw)
             cJ_all[n] = cw
         else:
             # SHRINK all points toward best point
-            x0 = simplex[:, 0]
+            u0 = simplex[:, 0]
             for i in range(1, n + 1):
-                xk = x0 + a_shrink * (simplex[:, i] - x0)
-                fk, gk, xk, cj, nAvg = avg_cov_func(func, xk, s0, s1, options, consts, BOX)
-                simplex[:, i] = xk
-                fx_all[i] = fk
-                gx_all[:, i] = gk
+                uk = u0 + a_shrink * (simplex[:, i] - u0)
+                fk, gk, uk, cj, nAvg = avg_cov_func(func, uk, s0, s1, options, consts, BOX)
+                simplex[:, i] = uk
+                f_all[i] = fk
+                g_all[:, i] = gk
                 g_max[i] = np.max(gk)
                 cJ_all[i] = cj
                 function_evals += nAvg
@@ -330,35 +330,35 @@ def nms(func, v_init, v_lb=None, v_ub=None, options_in=None, consts=1.0):
 
         elongated_idx = np.where(lo / np.max(lo) < (a_expand - 1))[0]
         for j in elongated_idx:
-            xz = vo[:, j] + a_expand * (simplex[:, j] - vo[:, j])
-            fz, gz, xz, cj, nAvg = avg_cov_func(func, xz, s0, s1, options, consts, BOX)
-            simplex[:, j] = xz
-            fx_all[j] = fz
-            gx_all[:, j] = gz
+            uz = vo[:, j] + a_expand * (simplex[:, j] - vo[:, j])
+            fz, gz, uz, cj, nAvg = avg_cov_func(func, uz, s0, s1, options, consts, BOX)
+            simplex[:, j] = uz
+            f_all[j] = fz
+            g_all[:, j] = gz
             g_max[j] = np.max(gz)
             cJ_all[j] = cj
             function_evals += nAvg
 
         # ----- SORT vertices by increasing objective -----
-        idx = np.argsort(fx_all)
+        idx = np.argsort(f_all)
         simplex = simplex[:, idx]
-        fx_all = fx_all[idx]
-        gx_all = gx_all[:, idx]
+        f_all = f_all[idx]
+        g_all = g_all[:, idx]
         g_max = g_max[idx]
         cJ_all = cJ_all[idx]
 
         # Update best solution
-        x_opt = simplex[:, 0].copy()
-        f_opt = fx_all[0]
-        g_opt = gx_all[:, 0].copy()
-        v_opt = (x_opt - s0)/s1
+        u_opt = simplex[:, 0].copy()
+        f_opt = f_all[0]
+        g_opt = g_all[:, 0].copy()
+        v_opt = s0 + s1 * u_opt
 
         if f_opt < f_old:
             last_update = function_evals
             f_old = f_opt
 
         # ----- Convergence metrics -----
-        cvg_v, cvg_f, max_g = cvg_metrics( simplex, fx_all, g_opt)
+        cvg_v, cvg_f, max_g = cvg_metrics( simplex, f_all, g_opt)
 
         iteration += 1
         cvg_hst[:, iteration] = np.concatenate([ v_opt,
@@ -381,17 +381,17 @@ def nms(func, v_init, v_lb=None, v_ub=None, options_in=None, consts=1.0):
             print(f" objective                = {f_opt:11.3e}")
 
             if n < 10:
-                xx = (simplex - s0[:, np.newaxis]) / s1[:, np.newaxis]
+                vv = (simplex - s0[:, np.newaxis]) / s1[:, np.newaxis]
                 print(xtx)
                 for j in range(n):
-                    xstr = "           " + " ".join(f"{xp:11.3e}" for xp in xx[j,:])
-                    print(xstr)
-                print(" f_A       " + " ".join(f"{f:11.3e}" for f in fx_all))
+                    vstr = "           " + " ".join(f"{vp:11.3e}" for vp in vv[j,:])
+                    print(vstr)
+                print(" f_A       " + " ".join(f"{f:11.3e}" for f in f_all))
                 print(" max(g)   =" + " ".join(f"{g:11.3e}" for g in g_max))
                 print(" cov(F_A) =" + " ".join(f"{c:11.3e}" for c in cJ_all))
             else:
-                xx = (x_opt - s0) / s1
-                print(" variables             = " + " ".join(f"{v:11.3e}" for v in xx))
+                vv = s0 + s1 * u_opt
+                print(" variables             = " + " ".join(f"{v:11.3e}" for v in vv))
                 print(f" max constraint       = {np.max(g_opt):11.3e}")
 
             print(f" objective convergence    = {cvg_f:11.4e}   tol_f = {tol_f:8.6f}")
@@ -403,14 +403,14 @@ def nms(func, v_init, v_lb=None, v_ub=None, options_in=None, consts=1.0):
         if msg > 2:
             ii = int(options[10])
             jj = int(options[11])
-            simplex_plot = (simplex - s0[:, np.newaxis]) / s1[:, np.newaxis]
+            simplex_plot = s0[:, np.newaxis] + s1[:, np.newaxis] * simplex
 
             # Plot simplex as connected triangles (for n=2, plots all 3 vertices)
             if n == 2:
                 # Close the triangle by appending first vertex
                 x_coords = np.append(simplex_plot[ii, :3], simplex_plot[ii, 0])
                 y_coords = np.append(simplex_plot[jj, :3], simplex_plot[jj, 0])
-                f_vals = np.append(fx_all[:3], fx_all[0])
+                f_vals = np.append(f_all[:3], f_all[0])
                 ax.plot(x_coords, y_coords, f_vals ,
                        '-or', alpha=1.0, markersize=6, linewidth=2,
                        markerfacecolor='red', markeredgecolor='darkred')
@@ -475,17 +475,14 @@ def cvg_metrics(simplex, fv, g0):
         the maximum of the design constraints
     '''
 
-    from numpy.linalg import norm
-    from numpy import max
-
     n = np.shape(simplex)[0] # number of design variabls 
 
-    v0 = simplex[:,0]
-    vn = simplex[:,n]
+    u0 = simplex[:,0]
+    un = simplex[:,n]
     f0 = fv[0]
     fn = fv[n]
 
-    cvg_v = norm(vn - v0) / (norm(vn + v0)+1e-9)
+    cvg_v = norm(un - u0) / (norm(un + u0)+1e-9)
     cvg_f = norm(fn - f0) / (norm(fn + f0)+1e-9)
     max_g = max(g0)
 

@@ -116,7 +116,7 @@ def ors(func, v_init, v_lb=None, v_ub=None, options=None, consts=None):
     q = options[6]
     find_feas = int(options[9])
     
-    # check that bounds are valid
+    # check that uounds are valid
     if np.any(v_ub < v_lb):
         print('Error: v_ub cannot be less than v_lb for any variable')
         return v_init, (np.sqrt(5)-1)/2, np.array([1.0]), None, 0, 0
@@ -129,15 +129,15 @@ def ors(func, v_init, v_lb=None, v_ub=None, options=None, consts=None):
     
     feasible = converged = stalled = False # convergence criteria
 
-    # scale v from bounds [v_lb, v_ub] to x in bounds [-1, +1]
-    s0 = (v_lb + v_ub) / (v_lb - v_ub)
-    s1 = 2.0 / (v_ub - v_lb)
-    x_init = s0 + s1 * v_init
-    x_init = np.clip(x_init, -1.0, 1.0) # keep x_init in bounds, just in case
+    # scale v from bounds [v_lb, v_ub] to u in bounds [-1, +1]
+    s0 = (v_lb + v_ub) / 2.0  # average of v_lb and v_ub
+    s1 = (v_ub - v_lb) / 2.0  # half-distance from v_lb to v_ub
+    u_init = (v_init - s0) / s1
+    u_init = np.clip(u_init, -1.0, 1.0) # keep u_init in bounds, just in case
     
     # analyze the initial guess
-    x0 = x_init.copy() # use .copy() to keep changes in x0 from changing x_init
-    f0, g0, x0, c0, nAvg = avg_cov_func(func, x0, s0, s1, options, consts, BOX)
+    u0 = u_init.copy() # use .copy() to keep changes in u0 from changing u_init
+    f0, g0, u0, c0, nAvg = avg_cov_func(func, u0, s0, s1, options, consts, BOX)
     function_evals += nAvg
     
     # check dimensions
@@ -148,7 +148,7 @@ def ors(func, v_init, v_lb=None, v_ub=None, options=None, consts=None):
     
     fa[0] = f0 
     fa[3] = f0
-    x3 = x0.copy() # use .copy() to keep changes in x3 from changing x0
+    u3 = u0.copy() # use .copy() to keep changes in u3 from changing u0
     g3 = g0.copy() # use .copy() to keep changes in g3 from changing g0
     
     m = len(g0)  # number of constraints
@@ -163,12 +163,13 @@ def ors(func, v_init, v_lb=None, v_ub=None, options=None, consts=None):
      
     # initialize optimal values
     f_opt = fa[0]
-    x_opt = x0.copy() # use .copy() to keep changes in x0 from changing x_opt
+    u_opt = u0.copy() # use .copy() to keep changes in u0 from changing u_opt
     g_opt = g0.copy() # use .copy() to keep changes in g0 from changing g_opt
+    v_opt = s0 + s1*u_opt # scale (u) back to original units (v)
     
     # save the initial guess to the convergence history
     cvg_hst[:, iteration] = np.concatenate([
-        (x_opt - s0) / s1, [f_opt], [np.max(g_opt)], 
+        s0 + s1*u_opt, [f_opt], [np.max(g_opt)], 
         [function_evals], [step_stdev], [1.0]
     ])
     
@@ -184,34 +185,34 @@ def ors(func, v_init, v_lb=None, v_ub=None, options=None, consts=None):
         sr = step_stdev * np.random.randn(n)
         
         # 1st perturbation: +1*r : "random single step"
-        aa, _ = box_constraint(x0, sr) # keep x1 within bounds
-        x1 = x0 + aa * sr
+        aa, _ = box_constraint(u0, sr) # keep u1 within bounds
+        u1 = u0 + aa * sr
         
-        fa[1], g1, x1, c1, nAvg = avg_cov_func(func, x1, s0, s1, options, consts, BOX)
+        fa[1], g1, u1, c1, nAvg = avg_cov_func(func, u1, s0, s1, options, consts, BOX)
         function_evals += nAvg
         
         # is fa[1] downhill from fa[0]?
         downhill = np.sign(fa[0] - fa[1]) # +1: yes, -1: no
         
         # 2nd perturbation: 2*downhill*s*r : "downhill double step"
-        aa, bb = box_constraint(x0, 2*downhill*sr) # keep x2 within bounds
+        aa, bb = box_constraint(u0, 2*downhill*sr) # keep u2 within bounds
         if downhill > 0:
-            x2 = x0 + aa * 2*downhill * sr
+            u2 = u0 + aa * 2*downhill * sr
         else:
-            x2 = x0 + bb * 2*downhill * sr
+            u2 = u0 + bb * 2*downhill * sr
         
-        fa[2], g2, x2, c2, nAvg = avg_cov_func(func, x2, s0, s1, options, consts, BOX)
+        fa[2], g2, u2, c2, nAvg = avg_cov_func(func, u2, s0, s1, options, consts, BOX)
         function_evals += nAvg
         
-        # distances from (x0 to x1) and from (x0 to x2) for quadratic fit
-        dx1 = norm(x1 - x0) / norm(sr)
-        dx2 = norm(x2 - x0) / norm(sr)
+        # distances from (u0 to u1) and from (u0 to u2) for quadratic fit
+        du1 = norm(u1 - u0) / norm(sr)
+        du2 = norm(u2 - u0) / norm(sr)
         
         # fit quadratic: f(d) = 0.5*a*d^2 + b*d + c
         A = np.array([
             [0,           0,    1],
-            [0.5*dx1**2, dx1,   1],
-            [0.5*dx2**2, dx2,   1]
+            [0.5*du1**2, du1,   1],
+            [0.5*du2**2, du2,   1]
         ]) + regularization
         
         abc = solve(A, fa[0:3])
@@ -220,21 +221,21 @@ def ors(func, v_init, v_lb=None, v_ub=None, options=None, consts=None):
         # 3rd perturbation : try quadratic update if curvature is positive
         quad_update = False
         if a > 0:       # positive curvature ... so look for a minimum
-            d = -b / a  # d*r is the distance from x0 to the zero-slope point
-            aa, bb = box_constraint(x0, d * sr) # keep x3 within bounds
+            d = -b / a  # d*r is the distance from u0 to the zero-slope point
+            aa, bb = box_constraint(u0, d * sr) # keep u3 within bounds
             if d > 0:
-                x3 = x0 + aa * d * sr
+                u3 = u0 + aa * d * sr
             else:
-                x3 = x0 + bb * d * sr
+                u3 = u0 + bb * d * sr
             
-            fa[3], g3, x3, c3, nAvg = avg_cov_func(func, x3, s0, s1, options, consts, BOX)
+            fa[3], g3, u3, c3, nAvg = avg_cov_func(func, u3, s0, s1, options, consts, BOX)
             function_evals += nAvg
 
         # save values of variables and functions for plotting 
-        v0 , f0 = (x0 - s0) / s1 , fa[0]
-        v1 , f1 = (x1 - s0) / s1 , fa[1]
-        v2 , f2 = (x2 - s0) / s1 , fa[2]
-        v3 , f3 = (x3 - s0) / s1 , fa[3]
+        v0 , f0 = s0 + s1*u0 , fa[0]
+        v1 , f1 = s0 + s1*u1 , fa[1]
+        v2 , f2 = s0 + s1*u2 , fa[2]
+        v3 , f3 = s0 + s1*u3 , fa[3]
 
         # find the best (min(fa)) objective value of the 4 evaluations in fa
         i_min = np.argmin(fa)
@@ -272,23 +273,23 @@ def ors(func, v_init, v_lb=None, v_ub=None, options=None, consts=None):
 
         # update the best point out the four trials
         if i_min == 1:
-            x0, g0, c0 = x1, g1, c1
+            u0, g0, c0 = u1, g1, c1
         elif i_min == 2:
-            x0, g0, c0 = x2, g2, c2
+            u0, g0, c0 = u2, g2, c2
         elif i_min == 3:
-            x0, g0, c0 = x3, g3, c3
+            u0, g0, c0 = u3, g3, c3
             quad_update = True
         
-        x0 = np.clip(x0, -1.0, 1.0)  # keep x0 within bounds, just to be sure
+        u0 = np.clip(u0, -1.0, 1.0)  # keep u0 within bounds, just to be sure
         fa[0] = fa[i_min]
         
         # update optimal solution if improved
         if fa[0] < f_opt:
-            # use .copy() to keep changes to x0 from changing x_opt!
-            x_opt = x0.copy()
+            # use .copy() to keep changes to u0 from changing u_opt!
+            u_opt = u0.copy()
             f_opt = fa[0].copy() # .copy() not needed since f_opt is immutable
             g_opt = g0.copy()
-            v_opt = (x_opt - s0) / s1 # scale (x) back to original units (v)
+            v_opt = s0 + s1*u_opt # scale (u) back to original units (v)
             
             # Convergence metrics
             cvg_v, cvg_f, max_g = cvg_metrics(cvg_hst, v_opt, f_opt, g_opt, iteration)

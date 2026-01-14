@@ -7,17 +7,17 @@
 
 import numpy as np
 
-def box_constraint(x, r):
+def box_constraint(u, r):
     '''
     Determine box constraint scaling factors (aa, bb) such that:
-        max(x + aa*r) < +1 and min(x + aa*r) > -1
-        max(x - bb*r) < +1 and min(x - bb*r) > -1
+        max(u + aa*r) < +1 and min(u + aa*r) > -1
+        max(u - bb*r) < +1 and min(u - bb*r) > -1
         aa>0 and bb>0
 
     Parameters
     ----------
-    x : np.ndarray
-        Current point (n,).
+    u : np.ndarray
+        Current point (n,).  in scaled variables ... -1 < u < +1
     r : np.ndarray
         Random perturbation vector (n,).
 
@@ -28,9 +28,9 @@ def box_constraint(x, r):
     bb : float
         Maximum feasible negative step size.
     '''
-    x = np.asarray(x).flatten()
+    u = np.asarray(u).flatten()
     r = np.asarray(r).flatten()
-    n = len(x)
+    n = len(u)
 
     a_vals =  np.ones(n)
     b_vals = -np.ones(n)
@@ -42,7 +42,7 @@ def box_constraint(x, r):
         ei = np.zeros(n); ei[i] = 1.0
         Ii = I.copy()
         Ii[:, i] = -r
-        vab = np.linalg.solve((Ii+R), np.column_stack(((x - ei), (x + ei))))
+        vab = np.linalg.solve((Ii+R), np.column_stack(((u - ei), (u + ei))))
         aa_i, bb_i = vab[i, 0], vab[i, 1]
         if aa_i > 0:
             a_vals[i], b_vals[i] = aa_i, bb_i

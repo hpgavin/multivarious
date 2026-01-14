@@ -6,7 +6,7 @@
 
 import numpy as np
 
-def avg_cov_func(func, v, s0, s1, options, consts=None, BOX=1):
+def avg_cov_func(func, u, s0, s1, options, consts=None, BOX=1):
     """
     Compute the average and coefficient of variation of a penalized cost function.
 
@@ -14,7 +14,7 @@ def avg_cov_func(func, v, s0, s1, options, consts=None, BOX=1):
     ----------
     func : callable
         Function to optimize: f, g = func(v, consts)
-    v : np.ndarray
+    u : np.ndarray
         Scaled design variables (column-like) ( -1 < v < +1 )
     s0, s1 : np.ndarray or float
         Linear scaling factors mapping [v_lb, v_ub] -> [-1, +1]
@@ -23,7 +23,7 @@ def avg_cov_func(func, v, s0, s1, options, consts=None, BOX=1):
     consts : np.ndarray, optional
         Additional constants (non-design variables)
     BOX : int, optional
-        1 to bound v within [-1, 1], 0 to allow unbounded (default=1)
+        1 to bound u within [-1, 1], 0 to allow unbounded (default=1)
 
     Returns
     -------
@@ -31,8 +31,8 @@ def avg_cov_func(func, v, s0, s1, options, consts=None, BOX=1):
         Risk-adjusted average cost (84th percentile of mean)
     avg_g : np.ndarray
         Average constraint vector
-    v : np.ndarray
-        Possibly bounded v (if BOX=1)
+    u : np.ndarray
+        Possibly bounded u (if BOX=1)
     C_F : float
         Coefficient of variation of F
     m : int
@@ -53,12 +53,12 @@ def avg_cov_func(func, v, s0, s1, options, consts=None, BOX=1):
     avg_g = 0.0
     m = 0
 
-    v = np.asarray(v, dtype=float).flatten()
+    u = np.asarray(u, dtype=float).flatten()
     if BOX:
-        v = np.clip(v, -1.0, 1.0)
+        u = np.clip(u, -1.0, 1.0)
 
     for m in range(1, m_max + 1):
-        f, g = func((v - s0) / s1, consts)             # objective, constraints
+        f, g = func(s0+s1*u, consts)             # objective, constraints
         g = np.asarray(g, dtype=float).flatten()       # constraints as a vector
         F_A = f + penalty * np.sum(g * (g > tol_g))**q # augmented objective
 
@@ -82,7 +82,7 @@ def avg_cov_func(func, v, s0, s1, options, consts=None, BOX=1):
         F_risk = M_F * ( 1 + C_F )            # 84th percentile of F
 #       F_risk = max_F;                       # largest-of-N values
 
-    return F_risk, avg_g, v, C_F, m
+    return F_risk, avg_g, u, C_F, m
 
 """
 Welford, B. P. (1962).
