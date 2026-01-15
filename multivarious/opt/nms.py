@@ -132,13 +132,11 @@ def nms(func, v_init, v_lb=None, v_ub=None, options_in=None, consts=1.0):
     # ----- analyze the initial guess -----
     f0, g0, u0, cJ, nAvg = avg_cov_func(func, u0, s0, s1, options, consts, BOX)
     function_evals += nAvg
-    if not np.isscalar(f0):
-        raise ValueError("Objective returned by func(v,consts) must be scalar.")
     g0 = np.atleast_1d(g0).astype(float).flatten()
     m = g0.size  # number of constraints
 
     if msg > 2:
-        f_min, f_max, ax = plot_opt_surface(func, u0, v_lb, v_ub, 
+        f_min, f_max, ax = plot_opt_surface(func, v_init, v_lb, v_ub, 
                                             options, consts, 1003)
 
     start_time = time.time()

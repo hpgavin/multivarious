@@ -49,6 +49,7 @@ def plot_cvg_hst(cvg_hst, v_opt, opts=[1,np.nan,np.nan,np.nan], fig_num=1000, cl
     """
 
 
+    msg   = opts[0]
     tol_v = opts[1]
     tol_f = opts[2]
     tol_g = opts[3]
@@ -242,6 +243,12 @@ def plot_cvg_hst(cvg_hst, v_opt, opts=[1,np.nan,np.nan,np.nan], fig_num=1000, cl
         plt.savefig(filename, bbox_inches='tight', dpi=300)
         print(f"Saved: {filename}")
 
+        if msg > 2:
+            plt.figure(fig_num+3)
+            filename = f'plot_cvg_hst-{fig_num+3:04d}.pdf'
+            plt.savefig(filename, bbox_inches='tight', dpi=300)
+            print(f"Saved: {filename}")
+ 
     if interactive: 
         input("Press Enter to close all figures ... ")
         plt.close('all')

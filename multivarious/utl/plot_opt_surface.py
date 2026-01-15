@@ -1,7 +1,7 @@
 """
 plot_opt_surface.py - 3D Surface Plot of Objective Function
 
-Draw a surface plot of J(x) vs. x(i), x(j), where all other values in x
+Draw a surface plot of f(v) vs. v[i], v[j], where all other values in v
 are held constant. Useful for visualizing optimization landscapes and 
 convergence paths.
 
@@ -16,9 +16,9 @@ import matplotlib.cm as cm
 from mpl_toolkits.mplot3d import Axes3D
 
 
-def plot_opt_surface(func, x, v_lb, v_ub, options, consts=None, fig_num=1):
+def plot_opt_surface(func, v, v_lb, v_ub, options, consts=None, fig_num=1):
     """
-    Draw a surface plot of objective function J(x) vs. x(i), x(j).
+    Draw a surface plot of objective function f(v) vs. v[i], v[j].
 
     Creates a 3D mesh surface showing the objective function landscape over
     two design variables while holding all others constant. Marks the initial
@@ -28,9 +28,9 @@ def plot_opt_surface(func, x, v_lb, v_ub, options, consts=None, fig_num=1):
     ----------
     func : callable
         Function to be optimized with signature:
-        [objective, constraints] = func(x, consts)
+        [objective, constraints] = func(v, consts)
         Returns objective value (float) and constraint values (array)
-    x : ndarray, shape (n,)
+    v : ndarray, shape (n,)
         Vector of initial parameter values (column vector)
     v_lb : ndarray, shape (n,)
         Lower bounds on permissible parameter values
@@ -46,7 +46,7 @@ def plot_opt_surface(func, x, v_lb, v_ub, options, consts=None, fig_num=1):
         options[12] = Ni - number of points in 1st dimension
         options[13] = Nj - number of points in 2nd dimension
     consts : optional
-        Optional vector of constants to be passed to func(x, consts)
+        Optional vector of constants to be passed to func(v, consts)
     fig_num : int, optional
         Figure number for the plot (default: 1)
 
@@ -75,7 +75,7 @@ def plot_opt_surface(func, x, v_lb, v_ub, options, consts=None, fig_num=1):
         plt.ion() # plot interactive mode: on
 
     # Convert inputs to numpy arrays
-    x = np.asarray(x).flatten()
+    v = np.asarray(v).flatten()
     v_lb = np.asarray(v_lb).flatten()
     v_ub = np.asarray(v_ub).flatten()
     options = np.asarray(options)
@@ -89,8 +89,8 @@ def plot_opt_surface(func, x, v_lb, v_ub, options, consts=None, fig_num=1):
     Ni = int(options[12])   # Number of points in 1st dimension
     Nj = int(options[13])   # Number of points in 2nd dimension
 
-    # Store initial x values
-    v_init = x.copy()
+    # Store initial v values
+    v_init = v.copy()
 
     # Create grid for the two variables
     v_i = np.linspace(v_lb[i], v_ub[i], Ni)
@@ -103,14 +103,14 @@ def plot_opt_surface(func, x, v_lb, v_ub, options, consts=None, fig_num=1):
     for ii in range(Ni):
         for jj in range(Nj):
             # Set the two variables to grid values
-            x[i] = v_i[ii]
-            x[j] = v_j[jj]
+            v[i] = v_i[ii]
+            v[j] = v_j[jj]
 
             # Evaluate function
             if consts is not None:
-                f, g = func(x, consts)
+                f, g = func(v, consts)
             else:
-                f, g = func(x)
+                f, g = func(v)
 
             # Ensure g is an array
             g = np.asarray(g).flatten()
@@ -165,21 +165,21 @@ def plot_opt_surface(func, x, v_lb, v_ub, options, consts=None, fig_num=1):
     # Alternative #3: Plot the surface mesh - lines colored separately
     # Plot lines along the rows
     for ii in range(V_i.shape[0]):
-        xis = V_i[ii, :]
-        xjs = V_j[ii, :]
+        vis = V_i[ii, :]
+        vjs = V_j[ii, :]
         fs  = f_mesh[ii, :]
-        for jj in range(len(xis)-1):
+        for jj in range(len(vis)-1):
             z_avg = (fs[jj] + fs[jj+1]) / 2
-            ax.plot(xis[jj:jj+2], xjs[jj:jj+2], fs[jj:jj+2], color=cmap(norm(z_avg)))
+            ax.plot(vis[jj:jj+2], vjs[jj:jj+2], fs[jj:jj+2], color=cmap(norm(z_avg)))
 
     # Plot lines along the columns
     for jj in range(V_j.shape[1]):
-        xis = V_i[:, jj]
-        xjs = V_j[:, jj]
+        vis = V_i[:, jj]
+        vjs = V_j[:, jj]
         fs = f_mesh[:, jj]
-        for ii in range(len(xis)-1):
+        for ii in range(len(vis)-1):
             z_avg = (fs[ii] + fs[ii+1]) / 2
-            ax.plot(xis[ii:ii+2], xjs[ii:ii+2], fs[ii:ii+2], color=cmap(norm(z_avg)))
+            ax.plot(vis[ii:ii+2], vjs[ii:ii+2], fs[ii:ii+2], color=cmap(norm(z_avg)))
 
     plt.show()
     """
@@ -206,7 +206,7 @@ def plot_opt_surface(func, x, v_lb, v_ub, options, consts=None, fig_num=1):
     fa_init = f_init + penalty * constraint_penalty_init
 
     # Plot optimization end point (red circle)
-    ax.plot([v_init[i]], [v_init[j]], [fa_init],
+    ax.plot( [v_init[i]], [v_init[j]], fa_init,
             'o', alpha=1.0, color='green', markersize=22, markeredgewidth=3,
             markerfacecolor='green', markeredgecolor='darkgreen',
             label='Initial point')

@@ -79,7 +79,7 @@ def sqp(func, v_init, v_lb=None, v_ub=None, options_in=None, consts=1.0):
     v0 = np.clip(v_init, 0.9 * v_lb, 0.9 * v_ub)
 
     options   = opt_options(options_in)
-    msg    = int(options[0])    # display level
+    msg       = int(options[0])    # display level
     tol_v     = float(options[1])  # design var convergence tol
     tol_f     = float(options[2])  # objective convergence tol
     tol_g     = float(options[3])  # constraint tol
@@ -105,20 +105,10 @@ def sqp(func, v_init, v_lb=None, v_ub=None, options_in=None, consts=1.0):
     f0, g0 = func(v0, consts)
     function_evals += 1
 
-    if not np.isscalar(f0):
-        raise ValueError("Objective returned by func(v,consts) must be a scalar.")
+#   if not np.isscalar(f0):
+#       raise ValueError("Objective returned by func(v,consts) must be a scalar.")
     g0 = np.atleast_1d(g0).astype(float).flatten()
     m = g0.size  # number of constraints
-
-    # Initialize best solution
-    f_opt = float(f0)
-    u_opt = u0.copy()
-    v_opt = v0.copy()
-    g_opt = g0.copy()
-
-    # Save initial state
-    cvg_hst[:, iteration] = np.concatenate([ v0,
-              [f0, np.max(g0), function_evals, 1.0, 1.0] ])
 
     if msg > 2:
         f_min, f_max, ax = plot_opt_surface(func, v_init, v_lb, v_ub, options, consts, 1003)
@@ -141,20 +131,32 @@ def sqp(func, v_init, v_lb=None, v_ub=None, options_in=None, consts=1.0):
     StepLength = 1.0
     end_iterations = False
 
+    # Initialize best solution
+    f_opt = float(f0)
+    u_opt = u0.copy()
+    v_opt = v0.copy()
+    g_opt = g0.copy()
+
+    # Initialize current values
+    f = float(f0)
+    u = u0.copy()
+    v = v0.copy()
+    g = g0.copy()
+
+    # Save initial state
+    cvg_hst[:, iteration] = np.concatenate([ v, 
+              [f, np.max(g), function_evals, 1.0, 1.0] ])
+
+
     if msg:
         print(" *********************** SQP ****************************")
         print(f" iteration                = {iteration:5d}   "
               f"{'*** feasible ***' if np.max(g0) <= tol_g else '!!! infeasible !!!'}")
         print(f" function evaluations     = {function_evals:5d} of {max_evals:5d}")
-        print(f" objective                = {f0:11.3e}")
+        print(f" objective                = {f:11.3e}")
         print(" variables                 = " + " ".join(f"{v:11.3e}" for v in v0))
         print(f" max constraint           = {np.max(g0):11.3e}")
         print(" *********************** SQP ****************************")
-
-    f = f0
-    u = u0.copy()
-    v = v0.copy()
-    g = g0.copy()
 
     # ============================ main loop ============================
     while not end_iterations:
@@ -272,8 +274,8 @@ def sqp(func, v_init, v_lb=None, v_ub=None, options_in=None, consts=1.0):
         if not infeas and f < 0:
             GOAL_2 = GOAL_2 + f - 1
 
-        COST_1 = GOAL_1 + 1
-        COST_2 = GOAL_2 + 1
+        COST_1 = GOAL_1 + 1.0
+        COST_2 = GOAL_2 + 1.0
 
         if msg > 1:
             print('   alpha      max{g}          COST_1           COST_2')
@@ -308,6 +310,10 @@ def sqp(func, v_init, v_lb=None, v_ub=None, options_in=None, consts=1.0):
                 COST_2 = 0
             if not infeas and f < 0:
                 COST_2 = COST_2 + f - 1
+
+#           print(type(f), np.shape(f))
+#           print(type(np.sum(PENALTY * (g > 0) * g)), np.shape(np.sum(PENALTY * (g > 0) * g)))
+#           print(type(COST_1), np.shape(COST_1))
 
             if msg > 1:
                 print(f'  {StepLength:9.2e}   {g_max:9.2e}  {COST_1:9.2e} '
