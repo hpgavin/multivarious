@@ -82,7 +82,7 @@ def ors(func, v_init, v_lb=None, v_ub=None, options=None, consts=None):
     
     # algorithm hyper-parameters
     BOX = 1             # use box constraints
-    step_stdev = 0.200  # standard deviation of random step, S
+    step_stdev = 0.200  # standard deviation of random step
     nu = 2.5            # exponent for reducing step_stdev
     regularization = 1e-6 * np.eye(3) # regularization for matrix inversion
     
@@ -182,11 +182,13 @@ def ors(func, v_init, v_lb=None, v_ub=None, options=None, consts=None):
     while function_evals < max_evals:
         
         # a random search perturbation with standard deviation 'step_stdev'
-        sr = step_stdev * np.random.randn(n)
+        r = step_stdev * np.random.randn(n)
+        r1 = r / norm(r) # unit vector along r
         
         # 1st perturbation: +1*r : "random single step"
-        aa, _ = box_constraint(u0, sr) # keep u1 within bounds
-        u1 = u0 + aa * sr
+        aa, _ = box_constraint(u0, r) # keep u1 within bounds
+        u1 = u0 + aa * r
+        d1 = norm(u1 - u0) 
         
         f[1], g1, u1, c1, nAvg = avg_cov_func(func, u1, s0, s1, options, consts, BOX)
         function_evals += nAvg
@@ -194,53 +196,52 @@ def ors(func, v_init, v_lb=None, v_ub=None, options=None, consts=None):
         # is f[1] downhill from f[0]?
         downhill = np.sign(f[0] - f[1]) # +1: yes, -1: no
         
-        # 2nd perturbation: 2*downhill*s*r : "downhill double step"
-        aa, bb = box_constraint(u0, 2*downhill*sr) # keep u2 within bounds
+        # 2nd perturbation: 2*downhill*r : "downhill double-step"
+        aa, bb = box_constraint(u0, 2*d1*r1) # keep u2 within bounds
         if downhill > 0:
-            u2 = u0 + aa * 2*downhill * sr
+            u2 = u0 + aa * 2*d1*r1
         else:
-            u2 = u0 + bb * 2*downhill * sr
-        
+            u2 = u0 + bb * 2*d1*r1 * downhill
+        d2 = norm(u2 - u0) * downhill 
+
         f[2], g2, u2, c2, nAvg = avg_cov_func(func, u2, s0, s1, options, consts, BOX)
         function_evals += nAvg
         
-        # distances from (u0 to u1) and from (u0 to u2) for quadratic fit
-        du1 = norm(u1 - u0) / norm(sr)
-        du2 = norm(u2 - u0) / norm(sr)
+        # 3rd perturbation : try quadratic update if curvature is positive
+        # signed distances from (u0 to u1) and from (u0 to u2) for quadratic fit
         
         # fit quadratic: f(d) = c[0] + c[1]*d + c[2]*d^2 
         D = np.array([
-            [1,   0,      0, ],
-            [1, du1, du1**2, ],
-            [1, du2, du2**2, ]
+            [1,  0,     0 ],
+            [1, d1, d1**2 ],
+            [1, d2, d2**2 ]
         ]) + regularization
         
         c = solve(D, f[0:3])
         
-        # 3rd perturbation : try quadratic update if curvature is positive
         quad_update = False
         if c[2] > 0:            # positive curvature ... so look for a minimum
-            d = -c[1]/(2*c[2])  # d*r is the distance from u0 to the zero-slope point
-            aa, bb = box_constraint(u0, d * sr) # keep u3 within bounds
-            if d > 0:
-                u3 = u0 + aa * d * sr
+            d3 = -c[1]/(2*c[2]) # d3 = distance from u0 to the zero-slope point
+            aa, bb = box_constraint(u0, d3*r1) # keep u3 within bounds
+            if d3 > 0:
+                u3 = u0 + aa * d3*r1
             else:
-                u3 = u0 + bb * d * sr
+                u3 = u0 + bb * d3*r1 * downhill
             
             f[3], g3, u3, c3, nAvg = avg_cov_func(func, u3, s0, s1, options, consts, BOX)
             function_evals += nAvg
 
-        # save values of variables and functions for plotting 
-        v0 , f0 = s0 + s1*u0 , f[0]
-        v1 , f1 = s0 + s1*u1 , f[1]
-        v2 , f2 = s0 + s1*u2 , f[2]
-        v3 , f3 = s0 + s1*u3 , f[3]
+        # save function values and variable values in their original units 
+        f0 , v0 = f[0] , s0 + s1*u0 
+        f1 , v1 = f[1] , s0 + s1*u1 
+        f2 , v2 = f[2] , s0 + s1*u2 
+        f3 , v3 = f[3] , s0 + s1*u3 
 
         # find the best (min(f)) objective value of the 4 evaluations in f
         i_min = np.argmin(f)
 
-        # adaptive update to the step size
-        if i_min > 0:
+        # adaptive update to the step size standard deviation 
+        if i_min > 0: # one or more of u1, u2, u3 is a better point
             step_txt = '          none'
             FA = (f2-f0)/(f1-f0)
             FB = (f0-f2)/(f1-f0)
@@ -260,6 +261,9 @@ def ors(func, v_init, v_lb=None, v_ub=None, options=None, consts=None):
                 if FD > 1:              # (f1-f2) > (f0-f1) extend step
                     step_stdev *= FD
                     step_txt = '      downhill extension'
+        else: # u1, u2, and u3 are all worse points
+            step_stdev *= 0.8
+            step_txt = '             contraction'
 
         '''
         # scripted update to the step size (alternative to adaptive update)
@@ -267,10 +271,9 @@ def ors(func, v_init, v_lb=None, v_ub=None, options=None, consts=None):
         if i_min > 0:
             step_stdev = step_stdev * (1 - function_evals / max_evals) ** nu
         '''
-
         step_stdev = min(max(step_stdev,2*tol_v),0.2) # bound the step size
 
-        # update the best point out the four trials
+        # update the best point out of the four trials
         if i_min == 1:
             u0, g0, c0 = u1, g1, c1
         elif i_min == 2:
@@ -279,7 +282,7 @@ def ors(func, v_init, v_lb=None, v_ub=None, options=None, consts=None):
             u0, g0, c0 = u3, g3, c3
             quad_update = True
         
-        u0 = np.clip(u0, -1.0, 1.0)  # keep u0 within bounds, just to be sure
+        u0 = np.clip(u0, -1.0, +1.0)  # keep u0 within bounds, just to be sure
         f[0] = f[i_min]
         
         # update optimal solution if improved
@@ -329,7 +332,7 @@ def ors(func, v_init, v_lb=None, v_ub=None, options=None, consts=None):
                 print(f' step std.dev            = {step_stdev:7.3f}{step_txt}')
                 print(' +-+-+-+-+-+-+-+-+-+-+- ORS -+-+-+-+-+-+-+-+-+-+-+-+-+')
                 if quad_update:
-                    print(' line quadratic update successful')
+                    print(' successful quadratic update')
         
             # plot on surface for this iteration
             if msg > 2:
@@ -361,10 +364,10 @@ def ors(func, v_init, v_lb=None, v_ub=None, options=None, consts=None):
         if iteration > n*n and (cvg_v < tol_v and cvg_f < tol_f): # :)
             converged = True 
         # check for stalled computations
-        if function_evals - last_update > 0.2*max_evals:          # :(
+        if function_evals - last_update > 0.20*max_evals:         # :(
             stalled = True   
 
-        if feasible or converged or stalled:
+        if stalled or (step_stdev <= 2*tol_v and (feasible or converged)):
             break 
 
     # ========== end main loop ==========
@@ -383,7 +386,8 @@ def ors(func, v_init, v_lb=None, v_ub=None, options=None, consts=None):
  
     # final report
     if msg:
-        opt_report(v_init, v_opt, f_opt, g_opt, v_lb, v_ub, tol_v, tol_f, tol_g, 
+        opt_report(v_init, v_opt, f_opt, g_opt, v_lb, v_ub,
+                   tol_v, tol_f, tol_g,
                    start_time, function_evals, max_evals, 
                    feasible, converged, stalled )
 
@@ -430,6 +434,5 @@ def cvg_metrics(cvg_hst, v, f, g, iteration ):
 # ======================================================================
 # updated 2011-04-13, 2014-01-12, 2015-03-14, (pi day 03.14.15), 2015-03-26, 
 # 2016-04-06, 2019-02-23, 2020-01-17, 2024-04-03, 2025-11-24
-
 
 

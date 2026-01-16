@@ -24,9 +24,9 @@ def box_constraint(u, r):
     Returns
     -------
     aa : float
-        Maximum feasible positive step size.
+        Maximum feasible positive step size.  ( 0 < aa < +1)
     bb : float
-        Maximum feasible negative step size.
+        Maximum feasible negative step size.  (-1 < bb <  0)
     '''
     u = np.asarray(u).flatten()
     r = np.asarray(r).flatten()
