@@ -163,6 +163,7 @@ B. Download or Update: Open any terminal (a VS Code Terminal or any terminal app
 
 C.  (1.) `pip install` for VS Code and/or (2.) set the `PYTHONPATH` or (3.) do something scarry or (4.) use a venv
   A chat on issues with Debian, python, pip, and PYTHONPATH is in multivarious/examples/doc/. 
+
   1. Within a VS Code Terminal,  (Terminal > New Terminal) 
 
    ``` bash
@@ -175,17 +176,20 @@ C.  (1.) `pip install` for VS Code and/or (2.) set the `PYTHONPATH` or (3.) do s
    Keep the `multivarious.egg-info/` directory. 
    If `pip install` indicates the error: `error: externally-managed-environment` 
    then set the `PYTHONPATH`
+
   2. (Optional if you have completed (1.) above and are using only VS Code with Python.)
      Open one of the following links and follow the instructions at the top of the file.  
    * [Windows-PROFILE.txt](https://people.duke.edu/~hpgavin/Windows-PROFILE.txt)  
    * [macOS-zprofile.txt](https://people.duke.edu/~hpgavin/macOS-zprofile.txt)   
    * [linux-profile.txt](https://people.duke.edu/~hpgavin/linux-profile.txt)
+
   3. If both (1.) and (2.) fail, please know that you can confidently install multivarious by doing this scarry thing
 
    ``` bash
    cd ~/Desktop/Code/multivarious 
    pip install --break-system-packages . 
    ```
+
   4. Use a venv 
 
 D. Verify that VS Code has access to the multivarious library. 
