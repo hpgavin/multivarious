@@ -147,7 +147,7 @@ A. Configure VS Code: Open VS Code and ...
   ```
   Save your changes to this settings.json file and close the VS Code edit window. 
 
-B. Download or Update: Open any terminal (a VS Code Terminal or any terminal app on your computer) and: (1.) download a fresh copy or (2.) update an existing copy or (3.) set the PYTHONPATH 
+B. Download or Update: Open any terminal (a VS Code Terminal or any terminal app on your computer) and: (1.) download a fresh copy or (2.) update an existing copy 
   1. download a fresh copy 
     ``` bash
     cd ~/Desktop/Code
