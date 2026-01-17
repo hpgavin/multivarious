@@ -175,10 +175,10 @@ C.  (1.) `pip install` for VS Code and/or (2.) set the `PYTHONPATH` or (3.) do s
     If `pip install` indicates the error: `error: externally-managed-environment` 
     then set the `PYTHONPATH`
   2. (Optional if you have completed (1.) above and are using only VS Code with Python.)
-     Open one of the following links and follow the instructions at the top of the file. 
-    * [Windows-PROFILE.txt](https://people.duke.edu/~hpgavin/Windows-PROFILE.txt) 
-    * [macOS-zprofile.txt](https://people.duke.edu/~hpgavin/macOS-zprofile.txt)   
-    * [linux-profile.txt](https://people.duke.edu/~hpgavin/linux-profile.txt)
+     Open one of the following links and follow the instructions at the top of the file.  
+   * [Windows-PROFILE.txt](https://people.duke.edu/~hpgavin/Windows-PROFILE.txt)  
+   * [macOS-zprofile.txt](https://people.duke.edu/~hpgavin/macOS-zprofile.txt)   
+   * [linux-profile.txt](https://people.duke.edu/~hpgavin/linux-profile.txt)
   3. If both (1.) and (2.) fail, please know that you can confidently install multivarious by doing this scarry thing ...
 
    ``` bash
