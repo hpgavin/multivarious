@@ -171,7 +171,7 @@ C.  (1.) `pip install` for VS Code and/or (2.) set the `PYTHONPATH` or (3.) do s
    pip install .  
    ```
 
-    This will create directories `build/` and `multivarious.egg-info/` You may delete the `build/` directory.  Keep the `multivarious.egg-info/` directory.  If `pip install` indicates the error: `error: externally-managed-environment` then set the `PYTHONPATH`
+  This will create directories `build/` and `multivarious.egg-info/` You may delete the `build/` directory.  Keep the `multivarious.egg-info/` directory.  If `pip install` indicates the error: `error: externally-managed-environment` then set the `PYTHONPATH`
 
   2. (Optional if you have completed (1.) above and are using only VS Code with Python.)
      Open one of the following links and follow the instructions at the top of the file.  
