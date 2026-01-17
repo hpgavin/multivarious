@@ -154,28 +154,38 @@ B. (**Windows** and **macOS**) Install multivarious using `git` and `pip` (for e
   ``` bash
   cd ~/Desktop/Code
   git clone https://github.com/hpgavin/multivarious
-  pip install -e multivarious 
+  pip install multivarious 
   ```
 
-C. (**linux**) Install multivarious using `git` (for example into Desktop/Code) and set the `PYTHONPATH` 
- 
+C. (**linux**) Install multivarious using `git` (for example into Desktop/Code) and
+either (a) `pip install` and/or (b) set the `PYTHONPATH` 
+
   ``` bash
   cd ~/Desktop/Code
   git clone https://github.com/hpgavin/multivarious
   ```
-  Open your `~/.profile` and copy and paste the line below it into your `~\.profile`. 
-  ```bash
-  export PYTHONPATH="$PYTHONPATH:$HOME/Desktop/Code/multivarious/"           
-  ```
-  Verify the edits have taken effect system-wide ...
-  ```bash
-  source ~/.profile   
-  echo $PYTHONPATH  
-  ```
-  If the terminal shows that your `PYTHONPATH` is set as intended, it has worked. 
-  VS Code will now find multivarious.
 
-    
+  1. use `pip` with `--break-system-packages`
+
+   ``` bash
+   pip install --break-system-packages multivarious 
+   ```
+
+  2. set the `PYTHONPATH` 
+
+    Open your `~/.profile` and copy and paste the line below it into your `~\.profile`. 
+    ```bash
+    export PYTHONPATH="$PYTHONPATH:$HOME/Desktop/Code/multivarious/" 
+    ```
+    Verify the edits have taken effect system-wide ...
+    ```bash
+    source ~/.profile   
+    echo $PYTHONPATH  
+    ```
+    If the terminal shows that your `PYTHONPATH` is set as intended, it has worked. 
+    VS Code will now find multivarious.
+  
+      
 D. Verify that VS Code has access to the multivarious library. 
   
    VS Code > File > Open Folder ... > navigate to your multivarious/examples folder > Open
