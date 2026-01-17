@@ -150,13 +150,13 @@ A. Configure VS Code: Open VS Code and ...
 B. Download or Update: Open any terminal (a VS Code Terminal or any terminal app on your computer) and: (1.) download a fresh copy or (2.) update an existing copy 
   1. download a fresh copy 
 
-    ``` bash
+    ``` 
     cd ~/Desktop/Code
     git clone https://github.com/hpgavin/multivarious
     ```
   2. update an existing copy 
 
-    ``` bash
+    ``` 
     cd ~/Desktop/Code/multivarious 
     git pull
     ```
