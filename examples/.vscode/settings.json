@@ -7,7 +7,7 @@
 {
   // linux -  HPG's installation path 
   "terminal.integrated.env.linux": {
-    "PYTHONPATH": "/home/hpgavin/Code/multivarious"
+    "PYTHONPATH": "/home/hpgavin/Code/Multivarious"
   },
 
   // macOS -  edit this if you use macOS 
