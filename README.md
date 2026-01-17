@@ -134,9 +134,9 @@ methods: distribution.pdf(), distribution.cdf(), distribution.inv(), distributio
 
 # installation
 
-If you have not yet installed Python or VS Code, install Python (via [miniconda](https://www.anaconda.com/docs/getting-started/miniconda/install)) and VS Code ([via the termainal ](https://microsoft.github.io/vscode-essentials/en/01-getting-started.html))
+If you have not yet installed Python or VS Code, install Python (via [miniconda](https://www.anaconda.com/docs/getting-started/miniconda/install)) and VS Code ([via the termainal](https://microsoft.github.io/vscode-essentials/en/01-getting-started.html))
 
-A. To configure VS Code, open VS Code and ...
+A. Configure VS Code: Open VS Code and ...
   
   VS Code > File > Preferences > Settings > Search Settings ... <br> enter: python terminal execute ... <br> click the checkbox 
   
@@ -145,47 +145,34 @@ A. To configure VS Code, open VS Code and ...
   ```
   "python.terminal.launchArgs": ["-i"] 
   ```
-  
   Save your changes to this settings.json file and close the VS Code edit window. 
 
-B. (**Windows** and **macOS**) Install multivarious using `git` and `pip` (for example, into a Code folder on your Desktop).
-  
-  Open a terminal window (Win11: (Win+X) and choose Windows Terminal) or (macOS: (Cmd+Space), type Terminal) and enter the commands:
-  ``` bash
-  cd ~/Desktop/Code
-  git clone https://github.com/hpgavin/multivarious
-  pip install multivarious 
-  ```
-
-C. (**linux**) Install multivarious using `git` (for example into Desktop/Code) and
-either (a) `pip install` and/or (b) set the `PYTHONPATH` 
-
-  ``` bash
-  cd ~/Desktop/Code
-  git clone https://github.com/hpgavin/multivarious
-  ```
-
-  1. use `pip` with `--break-system-packages`
-
-   ``` bash
-   pip install --break-system-packages multivarious 
-   ```
-
-  2. set the `PYTHONPATH` 
-
-    Open your `~/.profile` and copy and paste the line below it into your `~\.profile`. 
-    ```bash
-    export PYTHONPATH="$PYTHONPATH:$HOME/Desktop/Code/multivarious/" 
+B. Download or Update: Open any terminal (a VS Code Terminal or any terminal app on your computer) and: (1.) download a fresh copy or (2.) update an existing copy
+  1. download a fresh copy 
+    ``` bash
+    cd ~/Desktop/Code
+    git clone https://github.com/hpgavin/multivarious
     ```
-    Verify the edits have taken effect system-wide ...
-    ```bash
-    source ~/.profile   
-    echo $PYTHONPATH  
+  2. update an existing copy 
+    ``` bash
+    cd ~/Desktop/Code/multivarious 
+    git pull
     ```
-    If the terminal shows that your `PYTHONPATH` is set as intended, it has worked. 
-    VS Code will now find multivarious.
-  
-      
+
+C.  (1.) `pip install` for VS Code and/or (2.) set the `PYTHONPATH` 
+  1. Within a VS Code Terminal,  (Terminal > New Terminal) 
+    ```
+    cd ~/Desktop/Code/multivarious 
+    pip install .                           # Windows and macOS
+    pip install --break-system-packages .   # linux
+    ```
+    This will create directories `build/` and `multivarious.egg-info/` You may delete the `build/` directory.  Keep the `multivarious.egg-info/` directory.  
+  2. (Optional if  you have completed (1.) above.) Open one of the following links and follow the instructions at the top of the file. 
+    * [Windows-PROFILE.txt](https://people.duke.edu/~hpgavin/Windows-PROFILE.txt) 
+    * [macOS-zprofile.txt](https://people.duke.edu/~hpgavin/macOS-zprofile.txt)   
+    * [linux-profile.txt](https://people.duke.edu/~hpgavin/linux-profile.txt)
+
+
 D. Verify that VS Code has access to the multivarious library. 
   
    VS Code > File > Open Folder ... > navigate to your multivarious/examples folder > Open
