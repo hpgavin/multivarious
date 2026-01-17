@@ -150,13 +150,13 @@ A. Configure VS Code: Open VS Code and ...
 B. Download or Update: Open any terminal (a VS Code Terminal or any terminal app on your computer) and: (1.) download a fresh copy or (2.) update an existing copy 
   1. download a fresh copy 
 
-   ``` 
+   ``` bash
    cd ~/Desktop/Code
    git clone https://github.com/hpgavin/multivarious
    ```
   2. update an existing copy 
 
-   ``` 
+   ``` bash
    cd ~/Desktop/Code/multivarious 
    git pull
    ```
@@ -165,7 +165,7 @@ C.  (1.) `pip install` for VS Code and/or (2.) set the `PYTHONPATH` or (3.) do s
   A chat on issues with Debian, python, pip, and PYTHONPATH is in multivarious/examples/doc/. 
   1. Within a VS Code Terminal,  (Terminal > New Terminal) 
 
-   ```
+   ``` bash
    cd ~/Desktop/Code/multivarious  
    pip install .  
    ```
@@ -181,7 +181,7 @@ C.  (1.) `pip install` for VS Code and/or (2.) set the `PYTHONPATH` or (3.) do s
     * [linux-profile.txt](https://people.duke.edu/~hpgavin/linux-profile.txt)
   3. If both (1.) and (2.) fail, please know that you can confidently install multivarious by doing this scarry thing ...
 
-   ```
+   ``` bash
    cd ~/Desktop/Code/multivarious 
    pip install --break-system-packages . 
    ```
