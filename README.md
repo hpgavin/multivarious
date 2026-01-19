@@ -134,20 +134,9 @@ methods: distribution.pdf(), distribution.cdf(), distribution.inv(), distributio
 
 # installation
 
-If you have not yet installed Python or VS Code, install Python (via [miniconda](https://www.anaconda.com/docs/getting-started/miniconda/install)) and VS Code ([via the termainal](https://microsoft.github.io/vscode-essentials/en/01-getting-started.html))
+If you have not yet installed git, Python or VS Code, follow the instructions in [section 2 of this Python tutorial](https://www.duke.edu/~hpgavin/pythonSkills+Dubugging.pdf) 
 
-A. Configure VS Code: Open VS Code and ...
-  
-  VS Code > File > Preferences > Settings > Search Settings ... <br> enter: python terminal execute ... <br> click the checkbox 
-  
-  VS Code > File > Preferences > Settings > Search Settings ... <br> enter: python terminal launch > Enter in settings.json ... <br> edit the following line, as shown below 
-  
-  ```
-  "python.terminal.launchArgs": ["-i"] 
-  ```
-  Save your changes to this settings.json file and close the VS Code edit window. 
-
-B. Download or Update: Open any terminal (a VS Code Terminal or any terminal app on your computer) and: (1.) download a fresh copy or (2.) update an existing copy 
+A. Download or Update: Open any terminal (a VS Code Terminal or any terminal app on your computer) and: (1.) download a fresh copy or (2.) update an existing copy 
   1. download a fresh copy 
 
    ``` bash
@@ -161,7 +150,7 @@ B. Download or Update: Open any terminal (a VS Code Terminal or any terminal app
    git pull
    ```
 
-C.  (1.) `pip install` for VS Code and/or (2.) set the `PYTHONPATH` or (3.) do something scarry or (4.) use a venv
+B.  (1.) `pip install` for VS Code and/or (2.) set the `PYTHONPATH` or (3.) do something scarry or (4.) use a venv
   A chat on issues with Debian, python, pip, and PYTHONPATH is in multivarious/examples/doc/. 
 
   1. Within a VS Code Terminal,  (Terminal > New Terminal) 
@@ -174,10 +163,10 @@ C.  (1.) `pip install` for VS Code and/or (2.) set the `PYTHONPATH` or (3.) do s
   This will create directories `build/` and `multivarious.egg-info/.` You may delete the `build/` directory.  Keep the `multivarious.egg-info/` directory.  If `pip install` indicates the error: `error: externally-managed-environment` then set the `PYTHONPATH` (option (2.) below)
 
   2. (Optional if you have completed (1.) above and are using only VS Code with Python.)
-     Open one of the following links and follow the instructions at the top of the file.  
-   * [Windows-PROFILE.txt](https://people.duke.edu/~hpgavin/Windows-PROFILE.txt)  
-   * [macOS-zprofile.txt](https://people.duke.edu/~hpgavin/macOS-zprofile.txt)   
-   * [linux-profile.txt](https://people.duke.edu/~hpgavin/linux-profile.txt)
+     Open one of the following links and follow the instructions.  
+   * [Windows-shell.txt](https://people.duke.edu/~hpgavin/Windows-shell.txt)  
+   * [macOS-shell.txt](https://people.duke.edu/~hpgavin/macOS-shell.txt)   
+   * [linux-shell.txt](https://people.duke.edu/~hpgavin/linux-shell.txt)
 
   3. If both (1.) and (2.) fail, please know that you can confidently install multivarious by doing this scarry thing
 
@@ -188,21 +177,14 @@ C.  (1.) `pip install` for VS Code and/or (2.) set the `PYTHONPATH` or (3.) do s
 
   4. Use a venv 
 
-D. Verify that VS Code has access to the multivarious library. 
+C. Verify that VS Code has access to the multivarious library. 
   
-   VS Code > File > Open Folder ... > navigate to your multivarious/examples folder > Open
-    
-   VS Code > File Explorer > select `verify_path_import.py` > click the right arrow in the Edit menu [Run Python File]
-    
-   This will open a new Terminal Window which should display ...
-       
+   VS Code > Terminal > New Terminal 
+
+   ``` bash
+   python
+   >>> import multivarious
    ```
-   hello
-   verifying that PYTHONPATH has been set ... 
-   PYTHONPATH env: /home/USERNAME/Desktop/Code/multivarious <<< via PYTHONPATH
-   ... and yes, yes it has. Great!  
-   verifying that multivarious can be imported ... 
-   ... and yes, yes it can. Great!  
-   ```
- 
-   [CTRL-D] - at the `>>>` Python prompt to exit the Python Interactive mode and return to the terminal prompt.   
+
+   If this message ... `ModuleNotFoundError: No module named 'multivarious'` ... does not appear, you have installed `multivarious` correctly.
+

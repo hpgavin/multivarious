@@ -7,17 +7,17 @@
 {
   // linux -  HPG's installation path 
   "terminal.integrated.env.linux": {
-    "PYTHONPATH": "/home/hpgavin/Code/Multivarious"
+    "PYTHONPATH": "$HOME/Desktop/stuff/Code/multivarious"
   },
 
   // macOS -  edit this if you use macOS 
   "terminal.integrated.env.osx": {
-    "PYTHONPATH": "/Users/<USERNAME>/Desktop/stuff/Code/multivarious"
+    "PYTHONPATH": "$HOME/Desktop/stuff/Code/multivarious"
   },
 
   // Windows -  edit this if you use Windows 
   "terminal.integrated.env.windows": {
-    "PYTHONPATH": "C:\\Users\\<USERNAME>\\Desktop\\stuff\\Code\\multivarious"
+    "PYTHONPATH": "%env:USERPROFILE\\Desktop\\stuff\\Code\\multivarious"
   }
 }
 
