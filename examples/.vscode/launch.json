@@ -16,7 +16,7 @@
       // linux - HPG's installation path 
       "linux": {
         "env": {
-          "PYTHONPATH": "/home/hpgavin/Code/multivarious"
+          "PYTHONPATH": "$HOME/Desktop/Code/module_1:$HOME/Desktop/Code/module_2"
         }
       },
 
