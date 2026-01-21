@@ -1,14 +1,34 @@
-# nms.py
-# -----------------------------------------------------------------------------
-# Nelder-Mead Algorithm for Nonlinear Optimization
-# Depends on: opt_options(), avg_cov_func(), plot_opt_surface()
-# -----------------------------------------------------------------------------
-# 
-# updated ...
-# 2005-1-22, 2006-1-26, 2011-1-31, 2011-4-13, 2016-03-24, 2016-04-06,
-# 2019-02-23, 2019-03-21, 2019-11-22, 2020-01-17, 2021-01-19, 2024-04-03,
-# 2025-11-24
+"""
+nms.py
+-----------------------------------------------------------------------------
+Nelder-Mead Algorithm for Nonlinear Optimization
+Depends on: opt_options(), avg_cov_func(), plot_opt_surface()
+-----------------------------------------------------------------------------
 
+Nonlinear optimization with inequality constraints via the Nelder-Mead Simplex
+
+Minimizes f(v) such that g(v) < 0 and v_lb <= v_opt <= v_ub.
+- f is a scalar objective function
+- v is a vector of design variables
+- g is a vector of inequality constraints
+
+Reference:
+
+Nelder, J.A., and Mead, R., "A simplex method for function minimization,: 
+Computer Journal, 7(4) (1965): 308-313.
+
+William H. Press, Saul A. Teukolsky, William T. Vetterling, Brian P. Flannery, 
+Numerical Recipes in C 
+Cambridge University Press, (1992)
+
+H.P. Gavin, Civil & Environmental Eng'g, Duke Univ.
+Translation from MATLAB to Python, 2025-11-24
+
+updated ...
+2005-1-22, 2006-1-26, 2011-1-31, 2011-4-13, 2016-03-24, 2016-04-06,
+2019-02-23, 2019-03-21, 2019-11-22, 2020-01-17, 2021-01-19, 2024-04-03,
+2025-11-24
+"""
 
 import numpy as np
 from numpy.linalg import norm 
@@ -452,7 +472,10 @@ def nms(func, v_init, v_lb=None, v_ub=None, options_in=None, consts=1.0):
 
 def cvg_metrics(simplex, fv, g0):
     '''
-    Compute consistent convergence metrics for ors, nms and sqp
+    Compute convergence metrics for nms, defined as:  
+    the ratio of (the difference between the best and worst vertices)
+    to (the average of the best and worst vertices) 
+    in terms of the vertices in the simplex and the objective function, f. 
     
     Parameters
     ----------    
@@ -480,8 +503,8 @@ def cvg_metrics(simplex, fv, g0):
     f0 = fv[0]
     fn = fv[n]
 
-    cvg_v = norm(un - u0) / (norm(un + u0)+1e-9)
-    cvg_f = norm(fn - f0) / (norm(fn + f0)+1e-9)
+    cvg_v = 2 * norm(un - u0) / (norm(un + u0)+1e-9)
+    cvg_f = 2 * norm(fn - f0) / (norm(fn + f0)+1e-9)
     max_g = max(g0)
 
     return cvg_v, cvg_f, max_g

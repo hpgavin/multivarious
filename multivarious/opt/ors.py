@@ -1,6 +1,9 @@
 """
-ors.py - Optimized Step Size Randomized Search
-===============================================
+ors.py 
+-----------------------------------------------------------------------------
+Optimized Step Size Randomized Search Algorithm for Nonlinear Optimization
+Depends on: opt_options(), avg_cov_func(), plot_opt_surface()
+-----------------------------------------------------------------------------
 
 Nonlinear optimization with inequality constraints using Random Search
 with optimized step sizes based on quadratic approximations.
@@ -18,7 +21,11 @@ S.Rao, Optimization Theory and Applications, 2nd ed, John Wiley, 1984
 
 H.P. Gavin, Civil & Environmental Eng'g, Duke Univ.
 Translation from MATLAB to Python, 2025-11-24
+
+updated 2011-04-13, 2014-01-12, 2015-03-14, (pi day 03.14.15), 2015-03-26, 
+2016-04-06, 2019-02-23, 2020-01-17, 2024-04-03, 2025-11-24
 """
+
 
 import numpy as np
 import matplotlib.pyplot as plt
@@ -370,7 +377,7 @@ def ors(func, v_init, v_lb=None, v_ub=None, options=None, consts=None):
         if stalled or (step_stdev <= 2*tol_v and (feasible or converged)):
             break 
 
-    # ========== end main loop ==========
+    # ========== main optimization loop ==========
 
     # trim the convergence history
     cvg_hst = cvg_hst[:, 0:iteration+1]
@@ -395,7 +402,10 @@ def ors(func, v_init, v_lb=None, v_ub=None, options=None, consts=None):
 
 def cvg_metrics(cvg_hst, v, f, g, iteration ):
     '''
-    Compute consistent convergence metrics for ors, nms and sqp
+    Compute convergence metrics for ors which are defined as: 
+    the ratio of (the difference between the current variables and the most recent iteration variables)
+    to (the average of the current variables and the most recent iteration variables)
+    in terms of the variables and the objective function, f. 
     
     Parameters
     ----------    
@@ -425,14 +435,9 @@ def cvg_metrics(cvg_hst, v, f, g, iteration ):
 
     n = len(v) # number of design variabls 
 
-    cvg_v = norm(cvg_hst[0:n, iteration] - v) / (norm(cvg_hst[0:n, iteration] + v)+1e-9)
-    cvg_f = norm(cvg_hst[  n, iteration] - f) / (norm(cvg_hst[  n, iteration] + f)+1e-9)
+    cvg_v = 2 * norm(cvg_hst[0:n, iteration] - v) / (norm(cvg_hst[0:n, iteration] + v)+1e-9)
+    cvg_f = 2 * norm(cvg_hst[  n, iteration] - f) / (norm(cvg_hst[  n, iteration] + f)+1e-9)
     max_g = max(g)     
 
     return cvg_v, cvg_f, max_g
-
-# ======================================================================
-# updated 2011-04-13, 2014-01-12, 2015-03-14, (pi day 03.14.15), 2015-03-26, 
-# 2016-04-06, 2019-02-23, 2020-01-17, 2024-04-03, 2025-11-24
-
 

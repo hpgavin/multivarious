@@ -1,15 +1,33 @@
-# sqp.py
-# -----------------------------------------------------------------------------
-# Sequential Quadratic Programming for Nonlinear Optimization
-# Translation of Henri P. Gavin's SQPopt.m (Duke CEE).
-# Depends on: opt_options(), plot_opt_surface()
-# Use SciPy optimize.minimize package for QP subproblems
-# In the future: use quadprog package for QP subproblems
-# -----------------------------------------------------------------------------
+"""
+sqp.py 
+-----------------------------------------------------------------------------
+Sequential Quadratic Programming for Nonlinear Optimization
+Depends on: opt_options(), plot_opt_surface()
+Use SciPy optimize.minimize package for QP subproblems
+In the future: use quadprog package for QP subproblems
+-----------------------------------------------------------------------------
 
-# updated ... 
-# 2010 - 2023, 2024-02-03, 2025-01-26, 2025-11-24
+Nonlinear optimization with inequality constraints using S.Q.P.
 
+Minimizes f(v) such that g(v) < 0 and v_lb <= v_opt <= v_ub.
+- f is a scalar objective function
+- v is a vector of design variables
+- g is a vector of inequality constraints
+
+References:
+
+S.Rao, Optimization Theory and Applications, 2nd ed, John Wiley, 1984
+
+William H. Press, Saul A. Teukolsky, William T. Vetterling, Brian P. Flannery, 
+Numerical Recipes in C 
+Cambridge University Press, (1992)
+
+H.P. Gavin, Civil & Environmental Eng'g, Duke Univ.
+Translation from MATLAB to Python, 2025-11-24
+
+updated ... 
+2010 - 2023, 2024-02-03, 2025-01-26, 2025-11-24
+"""
 
 import numpy as np
 from matplotlib import pyplot as plt
