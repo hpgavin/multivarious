@@ -2,7 +2,7 @@
 
 A multitude of various Python modules for multivariable things like digital signal processing, fitting models to data, linear time invariant systems, optimization, ordinary differential equations and random variables. 
 
-Multivarious is pedagogical and emphasizes a transparent implementation of numerical methods for multivariate problems with integrated visualization tools. 
+Multivarious is pedagogical.  It emphasizes a transparent implementation of numerical methods for multivariate problems with integrated visualization tools. 
 The methods and code in this repository stem from decades of undergraduate and graduate engineering instruction.  
 
 This repository is under development.  Updates to this README lead or lag the addition of code. 
@@ -162,7 +162,7 @@ B.  (1.) `pip install` for VS Code and/or (2.) set the `PYTHONPATH` or (3.) do s
 
   This will create directories `build/` and `multivarious.egg-info/.` You may delete the `build/` directory.  Keep the `multivarious.egg-info/` directory.  If `pip install` indicates the error: `error: externally-managed-environment` then set the `PYTHONPATH` (option (2.) below)
 
-  2. (Optional if you have completed (1.) above and are using only VS Code with Python.)
+  2. (If you have completed (1.) above and are using Python only within VS Code, then this step is optional.)
      Open one of the following links and follow the instructions.  
    * [Windows-shell.txt](https://people.duke.edu/~hpgavin/Windows-shell.txt)  
    * [macOS-shell.txt](https://people.duke.edu/~hpgavin/macOS-shell.txt)   
