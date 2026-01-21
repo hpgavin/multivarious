@@ -87,9 +87,9 @@ _**g**_(_**v**_) is a vector of inequality constraints.
 | module     | description                                                           |
 | ---------- | --------------------------------------------------------------------- |
 | **fsolve** | solve a system of nonlinear algebraic equations                       |
-| **nms**    | nonlinear constrained optimization - Nelder Mead Simplex              |
-| **ors**    | nonlinear constrained optimization - Optimized Random Search          |
-| **sqp**    | nonlinear constrained optimization - Sequential Quadratic Programming |
+| **nms**    | Nelder Mead Simplex              |
+| **ors**    | Optimized Random Search          |
+| **sqp**    | Sequential Quadratic Programming |
 
 ## rvs . random variables
 
