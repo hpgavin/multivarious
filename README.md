@@ -2,8 +2,8 @@
 
 A multitude of various Python modules for multivariable things like digital signal processing, fitting models to data, linear time invariant systems, optimization, ordinary differential equations and random variables. 
 
-This repository is pedagogical and emphasizes a transparent implementation of numerical methods for multivariate problems with integrated visualization tools. 
-This repository stems from decades of undergraduate and graduate engineering instruction.  
+Multivarious is pedagogical and emphasizes a transparent implementation of numerical methods for multivariate problems with integrated visualization tools. 
+The methods and code in this repository stem from decades of undergraduate and graduate engineering instruction.  
 
 This repository is under development.  Updates to this README lead or lag the addition of code. 
 
