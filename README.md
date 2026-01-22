@@ -135,7 +135,7 @@ methods: distribution.pdf(), distribution.cdf(), distribution.inv(), distributio
 
 # installation
 
-If you have not yet installed git, Python or VS Code, follow the instructions in [section 2 of this Python tutorial](https://www.duke.edu/~hpgavin/pythonSkills+Dubugging.pdf) 
+If you have not yet installed git, Python or VS Code, follow the instructions in [section 2 of this Python tutorial](https://www.duke.edu/~hpgavin/pythonSkills+Debugging.pdf) 
 
 A. Download or Update: Open any terminal (a VS Code Terminal or any terminal app on your computer) and: (1.) download a fresh copy or (2.) update an existing copy 
   1. download a fresh copy 
