@@ -16,6 +16,7 @@ To generate, transform, and plot multivariate discrete time sequences
 | module              | description                                                                             |
 | ------------------- | --------------------------------------------------------------------------------------- |
 | **accel2displ**     | acceleration, velocity and displacement without much bias or drift from acceleration    |
+| **autocorr**        | autocorrelation of a time series |
 | **butter_synth_ss** | state space butterworth filter design using the matrix expnential                       |
 | **cdiff**           | central differences along the rows of a 2D array                                        |
 | **chrip**           | onomatopoeia for bird sounds and <br> sine-sweep signals with derivitives and integrals |
