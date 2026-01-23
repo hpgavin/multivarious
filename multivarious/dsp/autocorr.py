@@ -2,10 +2,11 @@ import numpy as np
 import matplotlib.pyplot as plt
 from multivarious.dsp import psd
 from numpy.fft import ifft
+from scipy.signal import detrend
 
 def autocorr(x,Fs):
     x = np.asarray(x)
-    x = x - np.mean(x)
+    x = detrend(x, type='linear')
     n = len(x)
     
     # Power spectrum (element-wise multiplication by complex conjugate)
