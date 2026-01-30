@@ -16,14 +16,14 @@ To generate, transform, and plot multivariate discrete time sequences
 | module              | description                                                                             |
 | ------------------- | --------------------------------------------------------------------------------------- |
 | **accel2displ**     | acceleration, velocity and displacement without much bias or drift from acceleration    |
-| **autocorr**        | autocorrelation of a time series |
+| **autocorr**        | autocorrelation of a time series                                                        |
 | **butter_synth_ss** | state space butterworth filter design using the matrix expnential                       |
 | **cdiff**           | central differences along the rows of a 2D array                                        |
 | **chrip**           | onomatopoeia for bird sounds and <br> sine-sweep signals with derivitives and integrals |
 | **csd**             | estimate the cross-power spectra of a pair of signals and its chi^2 confidince interval |
 | **eqgm_1d**         | a single axis of simulated earthquake ground motions                                    |
 | **ftdsp**           | Fourier transform based digitial signal processing                                      |
-| **lers_2d**         | linear elastic response spectrum for biaxial ground motion                              |
+| **lers_2d**         | linear elastic response spectrum for biaxial motion                                     |
 | **psd**             | estimate the auto-power spectral density of a signal and its chi^2 confidence interval  |
 | **taper**           | taper the ends of the rows of a 2D array - Planck or Tukey windows                      |
 
