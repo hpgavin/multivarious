@@ -12,6 +12,7 @@ from .chrip import chrip
 from .csd import csd
 from .eqgm_1d import eqgm_1d
 from .ftdsp import ftdsp
+from .lers_2d import lers_2d
 from .psd import psd
 from .taper import taper
 

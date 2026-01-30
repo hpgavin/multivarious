@@ -23,6 +23,7 @@ To generate, transform, and plot multivariate discrete time sequences
 | **csd**             | estimate the cross-power spectra of a pair of signals and its chi^2 confidince interval |
 | **eqgm_1d**         | a single axis of simulated earthquake ground motions                                    |
 | **ftdsp**           | Fourier transform based digitial signal processing                                      |
+| **lers_2d**         | linear elastic response spectrum for biaxial ground motion                              |
 | **psd**             | estimate the auto-power spectral density of a signal and its chi^2 confidence interval  |
 | **taper**           | taper the ends of the rows of a 2D array - Planck or Tukey windows                      |
 

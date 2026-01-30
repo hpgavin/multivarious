@@ -20,8 +20,7 @@ from multivarious.dsp.accel2displ import accel2displ
 from multivarious.dsp.taper import taper 
 
 
-def eqgm_1d(PGA=3.5, fg=1.5, zg=0.9, aa=4.0, ta=2.0, 
-            t=None, fig_no=0, seed=None):
+def eqgm_1d(PGA=3.5, fg=1.5, zg=0.9, aa=4.0, ta=2.0, t=None, fig_no=0, seed=None):
     """
     Generate synthetic earthquake ground motion record.
     
