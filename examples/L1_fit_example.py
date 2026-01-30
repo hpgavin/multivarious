@@ -1,5 +1,4 @@
-#! /usr/bin/python3 -i
-
+#! /usr/bin/env -S python3 -i
 """
 L1_fit_example.py - Test script for L1 regularization
 
@@ -8,8 +7,8 @@ Demonstrates L1_fit on synthetic polynomial data with various true functions.
 
 import numpy as np
 import matplotlib.pyplot as plt
-from multivarious.utl import L1_fit, L1_plots 
-from multivarious.utl import format_plot
+from multivarious.fit import L1_fit
+from multivarious.utl import L1_plots, format_plot
 
 
 def test_L1_basic():
@@ -76,8 +75,8 @@ def test_L1_basic():
     print(f"  Non-zero coefficients: {np.sum(np.abs(c) > 1e-6)}/{len(c)}")
     
     # Create plots
-    format_plot(font_size=11, line_width=2, marker_size=7)
-    L1_plots(B, c, y, cvg_hst, alpha_final, w, fig_no=1)
+    format_plot(font_size=15, line_width=3, marker_size=9)
+    L1_plots(B, c, y, cvg_hst, alpha_final, w, fig_no=1, save_plots=False)
     
     return c, cvg_hst
 
@@ -203,7 +202,6 @@ def main():
     
     # Show all plots
     plt.show()
-
 
 if __name__ == '__main__':
     main()

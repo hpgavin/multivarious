@@ -13,7 +13,7 @@ import matplotlib.pyplot as plt
 import matplotlib.cm as cm
 
 
-def plot_cvg_hst(cvg_hst, v_opt, opts=[1,np.nan,np.nan,np.nan], fig_num=1000, clr=None, pdf_plots=False):
+def plot_cvg_hst(cvg_hst, v_opt, opts=[1,np.nan,np.nan,np.nan], fig_num=1000, clr=None, save_plots=False):
     """
     Plot the convergence history for optimization solutions.
     
@@ -85,16 +85,9 @@ def plot_cvg_hst(cvg_hst, v_opt, opts=[1,np.nan,np.nan,np.nan], fig_num=1000, cl
     
     # Extract key data
     fc = cvg_hst[n+2, :]  # Function count
-    lw = 3                   # Line width
-    ms = 6                   # Marker size
     
     if fig_num:  # Make plots
-        # Set up plot formatting
-        if interactive:
-            plt.ion() # interactive plot mode: on
-        plt.rcParams['font.size'] = 14
-        plt.rcParams['lines.linewidth'] = 2
-        #plt.rcParams['axes.linewidth'] = 1
+#       plt.ion() # interactive plot mode: on
         
         # ====================================================================
         # FIGURE fig_num+1: Convergence Criteria
@@ -110,17 +103,17 @@ def plot_cvg_hst(cvg_hst, v_opt, opts=[1,np.nan,np.nan,np.nan], fig_num=1000, cl
         if np.max(f_conv) > 1e2 * np.min(f_conv) and np.min(f_conv) > 0:
             if marker:
                 plt.semilogy([fc[0],fc[-1]], tol_f*np.array([1,1]), '--g', linewidth=1)
-                plt.semilogy(fc, f_conv, pltstr, linewidth=lw, markersize=ms)
+                plt.semilogy(fc, f_conv, pltstr)
             else:
                 plt.semilogy([fc[0],fc[-1]], tol_f*np.array([1,1]), '--g', linewidth=1)
-                plt.semilogy(fc, f_conv, linewidth=lw)
+                plt.semilogy(fc, f_conv)
         else:
             if marker:
                 plt.plot([fc[0],fc[-1]], tol_f*np.array([1,1]), '--g', linewidth=1)
-                plt.plot(fc, f_conv, pltstr, linewidth=lw, markersize=ms)
+                plt.plot(fc, f_conv, pltstr)
             else:
                 plt.plot([fc[0],fc[-1]], tol_f*np.array([1,1]), '--g', linewidth=1)
-                plt.plot(fc, f_conv, linewidth=lw)
+                plt.plot(fc, f_conv)
         
         plt.ylabel(r'objective convergence')
         plt.grid(True, alpha=0.3)
@@ -133,17 +126,17 @@ def plot_cvg_hst(cvg_hst, v_opt, opts=[1,np.nan,np.nan,np.nan], fig_num=1000, cl
         if np.max(v_conv) > (1e2 * np.min(v_conv)) and np.min(v_conv) > 0:
             if marker:
                 plt.semilogy([fc[0],fc[-1]], tol_v*np.array([1,1]), '--g', linewidth=1)
-                plt.semilogy(fc, v_conv, pltstr, linewidth=lw, markersize=ms)
+                plt.semilogy(fc, v_conv, pltstr)
             else:
                 plt.semilogy([fc[0],fc[-1]], tol_v*np.array([1,1]), '--g', linewidth=1)
-                plt.semilogy(fc, v_conv, linewidth=lw)
+                plt.semilogy(fc, v_conv)
         else:
             if marker:
                 plt.plot([fc[0],fc[-1]], tol_v*np.array([1,1]), '--g', linewidth=1)
-                plt.plot(fc, v_conv, pltstr, linewidth=lw, markersize=ms)
+                plt.plot(fc, v_conv, pltstr)
             else:
                 plt.plot([fc[0],fc[-1]], tol_v*np.array([1,1]), '--g', linewidth=1)
-                plt.plot(fc, v_conv, linewidth=lw)
+                plt.plot(fc, v_conv)
         
         plt.ylabel(r'variable convergence')
         plt.xlabel('function evaluations')
@@ -168,14 +161,14 @@ def plot_cvg_hst(cvg_hst, v_opt, opts=[1,np.nan,np.nan,np.nan], fig_num=1000, cl
         # Auto log-scale detection
         if (fmax > (1e2 * fmin) and fmin > 0 and fmin > 0):
             if marker:
-                plt.semilogy(fc, obj_vals, pltstr, linewidth=lw, markersize=ms)
+                plt.semilogy(fc, obj_vals, pltstr)
             else:
-                plt.semilogy(fc, obj_vals, linewidth=lw)
+                plt.semilogy(fc, obj_vals)
         else:
             if marker:
-                plt.plot(fc, obj_vals, pltstr, linewidth=lw, markersize=ms)
+                plt.plot(fc, obj_vals, pltstr)
             else:
-                plt.plot(fc, obj_vals, linewidth=lw)
+                plt.plot(fc, obj_vals)
         
         plt.ylabel(r'objective   $f_A$')
         plt.grid(True, alpha=0.3)
@@ -196,12 +189,10 @@ def plot_cvg_hst(cvg_hst, v_opt, opts=[1,np.nan,np.nan,np.nan], fig_num=1000, cl
         # Plot all design variables
         if marker:
             for i in range(n):
-                plt.plot(fc, var_vals[i, :], pltstr, 
-                        color=clr[i], linewidth=lw, markersize=ms)
+                plt.plot(fc, var_vals[i, :], pltstr, color=clr[i])
         else:
             for i in range(n):
-                plt.plot(fc, var_vals[i, :], 
-                        color=clr[i], linewidth=lw)
+                plt.plot(fc, var_vals[i, :], color=clr[i])
         
         plt.ylabel('variables')
         plt.grid(True, alpha=0.3)
@@ -216,10 +207,10 @@ def plot_cvg_hst(cvg_hst, v_opt, opts=[1,np.nan,np.nan,np.nan], fig_num=1000, cl
         
         if marker:
             plt.plot([fc[0],fc[-1]], tol_g*np.array([1,1]), '--g', linewidth=1)
-            plt.plot(fc, constr_vals, pltstr, linewidth=lw, markersize=ms)
+            plt.plot(fc, constr_vals, pltstr)
         else:
             plt.plot([fc[0],fc[-1]], tol_g*np.array([1,1]), '--g', linewidth=1)
-            plt.plot(fc, constr_vals, linewidth=lw)
+            plt.plot(fc, constr_vals)
         
         plt.ylabel('max(constraints)')
         plt.xlabel('function evaluations')
@@ -228,11 +219,10 @@ def plot_cvg_hst(cvg_hst, v_opt, opts=[1,np.nan,np.nan,np.nan], fig_num=1000, cl
         plt.tight_layout()
 
     # Display plots
-    if not interactive:
-        plt.show()
+    plt.show()
     
-    # Save plots to .pdf
-    if pdf_plots:
+    # Save plots 
+    if save_plots:
         plt.figure(fig_num+1)
         filename = f'plot_cvg_hst-{fig_num+1:04d}.pdf'
         plt.savefig(filename, bbox_inches='tight', dpi=300)
@@ -249,9 +239,6 @@ def plot_cvg_hst(cvg_hst, v_opt, opts=[1,np.nan,np.nan,np.nan], fig_num=1000, cl
             plt.savefig(filename, bbox_inches='tight', dpi=300)
             print(f"Saved: {filename}")
  
-    if interactive: 
-        input("Press Enter to close all figures ... ")
-        plt.close('all')
 
 # Example usage / test
 if __name__ == "__main__":

@@ -9,8 +9,7 @@ Translation from MATLAB by Claude, 2025-10-24
 import numpy as np
 import matplotlib.pyplot as plt
 
-
-def L1_plots(B, c, y, cvg_hst, alfa, w, fig_no=1):
+def L1_plots(B, c, y, cvg_hst, alfa, w, fig_no=1, save_plots=False):
     """
     Plot results from L1 regularization fit.
     
@@ -35,12 +34,16 @@ def L1_plots(B, c, y, cvg_hst, alfa, w, fig_no=1):
         Weighting parameter used
     fig_no : int, optional
         Starting figure number (default: 1)
+    save_plots : boolean, optional (default: False)
+        Save figures 
     
     Returns
     -------
     None
         Displays matplotlib figures
     """
+
+    plt.ion() # plotting interactive mode: on
     
     # Ensure y is 1D
     y = np.asarray(y).flatten()
@@ -72,24 +75,18 @@ def L1_plots(B, c, y, cvg_hst, alfa, w, fig_no=1):
     print(c)
     print("="*70 + "\n")
     
-    # Set up plotting style
-    plt.rcParams['font.size'] = 11
-    plt.rcParams['lines.linewidth'] = 2
-    
     # Figure 1: Coefficient Comparison
     plt.figure(fig_no, figsize=(10, 6))
     plt.clf()
     
     indices = np.arange(1, n + 1)
-    plt.plot(indices, c0, '+r', markersize=20, linewidth=3, 
-             label=f'α = 0 (OLS)')
-    plt.plot(indices, c, 'o', color=[0, 0.8, 0], markersize=9, linewidth=4,
-             label=f'α = {alfa:.5f}, w = {w:.1f}')
+    plt.plot(indices, c0, '+r', markersize=20, label=f'α = 0 (OLS)')
+    plt.plot(indices, c, 'o', color=[0, 0.8, 0], label=f'α = {alfa:.5f}, w = {w:.1f}')
     plt.axhline(0, color='k', linestyle='--', linewidth=1)
-    plt.xlabel('Coefficient index, i', fontsize=12)
-    plt.ylabel('Coefficients, c_i', fontsize=12)
-    plt.title('Coefficient Comparison: OLS vs L1', fontsize=14)
-    plt.legend(fontsize=11)
+    plt.xlabel(r'Coefficient index, $i$')
+    plt.ylabel(r'Coefficients, $c_i$')
+    plt.title(r'Coefficient Comparison: OLS vs $L_1$')
+    plt.legend()
     plt.grid(True, alpha=0.3)
     plt.tight_layout()
     
@@ -98,14 +95,13 @@ def L1_plots(B, c, y, cvg_hst, alfa, w, fig_no=1):
     plt.clf()
     
     t = np.arange(1, m + 1)
-    plt.plot(t, y, 'ok', label='Data', markersize=6, markerfacecolor='none')
-    plt.plot(t, y0, 'or', label='α = 0 (OLS)', markersize=5)
-    plt.plot(t, y1, 'o', color=[0, 0.8, 0], label=f'α = {alfa:.5f}, w = {w:.0f}',
-             markersize=6)
-    plt.xlabel('Data index, i', fontsize=12)
-    plt.ylabel('y_i', fontsize=12)
-    plt.title('Model Fit Comparison', fontsize=14)
-    plt.legend(fontsize=11)
+    plt.plot(t, y, 'ok', label='Data', markerfacecolor='none')
+    plt.plot(t, y0, 'or', label='α = 0 (OLS)')
+    plt.plot(t, y1, 'o', color=[0, 0.8, 0], label=f'α = {alfa:.5f}, w = {w:.0f}')
+    plt.xlabel(rf'Data index, $i$')
+    plt.ylabel(rf'$y_i$')
+    plt.title('Model Fit Comparison')
+    plt.legend()
     plt.grid(True, alpha=0.3)
     plt.tight_layout()
     
@@ -113,7 +109,7 @@ def L1_plots(B, c, y, cvg_hst, alfa, w, fig_no=1):
     plt.figure(fig_no + 2, figsize=(12, 10))
     plt.clf()
     
-    y_labels = ['c', 'p', 'q', 'μ', 'ν', 'α and L₂ error']
+    y_labels = ['$c$', '$p$', '$q$', '$\\mu$', '$\\nu$', '$\\alpha$ and $L_2$ error']
     iterations = np.arange(1, max_iter + 1)
     
     for ii in range(5):
@@ -121,49 +117,40 @@ def L1_plots(B, c, y, cvg_hst, alfa, w, fig_no=1):
         start_idx = n * ii
         end_idx = n * (ii + 1)
         plt.plot(iterations, cvg_hst[start_idx:end_idx, :].T)
-        plt.ylabel(y_labels[ii], fontsize=11)
+        plt.ylabel(y_labels[ii])
         plt.grid(True, alpha=0.3)
         if ii == 0:
-            plt.title('Convergence History', fontsize=14)
+            plt.title('Convergence History')
     
     # Last subplot: alfa and error
     plt.subplot(6, 1, 6)
-    plt.semilogy(iterations, cvg_hst[5*n, :], '-g', linewidth=2, label='α')
-    plt.semilogy(iterations, cvg_hst[5*n+1, :], '-k', linewidth=2, label='L₂ error')
-    plt.ylabel(y_labels[5], fontsize=11)
-    plt.xlabel('L1 iteration number', fontsize=12)
+    plt.semilogy(iterations, cvg_hst[5*n, :], '-g', label='$\\alpha$')
+    plt.semilogy(iterations, cvg_hst[5*n+1, :], '-k', label='$L_2$ error')
+    plt.ylabel(y_labels[5])
+    plt.xlabel(r'$L_1$ iteration number')
     plt.legend(fontsize=10)
     plt.grid(True, alpha=0.3)
     
     plt.tight_layout()
 
-
-def format_plot(font_size=11, line_width=2, marker_size=7):
-    """
-    Format matplotlib plots with consistent style.
+    plt.show()
+     
+    # Save figures
+    if save_plots:
+        plt.figure(fig_no)
+        plt.savefig('L1_coefficients.png', dpi=150, bbox_inches='tight')
     
-    Parameters
-    ----------
-    font_size : int
-        Base font size for plots
-    line_width : float
-        Default line width
-    marker_size : float
-        Default marker size
-    """
-    plt.rcParams.update({
-        'font.size': font_size,
-        'axes.labelsize': font_size + 1,
-        'axes.titlesize': font_size + 3,
-        'xtick.labelsize': font_size,
-        'ytick.labelsize': font_size,
-        'legend.fontsize': font_size,
-        'lines.linewidth': line_width,
-        'lines.markersize': marker_size,
-        'figure.titlesize': font_size + 4
-    })
-
-
+        plt.figure(fig_no+1)
+        plt.savefig('L1_fit_comparison.png', dpi=150, bbox_inches='tight')
+    
+        plt.figure(fig_no+2)
+        plt.savefig('L1_convergence.png', dpi=150, bbox_inches='tight')
+    
+        print("\nPlots saved:")
+        print("  - L1_coefficients.png")
+        print("  - L1_fit_comparison.png")
+        print("  - L1_convergence.png")
+    
 # Test function
 if __name__ == '__main__':
     """
@@ -195,26 +182,10 @@ if __name__ == '__main__':
     alfa_final = cvg_hst[-2, -1]
     
     # Create plots
-    format_plot(font_size=11, line_width=2, marker_size=7)
+    format_plot(font_size=14, line_width=3)
     L1_plots(B, c, y, cvg_hst, alfa_final, w, fig_no=10)
-    
-    # Save figures
-    plt.figure(10)
-    plt.savefig('L1_coefficients.png', dpi=150, bbox_inches='tight')
-    
-    plt.figure(11)
-    plt.savefig('L1_fit_comparison.png', dpi=150, bbox_inches='tight')
-    
-    plt.figure(12)
-    plt.savefig('L1_convergence.png', dpi=150, bbox_inches='tight')
-    
-    print("\nPlots saved:")
-    print("  - L1_coefficients.png")
-    print("  - L1_fit_comparison.png")
-    print("  - L1_convergence.png")
-    
-    plt.show()
-    
+   
     print("\n" + "=" * 70)
     print("L1_plots test completed successfully!")
     print("=" * 70)
+

@@ -1,4 +1,4 @@
-#! /usr/bin/python3 -i 
+#! /usr/bin/env -S python3 -i
 
 import numpy as np
 from types import SimpleNamespace

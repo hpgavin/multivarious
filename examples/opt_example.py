@@ -1,4 +1,4 @@
-#! /usr/bin/python3 -i 
+#! /usr/bin/env -S python3 -i 
 
 import numpy as np
 from types import SimpleNamespace
@@ -6,7 +6,7 @@ from types import SimpleNamespace
 from multivarious.opt import ors
 from multivarious.opt import nms
 from multivarious.opt import sqp
-from multivarious.utl import plot_cvg_hst
+from multivarious.utl import plot_cvg_hst, format_plot
 
 # Define the optimization problem. =========================================
 def opt_example_analysis( v, C ):
@@ -74,4 +74,5 @@ opts = [ 3,   2e-2,   2e-2,   1e-3,    50*n**3,  0.7,  0.5,   1,  0.05 ]
 v_opt, f_opt, g_opt, cvg_hst, _,_ = ors( opt_example_analysis, v_init, v_lb, v_ub, opts, C )
 
 # plot the convergence history
-plot_cvg_hst( cvg_hst , v_opt, opts, pdf_plots = True ) 
+format_plot(font_size=15, line_width=3, marker_size=7)
+plot_cvg_hst( cvg_hst , v_opt, opts, save_plots=True ) 

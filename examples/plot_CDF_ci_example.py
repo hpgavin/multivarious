@@ -1,4 +1,4 @@
-#! /usr/bin/python3 -i
+#! /usr/bin/env -S python3 -i
 
 """
 plot_CDF_ci_exampple.py - script for testing plot_CDF_ci.py

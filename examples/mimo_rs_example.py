@@ -1,4 +1,4 @@
-#!/usr/bin/env python3 -i
+#! /usr/bin/env -S python3 -i
 
 ''' ... from console 
 import importlib , example_usage

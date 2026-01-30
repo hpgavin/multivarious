@@ -1,4 +1,4 @@
-#! /usr/bin/python3 -i 
+#! /usr/bin/env -S python3 -i
 
 """
 poly_fit_example.py - example for the use of poly_fit.py

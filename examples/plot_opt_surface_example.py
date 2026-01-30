@@ -1,4 +1,4 @@
-#! /usr/bin/python3 -i 
+#! /usr/bin/env -S python3 -i
 
 """
 plot_opt_surface.py - 3D Surface Plot of Objective Function
