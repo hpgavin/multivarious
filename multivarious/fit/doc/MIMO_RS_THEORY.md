@@ -23,9 +23,9 @@
 
 In many engineering and scientific applications, we have:
 
-- **Input variables** $\bm X = [ X_1, X_2, ..., X_n] \in {\mathbb R}^n$ 
-- **Output variables**  $\bm Y = [Y_1, Y_2, ..., Y_n] \in {\mathbb R}^m$ 
-- A complex, possibly nonlinear relationship  $\bm Y = f (\bm X)$ 
+- **Input variables** $X = [ X_1, X_2, ..., X_n] \in {\mathbb R}^n$ 
+- **Output variables**  $Y = [Y_1, Y_2, ..., Y_n] \in {\mathbb R}^m$ 
+- A complex, possibly nonlinear relationship  $Y = f (X)$ 
 
 The goal is to to make use a set of $N$ measured observations of each input value and each corresponding output value in order to approximate this relationship with a computationally efficient model that:
 
@@ -58,24 +58,24 @@ Traditional approaches face challenges:
 
 mimo_rs approximates the input-output relationship for each output variable $y_i$ as: 
 
-$\tilde y_i(\bm x) = \displaystyle \sum_{k=0}^{p-1} c_{i,k} \ \prod_{j=1}^q  \psi_{O_{k,j}}(z_j(\bm x)) $
+$\hat y_i(x) = \displaystyle \sum_{k=0}^{p-1} c_{i,k} \ \prod_{j=1}^q  \psi_{O_{k,j}}(z_j(x)) $
 
 Where:
 
-- $z_j(\bm x)$ : the $j$-component of a standardized sample of $\bm X$, $\bm x = (x_1, ..., x_n)$. Standardization is described below.  
-- $q$: the dimension of $\bm z$, which is set to $n$ or the rank of $\bm X$, depending on the selected standardization method
+- $z_j(x)$ : the $j$-component of a standardized sample of $X$, $x = (x_1, ..., x_n)$. Standardization is described below.  
+- $q$: the dimension of $z$, which is set to $n$ or the rank of $X$, depending on the selected standardization method
 - $c_{i,k}$ : the odel coefficients, which minimize the $\chi^2$ criterion with $L_1$ (LASSO) regularization
-- $\Pi \psi_O$: a basis function, which is a unique product of power polynomial functions of each standardized input variable $(Z_1, ..., Z_q)$ with corresponding orders $\bm O_{k,:} = (O_{k,1}, ..., O_{k,q})$
+- $\Pi \psi_O$: a basis function, which is a unique product of power polynomial functions of each standardized input variable $(Z_1, ..., Z_q)$ with corresponding orders $O_{k,:} = (O_{k,1}, ..., O_{k,q})$
   - $p$: Total number of unique terms in the expansion
 
 ### 2.2 The Structure of the Polynomial-Products
 
 Each term in the sum (each column in the basis) is a product of polynomials 
-$\displaystyle \prod_{j=1}^q \psi_{O_{k,j}}(z_j(\bm x)) $
+$\displaystyle \prod_{j=1}^q \psi_{O_{k,j}}(z_j(x)) $
 
-where the $j$-th factor in the polynomial product is a function of the $j$-th standardized input variable $z_j(\bm x)$, and has an order $O_{k,j}$ 
+where the $j$-th factor in the polynomial product is a function of the $j$-th standardized input variable $z_j(x)$, and has an order $O_{k,j}$ 
 
-As an example, for a quadratic model in three input variables, $(X_1, X_2, X_3)$, in which$\bm X$ has full rank ($q=n=3$), the model  would have ten terms $(k=0, ..., 9)$ with polynomial orders given in the $(10 \times 3)$ ``order matrix'' $\bm O$ :
+As an example, for a quadratic model in three input variables, $(X_1, X_2, X_3)$, in which$X$ has full rank ($q=n=3$), the model  would have ten terms $(k=0, ..., 9)$ with polynomial orders given in the $(10 \times 3)$ ``order matrix'' $O$ :
 
 | $k$ | $O_{k,1}$ | $O_{k,2}$ | $O_{k,3}$ |
 | --- | --------- | --------- | --------- |
@@ -91,7 +91,7 @@ As an example, for a quadratic model in three input variables, $(X_1, X_2, X_3)$
 | 9   | 0         | 0         | 2         |
 
 so that the polynomial-product expansion would be
-$\tilde y_i(\bm x) = c_{i,0} \ \phi_0(x_1) \phi_0(x_2) \phi_0(x_3) +  c_{i,1} \ \phi_1(x_1) \phi_0(x_2) \phi_0(x_3) +  c_{i,2} \ \phi_0(x_1) \phi_1(x_2) \phi_0(x_3) + \cdots + c_{i,9} \ \phi_0(x_1) \phi_0(x_2) \phi_2(x_3)$
+$\hat y_i(x) = c_{i,0} \ \phi_0(x_1) \phi_0(x_2) \phi_0(x_3) +  c_{i,1} \ \phi_1(x_1) \phi_0(x_2) \phi_0(x_3) +  c_{i,2} \ \phi_0(x_1) \phi_1(x_2) \phi_0(x_3) + \cdots + c_{i,9} \ \phi_0(x_1) \phi_0(x_2) \phi_2(x_3)$
 
 ---
 
@@ -232,7 +232,7 @@ Rationale:
 
 ### 4.2 Order Matrix  Algorithm
 
-The algorithm generates the unique rows of the order matrix $\bm O$ for a model order of $\hat O$ such that 
+The algorithm generates the unique rows of the order matrix $O$ for a model order of $\hat O$ such that 
 $0 \leq O_{k,j} \leq \hat O$  
 and 
 $\displaystyle \sum_{j=0}^q O_{k,j} \leq \hat O$
@@ -254,13 +254,13 @@ This creates a structured polynomial space with controlled complexity.
 
 The model basis **B** has structure:
 
-$ \displaystyle \bm B = \left[ \begin{array}{cccc} \prod_{j=1}^q \psi_{O_{0,j}}(z_j(\bm x_1)) & ... & \prod_{j=1}^q \psi_{O_{p-1,j}}(z_j(\bm x_1)) \\ \prod_{j=1}^q \psi_{O_{0,j}}(z_j(\bm x_2)) & ... & \prod_{j=1}^q \psi_{O_{p-1,j}}(z_j(\bm x_2)) \\ \vdots & \cdots & \vdots \\ \prod_{j=1}^q \psi_{O_{0,j}}(z_j(\bm x_N)) & ... & \prod_{j=1}^q \psi_{O_{p-1,j}}(z_j(\bm x_N)) \end{array} \right] 
+$ \displaystyle B = \left[ \begin{array}{cccc} \prod_{j=1}^q \psi_{O_{0,j}}(z_j(x_1)) & ... & \prod_{j=1}^q \psi_{O_{p-1,j}}(z_j(x_1)) \\ \prod_{j=1}^q \psi_{O_{0,j}}(z_j(x_2)) & ... & \prod_{j=1}^q \psi_{O_{p-1,j}}(z_j(x_2)) \\ \vdots & \cdots & \vdots \\ \prod_{j=1}^q \psi_{O_{0,j}}(z_j(x_N)) & ... & \prod_{j=1}^q \psi_{O_{p-1,j}}(z_j(x_N)) \end{array} \right] 
  
 $
 
 Where:
 
-- Rows correspond to data points $(\bm x_1 , ... , \bm x_N)$ 
+- Rows correspond to data points $(x_1 , ... , x_N)$ 
 - Columns correspond to terms with index $k$ and coefficient $c_{i,k}$,   $\prod_j \psi_{O_{k,j)}}$
 - Each entry is the product of basis functions with given orders, evaluated at that data point
 
@@ -270,13 +270,13 @@ Where:
 
 Given:
 
-- $\bm Z$: Scaled input data (nInp × mData)
-- $\bm Y$: Output data (nOut × mData)
-- $\bm B$: Basis matrix (mData × nTerm)
+- $Z$: Scaled input data (nInp × mData)
+- $Y$: Output data (nOut × mData)
+- $B$: Basis matrix (mData × nTerm)
 
 The coefficients are found by minimizing the L1 regularized objective:
 
-$\displaystyle \min_{\bm c} || \bm B \bm c - \bm y ||_2 + \alpha || \bm c ||_1$
+$\displaystyle \min_{c} || B c - y ||_2 + \alpha || c ||_1$
 
 combinations inSolution (of the KKT system via SVD for numerical stability):
 
@@ -290,8 +290,8 @@ $R^2 = 1 - ( {\sf RSS} / {\sf TSS} )$
 
 Where:
 
-- ${\sf RSS} = \sum (y_i - \tilde y_i)^2$  **RSS** = Σ(Yᵢ - Ŷᵢ)²  (residual sum of squares)
-- $TSS = \sum(y_i - {\sf avg}(\bm y))^2 $ 
+- ${\sf RSS} = \sum (y_i - \hat y_i)^2$  **RSS** = Σ(Yᵢ - Ŷᵢ)²  (residual sum of squares)
+- $TSS = \sum(y_i - {\sf avg}(y))^2 $ 
 
 Interpretation:
 
@@ -303,7 +303,7 @@ Interpretation:
 
 Penalizes model complexity:
 
-$R^2_{\sf adj} = ((m-1) R^2 - {\sf length}(\bm c) ) / (m - {\sf length}(\bm c)  )$
+$R^2_{\sf adj} = ((m-1) R^2 - {\sf length}(c) ) / (m - {\sf length}(c)  )$
 
 Why adjust?
 
@@ -315,7 +315,7 @@ Why adjust?
 
 Pearson correlation between predictions and observations:
 
-$ \rho = C_{\bm Y, \tilde{\bm Y}} / \left( \sqrt{C_{{\bm Y}, {\bm Y}}} \sqrt{C_{\tilde {\bm Y}, \tilde {\bm Y}}} \right) $
+$ \rho = C_{Y, \hat{Y}} / \left( \sqrt{C_{{Y}, {Y}}} \sqrt{C_{\hat {Y}, \hat {Y}}} \right) $
 
 Advantages over R²:
 
@@ -343,7 +343,7 @@ Interpretation:
 
 Measures numerical stability:
 
-$ \kappa(\bm B) = || \bm B || \cdot || \bm B^{-1} ||$
+$ \kappa(B) = || B || \cdot || B^{-1} ||$
 
 Interpretation:
 
