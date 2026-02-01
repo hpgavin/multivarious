@@ -57,6 +57,7 @@ Traditional approaches face challenges:
 ### 2.1 General Polynomial Representation
 
 mimo_rs approximates the input-output relationship for each output variable $y_i$ as: 
+
 $ \displaystyle \hat y_i({\bf x}) = \sum_{k=0}^{p-1} c_{i,k} \ \prod_{j=1}^q \psi_{O_{k,j}}( z_j({\bf x}) ) $
 
 Where:
