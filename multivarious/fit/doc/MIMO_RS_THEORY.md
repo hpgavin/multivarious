@@ -23,8 +23,8 @@
 
 In many engineering and scientific applications, we have:
 
-- **Input variables** $\bf X = [ X_1, X_2, ..., X_n] \in {\mathbb R}^n$ 
-- **Output variables**  $\bf Y = [Y_1, Y_2, ..., Y_n] \in {\mathbb R}^m$ 
+- **Input variables** ${\bf X} = [ X_1, X_2, ..., X_n] \in {\mathbb R}^n$ 
+- **Output variables**  ${\bf Y} = [Y_1, Y_2, ..., Y_n] \in {\mathbb R}^m$ 
 - A complex, possibly nonlinear relationship  $Y = f (X)$ 
 
 The goal is to to make use a set of $N$ measured observations of each input value and each corresponding output value in order to approximate this relationship with a computationally efficient model that:
@@ -254,7 +254,7 @@ This creates a structured polynomial space with controlled complexity.
 
 The model basis **B** has structure:
 
-$ \displaystyle \bf B = \left[ \begin{array}{cccc} \prod_{j=1}^q \psi_{O_{0,j}}(z_j(x_1)) & ... & \prod_{j=1}^q \psi_{O_{p-1,j}}(z_j(x_1)) \\ \prod_{j=1}^q \psi_{O_{0,j}}(z_j(x_2)) & ... & \prod_{j=1}^q \psi_{O_{p-1,j}}(z_j(x_2)) \\ \vdots & \cdots & \vdots \\ \prod_{j=1}^q \psi_{O_{0,j}}(z_j(x_N)) & ... & \prod_{j=1}^q \psi_{O_{p-1,j}}(z_j(x_N)) \end{array} \right] 
+$ \displaystyle {\bf B} = \left[ \begin{array}{cccc} \prod_{j=1}^q \psi_{O_{0,j}}(z_j(x_1)) & ... & \prod_{j=1}^q \psi_{O_{p-1,j}}(z_j(x_1)) \\ \prod_{j=1}^q \psi_{O_{0,j}}(z_j(x_2)) & ... & \prod_{j=1}^q \psi_{O_{p-1,j}}(z_j(x_2)) \\ \vdots & \cdots & \vdots \\ \prod_{j=1}^q \psi_{O_{0,j}}(z_j(x_N)) & ... & \prod_{j=1}^q \psi_{O_{p-1,j}}(z_j(x_N)) \end{array} \right] 
  
 $
 
@@ -276,7 +276,7 @@ Given:
 
 The coefficients are found by minimizing the L1 regularized objective:
 
-$\displaystyle \min_{\bf c} || \bf B \bf c - \bf y ||_2 + \alpha || \bf c ||_1$
+$\displaystyle \min_{\bf c} || {\bf B} {\bf c} - {\bf y} ||_2 + \alpha || {\bf c} ||_1$
 
 combinations inSolution (of the KKT system via SVD for numerical stability):
 
@@ -343,7 +343,7 @@ Interpretation:
 
 Measures numerical stability:
 
-$ \kappa(B) = || \bf B || \cdot || B^{-1} ||$
+$ \kappa(B) = || \{\bf B} || \cdot || {\bf B}^{-1} ||$
 
 Interpretation:
 
