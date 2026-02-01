@@ -57,7 +57,7 @@ Traditional approaches face challenges:
 
 mimo_rs approximates the input-output relationship for each output variable $y_i$ as: 
 
-$\displaystyle \hat y_i({\bf x}) = \sum_{k=0}^{p-1} c_{i,k} \ \prod_{j=1}^q \psi_{O_{k,j}}( z_j({\bf x}) )$
+$\displaystyle \hat y_i({\bf x}) = \sum_{k=0}^{p-1} c_{i,k} \ \prod_{j=1}^q \psi_{O_{k,j}}(z_j({\bf x}))$
 
 Where:
 
@@ -89,7 +89,8 @@ As an example, for a quadratic model in three input variables, $(X_1, X_2, X_3)$
 | 8   | 0         | 2         | 0         |
 | 9   | 0         | 0         | 2         |
 
-so that the polynomial-product expansion is : 
+so that the polynomial-product expansion is: 
+
 $\hat y_i({\bf x}) = c_{i,0} \ \phi_0(x_1) \phi_0(x_2) \phi_0(x_3) +  c_{i,1} \ \phi_1(x_1) \phi_0(x_2) \phi_0(x_3) +  c_{i,2} \ \phi_0(x_1) \phi_1(x_2) \phi_0(x_3) + \cdots + c_{i,9} \ \phi_0(x_1) \phi_0(x_2) \phi_2(x_3)$.
 
 ---
@@ -251,6 +252,7 @@ This creates a structured polynomial space with controlled complexity.
 ### 4.3 Construction of the Matrix of model basis vectors
 
 The model basis $\bf B$ has structure:
+
 $\displaystyle {\bf B} = \left[ \begin{array}{cccc} \prod_{j=1}^q \psi_{O_{0,j}}(z_j(x_1)) & ... & \prod_{j=1}^q \psi_{O_{p-1,j}}(z_j(x_1)) \\ \prod_{j=1}^q \psi_{O_{0,j}}(z_j(x_2)) & ... & \prod_{j=1}^q \psi_{O_{p-1,j}}(z_j(x_2)) \\ \vdots & \cdots & \vdots \\ \prod_{j=1}^q \psi_{O_{0,j}}(z_j(x_N)) & ... & \prod_{j=1}^q \psi_{O_{p-1,j}}(z_j(x_N)) \end{array} \right]$
 
 Where:
