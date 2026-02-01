@@ -219,7 +219,6 @@ where here ${\bf T}^+$ is the psudo inverse of the model correlation of log-tran
 #### Outlier Removal using Chauvenet's criterion
 
 After scaling, remove data outliers in which a standardized data value $z$   > exceeds criteria limits.  
-
 $ |z| > 0.8 + 0.4 \log(N) $
 
 Here, $0.8 + 0.4 \log(N)$  is a a simple approximiation to Chauvent's criterion. 
@@ -253,9 +252,7 @@ This creates a structured polynomial space with controlled complexity.
 ### 4.3 Construction of the Matrix of model basis vectors
 
 The model basis **B** has structure:
-
 $ \displaystyle {\bf B} = \left[ \begin{array}{cccc} \prod_{j=1}^q \psi_{O_{0,j}}(z_j(x_1)) & ... & \prod_{j=1}^q \psi_{O_{p-1,j}}(z_j(x_1)) \\ \prod_{j=1}^q \psi_{O_{0,j}}(z_j(x_2)) & ... & \prod_{j=1}^q \psi_{O_{p-1,j}}(z_j(x_2)) \\ \vdots & \cdots & \vdots \\ \prod_{j=1}^q \psi_{O_{0,j}}(z_j(x_N)) & ... & \prod_{j=1}^q \psi_{O_{p-1,j}}(z_j(x_N)) \end{array} \right] 
- 
 $
 
 Where:
@@ -270,13 +267,12 @@ Where:
 
 Given:
 
-- $Z$: Scaled input data (nInp × mData)
-- $Y$: Output data (nOut × mData)
-- $B$: Basis matrix (mData × nTerm)
+- $\bm Z$: Scaled input data (nInp × mData)
+- $\bm Y$: Output data (nOut × mData)
+- $\bm B$: Basis matrix (mData × nTerm)
 
 The coefficients are found by minimizing the L1 regularized objective:
-
-$\displaystyle \min_{\bf c} || {\bf B} {\bf c} - {\bf y} ||_2 + \alpha || {\bf c} ||_1$
+$ \displaystyle \min_{\bf c} || {\bf B} {\bf c} - {\bf y} ||_2 + \alpha || {\bf c} ||_1$
 
 combinations inSolution (of the KKT system via SVD for numerical stability):
 
@@ -290,8 +286,8 @@ $R^2 = 1 - ( {\sf RSS} / {\sf TSS} )$
 
 Where:
 
-- ${\sf RSS} = \sum (y_i - \hat y_i)^2$  **RSS** = Σ(Yᵢ - Ŷᵢ)²  (residual sum of squares)
-- $TSS = \sum(y_i - {\sf avg}(y))^2 $ 
+- ${\sf RSS} = \sum (y_i - \hat y_i)^2$  (residual sum of squares)
+- $TSS = \sum(y_i - {\sf avg}(y))^2 $  (total sum of squares)
 
 Interpretation:
 
@@ -303,7 +299,7 @@ Interpretation:
 
 Penalizes model complexity:
 
-$R^2_{\sf adj} = ((m-1) R^2 - {\sf length}(c) ) / (m - {\sf length}(c)  )$
+$R^2_{\sf adj} = ((m-1) R^2 - {\sf length}({\bf c}) ) / (m - {\sf length}({\bf c})  )$
 
 Why adjust?
 
@@ -314,7 +310,6 @@ Why adjust?
 ### 5.3 Model-Data Correlation (ρ)
 
 Pearson correlation between predictions and observations:
-
 $ \rho = C_{Y, \hat{Y}} / \left( \sqrt{C_{{Y}, {Y}}} \sqrt{C_{\hat {Y}, \hat {Y}}} \right) $
 
 Advantages over R²:
@@ -326,12 +321,10 @@ Advantages over R²:
 ### 5.4 Coefficient of Variation (COV) of each coefficient
 
 For each coefficient:
-
 $ {\sf COV}(c_{i,k}) = {\sf ASE}(c_{i,k}) / | \hat c_{i,k} | $ 
 
 Where
-
-* ${\sf ASE}(c_{i,k})$ is the asymptotic standard error of the coefficient $
+$ {\sf ASE}(c_{i,k})$ is the asymptotic standard error of the coefficient 
 
 Interpretation:
 
@@ -342,7 +335,6 @@ Interpretation:
 ### 5.5 Condition Number
 
 Measures numerical stability:
-
 $ \kappa(B) = || \{\bf B} || \cdot || {\bf B}^{-1} ||$
 
 Interpretation:
@@ -354,7 +346,6 @@ Interpretation:
 ---
 
 ### 5.6 Akaike Infomation Criterion (AIC)
-
 $ {\sf AIC} = \log( 2 \pi \cdot NV ) + NV + 2 N$
 
 where N is the number of coefficients in the model and  V is the covariance of the residuals
@@ -548,7 +539,7 @@ H_1(z) = 2z
 For linear model Y = Bc + ε where ε ~ N(0, σ²I):
 
 ```
-Var(c) = σ² (B^T B)^(-1)
+Var({\bf c}) = σ² (B^T B)^(-1)
 ```
 
 Estimate σ² from residuals:
