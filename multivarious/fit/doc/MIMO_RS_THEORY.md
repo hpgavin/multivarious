@@ -58,11 +58,11 @@ Traditional approaches face challenges:
 
 mimo_rs approximates the input-output relationship for each output variable $y_i$ as: 
 
-$\hat y_i(x) = \displaystyle \sum_{k=0}^{p-1} c_{i,k} \ \prod_{j=1}^q  \psi_{O_{k,j}}(z_j(x)) $
+$\displaystyle \hat y_i({\bf x}) = \sum_{k=0}^{p-1} c_{i,k} \ \prod_{j=1}^q \psi_{O_{k,j}}(z_j({\bf x})) $
 
 Where:
 
-- $z_j(x)$ : the $j$-component of a standardized sample of $X$, $x = (x_1, ..., x_n)$. Standardization is described below.  
+- $z_j({\bf x})$ : the $j$-component of a standardized sample of $X$, $x = (x_1, ..., x_n)$. Standardization is described below.  
 - $q$: the dimension of $z$, which is set to $n$ or the rank of $X$, depending on the selected standardization method
 - $c_{i,k}$ : the odel coefficients, which minimize the $\chi^2$ criterion with $L_1$ (LASSO) regularization
 - $\Pi \psi_O$: a basis function, which is a unique product of power polynomial functions of each standardized input variable $(Z_1, ..., Z_q)$ with corresponding orders $O_{k,:} = (O_{k,1}, ..., O_{k,q})$
@@ -71,9 +71,9 @@ Where:
 ### 2.2 The Structure of the Polynomial-Products
 
 Each term in the sum (each column in the basis) is a product of polynomials 
-$\displaystyle \prod_{j=1}^q \psi_{O_{k,j}}(z_j(x)) $
+$\displaystyle \prod_{j=1}^q \psi_{O_{k,j}}(z_j({\bf x})) $
 
-where the $j$-th factor in the polynomial product is a function of the $j$-th standardized input variable $z_j(x)$, and has an order $O_{k,j}$ 
+where the $j$-th factor in the polynomial product is a function of the $j$-th standardized input variable $z_j({\bf x})$, and has an order $O_{k,j}$ 
 
 As an example, for a quadratic model in three input variables, $(X_1, X_2, X_3)$, in which$X$ has full rank ($q=n=3$), the model  would have ten terms $(k=0, ..., 9)$ with polynomial orders given in the $(10 \times 3)$ ``order matrix'' $O$ :
 
@@ -91,7 +91,7 @@ As an example, for a quadratic model in three input variables, $(X_1, X_2, X_3)$
 | 9   | 0         | 0         | 2         |
 
 so that the polynomial-product expansion would be
-$\hat y_i(x) = c_{i,0} \ \phi_0(x_1) \phi_0(x_2) \phi_0(x_3) +  c_{i,1} \ \phi_1(x_1) \phi_0(x_2) \phi_0(x_3) +  c_{i,2} \ \phi_0(x_1) \phi_1(x_2) \phi_0(x_3) + \cdots + c_{i,9} \ \phi_0(x_1) \phi_0(x_2) \phi_2(x_3)$
+$\hat y_i({\bf x}) = c_{i,0} \ \phi_0(x_1) \phi_0(x_2) \phi_0(x_3) +  c_{i,1} \ \phi_1(x_1) \phi_0(x_2) \phi_0(x_3) +  c_{i,2} \ \phi_0(x_1) \phi_1(x_2) \phi_0(x_3) + \cdots + c_{i,9} \ \phi_0(x_1) \phi_0(x_2) \phi_2(x_3) $
 
 ---
 
@@ -186,35 +186,35 @@ Raw data problems:
 
 Does nothing.  Use when data is already normalized.
 
-$Z=X$
+${\bf Z} = {\bf X}$
 
 ##### Option 1: Standardization
 
 Centers the data and scales the data to unit variance.
 
-$Z = (X - {\sf avg}(X) ) \ / \ {\sf sdv}(X)$
+${\bf Z} = ({\bf X} - {\sf avg}({\bf X}) ) \ / \ {\sf sdv}({\bf X})$
 
 ##### Option 2: Decorrelation (Whitening)
 
 Removes linear correlations between variables.
 
-$Z = T^+ (X - {\sf avg}(X))$
+${\bf Z} = {\bf T}^+ ({\bf X} - {\sf avg}({\bf X}))$
 
-where  $T^+ $ is the psudo inverse of the model correlation matrix $T$,  $X = TZ + {\sf avg}(X)$.  The square matrix $T$ is the square root of the data covariance matrix $C_X$, which has an eigen decomposition  $C_X = V \Lambda V^{\sf T}$, so $T = V \Lambda^{1/2}$ .  The (rectangular) psuedo-inverse of T^+ contains the $q$ non-singular eigenvalues $\bar \Lambda$  and their corresponding eigenvctors $\bar V$, $T^+ = \bar \Lambda^{-1/2} \bar V^{\sf T}$  ($q \times n$) .
+where  ${\bf T}^+ $ is the psudo inverse of the model correlation matrix $\bf T$,  ${\bf X} = {\bf TZ} + {\sf avg}({\bf X})$.  The square matrix $\bf T$ is the square root of the data covariance matrix ${\bf C}_{\bf X}$, which has an eigen decomposition  ${\bf C}_{\bf X} = {\bf V} \Lambda {\bf V}^{\sf T}$, so ${\bf T} = {\bf V} \Lambda^{1/2}$ .  The (rectangular) psuedo-inverse of {\bf T}^+ contains the $q$ non-singular eigenvalues $\bar \Lambda$  and their corresponding eigenvctors $\bar {\bf V}$, ${\bf T}^+ = \bar \Lambda^{-1/2} \bar {\bf V}^{\sf T}$  ($q \times n$) .
 
 ##### Option 3: Log-Standardization
 
 For positive-valued data with multiplicative structure or log-normal distributions.
 
-$Z = (\log_{10}(X) - {\sf avg}(\log_{10}(X)))  \ / \ {\sf sdv}(\log_{10}(X))  $
+${\bf Z} = (\log_{10}({\bf X}) - {\sf avg}(\log_{10}({\bf X})))  \ / \ {\sf sdv}(\log_{10}({\bf X}))  $
 
 ##### Option 4: Log-Decorrelation
 
 Combines logarithmic and linear decorrelation.
 
-$Z = T^+ (\log_{10}(X) - {\sf avg}(\log_{10}(X)))$
+${\bf Z} = {\bf T}^+ (\log_{10}({\bf X}) - {\sf avg}(\log_{10}({\bf X})))$
 
-where here $T^+$ is the psudo inverse of the model correlation of log-transformed data  $T$, $\log_{10}(X) = TZ + {\sf avg}(\log_{10}(X))$. The square matrix $T$ is the square root of the data covariance of log-transfomred data $C_{\log_{10}(X)}$, which has an eigen decomposition $C_{\log_{10}(X)} = V \Lambda V^{\sf T}$, so $T = V \Lambda^{1/2}$ . The (rectangular) psuedo-inverse of T^+ contains the q non-singular eigenvalues $\bar \Lambda$ and their corresponding eigenvctors $\bar V$, $T^+ = \bar \Lambda^{-1/2} \bar V^{\sf T}$ ($q \times n$) .
+where here ${\bf T}^+$ is the psudo inverse of the model correlation of log-transformed data  $\bf T$, $\log_{10}({\bf X}) = {\bf TZ} + {\sf avg}(\log_{10}({\bf X}))$. The square matrix $\bf T$ is the square root of the data covariance of log-transfomred data ${\bf C}_{\log_{10}({\bf X})}$, which has an eigen decomposition ${\bf C}_{\log_{10}({\bf X})} = {\bf V} \Lambda V^{\sf T}$, so ${\bf T} = {\bf V} \Lambda^{1/2}$ . The (rectangular) psuedo-inverse of {\bf T}^+ contains the q non-singular eigenvalues $\bar \Lambda$ and their corresponding eigenvctors $\bar {\bf V}$, ${\bf T}^+ = \bar \Lambda^{-1/2} \bar {\bf V}^{\sf T}$ ($q \times n$) .
 
 #### Outlier Removal using Chauvenet's criterion
 
