@@ -1,4 +1,3 @@
-
 # Multi-Input Multi-Output Response Surface - Theory
 
 ## Table of Contents
@@ -22,8 +21,8 @@
 
 In many engineering and scientific applications, we have:
 
-- **Input variables** ${\bf X} = [ X_1, X_2, ..., X_n] \in {\mathbb R}^n$ 
-- **Output variables**  ${\bf Y} = [Y_1, Y_2, ..., Y_n] \in {\mathbb R}^m$ 
+- **Input variables** $\mathbf{X} = [ X_1, X_2, ..., X_n] \in {\mathbb R}^n$ 
+- **Output variables**  $\mathbf{Y} = [Y_1, Y_2, ..., Y_n] \in {\mathbb R}^m$ 
 - A complex, possibly nonlinear relationship  $Y = f (X)$ 
 
 The goal is to to make use a set of $N$ measured observations of each input value and each corresponding output value in order to approximate this relationship with a computationally efficient model that:
@@ -57,12 +56,12 @@ Traditional approaches face challenges:
 
 mimo_rs approximates the input-output relationship for each output variable $y_i$ as: 
 
-$\displaystyle \hat y_i({\bf x}) = \sum_{k=0}^{p-1} c_{i,k} \ \prod_{j=1}^q \psi_{O_{k,j}}(z_j({\bf x}))$
+$\displaystyle \hat y_i(\mathbf{x}) = \sum_{k=0}^{p-1} c_{i,k} \ \prod_{j=1}^q \psi_{O_{k,j}}(z_j(\mathbf{x}))$
 
 Where:
 
-- $z_j({\bf x})$ : the $j$-component of a standardized sample of ${\bf X}$, ${\bf x} = (x_1, ..., x_n)$. Standardization is described below.  
-- $q$: the dimension of $z$, which is set to $n$ or the rank of ${\bf X}$, depending on the selected standardization method
+- $z_j(\mathbf{x})$ : the $j$-component of a standardized sample of $\mathbf{X}$, $\mathbf{x} = (x_1, ..., x_n)$. Standardization is described below.  
+- $q$: the dimension of $z$, which is set to $n$ or the rank of $\mathbf{X}$, depending on the selected standardization method
 - $c_{i,k}$ : the odel coefficients, which minimize the $\chi^2$ criterion with $L_1$ (LASSO) regularization
 - $\Pi \psi_O$: a basis function, which is a unique product of power polynomial functions of each standardized input variable $(Z_1, ..., Z_q)$ with corresponding orders $O_{k,:} = (O_{k,1}, ..., O_{k,q})$
   - $p$: Total number of unique terms in the expansion
@@ -70,9 +69,9 @@ Where:
 ### 2.2 The Structure of the Polynomial-Products
 
 Each term in the sum (each column in the basis) is a product of polynomials 
-$\displaystyle \prod_{j=1}^q \psi_{O_{k,j}}( z_j( {\bf x} ) )$
+$\displaystyle \prod_{j=1}^q \psi_{O_{k,j}}( z_j( \mathbf{x} ) )$
 
-where the $j$-th factor in the polynomial product is a function of the $j$-th standardized input variable $z_j({\bf x})$, and has an order $O_{k,j}$ 
+where the $j$-th factor in the polynomial product is a function of the $j$-th standardized input variable $z_j(\mathbf{x})$, and has an order $O_{k,j}$ 
 
 As an example, for a quadratic model in three input variables, $(X_1, X_2, X_3)$, in which $\bf X$ has full rank ($q=n=3$), the model  would have ten terms $(k=0, ..., 9)$ with polynomial orders given in the $(10 \times 3)$ *order matrix*, $O$ :
 
@@ -91,7 +90,7 @@ As an example, for a quadratic model in three input variables, $(X_1, X_2, X_3)$
 
 so that the polynomial-product expansion is: 
 
-$\hat y_i({\bf x}) = c_{i,0} \ \phi_0(x_1) \phi_0(x_2) \phi_0(x_3) +  c_{i,1} \ \phi_1(x_1) \phi_0(x_2) \phi_0(x_3) +  c_{i,2} \ \phi_0(x_1) \phi_1(x_2) \phi_0(x_3) + \cdots + c_{i,9} \ \phi_0(x_1) \phi_0(x_2) \phi_2(x_3)$.
+$\hat y_i(\mathbf{x}) = c_{i,0} \ \phi_0(x_1) \phi_0(x_2) \phi_0(x_3) +  c_{i,1} \ \phi_1(x_1) \phi_0(x_2) \phi_0(x_3) +  c_{i,2} \ \phi_0(x_1) \phi_1(x_2) \phi_0(x_3) + \cdots + c_{i,9} \ \phi_0(x_1) \phi_0(x_2) \phi_2(x_3)$.
 
 ---
 
@@ -186,35 +185,35 @@ Raw data problems:
 
 Does nothing.  Use when data is already normalized.
 
-${\bf Z} = {\bf X}$
+$\mathbf{Z} = \mathbf{X}$
 
 ##### Option 1: Standardization
 
 Centers the data and scales the data to unit variance.
 
-${\bf Z} = ({\bf X} - {\sf avg}({\bf X}) ) \ / \ {\sf sdv}({\bf X})$
+$\mathbf{Z} = (\mathbf{X} - {\sf avg}(\mathbf{X}) ) \ / \ {\sf sdv}(\mathbf{X})$
 
 ##### Option 2: Decorrelation (Whitening)
 
 Removes linear correlations between variables.
 
-${\bf Z} = {\bf T}^+ ({\bf X} - {\sf avg}({\bf X}))$
+$\mathbf{Z} = \mathbf{T}^+ (\mathbf{X} - {\sf avg}(\mathbf{X}))$
 
-where ${\bf T}^+$ is the psudo inverse of the model correlation matrix $\bf T$,  ${\bf X} = {\bf TZ} + {\sf avg}({\bf X})$.  The square matrix $\bf T$ is the square root of the data covariance matrix ${\bf C}({\bf X})$, which has an eigen decomposition  ${\bf C}({\bf X}) = {\bf V} \Lambda {\bf V}^{\sf T}$, so ${\bf T} = {\bf V} \Lambda^{1/2}$ .  The (rectangular) psuedo-inverse of {\bf T}^+ contains the $q$ non-singular eigenvalues $\bar \Lambda$  and their corresponding eigenvctors $\bar {\bf V}$, ${\bf T}^+ = \bar \Lambda^{-1/2} \bar {\bf V}^{\sf T}$  ($q \times n$) .
+where $\mathbf{T}^+$ is the psudo inverse of the model correlation matrix $\bf T$,  $\mathbf{X} = \mathbf{TZ} + {\sf avg}(\mathbf{X})$.  The square matrix $\bf T$ is the square root of the data covariance matrix $\mathbf{C}(\mathbf{X})$, which has an eigen decomposition  $\mathbf{C}(\mathbf{X}) = \mathbf{V} \Lambda \mathbf{V}^{\sf T}$, so $\mathbf{T} = \mathbf{V} \Lambda^{1/2}$ .  The (rectangular) psuedo-inverse of \mathbf{T}^+ contains the $q$ non-singular eigenvalues $\bar \Lambda$  and their corresponding eigenvctors $\bar \mathbf{V}$, $\mathbf{T}^+ = \bar \Lambda^{-1/2} \bar \mathbf{V}^{\sf T}$  ($q \times n$) .
 
 ##### Option 3: Log-Standardization
 
 For positive-valued data with multiplicative structure or log-normal distributions.
 
-${\bf Z} = (\log_{10}({\bf X}) - {\sf avg}(\log_{10}({\bf X})))  \ / \ {\sf sdv}(\log_{10}({\bf X}))  $
+$\mathbf{Z} = (\log_{10}(\mathbf{X}) - {\sf avg}(\log_{10}(\mathbf{X})))  \ / \ {\sf sdv}(\log_{10}(\mathbf{X}))  $
 
 ##### Option 4: Log-Decorrelation
 
 Combines logarithmic and linear decorrelation.
 
-${\bf Z} = {\bf T}^+ (\log_{10}({\bf X}) - {\sf avg}(\log_{10}({\bf X})))$
+$\mathbf{Z} = \mathbf{T}^+ (\log_{10}(\mathbf{X}) - {\sf avg}(\log_{10}(\mathbf{X})))$
 
-where here ${\bf T}^+$ is the psudo inverse of the model correlation of log-transformed data  $\bf T$, $\log_{10}({\bf X}) = {\bf TZ} + {\sf avg}(\log_{10}({\bf X}))$. The square matrix $\bf T$ is the square root of the data covariance of log-transfomred data ${\bf C}({\log_{10}({\bf X}))}$, which has an eigen decomposition ${\bf C}({\log_{10}({\bf X}))} = {\bf V} \Lambda V^{\sf T}$, so ${\bf T} = {\bf V} \Lambda^{1/2}$. The (rectangular) psuedo-inverse of {\bf T}^+ contains the q non-singular eigenvalues $\bar \Lambda$ and their corresponding eigenvctors $\bar {\bf V}$, ${\bf T}^+ = \bar \Lambda^{-1/2} \bar {\bf V}^{\sf T}$ ($q \times n$) .
+where here $\mathbf{T}^+$ is the psudo inverse of the model correlation of log-transformed data  $\bf T$, $\log_{10}(\mathbf{X}) = \mathbf{TZ} + {\sf avg}(\log_{10}(\mathbf{X}))$. The square matrix $\bf T$ is the square root of the data covariance of log-transfomred data $\mathbf{C}({\log_{10}(\mathbf{X}))}$, which has an eigen decomposition $\mathbf{C}({\log_{10}(\mathbf{X}))} = \mathbf{V} \Lambda V^{\sf T}$, so $\mathbf{T} = \mathbf{V} \Lambda^{1/2}$. The (rectangular) psuedo-inverse of \mathbf{T}^+ contains the q non-singular eigenvalues $\bar \Lambda$ and their corresponding eigenvctors $\bar \mathbf{V}$, $\mathbf{T}^+ = \bar \Lambda^{-1/2} \bar \mathbf{V}^{\sf T}$ ($q \times n$) .
 
 #### Outlier Removal using Chauvenet's criterion
 
@@ -253,7 +252,14 @@ This creates a structured polynomial space with controlled complexity.
 
 The model basis $\bf B$ has structure:
 
-$$\displaystyle {\bf B} = \left[ \begin{array}{cccc} \prod_{j=1}^q \psi_{O_{0,j}}(z_j(x_1)) & ... & \prod_{j=1}^q \psi_{O_{p-1,j}}(z_j(x_1)) \\ \prod_{j=1}^q \psi_{O_{0,j}}(z_j(x_2)) & ... & \prod_{j=1}^q \psi_{O_{p-1,j}}(z_j(x_2)) \\ \vdots & \cdots & \vdots \\ \prod_{j=1}^q \psi_{O_{0,j}}(z_j(x_N)) & ... & \prod_{j=1}^q \psi_{O_{p-1,j}}(z_j(x_N)) \end{array} \right]$$
+$$
+\displaystyle \mathbf{B} = \begin{bmatrix} 
+\prod_{j=1}^q \psi_{O_{0,j}}(z_j(x_1)) & \ldots & \prod_{j=1}^q \psi_{O_{p-1,j}}(z_j(x_1)) \\ 
+\prod_{j=1}^q \psi_{O_{0,j}}(z_j(x_2)) & \ldots & \prod_{j=1}^q \psi_{O_{p-1,j}}(z_j(x_2)) \\ 
+\vdots & \cdots & \vdots \\ 
+\prod_{j=1}^q \psi_{O_{0,j}}(z_j(x_N)) & \ldots & \prod_{j=1}^q \psi_{O_{p-1,j}}(z_j(x_N)) 
+\end{bmatrix}
+$$
 
 Where:
 
@@ -272,7 +278,7 @@ Given:
 - $\bf B$: Basis matrix (mData × nTerm)
 
 The coefficients are found by minimizing the L1 regularized objective:
-$\displaystyle \min_{\bf c} || {\bf B} {\bf c} - {\bf y} ||_2 + \alpha || {\bf c}||_1$
+$\displaystyle \min_\mathbf{c} || \mathbf{B} \mathbf{c} - \mathbf{y} ||_2 + \alpha || \mathbf{c}||_1$
 
 combinations inSolution (of the KKT system via SVD for numerical stability):
 
@@ -287,7 +293,7 @@ $R^2 = 1 - ( {\sf RSS} / {\sf TSS} )$
 Where:
 
 - ${\sf RSS} = \sum (y_i - \hat y_i)^2$  (residual sum of squares)
-- ${\sf TSS} = \sum(y_i - {\sf avg}({\bf y}))^2$  (total sum of squares)
+- ${\sf TSS} = \sum(y_i - {\sf avg}(\mathbf{y}))^2$  (total sum of squares)
 
 Interpretation:
 
@@ -299,7 +305,7 @@ Interpretation:
 
 Penalizes model complexity:
 
-$R^2_{\sf adj} = ((m-1) R^2 - {\sf length}({\bf c}) ) / (m - {\sf length}({\bf c})  )$
+$R^2_{\sf adj} = ((m-1) R^2 - {\sf length}(\mathbf{c}) ) / (m - {\sf length}(\mathbf{c})  )$
 
 Why adjust?
 
@@ -335,7 +341,7 @@ Interpretation:
 ### 5.5 Condition Number
 
 Measures numerical stability:
-$\kappa(B) = || {\bf B} || \cdot || {\bf B}^{-1} ||$
+$\kappa(B) = || \mathbf{B} || \cdot || \mathbf{B}^{-1} ||$
 
 Interpretation:
 
@@ -539,17 +545,15 @@ H_1(z) = 2z
 
 For linear model Y = Bc + ε where ε ~ N(0, σ²I):
 
-${\sf VAR}({\bf c}) = \sigma^2 ({\bf B}^T {\bf B})^{-1}$
+${\sf VAR}(\mathbf{c}) = \sigma^2 (\mathbf{B}^T \mathbf{B})^{-1}$
 
 Estimate $\sigma^2$ from residuals:
 
-$\sigma^2 = {\sf RSS} / ( {\sf length}({\bf X}) - {\sf length}({\bf c})$
+$\sigma^2 = {\sf RSS} / ( {\sf length}(\mathbf{X}) - {\sf length}(\mathbf{c})$
 
 Therefore:
 
-${\sf ASE}(c_{i,k}) = \sigma^2 \sqrt{ [ [ {\bf B}^{\sf T} {\bf B} ]^{-1} ]_{k,k} }$
-
-
+${\sf ASE}(c_{i,k}) = \sigma^2 \sqrt{ [ [ \mathbf{B}^{\sf T} \mathbf{B} ]^{-1} ]_{k,k} }$
 
 ### 8.3 $R^2$ Relationship to Correlation
 
