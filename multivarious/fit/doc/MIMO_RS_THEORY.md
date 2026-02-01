@@ -56,6 +56,7 @@ Traditional approaches face challenges:
 ### 2.1 General Polynomial Representation
 
 mimo_rs approximates the input-output relationship for each output variable $y_i$ as: 
+
 $\displaystyle \hat y_i({\bf x}) = \sum_{k=0}^{p-1} c_{i,k} \ \prod_{j=1}^q \psi_{O_{k,j}}( z_j({\bf x}) )$
 
 Where:
@@ -69,7 +70,7 @@ Where:
 ### 2.2 The Structure of the Polynomial-Products
 
 Each term in the sum (each column in the basis) is a product of polynomials 
-$ \displaystyle \prod_{j=1}^q \psi_{O_{k,j}}( z_j( {\bf x} ) ) $
+$\displaystyle \prod_{j=1}^q \psi_{O_{k,j}}( z_j( {\bf x} ) )$
 
 where the $j$-th factor in the polynomial product is a function of the $j$-th standardized input variable $z_j({\bf x})$, and has an order $O_{k,j}$ 
 
@@ -89,7 +90,7 @@ As an example, for a quadratic model in three input variables, $(X_1, X_2, X_3)$
 | 9   | 0         | 0         | 2         |
 
 so that the polynomial-product expansion is : 
-$ \hat y_i({\bf x}) = c_{i,0} \ \phi_0(x_1) \phi_0(x_2) \phi_0(x_3) +  c_{i,1} \ \phi_1(x_1) \phi_0(x_2) \phi_0(x_3) +  c_{i,2} \ \phi_0(x_1) \phi_1(x_2) \phi_0(x_3) + \cdots + c_{i,9} \ \phi_0(x_1) \phi_0(x_2) \phi_2(x_3) $ .
+$\hat y_i({\bf x}) = c_{i,0} \ \phi_0(x_1) \phi_0(x_2) \phi_0(x_3) +  c_{i,1} \ \phi_1(x_1) \phi_0(x_2) \phi_0(x_3) +  c_{i,2} \ \phi_0(x_1) \phi_1(x_2) \phi_0(x_3) + \cdots + c_{i,9} \ \phi_0(x_1) \phi_0(x_2) \phi_2(x_3)$.
 
 ---
 
@@ -137,7 +138,7 @@ $\displaystyle \psi(z) = \frac{1}{\sqrt{2^n \ n! \ \sqrt{\pi} } } \ H_n(z) \ \ex
 ### 3.4 Orthogonality Property of Hermite functions
 
 Hermite functions are orthogonal with respect to a unit weight.  
-$ \displaystyle \int_{-\infty}^\infty \psi_m(z) \psi_n(z) \ dz = \delta_{m.n} $ 
+$\displaystyle \int_{-\infty}^\infty \psi_m(z) \psi_n(z) \ dz = \delta_{m.n}$ 
 This orthonormality leads to diagonalization in fitting in one dimension with uniformly-spaced independnet variabes.   And it supports numerical stability for fits in higher dimensions.  
 
 ---
@@ -165,7 +166,7 @@ mimo_rs follows a three-stage process:
 - Randomly split the data sets into a training set and a testing set.  
 - Fit full model using least squares with $L_1$ regularization and a specified level of the regularization penalty factor, $\alpha$ .
 - Formulate the $L_1$ regularized problem as a KKT matrix equation with $2n$ inequality constraint.
-  - Solve the $L_1$ problem to minimize the quadratic objective subject to $2n $ equality constraint, and therby set a significant number of coefficients $c_{i,k}$ to (nearly) zero.  
+  - Solve the $L_1$ problem to minimize the quadratic objective subject to $2n$ equality constraint, and therby set a significant number of coefficients $c_{i,k}$ to (nearly) zero.  
 - Continue until tolerance and inequality criteria are met
 
 ### 4.1 Scaling and Preprocessing
@@ -212,18 +213,18 @@ Combines logarithmic and linear decorrelation.
 
 ${\bf Z} = {\bf T}^+ (\log_{10}({\bf X}) - {\sf avg}(\log_{10}({\bf X})))$
 
-where here ${\bf T}^+$ is the psudo inverse of the model correlation of log-transformed data  $\bf T$, $\log_{10}({\bf X}) = {\bf TZ} + {\sf avg}(\log_{10}({\bf X}))$. The square matrix $\bf T$ is the square root of the data covariance of log-transfomred data ${\bf C}_{\log_{10}({\bf X})}$, which has an eigen decomposition ${\bf C}_{\log_{10}({\bf X})} = {\bf V} \Lambda V^{\sf T}$, so ${\bf T} = {\bf V} \Lambda^{1/2}$ . The (rectangular) psuedo-inverse of {\bf T}^+ contains the q non-singular eigenvalues $\bar \Lambda$ and their corresponding eigenvctors $\bar {\bf V}$, ${\bf T}^+ = \bar \Lambda^{-1/2} \bar {\bf V}^{\sf T}$ ($q \times n$) .
+where here ${\bf T}^+$ is the psudo inverse of the model correlation of log-transformed data  $\bf T$, $\log_{10}({\bf X}) = {\bf TZ} + {\sf avg}(\log_{10}({\bf X}))$. The square matrix $\bf T$ is the square root of the data covariance of log-transfomred data ${\bf C}_{\log_{10}({\bf X})}$, which has an eigen decomposition ${\bf C}_{\log_{10}({\bf X})} = {\bf V} \Lambda V^{\sf T}$, so ${\bf T} = {\bf V} \Lambda^{1/2}$. The (rectangular) psuedo-inverse of {\bf T}^+ contains the q non-singular eigenvalues $\bar \Lambda$ and their corresponding eigenvctors $\bar {\bf V}$, ${\bf T}^+ = \bar \Lambda^{-1/2} \bar {\bf V}^{\sf T}$ ($q \times n$) .
 
 #### Outlier Removal using Chauvenet's criterion
 
-After scaling, remove data outliers in which a standardized data value $z$   > exceeds criteria limits.  
-$ |z| > 0.8 + 0.4 \log(N) $
+After scaling, remove data outliers in which a standardized data value $z$  exceeds criteria limits.  
+$|z| > 0.8 + 0.4 \log(N)$ 
 
 Here, $0.8 + 0.4 \log(N)$  is a a simple approximiation to Chauvent's criterion. 
 
 Rationale:
 
-- Hermite functions designed for $ \sim \cal N(0,1)$
+- Hermite functions designed for $\sim \cal N(0,1)$
 - Extreme values degrade approximation
 - Removes potential data errors
 
@@ -250,7 +251,7 @@ This creates a structured polynomial space with controlled complexity.
 ### 4.3 Construction of the Matrix of model basis vectors
 
 The model basis $\bf B$ has structure:
-$ \displaystyle {\bf B} = \left[ \begin{array}{cccc} \prod_{j=1}^q \psi_{O_{0,j}}(z_j(x_1)) & ... & \prod_{j=1}^q \psi_{O_{p-1,j}}(z_j(x_1)) \\ \prod_{j=1}^q \psi_{O_{0,j}}(z_j(x_2)) & ... & \prod_{j=1}^q \psi_{O_{p-1,j}}(z_j(x_2)) \\ \vdots & \cdots & \vdots \\ \prod_{j=1}^q \psi_{O_{0,j}}(z_j(x_N)) & ... & \prod_{j=1}^q \psi_{O_{p-1,j}}(z_j(x_N)) \end{array} \right] $
+$\displaystyle {\bf B} = \left[ \begin{array}{cccc} \prod_{j=1}^q \psi_{O_{0,j}}(z_j(x_1)) & ... & \prod_{j=1}^q \psi_{O_{p-1,j}}(z_j(x_1)) \\ \prod_{j=1}^q \psi_{O_{0,j}}(z_j(x_2)) & ... & \prod_{j=1}^q \psi_{O_{p-1,j}}(z_j(x_2)) \\ \vdots & \cdots & \vdots \\ \prod_{j=1}^q \psi_{O_{0,j}}(z_j(x_N)) & ... & \prod_{j=1}^q \psi_{O_{p-1,j}}(z_j(x_N)) \end{array} \right]$
 
 Where:
 
@@ -269,7 +270,7 @@ Given:
 - $\bf B$: Basis matrix (mData × nTerm)
 
 The coefficients are found by minimizing the L1 regularized objective:
-$ \displaystyle \min_{\bf c} || {\bf B} {\bf c} - {\bf y} ||_2 + \alpha || {\bf c} ||_1$
+$\displaystyle \min_{\bf c} || {\bf B} {\bf c} - {\bf y} ||_2 + \alpha || {\bf c}||_1$
 
 combinations inSolution (of the KKT system via SVD for numerical stability):
 
@@ -284,7 +285,7 @@ $R^2 = 1 - ( {\sf RSS} / {\sf TSS} )$
 Where:
 
 - ${\sf RSS} = \sum (y_i - \hat y_i)^2$  (residual sum of squares)
-- ${\sf TSS} = \sum(y_i - {\sf avg}({\bf y}))^2 $  (total sum of squares)
+- ${\sf TSS} = \sum(y_i - {\sf avg}({\bf y}))^2$  (total sum of squares)
 
 Interpretation:
 
@@ -307,7 +308,7 @@ Why adjust?
 ### 5.3 Model-Data Correlation (ρ)
 
 Pearson correlation between predictions and observations:
-$ \rho = C_{Y, \hat{Y}} / \left( \sqrt{C_{{Y}, {Y}}} \sqrt{C_{\hat {Y}, \hat {Y}}} \right) $
+$\rho = C_{Y, \hat{Y}} / \left( \sqrt{C_{{Y}, {Y}}} \sqrt{C_{\hat {Y}, \hat {Y}}} \right)$
 
 Advantages over R²:
 
@@ -318,10 +319,10 @@ Advantages over R²:
 ### 5.4 Coefficient of Variation (COV) of each coefficient
 
 For each coefficient:
-$ {\sf COV}(c_{i,k}) = {\sf ASE}(c_{i,k}) / | \hat c_{i,k} | $ 
+${\sf COV}(c_{i,k}) = {\sf ASE}(c_{i,k}) / | \hat c_{i,k} |$ 
 
 Where
-$ {\sf ASE}(c_{i,k})$ is the asymptotic standard error of the coefficient 
+${\sf ASE}(c_{i,k})$ is the asymptotic standard error of the coefficient 
 
 Interpretation:
 
@@ -332,7 +333,7 @@ Interpretation:
 ### 5.5 Condition Number
 
 Measures numerical stability:
-$ \kappa(B) = || {\bf B} || \cdot || {\bf B}^{-1} ||$
+$\kappa(B) = || {\bf B} || \cdot || {\bf B}^{-1} ||$
 
 Interpretation:
 
@@ -344,7 +345,7 @@ Interpretation:
 
 ### 5.6 Akaike Infomation Criterion (AIC)
 
-$ {\sf AIC} = \log( 2 \pi \cdot NV ) + NV + 2 N$
+${\sf AIC} = \log( 2 \pi \cdot NV ) + NV + 2 N$
 
 where N is the number of coefficients in the model and  V is the covariance of the residuals
 
@@ -544,7 +545,7 @@ $\sigma^2 = {\sf RSS} / ( {\sf length}({\bf X}) - {\sf length}({\bf c})$
 
 Therefore:
 
-$  {\sf ASE}(c_{i,k}) = \sigma^2 \sqrt{ [ [ {\bf B}^{\sf T} {\bf B} ]^{-1} ]_{k,k} }$
+${\sf ASE}(c_{i,k}) = \sigma^2 \sqrt{ [ [ {\bf B}^{\sf T} {\bf B} ]^{-1} ]_{k,k} }$
 
 
 
