@@ -23,8 +23,8 @@
 
 In many engineering and scientific applications, we have:
 
-- **Input variables** $X = [ X_1, X_2, ..., X_n] \in {\mathbb R}^n$ 
-- **Output variables**  $Y = [Y_1, Y_2, ..., Y_n] \in {\mathbb R}^m$ 
+- **Input variables** $\bf X = [ X_1, X_2, ..., X_n] \in {\mathbb R}^n$ 
+- **Output variables**  $\bf Y = [Y_1, Y_2, ..., Y_n] \in {\mathbb R}^m$ 
 - A complex, possibly nonlinear relationship  $Y = f (X)$ 
 
 The goal is to to make use a set of $N$ measured observations of each input value and each corresponding output value in order to approximate this relationship with a computationally efficient model that:
