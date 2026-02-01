@@ -254,7 +254,7 @@ This creates a structured polynomial space with controlled complexity.
 
 The model basis **B** has structure:
 
-$ \displaystyle B = \left[ \begin{array}{cccc} \prod_{j=1}^q \psi_{O_{0,j}}(z_j(x_1)) & ... & \prod_{j=1}^q \psi_{O_{p-1,j}}(z_j(x_1)) \\ \prod_{j=1}^q \psi_{O_{0,j}}(z_j(x_2)) & ... & \prod_{j=1}^q \psi_{O_{p-1,j}}(z_j(x_2)) \\ \vdots & \cdots & \vdots \\ \prod_{j=1}^q \psi_{O_{0,j}}(z_j(x_N)) & ... & \prod_{j=1}^q \psi_{O_{p-1,j}}(z_j(x_N)) \end{array} \right] 
+$ \displaystyle \bf B = \left[ \begin{array}{cccc} \prod_{j=1}^q \psi_{O_{0,j}}(z_j(x_1)) & ... & \prod_{j=1}^q \psi_{O_{p-1,j}}(z_j(x_1)) \\ \prod_{j=1}^q \psi_{O_{0,j}}(z_j(x_2)) & ... & \prod_{j=1}^q \psi_{O_{p-1,j}}(z_j(x_2)) \\ \vdots & \cdots & \vdots \\ \prod_{j=1}^q \psi_{O_{0,j}}(z_j(x_N)) & ... & \prod_{j=1}^q \psi_{O_{p-1,j}}(z_j(x_N)) \end{array} \right] 
  
 $
 
@@ -276,7 +276,7 @@ Given:
 
 The coefficients are found by minimizing the L1 regularized objective:
 
-$\displaystyle \min_{c} || B c - y ||_2 + \alpha || c ||_1$
+$\displaystyle \min_{\bf c} || \bf B \bf c - \bf y ||_2 + \alpha || \bf c ||_1$
 
 combinations inSolution (of the KKT system via SVD for numerical stability):
 
@@ -343,7 +343,7 @@ Interpretation:
 
 Measures numerical stability:
 
-$ \kappa(B) = || B || \cdot || B^{-1} ||$
+$ \kappa(B) = || \bf B || \cdot || B^{-1} ||$
 
 Interpretation:
 
