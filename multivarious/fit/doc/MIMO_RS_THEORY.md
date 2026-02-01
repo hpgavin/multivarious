@@ -1,5 +1,4 @@
 
-
 # Multi-Input Multi-Output Response Surface - Theory
 
 ## Table of Contents
@@ -58,7 +57,7 @@ Traditional approaches face challenges:
 
 mimo_rs approximates the input-output relationship for each output variable $y_i$ as: 
 
-$ \displaystyle \hat y_i({\bf x}) = \sum_{k=0}^{p-1} c_{i,k} \ \prod_{j=1}^q \psi_{O_{k,j}}( z_j({\bf x}) ) $
+$ \hat y_i({\bf x}) = \sum_{k=0}^{p-1} c_{i,k} \ \prod_{j=1}^q \psi_{O_{k,j}}( z_j({\bf x}) ) $
 
 Where:
 
