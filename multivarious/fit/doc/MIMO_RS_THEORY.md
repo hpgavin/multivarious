@@ -199,7 +199,7 @@ Removes linear correlations between variables.
 
 $\mathbf{Z} = \mathbf{T}^+ (\mathbf{X} - {\sf avg}(\mathbf{X}))$
 
-where $\mathbf{T}^+$ is the psudo inverse of the model correlation matrix $\bf T$,  $\mathbf{X} = \mathbf{TZ} + {\sf avg}(\mathbf{X})$.  The square matrix $\bf T$ is the square root of the data covariance matrix $\mathbf{C}(\mathbf{X})$, which has an eigen decomposition  $\mathbf{C}(\mathbf{X}) = \mathbf{V} \Lambda \mathbf{V}^{\sf T}$, so $\mathbf{T} = \mathbf{V} \Lambda^{1/2}$ .  The (rectangular) psuedo-inverse of \mathbf{T}^+ contains the $q$ non-singular eigenvalues $\bar \Lambda$  and their corresponding eigenvctors $\bar \mathbf{V}$, $\mathbf{T}^+ = \bar \Lambda^{-1/2} \bar \mathbf{V}^{\sf T}$  ($q \times n$) .
+where $\mathbf{T}^+$ is the psudo inverse of the model correlation matrix $\bf T$,  $\mathbf{X} = \mathbf{TZ} + {\sf avg}(\mathbf{X})$.  The square matrix $\bf T$ is the square root of the data covariance matrix $\mathbf{C}(\mathbf{X})$, which has an eigen decomposition  $\mathbf{C}(\mathbf{X}) = \mathbf{V} \Lambda \mathbf{V}^{\sf T}$, so $\mathbf{T} = \mathbf{V} \Lambda^{1/2}$ .  The (rectangular) psuedo-inverse of \mathbf{T}^+ contains the $q$ non-singular eigenvalues $\bar \Lambda$  and their corresponding eigenvctors $\bar{\mathbf{V}}$, $\mathbf{T}^+ = \bar{\Lambda}^{-1/2} \bar{\mathbf{V}}^{\sf T}$  ($q \times n$) .
 
 ##### Option 3: Log-Standardization
 
@@ -213,7 +213,7 @@ Combines logarithmic and linear decorrelation.
 
 $\mathbf{Z} = \mathbf{T}^+ (\log_{10}(\mathbf{X}) - {\sf avg}(\log_{10}(\mathbf{X})))$
 
-where here $\mathbf{T}^+$ is the psudo inverse of the model correlation of log-transformed data  $\bf T$, $\log_{10}(\mathbf{X}) = \mathbf{TZ} + {\sf avg}(\log_{10}(\mathbf{X}))$. The square matrix $\bf T$ is the square root of the data covariance of log-transfomred data $\mathbf{C}({\log_{10}(\mathbf{X}))}$, which has an eigen decomposition $\mathbf{C}({\log_{10}(\mathbf{X}))} = \mathbf{V} \Lambda V^{\sf T}$, so $\mathbf{T} = \mathbf{V} \Lambda^{1/2}$. The (rectangular) psuedo-inverse of \mathbf{T}^+ contains the q non-singular eigenvalues $\bar \Lambda$ and their corresponding eigenvctors $\bar \mathbf{V}$, $\mathbf{T}^+ = \bar \Lambda^{-1/2} \bar \mathbf{V}^{\sf T}$ ($q \times n$) .
+where here $\mathbf{T}^+$ is the psudo inverse of the model correlation of log-transformed data  $\bf T$, $\log_{10}(\mathbf{X}) = \mathbf{TZ} + {\sf avg}(\log_{10}(\mathbf{X}))$. The square matrix $\bf T$ is the square root of the data covariance of log-transfomred data $\mathbf{C}({\log_{10}(\mathbf{X}))}$, which has an eigen decomposition $\mathbf{C}({\log_{10}(\mathbf{X}))} = \mathbf{V} \Lambda V^{\sf T}$, so $\mathbf{T} = \mathbf{V} \Lambda^{1/2}$. The (rectangular) psuedo-inverse of \mathbf{T}^+ contains the q non-singular eigenvalues $\bar \Lambda$ and their corresponding eigenvctors $\bar{\mathbf{V}}$, $\mathbf{T}^+ = \bar \Lambda^{-1/2} \bar{\mathbf{V}}^{\sf T}$ ($q \times n$) .
 
 #### Outlier Removal using Chauvenet's criterion
 
