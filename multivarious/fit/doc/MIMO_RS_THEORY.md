@@ -1,0 +1,639 @@
+# Theory behind mimo_rs
+
+## Multi-Input Multi-Output Response Surface
+
+## Table of Contents
+
+1. Introduction and Motivation
+2. Mathematical Foundation
+3. Hermite Function or Legendre Polynomial Bases
+4. Model Construction Process
+5. Statistical Evaluation MetricsScaling and PreprocessingScaling and PreprocessingScaling and Preprocessing
+6. Computational Considerations
+7. Applications and Use Cases
+8. Mathematical Appendix
+9. References
+10. Summary
+
+---
+
+## 1. Introduction and Motivation
+
+### 1.1 The Response Surface Problem
+
+In many engineering and scientific applications, we have:
+
+- **Input variables** $\bm X = [ X_1, X_2, ..., X_n] \in {\mathbb R}^n$ 
+- **Output variables**  $\bm Y = [Y_1, Y_2, ..., Y_n] \in {\mathbb R}^m$ 
+- A complex, possibly nonlinear relationship  $\bm Y = f (\bm X)$ 
+
+The goal is to to make use a set of $N$ measured observations of each input value and each corresponding output value in order to approximate this relationship with a computationally efficient model that:
+
+1. Captures nonlinear behavior
+2. Handles high-dimensional inputs  ($n > 20$)
+3. Provides uncertainty quantification
+4. Remains computationally tractable 
+
+### 1.2 Why Response Surfaces?
+
+Traditional approaches face challenges:
+
+- **Direct simulation**: Computationally expensive (finite element, CFD, etc.)
+- **Low-order polynomials**: Inadequate for complex nonlinear behavior
+- **Neural networks**: Black-box nature, difficult uncertainty quantification
+- **Kriging/Gaussian processes**: Computational scaling issues for large datasets
+
+**Response surface methods** provide a middle ground: explicit polynomial models with:
+
+- Analytical derivatives
+- Uncertainty quantification
+- Interpretable coefficients
+- Efficient evaluation
+
+---
+
+## 2. Mathematical Foundation
+
+### 2.1 General Polynomial Representation
+
+mimo_rs approximates the input-output relationship for each output variable $y_i$ as: 
+
+$\tilde y_i(\bm x) = \displaystyle \sum_{k=0}^{p-1} c_{i,k} \ \prod_{j=1}^q  \psi_{O_{k,j}}(z_j(\bm x)) $
+
+Where:
+
+- $z_j(\bm x)$ : the $j$-component of a standardized sample of $\bm X$, $\bm x = (x_1, ..., x_n)$. Standardization is described below.  
+- $q$: the dimension of $\bm z$, which is set to $n$ or the rank of $\bm X$, depending on the selected standardization method
+- $c_{i,k}$ : the odel coefficients, which minimize the $\chi^2$ criterion with $L_1$ (LASSO) regularization
+- $\Pi \psi_O$: a basis function, which is a unique product of power polynomial functions of each standardized input variable $(Z_1, ..., Z_q)$ with corresponding orders $\bm O_{k,:} = (O_{k,1}, ..., O_{k,q})$
+  - $p$: Total number of unique terms in the expansion
+
+### 2.2 The Structure of the Polynomial-Products
+
+Each term in the sum (each column in the basis) is a product of polynomials 
+$\displaystyle \prod_{j=1}^q \psi_{O_{k,j}}(z_j(\bm x)) $
+
+where the $j$-th factor in the polynomial product is a function of the $j$-th standardized input variable $z_j(\bm x)$, and has an order $O_{k,j}$ 
+
+As an example, for a quadratic model in three input variables, $(X_1, X_2, X_3)$, in which$\bm X$ has full rank ($q=n=3$), the model  would have ten terms $(k=0, ..., 9)$ with polynomial orders given in the $(10 \times 3)$ ``order matrix'' $\bm O$ :
+
+| $k$ | $O_{k,1}$ | $O_{k,2}$ | $O_{k,3}$ |
+| --- | --------- | --------- | --------- |
+| 0   | 0         | 0         | 0         |
+| 1   | 1         | 0         | 0         |
+| 2   | 0         | 1         | 0         |
+| 3   | 0         | 0         | 1         |
+| 4   | 1         | 1         | 0         |
+| 5   | 1         | 0         | 1         |
+| 6   | 0         | 1         | 1         |
+| 7   | 2         | 0         | 0         |
+| 8   | 0         | 2         | 0         |
+| 9   | 0         | 0         | 2         |
+
+so that the polynomial-product expansion would be
+$\tilde y_i(\bm x) = c_{i,0} \ \phi_0(x_1) \phi_0(x_2) \phi_0(x_3) +  c_{i,1} \ \phi_1(x_1) \phi_0(x_2) \phi_0(x_3) +  c_{i,2} \ \phi_0(x_1) \phi_1(x_2) \phi_0(x_3) + \cdots + c_{i,9} \ \phi_0(x_1) \phi_0(x_2) \phi_2(x_3)$
+
+---
+
+## 3. Hermite Function Basis
+
+### 3.1 Why Hermite Functions?
+
+Standard power polynomials $(1, x, x^2, x^3, ... )$ have problems:
+
+- **Numerical instability** for high orders
+- **Poor conditioning** of basis matrices
+- **Lack of orthogonality**
+
+Hermite functions provide:
+
+- **Orthogonality** with respect to a Gaussian weight
+- **Numerical stability** for higher orders
+- **Natural scaling** for standardized variables
+
+### 3.2 Hermite Function Definition
+
+Hermite functions designThe Hermite functions are defined as: 
+$\displaystyle \psi(z) = \frac{1}{\sqrt{2^n \ n! \ \sqrt{\pi} } } \ H_n(z) \ \exp\left(\frac{-z^2}{2} \right)  $
+
+* $H_n(z)$ is the Hermite polynomial of order $n$
+- $\exp(-z^2/2)$ is Gaussian weight function
+- Normalization ensures orthonormality
+
+### 3.3 Low-Order Hermite Functions
+
+```
+ψ₀(z) = π^(-1/4) exp(-z²/2)
+
+ψ₁(z) = √2 π^(-1/4) z exp(-z²/2)
+
+ψ₂(z) = (1/√2) π^(-1/4) (2z² - 1) exp(-z²/2)
+
+ψ₃(z) = (1/√3) π^(-1/4) (2z³ - 3z) exp(-z²/2)
+
+ψ₄(z) = (1/(2√6)) π^(-1/4) (4z⁴ - 12z² + 3) exp(-z²/2)
+
+ψ₅(z) = (1/(2√15)) π^(-1/4) (4z⁵ - 20z³ + 15z) exp(-z²/2)
+```
+
+### 3.4 Orthogonality Property of Hermite functions
+
+$ \displaystyle \int_{-\infty}^\infty \psi_m(z) \psi_n(z) \ dz = \delta_{m.n} $ 
+
+This orthonormality leads to diagonalization in fitting in one dimension with uniformly-spaced independnet variabes.   And it supports numerical stability for fits in higher dimensions.  
+
+---
+
+## 4. Model Construction Process
+
+### Synopsis
+
+mimo_rs follows a three-stage process:
+
+#### Stage 1: Scaling and Preprocessing
+
+- options to log-transform, scale, standardize or decorrelate the data
+- input data and output data are scaled and decorrelated separately
+- Remove columns of data with one or more outliers
+
+#### Stage 2: Build the order matrix
+
+- Generate all possible term combinations
+- Filter based on total order constraint and uniqueness constraint
+- Create order matrix specifying the orders in the polynomial products within each term
+
+#### Stage 3: Model Fitting and Reduction
+
+- Randomly split the data sets into a training set and a testing set.  
+- Fit full model using least squares with $L_1$ regularization and a specified level of the regularization penalty factor, $\alpha$ .
+- Formulate the $L_1$ regularized problem as a KKT matrix equation with $2n$ inequality constraint.
+  - Solve the $L_1$ problem to minimize the quadratic objective subject to $2n $ equality constraint, and therby set a significant number of coefficients $c_{i,k}$ to (nearly) zero.  
+- Continue until tolerance and inequality criteria are met
+
+### 4.1 Scaling and Preprocessing
+
+#### Why Scale?
+
+Raw data problems:
+
+- **Different units**: Variables can be on vastly different numerical scales
+- **Numerical instability**: Extreme values cause conditioning issues
+- **Poor Hermite basis fit**: Hermite functions are intended for $\sim \cal N(0,1)$ data
+
+#### Scaling Options
+
+##### Option 0: No Scaling
+
+Does nothing.  Use when data is already normalized.
+
+$Z=X$
+
+##### Option 1: Standardization
+
+Centers the data and scales the data to unit variance.
+
+$Z = (X - {\sf avg}(X) ) \ / \ {\sf sdv}(X)$
+
+##### Option 2: Decorrelation (Whitening)
+
+Removes linear correlations between variables.
+
+$Z = T^+ (X - {\sf avg}(X))$
+
+where  $T^+ $ is the psudo inverse of the model correlation matrix $T$,  $X = TZ + {\sf avg}(X)$.  The square matrix $T$ is the square root of the data covariance matrix $C_X$, which has an eigen decomposition  $C_X = V \Lambda V^{\sf T}$, so $T = V \Lambda^{1/2}$ .  The (rectangular) psuedo-inverse of T^+ contains the $q$ non-singular eigenvalues $\bar \Lambda$  and their corresponding eigenvctors $\bar V$, $T^+ = \bar \Lambda^{-1/2} \bar V^{\sf T}$  ($q \times n$) .
+
+##### Option 3: Log-Standardization
+
+For positive-valued data with multiplicative structure or log-normal distributions.
+
+$Z = (\log_{10}(X) - {\sf avg}(\log_{10}(X)))  \ / \ {\sf sdv}(\log_{10}(X))  $
+
+##### Option 4: Log-Decorrelation
+
+Combines logarithmic and linear decorrelation.
+
+$Z = T^+ (\log_{10}(X) - {\sf avg}(\log_{10}(X)))$
+
+where here $T^+$ is the psudo inverse of the model correlation of log-transformed data  $T$, $\log_{10}(X) = TZ + {\sf avg}(\log_{10}(X))$. The square matrix $T$ is the square root of the data covariance of log-transfomred data $C_{\log_{10}(X)}$, which has an eigen decomposition $C_{\log_{10}(X)} = V \Lambda V^{\sf T}$, so $T = V \Lambda^{1/2}$ . The (rectangular) psuedo-inverse of T^+ contains the q non-singular eigenvalues $\bar \Lambda$ and their corresponding eigenvctors $\bar V$, $T^+ = \bar \Lambda^{-1/2} \bar V^{\sf T}$ ($q \times n$) .
+
+#### Outlier Removal using Chauvenet's criterion
+
+After scaling, remove data outliers in which a standardized data value $z$   > exceeds criteria limits.  
+
+$ |z| > 0.8 + 0.4 \log(N) $
+
+Here, $0.8 + 0.4 \log(N)$  is a a simple approximiation to Chauvent's criterion. 
+
+Rationale:
+
+- Hermite functions designed for $ \sim \cal N(0,1)$
+- Extreme values degrade approximation
+- Removes potential data errors
+
+### 4.2 Order Matrix  Algorithm
+
+The algorithm generates the unique rows of the order matrix $\bm O$ for a model order of $\hat O$ such that 
+$0 \leq O_{k,j} \leq \hat O$  
+and 
+$\displaystyle \sum_{j=0}^q O_{k,j} \leq \hat O$
+
+This creates a structured polynomial space with controlled complexity.
+
+**Example** (n=2, maxOrder=[2,2]):
+
+```
+[0,0] → ψ₀(Z₁)ψ₀(Z₂) = constant
+[1,0] → ψ₁(Z₁)ψ₀(Z₂) = linear in Z₁
+[0,1] → ψ₀(Z₁)ψ₁(Z₂) = linear in Z₂
+[2,0] → ψ₂(Z₁)ψ₀(Z₂) = quadratic in Z₁
+[1,1] → ψ₁(Z₁)ψ₁(Z₂) = bilinear term
+[0,2] → ψ₀(Z₁)ψ₂(Z₂) = quadratic in Z₂
+```
+
+### 4.3 Construction of the Matrix of model basis vectors
+
+The model basis **B** has structure:
+
+$ \displaystyle \bm B = \left[ \begin{array}{cccc} \prod_{j=1}^q \psi_{O_{0,j}}(z_j(\bm x_1)) & ... & \prod_{j=1}^q \psi_{O_{p-1,j}}(z_j(\bm x_1)) \\ \prod_{j=1}^q \psi_{O_{0,j}}(z_j(\bm x_2)) & ... & \prod_{j=1}^q \psi_{O_{p-1,j}}(z_j(\bm x_2)) \\ \vdots & \cdots & \vdots \\ \prod_{j=1}^q \psi_{O_{0,j}}(z_j(\bm x_N)) & ... & \prod_{j=1}^q \psi_{O_{p-1,j}}(z_j(\bm x_N)) \end{array} \right] 
+ 
+$
+
+Where:
+
+- Rows correspond to data points $(\bm x_1 , ... , \bm x_N)$ 
+- Columns correspond to terms with index $k$ and coefficient $c_{i,k}$,   $\prod_j \psi_{O_{k,j)}}$
+- Each entry is the product of basis functions with given orders, evaluated at that data point
+
+---
+
+### 4.3 Least Squares Fitting with $L_1$ Regularization
+
+Given:
+
+- $\bm Z$: Scaled input data (nInp × mData)
+- $\bm Y$: Output data (nOut × mData)
+- $\bm B$: Basis matrix (mData × nTerm)
+
+The coefficients are found by minimizing the L1 regularized objective:
+
+$\displaystyle \min_{\bm c} || \bm B \bm c - \bm y ||_2 + \alpha || \bm c ||_1$
+
+combinations inSolution (of the KKT system via SVD for numerical stability):
+
+## 5. Statistical Evaluation Metrics
+
+### 5.1 R-Squared $R^2$
+
+Measures explained variance:
+
+$R^2 = 1 - ( {\sf RSS} / {\sf TSS} )$
+
+Where:
+
+- ${\sf RSS} = \sum (y_i - \tilde y_i)^2$  **RSS** = Σ(Yᵢ - Ŷᵢ)²  (residual sum of squares)
+- $TSS = \sum(y_i - {\sf avg}(\bm y))^2 $ 
+
+Interpretation:
+
+- R² = 1: Perfect fit
+- R² = 0: Model no better than mean
+- R² < 0: Model worse than mean (on test data)
+
+### 5.2 Adjusted R-Squared $R^2_{\sf adj}$
+
+Penalizes model complexity:
+
+$R^2_{\sf adj} = ((m-1) R^2 - {\sf length}(\bm c) ) / (m - {\sf length}(\bm c)  )$
+
+Why adjust?
+
+- Raw $R^2$ always increases with more terms
+- $R^2_{\sf adj}$  accounts for degrees of freedom
+- Prevents overfitting through complexity penalty
+
+### 5.3 Model-Data Correlation (ρ)
+
+Pearson correlation between predictions and observations:
+
+$ \rho = C_{\bm Y, \tilde{\bm Y}} / \left( \sqrt{C_{{\bm Y}, {\bm Y}}} \sqrt{C_{\tilde {\bm Y}, \tilde {\bm Y}}} \right) $
+
+Advantages over R²:
+
+- Scale-invariant
+- More interpretable for practitioners
+- Robust to offset errors
+
+### 5.4 Coefficient of Variation (COV) of each coefficient
+
+For each coefficient:
+
+$ {\sf COV}(c_{i,k}) = {\sf ASE}(c_{i,k}) / | \hat c_{i,k} | $ 
+
+Where
+
+* ${\sf ASE}(c_{i,k})$ is the asymptotic standard error of the coefficient $
+
+Interpretation:
+
+- COV < 0.10: Well-determined coefficient
+- 0.10 < COV < 0.30: Moderate uncertainty
+- COV > 0.30: Highly uncertain, candidate for removal
+
+### 5.5 Condition Number
+
+Measures numerical stability:
+
+$ \kappa(\bm B) = || \bm B || \cdot || \bm B^{-1} ||$
+
+Interpretation:
+
+- κ < 100: Well-conditioned
+- 100 < κ < 1000: Moderate conditioning
+- κ > 1000: Ill-conditioned, numerical issues possible
+
+---
+
+### 5.6 Akaike Infomation Criterion (AIC)
+
+$ {\sf AIC} = \log( 2 \pi \cdot NV ) + NV + 2 N$
+
+where N is the number of coefficients in the model and  V is the covariance of the residuals
+
+Measures over-fitting.    
+
+Interpretation:
+
+- models with an AIC that increases with an increase in N are usually conisdered to be over-fit. 
+- models with an AIC that decreases with an increase in N are are under-fit. 
+
+---
+
+## 6. Computational Considerations
+
+### 6.1 Computational Complexity
+
+**Term generation**: O(k^n) where k = maxOrder, n = nInp
+
+- Combinatorial explosion for high dimensions
+- Filtering reduces to manageable size
+
+**Basis construction**: O(m·nTerm·n) where m = mData
+
+- Linear in number of data points
+- Dominates for large datasets
+
+**Least squares solve**: O(m·nTerm² + nTerm³)
+
+- SVD used for numerical stability
+- Can be expensive for many terms
+
+**Per-iteration cost**: Dominated by least squares
+
+- Typically 10-50 iterations
+- Each iteration removes one term
+
+### 6.2 Conditioning and Stability
+
+**Sources of ill-conditioning**:
+
+1. Highly correlated input variables
+2. Insufficient data (m < nTerm)
+3. Extreme polynomial orders
+
+**Mitigation strategies**:
+
+1. **Hermite basis**: Better conditioned than power basis
+2. **Decorrelation** (scaling option 2 or 4)
+3. **SVD-based solve**: Handles near-singular systems
+4. **Model reduction**: Removes problematic terms
+
+### 6.3 Train-Test Split
+
+Critical for validation:
+
+- **Training set**: Used for coefficient estimation
+- **Test set**: Used for performance evaluation
+
+Typical split: 50-80% training, 20-50% testing
+
+**Why separate?**
+
+- Training metrics overestimate performance
+- Test metrics indicate generalization
+- Prevents overfitting bias
+
+### 6.4 Memory Requirements
+
+**Storage needs**:
+
+- **B matrix**: O(m·nTerm) - largest structure
+- **Data**: O(m·(n+p)) 
+- **Coefficients**: O(nTerm·p)
+
+For large problems (m > 10⁶), consider:
+
+- Batch processing
+- Out-of-core algorithms
+- Reduced precision storage
+
+---
+
+## 7. Applications and Use Cases
+
+### 7.1 Structural Reliability Analysis
+
+**Original motivation** (Gavin & Yau, 2005):
+
+- Approximate limit state functions
+- Compute failure probabilities
+- Sensitivity analysis
+
+Advantages:
+
+- Explicit failure surface
+- Analytical gradients for importance sampling
+- Handles high-dimensional random variables
+
+### 7.2 Uncertainty Quantification
+
+Applications:
+
+- **Forward propagation**: Input uncertainty → output uncertainty
+- **Sensitivity analysis**: Which inputs matter most?
+- **Reliability**: Probability of exceeding thresholds
+
+mimo_rs provides:
+
+- Coefficient uncertainties (COV)
+- Analytical variance propagation
+- Importance measures via coefficients
+
+### 7.3 Design Optimization
+
+Use response surface as surrogate:
+
+```
+minimize   Y(X)
+subject to constraints on X
+```
+
+Benefits:
+
+- Cheap function evaluations (vs. simulation)
+- Analytical gradients available
+- Global optimization feasible
+
+### 7.4 Model Reduction for Complex Simulations
+
+When expensive simulations (FEA, CFD) exist:
+
+1. Run limited design of experiments
+2. Fit mimo_rs surrogate
+3. Use surrogate for:
+   - Optimization
+   - Monte Carlo analysis
+   - Real-time prediction
+
+### 7.5 Multi-Physics Problems
+
+Natural fit for coupled systems:
+
+- Multiple outputs from single input
+- Each output modeled independently
+- Maintains physical intuition
+
+Examples:
+
+- Thermal-structural coupling
+- Fluid-structure interaction
+- Electro-mechanical systems
+
+### 7.6 Practical Considerations
+
+**When mimo_rs excels**:
+
+- Smooth, continuous responses
+- Moderate dimensions (n < 20)
+- Sufficient data (m > 5·nTerm)
+- Need for interpretability
+
+**When to use alternatives**:
+
+- Discontinuous responses → Classification methods
+- Very high dimensions → Dimension reduction first
+- Sparse data → Bayesian approaches
+- Black-box OK → Neural networks, tree methods
+
+---
+
+## 8. Appendix
+
+### 8.1 Hermite Polynomial Recurrence
+
+Higher-order Hermite polynomials via recurrence:
+
+```
+H_{n+1}(z) = 2z H_n(z) - 2n H_{n-1}(z)
+```
+
+Starting values:
+
+```
+H_0(z) = 1
+H_1(z) = 2z
+```
+
+### 8.2 Standard Error Derivation
+
+For linear model Y = Bc + ε where ε ~ N(0, σ²I):
+
+```
+Var(c) = σ² (B^T B)^(-1)
+```
+
+Estimate σ² from residuals:
+
+```
+σ̂² = RSS / (m - nTerm)
+```
+
+Therefore:
+
+```
+SE(cⱼ) = σ̂ √[(B^T B)^(-1)]ⱼⱼ
+```
+
+### 8.3 R² Relationship to Correlation
+
+For centered data:
+
+```
+R² = ρ²
+```
+
+But for general case (with intercept):
+
+```
+R² ≠ ρ²
+```
+
+R²_adj provides better comparison across models.
+
+---
+
+## 9. References and Further Reading
+
+### Primary Reference
+
+Gavin, H.P. and Yau, S.C., "High order limit state functions in the 
+response surface method for structural reliability analysis,"
+*Structural Safety*, 2008, Vol. 30, pp. 162-179.
+
+### Theoretical Background
+
+**Response Surface Methods**:
+
+- Box, G.E.P. and Draper, N.R., "Response Surfaces, Mixtures, and Ridge Analyses," 2007
+- Myers, R.H. et al., "Response Surface Methodology," 2016
+
+**Hermite Polynomials**:
+
+- Szegö, G., "Orthogonal Polynomials," 1939
+- Abramowitz, M. and Stegun, I., "Handbook of Mathematical Functions," 1964
+
+**Uncertainty Quantification**:
+
+- Sudret, B., "Global sensitivity analysis using polynomial chaos expansions," 2008
+- Xiu, D. and Karniadakis, G.E., "The Wiener-Askey polynomial chaos," 2002
+
+**Model Selection**:
+
+- Akaike, H., "A new look at the statistical model identification," 1974
+- Burnham, K.P. and Anderson, D.R., "Model Selection and Multimodel Inference," 2002
+
+---
+
+## 10. Summary
+
+mimo_rs provides a framework for approximating complex input-output relationships through:
+
+1. **Hermite or Legendre function basis** for numerical stability
+
+2. **Systematic term generation** for comprehensive coverage
+
+3. **L_1 regularization**
+   
+   min ||B·c - Y|_2 + a ||c||_1 
+
+4. **Statistical validation** for confidence*L_1 re**gularization
+
+5. **Multiple scaling options** for diverse data types
+
+The method excels in applications requiring:
+
+- Explicit functional forms
+- Uncertainty quantification  
+- Computational efficiency
+- Physical interpretability
+
+---
