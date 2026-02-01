@@ -1,6 +1,6 @@
-# Theory behind mimo_rs
 
-## Multi-Input Multi-Output Response Surface
+
+# Multi-Input Multi-Output Response Surface - Theory
 
 ## Table of Contents
 
@@ -57,13 +57,12 @@ Traditional approaches face challenges:
 ### 2.1 General Polynomial Representation
 
 mimo_rs approximates the input-output relationship for each output variable $y_i$ as: 
-
-$\displaystyle \hat y_i({\bf x}) = \sum_{k=0}^{p-1} c_{i,k} \ \prod_{j=1}^q \psi_{O_{k,j}}(z_j({\bf x})) $
+$ \displaystyle \hat y_i({\bf x}) = \sum_{k=0}^{p-1} c_{i,k} \ \prod_{j=1}^q \psi_{O_{k,j}}( z_j({\bf x}) ) $
 
 Where:
 
-- $z_j({\bf x})$ : the $j$-component of a standardized sample of $X$, $x = (x_1, ..., x_n)$. Standardization is described below.  
-- $q$: the dimension of $z$, which is set to $n$ or the rank of $X$, depending on the selected standardization method
+- $z_j({\bf x})$ : the $j$-component of a standardized sample of ${\bf X}$, ${\bf x} = (x_1, ..., x_n)$. Standardization is described below.  
+- $q$: the dimension of $z$, which is set to $n$ or the rank of ${\bf X}$, depending on the selected standardization method
 - $c_{i,k}$ : the odel coefficients, which minimize the $\chi^2$ criterion with $L_1$ (LASSO) regularization
 - $\Pi \psi_O$: a basis function, which is a unique product of power polynomial functions of each standardized input variable $(Z_1, ..., Z_q)$ with corresponding orders $O_{k,:} = (O_{k,1}, ..., O_{k,q})$
   - $p$: Total number of unique terms in the expansion
@@ -71,11 +70,11 @@ Where:
 ### 2.2 The Structure of the Polynomial-Products
 
 Each term in the sum (each column in the basis) is a product of polynomials 
-$\displaystyle \prod_{j=1}^q \psi_{O_{k,j}}(z_j({\bf x})) $
+$ \displaystyle \prod_{j=1}^q \psi_{O_{k,j}}( z_j( {\bf x} ) ) $
 
 where the $j$-th factor in the polynomial product is a function of the $j$-th standardized input variable $z_j({\bf x})$, and has an order $O_{k,j}$ 
 
-As an example, for a quadratic model in three input variables, $(X_1, X_2, X_3)$, in which$X$ has full rank ($q=n=3$), the model  would have ten terms $(k=0, ..., 9)$ with polynomial orders given in the $(10 \times 3)$ ``order matrix'' $O$ :
+As an example, for a quadratic model in three input variables, $(X_1, X_2, X_3)$, in which $\bf X$ has full rank ($q=n=3$), the model  would have ten terms $(k=0, ..., 9)$ with polynomial orders given in the $(10 \times 3)$ *order matrix*, $O$ :
 
 | $k$ | $O_{k,1}$ | $O_{k,2}$ | $O_{k,3}$ |
 | --- | --------- | --------- | --------- |
@@ -90,8 +89,8 @@ As an example, for a quadratic model in three input variables, $(X_1, X_2, X_3)$
 | 8   | 0         | 2         | 0         |
 | 9   | 0         | 0         | 2         |
 
-so that the polynomial-product expansion would be
-$\hat y_i({\bf x}) = c_{i,0} \ \phi_0(x_1) \phi_0(x_2) \phi_0(x_3) +  c_{i,1} \ \phi_1(x_1) \phi_0(x_2) \phi_0(x_3) +  c_{i,2} \ \phi_0(x_1) \phi_1(x_2) \phi_0(x_3) + \cdots + c_{i,9} \ \phi_0(x_1) \phi_0(x_2) \phi_2(x_3) $
+so that the polynomial-product expansion is : 
+$ \hat y_i({\bf x}) = c_{i,0} \ \phi_0(x_1) \phi_0(x_2) \phi_0(x_3) +  c_{i,1} \ \phi_1(x_1) \phi_0(x_2) \phi_0(x_3) +  c_{i,2} \ \phi_0(x_1) \phi_1(x_2) \phi_0(x_3) + \cdots + c_{i,9} \ \phi_0(x_1) \phi_0(x_2) \phi_2(x_3) $ .
 
 ---
 
@@ -138,8 +137,8 @@ $\displaystyle \psi(z) = \frac{1}{\sqrt{2^n \ n! \ \sqrt{\pi} } } \ H_n(z) \ \ex
 
 ### 3.4 Orthogonality Property of Hermite functions
 
+Hermite functions are orthogonal with respect to a unit weight.  
 $ \displaystyle \int_{-\infty}^\infty \psi_m(z) \psi_n(z) \ dz = \delta_{m.n} $ 
-
 This orthonormality leads to diagonalization in fitting in one dimension with uniformly-spaced independnet variabes.   And it supports numerical stability for fits in higher dimensions.  
 
 ---
@@ -200,7 +199,7 @@ Removes linear correlations between variables.
 
 ${\bf Z} = {\bf T}^+ ({\bf X} - {\sf avg}({\bf X}))$
 
-where  ${\bf T}^+ $ is the psudo inverse of the model correlation matrix $\bf T$,  ${\bf X} = {\bf TZ} + {\sf avg}({\bf X})$.  The square matrix $\bf T$ is the square root of the data covariance matrix ${\bf C}_{\bf X}$, which has an eigen decomposition  ${\bf C}_{\bf X} = {\bf V} \Lambda {\bf V}^{\sf T}$, so ${\bf T} = {\bf V} \Lambda^{1/2}$ .  The (rectangular) psuedo-inverse of {\bf T}^+ contains the $q$ non-singular eigenvalues $\bar \Lambda$  and their corresponding eigenvctors $\bar {\bf V}$, ${\bf T}^+ = \bar \Lambda^{-1/2} \bar {\bf V}^{\sf T}$  ($q \times n$) .
+where ${\bf T}^+$ is the psudo inverse of the model correlation matrix $\bf T$,  ${\bf X} = {\bf TZ} + {\sf avg}({\bf X})$.  The square matrix $\bf T$ is the square root of the data covariance matrix ${\bf C}_{\bf X}$, which has an eigen decomposition  ${\bf C}_{\bf X} = {\bf V} \Lambda {\bf V}^{\sf T}$, so ${\bf T} = {\bf V} \Lambda^{1/2}$ .  The (rectangular) psuedo-inverse of {\bf T}^+ contains the $q$ non-singular eigenvalues $\bar \Lambda$  and their corresponding eigenvctors $\bar {\bf V}$, ${\bf T}^+ = \bar \Lambda^{-1/2} \bar {\bf V}^{\sf T}$  ($q \times n$) .
 
 ##### Option 3: Log-Standardization
 
@@ -251,9 +250,8 @@ This creates a structured polynomial space with controlled complexity.
 
 ### 4.3 Construction of the Matrix of model basis vectors
 
-The model basis **B** has structure:
-$ \displaystyle {\bf B} = \left[ \begin{array}{cccc} \prod_{j=1}^q \psi_{O_{0,j}}(z_j(x_1)) & ... & \prod_{j=1}^q \psi_{O_{p-1,j}}(z_j(x_1)) \\ \prod_{j=1}^q \psi_{O_{0,j}}(z_j(x_2)) & ... & \prod_{j=1}^q \psi_{O_{p-1,j}}(z_j(x_2)) \\ \vdots & \cdots & \vdots \\ \prod_{j=1}^q \psi_{O_{0,j}}(z_j(x_N)) & ... & \prod_{j=1}^q \psi_{O_{p-1,j}}(z_j(x_N)) \end{array} \right] 
-$
+The model basis $\bf B$ has structure:
+$ \displaystyle {\bf B} = \left[ \begin{array}{cccc} \prod_{j=1}^q \psi_{O_{0,j}}(z_j(x_1)) & ... & \prod_{j=1}^q \psi_{O_{p-1,j}}(z_j(x_1)) \\ \prod_{j=1}^q \psi_{O_{0,j}}(z_j(x_2)) & ... & \prod_{j=1}^q \psi_{O_{p-1,j}}(z_j(x_2)) \\ \vdots & \cdots & \vdots \\ \prod_{j=1}^q \psi_{O_{0,j}}(z_j(x_N)) & ... & \prod_{j=1}^q \psi_{O_{p-1,j}}(z_j(x_N)) \end{array} \right] $
 
 Where:
 
@@ -267,9 +265,9 @@ Where:
 
 Given:
 
-- $\bm Z$: Scaled input data (nInp × mData)
-- $\bm Y$: Output data (nOut × mData)
-- $\bm B$: Basis matrix (mData × nTerm)
+- $\bf Z$: Scaled input data (nInp × mData)
+- $\bf Y$: Output data (nOut × mData)
+- $\bf B$: Basis matrix (mData × nTerm)
 
 The coefficients are found by minimizing the L1 regularized objective:
 $ \displaystyle \min_{\bf c} || {\bf B} {\bf c} - {\bf y} ||_2 + \alpha || {\bf c} ||_1$
@@ -287,7 +285,7 @@ $R^2 = 1 - ( {\sf RSS} / {\sf TSS} )$
 Where:
 
 - ${\sf RSS} = \sum (y_i - \hat y_i)^2$  (residual sum of squares)
-- $TSS = \sum(y_i - {\sf avg}(y))^2 $  (total sum of squares)
+- ${\sf TSS} = \sum(y_i - {\sf avg}({\bf y}))^2 $  (total sum of squares)
 
 Interpretation:
 
@@ -335,7 +333,7 @@ Interpretation:
 ### 5.5 Condition Number
 
 Measures numerical stability:
-$ \kappa(B) = || \{\bf B} || \cdot || {\bf B}^{-1} ||$
+$ \kappa(B) = || {\bf B} || \cdot || {\bf B}^{-1} ||$
 
 Interpretation:
 
@@ -346,6 +344,7 @@ Interpretation:
 ---
 
 ### 5.6 Akaike Infomation Criterion (AIC)
+
 $ {\sf AIC} = \log( 2 \pi \cdot NV ) + NV + 2 N$
 
 where N is the number of coefficients in the model and  V is the covariance of the residuals
@@ -538,37 +537,29 @@ H_1(z) = 2z
 
 For linear model Y = Bc + ε where ε ~ N(0, σ²I):
 
-```
-Var({\bf c}) = σ² (B^T B)^(-1)
-```
+${\sf VAR}({\bf c}) = \sigma^2 ({\bf B}^T {\bf B})^{-1}$
 
-Estimate σ² from residuals:
+Estimate $\sigma^2$ from residuals:
 
-```
-σ̂² = RSS / (m - nTerm)
-```
+$\sigma^2 = {\sf RSS} / ( {\sf length}({\bf X}) - {\sf length}({\bf c})$
 
 Therefore:
 
-```
-SE(cⱼ) = σ̂ √[(B^T B)^(-1)]ⱼⱼ
-```
+$  {\sf ASE}(c_{i,k}) = \sigma^2 \sqrt{ [ [ {\bf B}^{\sf T} {\bf B} ]^{-1} ]_{k,k} }$
 
-### 8.3 R² Relationship to Correlation
+
+
+### 8.3 $R^2$ Relationship to Correlation
 
 For centered data:
 
-```
-R² = ρ²
-```
+$R^2 = \rho^2$
 
 But for general case (with intercept):
 
-```
-R² ≠ ρ²
-```
+$R^2 \neq \rho^2$
 
-R²_adj provides better comparison across models.
+ $R^2_{\sf adj}$ provides better comparison across models.
 
 ---
 
