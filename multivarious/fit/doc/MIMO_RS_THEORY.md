@@ -200,7 +200,7 @@ Removes linear correlations between variables.
 
 ${\bf Z} = {\bf T}^+ ({\bf X} - {\sf avg}({\bf X}))$
 
-where ${\bf T}^+$ is the psudo inverse of the model correlation matrix $\bf T$,  ${\bf X} = {\bf TZ} + {\sf avg}({\bf X})$.  The square matrix $\bf T$ is the square root of the data covariance matrix ${\bf C}_{\bf X}$, which has an eigen decomposition  ${\bf C}_{\bf X} = {\bf V} \Lambda {\bf V}^{\sf T}$, so ${\bf T} = {\bf V} \Lambda^{1/2}$ .  The (rectangular) psuedo-inverse of {\bf T}^+ contains the $q$ non-singular eigenvalues $\bar \Lambda$  and their corresponding eigenvctors $\bar {\bf V}$, ${\bf T}^+ = \bar \Lambda^{-1/2} \bar {\bf V}^{\sf T}$  ($q \times n$) .
+where ${\bf T}^+$ is the psudo inverse of the model correlation matrix $\bf T$,  ${\bf X} = {\bf TZ} + {\sf avg}({\bf X})$.  The square matrix $\bf T$ is the square root of the data covariance matrix ${\bf C}({\bf X})$, which has an eigen decomposition  ${\bf C}({\bf X}) = {\bf V} \Lambda {\bf V}^{\sf T}$, so ${\bf T} = {\bf V} \Lambda^{1/2}$ .  The (rectangular) psuedo-inverse of {\bf T}^+ contains the $q$ non-singular eigenvalues $\bar \Lambda$  and their corresponding eigenvctors $\bar {\bf V}$, ${\bf T}^+ = \bar \Lambda^{-1/2} \bar {\bf V}^{\sf T}$  ($q \times n$) .
 
 ##### Option 3: Log-Standardization
 
@@ -214,7 +214,7 @@ Combines logarithmic and linear decorrelation.
 
 ${\bf Z} = {\bf T}^+ (\log_{10}({\bf X}) - {\sf avg}(\log_{10}({\bf X})))$
 
-where here ${\bf T}^+$ is the psudo inverse of the model correlation of log-transformed data  $\bf T$, $\log_{10}({\bf X}) = {\bf TZ} + {\sf avg}(\log_{10}({\bf X}))$. The square matrix $\bf T$ is the square root of the data covariance of log-transfomred data ${\bf C}_{\log_{10}({\bf X})}$, which has an eigen decomposition ${\bf C}_{\log_{10}({\bf X})} = {\bf V} \Lambda V^{\sf T}$, so ${\bf T} = {\bf V} \Lambda^{1/2}$. The (rectangular) psuedo-inverse of {\bf T}^+ contains the q non-singular eigenvalues $\bar \Lambda$ and their corresponding eigenvctors $\bar {\bf V}$, ${\bf T}^+ = \bar \Lambda^{-1/2} \bar {\bf V}^{\sf T}$ ($q \times n$) .
+where here ${\bf T}^+$ is the psudo inverse of the model correlation of log-transformed data  $\bf T$, $\log_{10}({\bf X}) = {\bf TZ} + {\sf avg}(\log_{10}({\bf X}))$. The square matrix $\bf T$ is the square root of the data covariance of log-transfomred data ${\bf C}({\log_{10}({\bf X}))}$, which has an eigen decomposition ${\bf C}({\log_{10}({\bf X}))} = {\bf V} \Lambda V^{\sf T}$, so ${\bf T} = {\bf V} \Lambda^{1/2}$. The (rectangular) psuedo-inverse of {\bf T}^+ contains the q non-singular eigenvalues $\bar \Lambda$ and their corresponding eigenvctors $\bar {\bf V}$, ${\bf T}^+ = \bar \Lambda^{-1/2} \bar {\bf V}^{\sf T}$ ($q \times n$) .
 
 #### Outlier Removal using Chauvenet's criterion
 
@@ -253,7 +253,7 @@ This creates a structured polynomial space with controlled complexity.
 
 The model basis $\bf B$ has structure:
 
-$\displaystyle {\bf B} = \left[ \begin{array}{cccc} \prod_{j=1}^q \psi_{O_{0,j}}(z_j(x_1)) & ... & \prod_{j=1}^q \psi_{O_{p-1,j}}(z_j(x_1)) \\ \prod_{j=1}^q \psi_{O_{0,j}}(z_j(x_2)) & ... & \prod_{j=1}^q \psi_{O_{p-1,j}}(z_j(x_2)) \\ \vdots & \cdots & \vdots \\ \prod_{j=1}^q \psi_{O_{0,j}}(z_j(x_N)) & ... & \prod_{j=1}^q \psi_{O_{p-1,j}}(z_j(x_N)) \end{array} \right]$
+$$\displaystyle {\bf B} = \left[ \begin{array}{cccc} \prod_{j=1}^q \psi_{O_{0,j}}(z_j(x_1)) & ... & \prod_{j=1}^q \psi_{O_{p-1,j}}(z_j(x_1)) \\ \prod_{j=1}^q \psi_{O_{0,j}}(z_j(x_2)) & ... & \prod_{j=1}^q \psi_{O_{p-1,j}}(z_j(x_2)) \\ \vdots & \cdots & \vdots \\ \prod_{j=1}^q \psi_{O_{0,j}}(z_j(x_N)) & ... & \prod_{j=1}^q \psi_{O_{p-1,j}}(z_j(x_N)) \end{array} \right]$$
 
 Where:
 
