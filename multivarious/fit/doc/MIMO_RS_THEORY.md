@@ -90,7 +90,7 @@ As an example, for a quadratic model in three input variables, $(X_1, X_2, X_3)$
 
 so that the polynomial-product expansion is: 
 
-$\hat y_i(\mathbf{x}) = c_{i,0} \ \phi_0(z_1) \phi_0(z_2) \phi_0(z_3) +  c_{i,1} \ \phi_1(z_1) \phi_0(z_2) \phi_0(z_3) +  c_{i,2} \ \phi_0(z_1) \phi_1(z_2) \phi_0(z_3) + \cdots + c_{i,9} \ \phi_0(z_1) \phi_0(z_2) \phi_2(z_3)$ \ .
+$\hat y_i(\mathbf{x}) = c_{i,0} \ \phi_0(z_1) \phi_0(z_2) \phi_0(z_3) +  c_{i,1} \ \phi_1(z_1) \phi_0(z_2) \phi_0(z_3) +  c_{i,2} \ \phi_0(z_1) \phi_1(z_2) \phi_0(z_3) + \cdots + c_{i,9} \ \phi_0(z_1) \phi_0(z_2) \phi_2(z_3)$ 
 
 ---
 
@@ -256,10 +256,10 @@ The model basis $\bf B$ has structure:
 
 $$
 \displaystyle \mathbf{B} = \begin{bmatrix} 
-\prod_{j=1}^q \psi_{O_{0,j}}(z_j(\mathbb{x}_1)) & \ldots & \prod_{j=1}^q \psi_{O_{p-1,j}}(z_j(\mathbb{x}_1)) \\ 
-\prod_{j=1}^q \psi_{O_{0,j}}(z_j(\mathbb{x}_2)) & \ldots & \prod_{j=1}^q \psi_{O_{p-1,j}}(z_j(\mathbb{x}_2)) \\ 
+\prod_{j=1}^q \psi_{O_{0,j}}(z_j(\mathbf{x}_1)) & \ldots & \prod_{j=1}^q \psi_{O_{p-1,j}}(z_j(\mathbf{x}_1)) \\ 
+\prod_{j=1}^q \psi_{O_{0,j}}(z_j(\mathbf{x}_2)) & \ldots & \prod_{j=1}^q \psi_{O_{p-1,j}}(z_j(\mathbf{x}_2)) \\ 
 \vdots & \cdots & \vdots \\ 
-\prod_{j=1}^q \psi_{O_{0,j}}(z_j(\mathbb{x}_N)) & \ldots & \prod_{j=1}^q \psi_{O_{p-1,j}}(z_j(\mathbb{x}_N)) 
+\prod_{j=1}^q \psi_{O_{0,j}}(z_j(\mathbf{x}_N)) & \ldots & \prod_{j=1}^q \psi_{O_{p-1,j}}(z_j(\mathbf{x}_N)) 
 \end{bmatrix}
 $$
 
