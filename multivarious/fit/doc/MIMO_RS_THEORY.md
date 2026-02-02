@@ -200,13 +200,13 @@ Removes linear correlations between variables.
 
 $\mathbf{Z} = \mathbf{T}^+ (\mathbf{X} - {\sf avg}(\mathbf{X}))$
 
-where $\mathbf{T}^+$ is the psudo inverse of the model correlation matrix $\bf T$,  which relates an i.i.d. sample,  $\mathbf{Z} \in \mathbb{R}^{(r \times N)}$, $\mathbf{Z} \sim {\cal N}(0,1)$) to $\mathbf{X}$ . 
+where $\mathbf{T}^+$ is the psudo inverse of the model correlation matrix $\bf T$,  which relates an i.i.d. sample,  $\mathbf{Z} \in \mathbb{R}^{(r \times N)}$, $\mathbf{Z} \sim \cal N(0,1)$) to $\mathbf{X}$ . 
 
  $\mathbf{X} = \mathbf{TZ} + {\sf avg}(\mathbf{X})
   $.   
 
 $\mathbf{T}
-$  is a spectral full-rank factor of the data covariance $\mathbf{C}(\mathbf{X}) = \mathbf{X} \mathbf{X}^{\sf T}/N$ which has an eigenvalue decomposition $\mathbf{C}(\mathbf{X}) = \mathbf{V} \mathbf{\Lambda} \mathbf{V}^{\sf T}$. It is constructed from the $r$ "non-zero" eigenvalues $\mathbf{\Lambda}_r$ of $\mathbf{C}(\mathbf{X})$ and their corresponding eigenvectors $\mathbf{V}_r$.  
+$  is a full-rank spectral factor of the data covariance $\mathbf{C}(\mathbf{X}) = \mathbf{X} \mathbf{X}^{\sf T}/N$ which has an eigenvalue decomposition $\mathbf{C}(\mathbf{X}) = \mathbf{V} \mathbf{\Lambda} \mathbf{V}^{\sf T}$. It is constructed from the $r$ "non-zero" eigenvalues $\mathbf{\Lambda}_r$ of $\mathbf{C}(\mathbf{X})$ and their corresponding eigenvectors $\mathbf{V}_r$.  
 
 ($\min({\sf diag}(\mathbf{\Lambda}_r)) > \epsilon \max({\sf diag}(\mathbf{\Lambda}_r))$)
 
@@ -226,10 +226,13 @@ Combines log transformation and linear decorrelation.
 
 $\mathbf{Z} = \mathbf{T}^+ (\log_{10}(\mathbf{X}) - {\sf avg}(\log_{10}(\mathbf{X})))$
 
-where here $\mathbf{T}^+$ is the psudo inverse of the model correlation of log-transformed data $\mathbf{T}$ , which relates an i.i.d sample $\mathbf{Z} \in \mathbb{R}^{(r \times N)}$, ($\mathbf{Z} \sim {\cal N}(0,1)$) to $\log_{10}(\mathbf{X})$ 
+where here $\mathbf{T}^+$ is the psudo inverse of the model correlation of log-transformed data $\mathbf{T}$ , which relates an i.i.d sample $\mathbf{Z} \in \mathbb{R}^{(r \times N)}$, ($\mathbf{Z} \sim \cal N(0,1)$) to $\log_{10}(\mathbf{X})$
+
 $\log_{10}(\mathbf{X}) = \mathbf{TZ} + {\sf avg}(\log_{10}(\mathbf{X}))$.  
-$\bf T$ is a spectral full-rank factor of the data covariance of log-transfomred data $\mathbf{C}({\log_{10}(\mathbf{X}))}$, which has an eigen decomposition $\mathbf{C}({\log_{10}(\mathbf{X}))} = \mathbf{V} \mathbf{\Lambda} \mathbf{V}^{\sf T}$, so $\mathbf{T} = \mathbf{V}_r \mathbf{\Lambda}_r^{1/2}$. The (rectangular) psuedo-inverse of $\mathbf{T}^+$ contains the $r$ "non-zero" eigenvalues $\mathbf{\Lambda}_r$ and their corresponding eigenvctors $\mathbf{V}_r$, 
+
+$\bf T$ is a  full-rank factorspectral  of the data covariance of log-transfomred data $\mathbf{C}({\log_{10}(\mathbf{X}))}$, which has an eigen decomposition $\mathbf{C}({\log_{10}(\mathbf{X}))} = \mathbf{V} \mathbf{\Lambda} \mathbf{V}^{\sf T}$, so $\mathbf{T} = \mathbf{V}_r \mathbf{\Lambda}_r^{1/2}$. The (rectangular) psuedo-inverse of $\mathbf{T}^+$ contains the $r$ "non-zero" eigenvalues $\mathbf{\Lambda}_r$ and their corresponding eigenvctors $\mathbf{V}_r$, 
  ($\min({\sf diag}(\mathbf{\Lambda}_r)) > \epsilon \max({\sf diag}(\mathbf{\Lambda}_r))$)
+
  $\mathbf{T}^+ = \mathbf{\Lambda}_r^{-1/2} \mathbf{V}_r^{\sf T}$ ,   ($\mathbf{T}^+ \in \mathbb{R}^{r \times n}$) .  
 
 #### Outlier Removal using Chauvenet's criterion
@@ -281,7 +284,7 @@ $$
 Where:
 
 - Rows correspond to data points $(x_1 , \cdots , x_N)$ 
-- Columns correspond to terms with index $k$ and coefficient $c_{i,k}$,   $\prod_j \psi_{O_{k,j)}}$
+- Columns correspond to terms with index $k$ and coefficient $c_{i,k}$,   $\prod_j \psi_{O_{k,j}}$
 - Each entry is the product of basis functions with given orders, evaluated at that data point
 
 ---
