@@ -22,10 +22,10 @@
 In many engineering and scientific applications, we have:
 
 - **Input variables** $\mathbf{X} = [ X_1, X_2, \cdots , X_n] \in {\mathbb R}^n$ 
-- **Output variables**  $\mathbf{Y} = [Y_1, Y_2, \cdots, Y_n] \in {\mathbb R}^m$ 
+- **Output variables**  $\mathbf{Y} = [Y_1, Y_2, \cdots, Y_m] \in {\mathbb R}^m$ 
 - A complex, possibly nonlinear relationship  $Y = f (X)$ 
 
-The goal is to to make use a set of $N$ measured observations of each input value and each corresponding output value in order to approximate this relationship with a computationally efficient model that:
+The goal is to to make use a sample of $N$ measured observations of each input value and each corresponding output value in order to approximate this relationship with a computationally efficient model that:
 
 1. Captures nonlinear behavior
 2. Handles high-dimensional inputs  ($n > 20$)
@@ -41,7 +41,7 @@ Traditional approaches face challenges:
 - **Neural networks**: Black-box nature, difficult uncertainty quantification
 - **Kriging/Gaussian processes**: Computational scaling issues for large datasets
 
-**Response surface methods** provide a middle ground: explicit polynomial models with:
+**Response surface methods** provide a middle ground: an explicit polynomial models with:
 
 - Analytical derivatives
 - Uncertainty quantification
@@ -54,26 +54,26 @@ Traditional approaches face challenges:
 
 ### 2.1 General Polynomial Representation
 
-mimo_rs approximates the input-output relationship for each output variable $y_i$ as: 
+**mimo_rs** approximates the input-output relationship for each output variable $y_i$ as: 
 
-$\displaystyle \hat y_i(\mathbf{x}) = \sum_{k=0}^{p-1} c_{i,k} \ \prod_{j=1}^q \psi_{O_{k,j}}(z_j(\mathbf{x}))$
+$\displaystyle \hat y_i(\mathbf{x}) = \sum_{k=0}^{p-1} c_{i,k} \ \prod_{j=1}^r \psi_{O_{k,j}}(z_j(\mathbf{x}))$
 
 Where:
 
-- $z_j(\mathbf{x})$ : the $j$-component of a standardized sample of $\mathbf{X}$, $\mathbf{x} = (x_1, \cdots , x_n)$. Standardization is described below.  
-- $q$: the dimension of $z$, which is set to $n$ or the rank of $\mathbf{X}$, depending on the selected standardization method
-- $c_{i,k}$ : the odel coefficients, which minimize the $\chi^2$ criterion with $L_1$ (LASSO) regularization
-- $\Pi \psi_O$: a basis function, which is a unique product of power polynomial functions of each standardized input variable $(Z_1, \cdots , Z_q)$ with corresponding orders $O_{k,:} = (O_{k,1}, \cdots , O_{k,q})$
+- $z_j(\mathbf{x})$ : the $j$-component of $\mathbf{Z} = [z_1, \cdots, z_r] \in \mathbb{R}^r$ which is a decorrelated sample of $\mathbf{X}$, $\mathbf{x} = (x_1, \cdots , x_n)$ . Decorrelation is described below.  
+- $r$: the rank of $\mathbf{X}$ and the dimension of $\mathbf{z}$, depending on the selected standardization method
+- $c_{i,k}$ : the model coefficients, which minimize the $\chi^2$ criterion with $L_1$ (LASSO) regularization
+- $\Pi \psi_O$: a multivariate polynomial basis function of order $O$, which is a unique product of power polynomial functions of each standardized input variable $(Z_1, \cdots , Z_r)$ with corresponding orders $O_{k,:} = (O_{k,1}, \cdots , O_{k,r})$
   - $p$: Total number of unique terms in the expansion
 
 ### 2.2 The Structure of the Polynomial-Products
 
-Each term in the sum (each column in the basis) is a product of polynomials 
-$\displaystyle \prod_{j=1}^q \psi_{O_{k,j}}( z_j( \mathbf{x} ) )$
+The $k$-th term in the sum above (each column in the model basis) isetsets a product of polynomials $\psi_O(z)$ of order $O$
+$\displaystyle \prod_{j=1}^r \psi_{O_{k,j}}( z_j( \mathbf{x} ) )$
 
 where the $j$-th factor in the polynomial product is a function of the $j$-th standardized input variable $z_j(\mathbf{x})$, and has an order $O_{k,j}$ 
 
-As an example, for a quadratic model in three input variables, $(X_1, X_2, X_3)$, in which $\bf X$ has full rank ($q=n=3$), the model  would have ten terms $(k=0, \cdots , 9)$ with polynomial orders given in the $(10 \times 3)$ *order matrix*, $O$ :
+As an example, for a quadratic model in three input variables, $(X_1, X_2, X_3)$, in which $\bf X$ has full rank ($r=n=3$), the model  would have ten terms $(k=0, \cdots , 9)$ with polynomial orders given in the $(10 \times 3)$ *order matrix*, $O$ :
 
 | $k$ | $O_{k,1}$ | $O_{k,2}$ | $O_{k,3}$ |
 | --- | --------- | --------- | --------- |
@@ -112,12 +112,12 @@ Hermite functions provide:
 
 ### 3.2 Hermite Function Definition
 
-Hermite functions designThe Hermite functions are defined as: 
-$\displaystyle \psi(z) = \frac{1}{\sqrt{2^n \ n! \ \sqrt{\pi} } } \ H_n(z) \ \exp\left(\frac{-z^2}{2} \right)  $
+The Hermite  *functions* are defined as: 
+$\displaystyle \psi(z) = \frac{1}{\sqrt{2^n \ n! \ \sqrt{\pi} } } \ H_O(z) \ \exp\left(\frac{-z^2}{2} \right)  $
 
-* $H_n(z)$ is the Hermite polynomial of order $n$
+* $H_O(z)$ is the Hermite *polynomial* of order $O$
 - $\exp(-z^2/2)$ is Gaussian weight function
-- Normalization ensures orthonormality
+- Normalization ensures orthonormality (for a single input variable ($n=1$))
 
 ### 3.3 Low-Order Hermite Functions
 
@@ -137,11 +137,11 @@ $\displaystyle \psi(z) = \frac{1}{\sqrt{2^n \ n! \ \sqrt{\pi} } } \ H_n(z) \ \ex
 
 ### 3.4 Orthogonality Property of Hermite functions
 
-Hermite functions are orthogonal with respect to a unit weight.  
+Hermite functions are orthogonal with respect to a unit weight over the range of all real values.  
 
-$\displaystyle \int_{-\infty}^\infty \psi_m(z) \psi_n(z) \ dz = \delta_{m.n}$ 
+$\displaystyle \int_{-\infty}^\infty \psi_m(z) \psi_n(z) \ dz = \delta_{m.n}$ over the range of all real values
 
-This orthonormality leads to diagonalization in fitting in one dimension with uniformly-spaced independnet variabes.   And it supports numerical stability for fits in higher dimensions.  
+This orthonormality leads to diagonalization of the basis in fitting in one dimension with uniformly-spaced independnet variabes.   And it supports numerical stability for fits in higher dimensions.  
 
 ---
 
@@ -149,13 +149,13 @@ This orthonormality leads to diagonalization in fitting in one dimension with un
 
 ### Synopsis
 
-mimo_rs follows a three-stage process:
+**mimo_rs** follows a three-stage process:
 
 #### Stage 1: Scaling and Preprocessing
 
-- options to log-transform, scale, standardize or decorrelate the data
+- data are optionally log-transformed, scaled, standardized or decorrelated
 - input data and output data are scaled and decorrelated separately
-- Remove columns of data with one or more outliers
+- columns of data with one or more outliers are removed 
 
 #### Stage 2: Build the order matrix
 
@@ -166,10 +166,9 @@ mimo_rs follows a three-stage process:
 #### Stage 3: Model Fitting and Reduction
 
 - Randomly split the data sets into a training set and a testing set.  
-- Fit full model using least squares with $L_1$ regularization and a specified level of the regularization penalty factor, $\alpha$ .
-- Formulate the $L_1$ regularized problem as a KKT matrix equation with $2n$ inequality constraint.
-- Solve the $L_1$ problem to minimize the quadratic objective subject to $2n$ equality constraint, and therby set a significant number of coefficients $c_{i,k}$ to (nearly) zero.  
-- Continue until tolerance and inequality criteria are met
+- Fit the model using least squares with $L_1$ regularization and a specified level of the regularization penalty factor, $\alpha$ .
+- Formulate the $L_1$ regularized problem as a KKT matrix equation with $2q$ inequality constraint.
+- Solve the $L_1$ problem to minimize the quadratic objective subject to $2q$ equality constraints, and therby set a significant number of coefficients $c_{i,k}$ to (nearly) zero.  
 
 ### 4.1 Scaling and Preprocessing
 
@@ -195,38 +194,52 @@ Centers the data and scales the data to unit variance.
 
 $\mathbf{Z} = (\mathbf{X} - {\sf avg}(\mathbf{X}) ) \ / \ {\sf sdv}(\mathbf{X})$
 
-##### Option 2: Decorrelation (Whitening)
+##### Option 2: Linear Decorrelation (whitening)
 
 Removes linear correlations between variables.
 
 $\mathbf{Z} = \mathbf{T}^+ (\mathbf{X} - {\sf avg}(\mathbf{X}))$
 
-where $\mathbf{T}^+$ is the psudo inverse of the model correlation matrix $\bf T$,  $\mathbf{X} = \mathbf{TZ} + {\sf avg}(\mathbf{X})$.  The square matrix $\bf T$ is the square root of the data covariance matrix $\mathbf{C}(\mathbf{X})$, which has an eigen decomposition  $\mathbf{C}(\mathbf{X}) = \mathbf{V} \Lambda \mathbf{V}^{\sf T}$, so $\mathbf{T} = \mathbf{V} \Lambda^{1/2}$ .  The (rectangular) psuedo-inverse of \mathbf{T}^+ contains the $q$ non-singular eigenvalues $\bar \Lambda$  and their corresponding eigenvctors $\bar{\mathbf{V}}$, $\mathbf{T}^+ = \bar{\Lambda}^{-1/2} \bar{\mathbf{V}}^{\sf T}$  ($q \times n$) .
+where $\mathbf{T}^+$ is the psudo inverse of the model correlation matrix $\bf T$,  which relates an i.i.d. sample,  $\mathbf{Z} \in \mathbb{R}^{(r \times N)}$, ($\mathbf{Z} \sim {\cal N}(0,1)$)  to $\mathbf{X}$ 
+ $\mathbf{X} = \mathbf{TZ} + {\sf avg}(\mathbf{X})
+  $.   
+$\mathbf{T}
+$  is a spectral full-rank factor of the data covariance $\mathbf{C}(\mathbf{X}) = \mathbf{X} \mathbf{X}^{\sf T}/N$ which has an eigenvalue decomposition $\mathbf{C}(\mathbf{X}) = \mathbf{V} \mathbf{\Lambda} \mathbf{V}^{\sf T}$. It is constructed from the $r$ "non-zero" eigenvalues $\mathbf{\Lambda}_r$ of $\mathbf{C}(\mathbf{X})$ and their corresponding eigenvectors $\mathbf{V}_r$.  
+
+($\min({\sf diag}(\mathbf{\Lambda}_r)) > \epsilon \max({\sf diag}(\mathbf{\Lambda}_r))$)
+
+$\mathbf{T} = \mathbf{V}_r \mathbf{\Lambda}_r^{1/2} , (\mathbf{T} \in \mathbb{R}^{n \times r})$.
+
+Eliminating infinitessimal  eigenvalues from the eigenvalue decompostion of the covariance improves numerical conditioning.   The (rectangular) psuedo-inverse of $\mathbf{T}$ is $\mathbf{T}^+ = \mathbf{\Lambda}_r^{-1/2} \mathbf{V}_r^{\sf T}$ , $\mathbf{T}^+ \in \mathbb{R}^{(r \times n)}$ .
 
 ##### Option 3: Log-Standardization
 
-For positive-valued data with multiplicative structure or log-normal distributions.
+Positive-valued data with multiplicative structure or log-normal distributions may be log-transformed before standardization or decorrelation.   
 
 $\mathbf{Z} = (\log_{10}(\mathbf{X}) - {\sf avg}(\log_{10}(\mathbf{X})))  \ / \ {\sf sdv}(\log_{10}(\mathbf{X}))  $
 
-##### Option 4: Log-Decorrelation
+##### Option 4: Log Decorrelation
 
-Combines logarithmic and linear decorrelation.
+Combines log transformation and linear decorrelation.
 
 $\mathbf{Z} = \mathbf{T}^+ (\log_{10}(\mathbf{X}) - {\sf avg}(\log_{10}(\mathbf{X})))$
 
-where here $\mathbf{T}^+$ is the psudo inverse of the model correlation of log-transformed data  $\bf T$, $\log_{10}(\mathbf{X}) = \mathbf{TZ} + {\sf avg}(\log_{10}(\mathbf{X}))$. The square matrix $\bf T$ is the square root of the data covariance of log-transfomred data $\mathbf{C}({\log_{10}(\mathbf{X}))}$, which has an eigen decomposition $\mathbf{C}({\log_{10}(\mathbf{X}))} = \mathbf{V} \Lambda V^{\sf T}$, so $\mathbf{T} = \mathbf{V} \Lambda^{1/2}$. The (rectangular) psuedo-inverse of \mathbf{T}^+ contains the q non-singular eigenvalues $\bar \Lambda$ and their corresponding eigenvctors $\bar{\mathbf{V}}$, $\mathbf{T}^+ = \bar \Lambda^{-1/2} \bar{\mathbf{V}}^{\sf T}$ ($q \times n$) .
+where here $\mathbf{T}^+$ is the psudo inverse of the model correlation of log-transformed data $\mathbf{T}$ , which relates an i.i.d sample $\mathbf{Z} \in \mathbb{R}^{(r \times N)}$, ($\mathbf{Z} \sim {\cal N}(0,1)$) to $\log_{10}(\mathbf{X})$ 
+$\log_{10}(\mathbf{X}) = \mathbf{TZ} + {\sf avg}(\log_{10}(\mathbf{X}))$.  
+$\bf T$ is a spectral full-rank factor of the data covariance of log-transfomred data $\mathbf{C}({\log_{10}(\mathbf{X}))}$, which has an eigen decomposition $\mathbf{C}({\log_{10}(\mathbf{X}))} = \mathbf{V} \mathbf{\Lambda} \mathbf{V}^{\sf T}$, so $\mathbf{T} = \mathbf{V}_r \mathbf{\Lambda}_r^{1/2}$. The (rectangular) psuedo-inverse of $\mathbf{T}^+$ contains the $r$ "non-zero" eigenvalues $\mathbf{\Lambda}_r$ and their corresponding eigenvctors $\mathbf{V}_r$, 
+ ($\min({\sf diag}(\mathbf{\Lambda}_r)) > \epsilon \max({\sf diag}(\mathbf{\Lambda}_r))$)
+ $\mathbf{T}^+ = \mathbf{\Lambda}_r^{-1/2} \mathbf{V}_r^{\sf T}$ ,   ($\mathbf{T}^+ \in \mathbb{R}^{r \times n}$) .  
 
 #### Outlier Removal using Chauvenet's criterion
 
-After scaling, remove data outliers in which a standardized data value $z$  exceeds criteria limits.  
+After scaling, **mimo_rs** removes data outliers in which a standardized data value $z$  exceeds criteria limits.  
 $|z| > 0.8 + 0.4 \log(N)$ 
 
 Here, $0.8 + 0.4 \log(N)$  is a a simple approximiation to Chauvent's criterion. 
 
 Rationale:
 
-- Hermite functions designed for $\sim \cal N(0,1)$
+- Hermite functions designed for $\mathbf{Z} \sim \cal N(0,1)$
 - Extreme values degrade approximation
 - Removes potential data errors
 
@@ -235,7 +248,7 @@ Rationale:
 The algorithm generates the unique rows of the order matrix $O$ for a model order of $\hat O$ such that 
 $0 \leq O_{k,j} \leq \hat O$  
 and 
-$\displaystyle \sum_{j=0}^q O_{k,j} \leq \hat O$
+$\displaystyle \sum_{j=0}^r O_{k,j} \leq \hat O$
 
 This creates a structured polynomial space with controlled complexity.
 
@@ -250,16 +263,16 @@ This creates a structured polynomial space with controlled complexity.
 [0,2] → ψ₀(Z₁)ψ₂(Z₂) = quadratic in Z₂
 ```
 
-### 4.3 Construction of the Matrix of model basis vectors
+mimo_rs### 4.3 Construction of the Matrix of model basis vectors
 
 The model basis $\bf B$ has structure:
 
 $$
 \displaystyle \mathbf{B} = \begin{bmatrix} 
-\prod_{j=1}^q \psi_{O_{0,j}}(z_j(\mathbf{x}_1)) & \ldots & \prod_{j=1}^q \psi_{O_{p-1,j}}(z_j(\mathbf{x}_1)) \\ 
-\prod_{j=1}^q \psi_{O_{0,j}}(z_j(\mathbf{x}_2)) & \ldots & \prod_{j=1}^q \psi_{O_{p-1,j}}(z_j(\mathbf{x}_2)) \\ 
+\prod_{j=1}^r \psi_{O_{0,j}}(z_j(\mathbf{x}_1)) & \ldots & \prod_{j=1}^r \psi_{O_{p-1,j}}(z_j(\mathbf{x}_1)) \\ 
+\prod_{j=1}^r \psi_{O_{0,j}}(z_j(\mathbf{x}_2)) & \ldots & \prod_{j=1}^r \psi_{O_{p-1,j}}(z_j(\mathbf{x}_2)) \\ 
 \vdots & \cdots & \vdots \\ 
-\prod_{j=1}^q \psi_{O_{0,j}}(z_j(\mathbf{x}_N)) & \ldots & \prod_{j=1}^q \psi_{O_{p-1,j}}(z_j(\mathbf{x}_N)) 
+\prod_{j=1}^r \psi_{O_{0,j}}(z_j(\mathbf{x}_N)) & \ldots & \prod_{j=1}^r \psi_{O_{p-1,j}}(z_j(\mathbf{x}_N)) 
 \end{bmatrix}
 $$
 
@@ -275,9 +288,9 @@ Where:
 
 Given:
 
-- $\bf Z$: Scaled input data (nInp × mData)
-- $\bf Y$: Output data (nOut × mData)
-- $\bf B$: Basis matrix (mData × nTerm)
+- $\bf Z$: Scaled input data (r × N)
+- $\bf Y$: Output data (m × N)
+- $\bf B$: Basis matrix (N × p)
 
 The coefficients are found by minimizing the L1 regularized objective:
 $\displaystyle \min_\mathbf{c} || \mathbf{B} \mathbf{c} - \mathbf{y} ||_2 + \alpha || \mathbf{c}||_1$
@@ -293,12 +306,13 @@ Measures explained variance:
 $R^2 = 1 - ( {\sf RSS} / {\sf TSS} )$
 
 Where:
+
 - ${\sf RSS} = \sum ( y_i - \hat y_i )^2$  (residual sum of squares) 
 - ${\sf TSS} = \sum ( y_i - {\sf avg}(\mathbf{y}) )^2$  (total sum of squares) 
 
-Interpretation:
+Interpretation:2 \pi \
 
-- $R^1 = 1$: Perfect fit
+- $R^2 = 1$: Perfect fit
 - $R^2 = 0$: Model no better than mean
 - $R^2 < 0$: Model worse than mean (on test data)
 
@@ -306,9 +320,11 @@ Interpretation:
 
 Penalizes model complexity:
 
-$R^2_{\sf adj} = ((m-1) R^2 - {\sf length}(\mathbf{c}) ) / (m - {\sf length}(\mathbf{c})  )$
+$R^2_{\sf adj} = ((N-1) R^2 - p) ) / (N - p)  )$
 
-Why adjust?
+where $p$ is the number of coefficients in the model and $N$ is the sample size of measured observations.  
+
+  Why adjust?
 
 - Raw $R^2$ always increases with more terms
 - $R^2_{\sf adj}$  accounts for degrees of freedom
@@ -357,11 +373,11 @@ Interpretation:
 
 ### 5.6 Akaike Infomation Criterion (AIC)
 
-${\sf AIC} = \log( 2 \pi \cdot NV ) + NV + 2 N$
+${\sf AIC} = \log( 2 \pi \cdot p \sigma^2_{\sf r} ) + p \sigma_{\sf r}^2 + 2 N$
 
-where N is the number of coefficients in the model and  V is the covariance of the residuals
+where $p$ is the number of coefficients in the model and  $\sigma^2_{\sf r}$ is the variance of the residuals
 
-Measures over-fitting.    
+Measures over-fitting.    2 \pi \
 
 Interpretation:
 
