@@ -208,11 +208,13 @@ where $\mathbf{T}^+$ is the psudo inverse of the model correlation matrix $\bf T
 $\mathbf{T}
 $  is a full-rank spectral factor of the data covariance $\mathbf{C}(\mathbf{X}) = \mathbf{X} \mathbf{X}^{\sf T}/N$ which has an eigenvalue decomposition $\mathbf{C}(\mathbf{X}) = \mathbf{V} \mathbf{\Lambda} \mathbf{V}^{\sf T}$. It is constructed from the $r$ "non-zero" eigenvalues $\mathbf{\Lambda}_r$ of $\mathbf{C}(\mathbf{X})$ and their corresponding eigenvectors $\mathbf{V}_r$.  
 
-($\min({\sf diag}(\mathbf{\Lambda}_r)) > \epsilon \max({\sf diag}(\mathbf{\Lambda}_r))$)
+$\min({\sf diag}(\mathbf{\Lambda}_r)) > \epsilon \max({\sf diag}(\mathbf{\Lambda}_r))$
 
 $\mathbf{T} = \mathbf{V}_r \mathbf{\Lambda}_r^{1/2} , (\mathbf{T} \in \mathbb{R}^{n \times r})$.
 
-Eliminating infinitessimal  eigenvalues from the eigenvalue decompostion of the covariance improves numerical conditioning.   The (rectangular) psuedo-inverse of $\mathbf{T}$ is $\mathbf{T}^+ = \mathbf{\Lambda}_r^{-1/2} \mathbf{V}_r^{\sf T}$ , $\mathbf{T}^+ \in \mathbb{R}^{(r \times n)}$ .
+Eliminating infinitessimal  eigenvalues from the eigenvalue decompostion of the covariance improves numerical conditioning.   The (rectangular) psuedo-inverse of $\mathbf{T}$ is 
+
+$\mathbf{T}^+ = \mathbf{\Lambda}_r^{-1/2} \mathbf{V}_r^{\sf T}$ , $\mathbf{T}^+ \in \mathbb{R}^{(r \times n)}$ .
 
 ##### Option 3: Log-Standardization
 
@@ -230,8 +232,13 @@ where here $\mathbf{T}^+$ is the psudo inverse of the model correlation matrix f
 
 $\log_{10}(\mathbf{X}) = \mathbf{TZ} + {\sf avg}(\log_{10}(\mathbf{X}))$.  
 
-$\bf T$ is a  full-rank spectral factor of the data covariance of log-transfomred data $\mathbf{C}({\log_{10}(\mathbf{X}))}$, which has an eigen decomposition $\mathbf{C}({\log_{10}(\mathbf{X}))} = \mathbf{V} \mathbf{\Lambda} \mathbf{V}^{\sf T}$, so $\mathbf{T} = \mathbf{V}_r \mathbf{\Lambda}_r^{1/2}$. The (rectangular) psuedo-inverse of $\mathbf{T}^+$ contains the $r$ "non-zero" eigenvalues $\mathbf{\Lambda}_r$ and their corresponding eigenvctors $\mathbf{V}_r$, 
- ($\min({\sf diag}(\mathbf{\Lambda}_r)) > \epsilon \max({\sf diag}(\mathbf{\Lambda}_r))$)
+$\bf T$ is a  full-rank spectral factor of the data covariance of log-transfomred data $\mathbf{C}({\log_{10}(\mathbf{X}))}$, which has an eigen decomposition $\mathbf{C}({\log_{10}(\mathbf{X}))} = \mathbf{V} \mathbf{\Lambda} \mathbf{V}^{\sf T}$.  It is constructed from the $r$ "non-zero" eigenvalues $\mathbf{\Lambda}_r$ of $\mathbf{C}(\mathbf{X})$ and their corresponding eigenvectors $\mathbf{V}_r$.
+
+$\min({\sf diag}(\mathbf{\Lambda}_r)) > \epsilon \max({\sf diag}(\mathbf{\Lambda}_r))$
+
+ $\mathbf{T} = \mathbf{V}_r \mathbf{\Lambda}_r^{1/2}$. 
+
+The (rectangular) psuedo-inverse of $\mathbf{T}$  is
 
  $\mathbf{T}^+ = \mathbf{\Lambda}_r^{-1/2} \mathbf{V}_r^{\sf T}$ ,   ($\mathbf{T}^+ \in \mathbb{R}^{r \times n}$) .  
 
