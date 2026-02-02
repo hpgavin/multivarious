@@ -21,8 +21,8 @@
 
 In many engineering and scientific applications, we have:
 
-- **Input variables** $\mathbf{X} = [ X_1, X_2, ..., X_n] \in {\mathbb R}^n$ 
-- **Output variables**  $\mathbf{Y} = [Y_1, Y_2, ..., Y_n] \in {\mathbb R}^m$ 
+- **Input variables** $\mathbf{X} = [ X_1, X_2, \cdots , X_n] \in {\mathbb R}^n$ 
+- **Output variables**  $\mathbf{Y} = [Y_1, Y_2, \cdots, Y_n] \in {\mathbb R}^m$ 
 - A complex, possibly nonlinear relationship  $Y = f (X)$ 
 
 The goal is to to make use a set of $N$ measured observations of each input value and each corresponding output value in order to approximate this relationship with a computationally efficient model that:
@@ -60,10 +60,10 @@ $\displaystyle \hat y_i(\mathbf{x}) = \sum_{k=0}^{p-1} c_{i,k} \ \prod_{j=1}^q \
 
 Where:
 
-- $z_j(\mathbf{x})$ : the $j$-component of a standardized sample of $\mathbf{X}$, $\mathbf{x} = (x_1, ..., x_n)$. Standardization is described below.  
+- $z_j(\mathbf{x})$ : the $j$-component of a standardized sample of $\mathbf{X}$, $\mathbf{x} = (x_1, \cdots , x_n)$. Standardization is described below.  
 - $q$: the dimension of $z$, which is set to $n$ or the rank of $\mathbf{X}$, depending on the selected standardization method
 - $c_{i,k}$ : the odel coefficients, which minimize the $\chi^2$ criterion with $L_1$ (LASSO) regularization
-- $\Pi \psi_O$: a basis function, which is a unique product of power polynomial functions of each standardized input variable $(Z_1, ..., Z_q)$ with corresponding orders $O_{k,:} = (O_{k,1}, ..., O_{k,q})$
+- $\Pi \psi_O$: a basis function, which is a unique product of power polynomial functions of each standardized input variable $(Z_1, \cdots , Z_q)$ with corresponding orders $O_{k,:} = (O_{k,1}, \cdots , O_{k,q})$
   - $p$: Total number of unique terms in the expansion
 
 ### 2.2 The Structure of the Polynomial-Products
@@ -73,7 +73,7 @@ $\displaystyle \prod_{j=1}^q \psi_{O_{k,j}}( z_j( \mathbf{x} ) )$
 
 where the $j$-th factor in the polynomial product is a function of the $j$-th standardized input variable $z_j(\mathbf{x})$, and has an order $O_{k,j}$ 
 
-As an example, for a quadratic model in three input variables, $(X_1, X_2, X_3)$, in which $\bf X$ has full rank ($q=n=3$), the model  would have ten terms $(k=0, ..., 9)$ with polynomial orders given in the $(10 \times 3)$ *order matrix*, $O$ :
+As an example, for a quadratic model in three input variables, $(X_1, X_2, X_3)$, in which $\bf X$ has full rank ($q=n=3$), the model  would have ten terms $(k=0, \cdots , 9)$ with polynomial orders given in the $(10 \times 3)$ *order matrix*, $O$ :
 
 | $k$ | $O_{k,1}$ | $O_{k,2}$ | $O_{k,3}$ |
 | --- | --------- | --------- | --------- |
@@ -90,7 +90,7 @@ As an example, for a quadratic model in three input variables, $(X_1, X_2, X_3)$
 
 so that the polynomial-product expansion is: 
 
-$\hat y_i(\mathbf{x}) = c_{i,0} \ \phi_0(x_1) \phi_0(x_2) \phi_0(x_3) +  c_{i,1} \ \phi_1(x_1) \phi_0(x_2) \phi_0(x_3) +  c_{i,2} \ \phi_0(x_1) \phi_1(x_2) \phi_0(x_3) + \cdots + c_{i,9} \ \phi_0(x_1) \phi_0(x_2) \phi_2(x_3)$.
+$\hat y_i(\mathbf{x}) = c_{i,0} \ \phi_0(z_1) \phi_0(z_2) \phi_0(z_3) +  c_{i,1} \ \phi_1(z_1) \phi_0(z_2) \phi_0(z_3) +  c_{i,2} \ \phi_0(z_1) \phi_1(z_2) \phi_0(z_3) + \cdots + c_{i,9} \ \phi_0(z_1) \phi_0(z_2) \phi_2(z_3)$ \ .
 
 ---
 
@@ -98,7 +98,7 @@ $\hat y_i(\mathbf{x}) = c_{i,0} \ \phi_0(x_1) \phi_0(x_2) \phi_0(x_3) +  c_{i,1}
 
 ### 3.1 Why Hermite Functions?
 
-Standard power polynomials $(1, x, x^2, x^3, ... )$ have problems:
+Standard power polynomials $(1, x, x^2, x^3, \cdots )$ have problems:
 
 - **Numerical instability** for high orders
 - **Poor conditioning** of basis matrices
@@ -138,7 +138,9 @@ $\displaystyle \psi(z) = \frac{1}{\sqrt{2^n \ n! \ \sqrt{\pi} } } \ H_n(z) \ \ex
 ### 3.4 Orthogonality Property of Hermite functions
 
 Hermite functions are orthogonal with respect to a unit weight.  
+
 $\displaystyle \int_{-\infty}^\infty \psi_m(z) \psi_n(z) \ dz = \delta_{m.n}$ 
+
 This orthonormality leads to diagonalization in fitting in one dimension with uniformly-spaced independnet variabes.   And it supports numerical stability for fits in higher dimensions.  
 
 ---
@@ -166,7 +168,7 @@ mimo_rs follows a three-stage process:
 - Randomly split the data sets into a training set and a testing set.  
 - Fit full model using least squares with $L_1$ regularization and a specified level of the regularization penalty factor, $\alpha$ .
 - Formulate the $L_1$ regularized problem as a KKT matrix equation with $2n$ inequality constraint.
-  - Solve the $L_1$ problem to minimize the quadratic objective subject to $2n$ equality constraint, and therby set a significant number of coefficients $c_{i,k}$ to (nearly) zero.  
+- Solve the $L_1$ problem to minimize the quadratic objective subject to $2n$ equality constraint, and therby set a significant number of coefficients $c_{i,k}$ to (nearly) zero.  
 - Continue until tolerance and inequality criteria are met
 
 ### 4.1 Scaling and Preprocessing
@@ -254,16 +256,16 @@ The model basis $\bf B$ has structure:
 
 $$
 \displaystyle \mathbf{B} = \begin{bmatrix} 
-\prod_{j=1}^q \psi_{O_{0,j}}(z_j(x_1)) & \ldots & \prod_{j=1}^q \psi_{O_{p-1,j}}(z_j(x_1)) \\ 
-\prod_{j=1}^q \psi_{O_{0,j}}(z_j(x_2)) & \ldots & \prod_{j=1}^q \psi_{O_{p-1,j}}(z_j(x_2)) \\ 
+\prod_{j=1}^q \psi_{O_{0,j}}(z_j(\mathbb{x}_1)) & \ldots & \prod_{j=1}^q \psi_{O_{p-1,j}}(z_j(\mathbb{x}_1)) \\ 
+\prod_{j=1}^q \psi_{O_{0,j}}(z_j(\mathbb{x}_2)) & \ldots & \prod_{j=1}^q \psi_{O_{p-1,j}}(z_j(\mathbb{x}_2)) \\ 
 \vdots & \cdots & \vdots \\ 
-\prod_{j=1}^q \psi_{O_{0,j}}(z_j(x_N)) & \ldots & \prod_{j=1}^q \psi_{O_{p-1,j}}(z_j(x_N)) 
+\prod_{j=1}^q \psi_{O_{0,j}}(z_j(\mathbb{x}_N)) & \ldots & \prod_{j=1}^q \psi_{O_{p-1,j}}(z_j(\mathbb{x}_N)) 
 \end{bmatrix}
 $$
 
 Where:
 
-- Rows correspond to data points $(x_1 , ... , x_N)$ 
+- Rows correspond to data points $(x_1 , \cdots , x_N)$ 
 - Columns correspond to terms with index $k$ and coefficient $c_{i,k}$,   $\prod_j \psi_{O_{k,j)}}$
 - Each entry is the product of basis functions with given orders, evaluated at that data point
 
@@ -291,15 +293,14 @@ Measures explained variance:
 $R^2 = 1 - ( {\sf RSS} / {\sf TSS} )$
 
 Where:
-
-- ${\sf RSS} = \sum (y_i - \hat y_i)^2$  (residual sum of squares)
-- ${\sf TSS} = \sum(y_i - {\sf avg}(\mathbf{y}))^2$  (total sum of squares)
+- ${\sf RSS} = \sum ( y_i - \hat y_i )^2$  (residual sum of squares) 
+- ${\sf TSS} = \sum ( y_i - {\sf avg}(\mathbf{y}) )^2$  (total sum of squares) 
 
 Interpretation:
 
-- R² = 1: Perfect fit
-- R² = 0: Model no better than mean
-- R² < 0: Model worse than mean (on test data)
+- $R^1 = 1$: Perfect fit
+- $R^2 = 0$: Model no better than mean
+- $R^2 < 0$: Model worse than mean (on test data)
 
 ### 5.2 Adjusted R-Squared $R^2_{\sf adj}$
 
@@ -316,6 +317,7 @@ Why adjust?
 ### 5.3 Model-Data Correlation (ρ)
 
 Pearson correlation between predictions and observations:
+
 $\rho = C_{Y, \hat{Y}} / \left( \sqrt{C_{{Y}, {Y}}} \sqrt{C_{\hat {Y}, \hat {Y}}} \right)$
 
 Advantages over R²:
@@ -327,9 +329,11 @@ Advantages over R²:
 ### 5.4 Coefficient of Variation (COV) of each coefficient
 
 For each coefficient:
+
 ${\sf COV}(c_{i,k}) = {\sf ASE}(c_{i,k}) / | \hat c_{i,k} |$ 
 
 Where
+
 ${\sf ASE}(c_{i,k})$ is the asymptotic standard error of the coefficient 
 
 Interpretation:
@@ -345,9 +349,9 @@ $\kappa(B) = || \mathbf{B} || \cdot || \mathbf{B}^{-1} ||$
 
 Interpretation:
 
-- κ < 100: Well-conditioned
-- 100 < κ < 1000: Moderate conditioning
-- κ > 1000: Ill-conditioned, numerical issues possible
+- $\kappa < 100$: Well-conditioned
+- $100 < \kappa < 1000$: Moderate conditioning
+- $\kappa > 1000$: Ill-conditioned, numerical issues possible
 
 ---
 
