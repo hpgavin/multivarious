@@ -354,7 +354,7 @@ def scale_data(Data, scaling):
         Data = np.log(Data);
 
     meanD   = np.mean(Data, axis=1, keepdims=True)
-    covData =  np.cov(Data, ddof=1)
+    covData =  np.cov(Data, ddof=1) # data covariance
 
     if not np.isfinite(covData).all():
         print('  mimo_rs: data covariance has infinite or NaN values \n\n')
@@ -370,15 +370,17 @@ def scale_data(Data, scaling):
     
     if scaling == 2 or scaling == 4: # subtract mean and decorrelate
         if n > 1:
-            eVal, eVec = np.linalg.eig(covData)               # eig decomp
-            idx = eVal > 1e-6*max(eVal)                       # +'ve eigenvals
+            eVal, eVec = np.linalg.eigh(covData)      # eig decomp of symm matx
+            idx = eVal > 1e-6*max(eVal)               # +'ve eigenvals
             T = (eVec[:,idx]) @ np.sqrt(np.diag(eVal[idx]))
             invT = np.diag(np.sqrt(1.0 / eVal[idx])) @ eVec[:,idx].T
             nCut = np.sum(eVal < 1e-6*max(eVal))
             if nCut > 0:
-                print(f'  Basis reduced by {nCut} dimension(s)\n')
-            #print(f'eVal = {eVal} , idx = {idx}')
-            #print(f'T = {T} , invT = {invT} ,  I2 = {invT @ T}')
+                print(f'  eVal ratio = {np.max(eVal)/np.min(eVal)}')
+                print(f'  Basis reduced by {nCut} dimension(s)')
+                print(f'  eVal ratio = {np.max(eVal)/eVal[nCut]}\n')
+                #print(f'eVal = {eVal} , idx = {idx}')
+                #print(f'T = {T} , invT = {invT} ,  I2 = {invT @ T}')
     
     # correlation matrix
     if n > 1:
@@ -807,7 +809,7 @@ def fit_model(Zx, Zy, ordr, nTerm, mData, L1_pnlty, basis_fctn):
     if L1_pnlty > 0:
         # Use L1_fit for regularization
         try:
-            from multivarious.opt.L1_fit import L1_fit
+            from multivarious.fit.L1_fit import L1_fit
             from multivarious.utl.L1_plots import L1_plots
 
             for io in range(nZy):
@@ -1021,7 +1023,7 @@ def print_model_stats(coeff, order, coeffCOV, MDcorr, R2adj, AIC, scaling, scali
         print('  Response Surface Coefficients')
         
         # Print header
-        header = '    i  '
+        header = '    k  '
         for ii in range(nZx):
             if scaling[0] > 0:
                 header += f' z{ii+1:02d} '
@@ -1046,12 +1048,12 @@ def print_model_stats(coeff, order, coeffCOV, MDcorr, R2adj, AIC, scaling, scali
             print(line)
         
         print()
-        print(f'  X scaling option          = {scaling[0]:3d}: {scaling_names[scaling[0]]}')
-        print(f'  Y scaling option          = {scaling[1]:3d}: {scaling_names[scaling[1]]}')
-        print(f'  Total Number of Terms     = {retained_terms:4d} out of {nTerm:4d}')
-        print(f'  Akaike Information Critrion {io + 1} = {AIC[io]:7.3f}')
-        print(f'  Adjusted R-square {io + 1}           = {R2adj[io]:7.3f}')
-        print(f'  model-data correlation {io + 1}      = {MDcorr[io]:7.3f}')
+        print(f'  X scaling option                      = {scaling[0]:3d}: {scaling_names[scaling[0]]}')
+        print(f'  Y scaling option                      = {scaling[1]:3d}: {scaling_names[scaling[1]]}')
+        print(f'  Total Number of Terms                 = {retained_terms:4d} out of {nTerm:4d}')
+        print(f'  Akaike Information Criterion          = {AIC[io]:7.3f}')
+        print(f'  Adjusted R-square                     = {R2adj[io]:7.3f}')
+        print(f'  model-data correlation                = {MDcorr[io]:7.3f}')
     
     # Estimate time remaining
     # import time

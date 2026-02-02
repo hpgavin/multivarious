@@ -24,7 +24,7 @@ This script demonstrates:
 
 import numpy as np
 import matplotlib.pyplot as plt
-from multivarious.opt import mimo_rs
+from multivarious.fit import mimo_rs
 
 def example_1_simple_polynomial():
     """
@@ -174,7 +174,7 @@ def example_4_with_decorrelation():
     dataX[0, :] = 100  * np.random.randn(mData)   # Large scale
     dataX[1, :] = 1.00 * np.random.randn(mData)   # Small scale
     dataX[2, :] = 1.1*dataX[0,:] + 1.0*dataX[1,:] # Correlated inputs .. Y
-#   dataX[2, :] = 0.1*dataX[0,:] + 10*dataX[1,:]  # Correlated inputs .. logY
+    dataX[2, :] = 0.1*dataX[0,:] + 10*dataX[1,:]  # Correlated inputs .. logY
     
     # Generate output
     dataY = np.zeros((nOut, mData))
@@ -197,9 +197,9 @@ def example_4_with_decorrelation():
         dataX, dataY,
         max_order=2,
         pTrain=70,
-        scaling = np.array([ 2 , 4 ]), 
+        scaling = np.array([ 2 , 2 ]), 
         L1_pnlty = 220,        # L1 regularization penalty 
-        basis_fctn='L',        # H: Hermite L: Legendre P: Power 
+        basis_fctn='H',        # H: Hermite L: Legendre P: Power 
         var_names = xy_names ) # variable names
 
     return
@@ -295,19 +295,21 @@ def main():
     # Run examples
     print("\n\nRunning examples (this may take a few minutes)...\n")
 
+    '''
     # Example 1 - simple polynomial
     order1, coeff1, testModelY1, testX1, testY1 = example_1_simple_polynomial()
 
-    '''
     # Example 2: multi-output
     order2, coeff2, testModelY2, testX2, testY2 = example_2_multi_output()
     
     # Example 3: multi-input
     order3, coeff3, testModelY3, testX3, testY3 = example_3_multi_input()
+    '''
     
     # Example 4: scaling and decorrelation
     example_4_with_decorrelation()
 
+    '''
     # Example 5: Basis comparison
     example_5_basis_comparison()
 
