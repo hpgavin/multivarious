@@ -200,9 +200,11 @@ Removes linear correlations between variables.
 
 $\mathbf{Z} = \mathbf{T}^+ (\mathbf{X} - {\sf avg}(\mathbf{X}))$
 
-where $\mathbf{T}^+$ is the psudo inverse of the model correlation matrix $\bf T$,  which relates an i.i.d. sample,  $\mathbf{Z} \in \mathbb{R}^{(r \times N)}$, ($\mathbf{Z} \sim {\cal N}(0,1)$)  to $\mathbf{X}$ 
+where $\mathbf{T}^+$ is the psudo inverse of the model correlation matrix $\bf T$,  which relates an i.i.d. sample,  $\mathbf{Z} \in \mathbb{R}^{(r \times N)}$, $\mathbf{Z} \sim {\cal N}(0,1)$) to $\mathbf{X}$ . 
+
  $\mathbf{X} = \mathbf{TZ} + {\sf avg}(\mathbf{X})
   $.   
+
 $\mathbf{T}
 $  is a spectral full-rank factor of the data covariance $\mathbf{C}(\mathbf{X}) = \mathbf{X} \mathbf{X}^{\sf T}/N$ which has an eigenvalue decomposition $\mathbf{C}(\mathbf{X}) = \mathbf{V} \mathbf{\Lambda} \mathbf{V}^{\sf T}$. It is constructed from the $r$ "non-zero" eigenvalues $\mathbf{\Lambda}_r$ of $\mathbf{C}(\mathbf{X})$ and their corresponding eigenvectors $\mathbf{V}_r$.  
 
@@ -310,7 +312,7 @@ Where:
 - ${\sf RSS} = \sum ( y_i - \hat y_i )^2$  (residual sum of squares) 
 - ${\sf TSS} = \sum ( y_i - {\sf avg}(\mathbf{y}) )^2$  (total sum of squares) 
 
-Interpretation:2 \pi \
+Interpretation:
 
 - $R^2 = 1$: Perfect fit
 - $R^2 = 0$: Model no better than mean
@@ -346,7 +348,7 @@ Advantages over R²:
 
 For each coefficient:
 
-${\sf COV}(c_{i,k}) = {\sf ASE}(c_{i,k}) / | \hat c_{i,k} |$ 
+${\sf COV}(c_{i,k}) = {\sf ASE}(c_{i,k}) / |\hat c_{i,k}|$ 
 
 Where
 
@@ -377,7 +379,7 @@ ${\sf AIC} = \log( 2 \pi \cdot p \sigma^2_{\sf r} ) + p \sigma_{\sf r}^2 + 2 N$
 
 where $p$ is the number of coefficients in the model and  $\sigma^2_{\sf r}$ is the variance of the residuals
 
-Measures over-fitting.    2 \pi \
+Measures over-fitting.   
 
 Interpretation:
 
