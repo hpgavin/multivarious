@@ -16,4 +16,4 @@ from .lers_2d import lers_2d
 from .psd import psd
 from .taper import taper
 
-__all__ = [ "accel2displ" , "autocorr", "butter_synth_ss", "cdiff", "chrip", "csd", "eqgm_1d", "ftdsp", "psd", "taper", ]
+__all__ = [ "accel2displ" , "autocorr", "butter_synth_ss", "cdiff", "chrip", "csd", "eqgm_1d", "ftdsp", "lers_2d", "psd", "taper", ]

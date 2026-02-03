@@ -20,7 +20,7 @@ https://people.duke.edu/~hpgavin/SystemID/linear-least-sqaures.pdf
 import numpy as np
 import matplotlib.pyplot as plt
 from scipy.stats import norm
-from multivarious.utl.plot_CDF_ci import plot_CDF_ci
+from multivarious.utl.plot_ECDF_ci import plot_ECDF_ci
 
 
 def poly_fit(x, y, p, figNo=0, Sy=None, rof=None, b=0.0):
@@ -307,6 +307,6 @@ def _plot_results(x, y, x_fit, y_fit, B, c, Sy_fit, Vr,
     
     plt.tight_layout()
     
-    # Figure 3: CDF of residuals with confidence intervals
-    plot_CDF_ci(residuals, 95, figNo + 2)
+    # Figure 3: ECDF of residuals with confidence intervals
+    plot_ECDF_ci(residuals, 95, figNo + 2)
 

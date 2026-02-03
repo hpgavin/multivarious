@@ -11,8 +11,8 @@ module filename (case-sensitive). Re-export all of them here so users may call:
 
 or:
 
-    from multivarious.opt import sqp
-    y = sqp(...)
+    from multivarious.utl import plot_ECDF_ci
+    plot_ECDF_ci(...)
 
 """
 
@@ -29,7 +29,7 @@ from .plot_ensemble import plot_ensemble
 from .plot_lm import plot_lm
 from .plot_opt_surface import plot_opt_surface
 from .plot_spectra import plot_spectra 
-from .plot_CDF_ci import plot_CDF_ci
+from .plot_ECDF_ci import plot_ECDF_ci
 from .L1_plots import L1_plots
 
 
@@ -44,7 +44,7 @@ __all__ = [ "avg_cov_func",
             "plot_lm", 
             "plot_opt_surface", 
             "plot_spectra", 
-            "plot_CDF_ci", 
+            "plot_ECDF_ci", 
             "L1_plots", 
           ]
 

@@ -102,7 +102,7 @@ def inv(P, muX):
     return x
 
 
-def rnd(muX, r, c=None):
+def rnd(muX, N, seed=None):
     '''
     rayleigh.rnd
 
@@ -130,23 +130,18 @@ def rnd(muX, r, c=None):
 
 
     if np.any(muX <= 0) or np.any(np.isinf(muX)):
-        raise ValueError("rayleigh_rnd: muX must be greater than zero")
+        raise ValueError("rayleigh.rnd(muX,N): muX must be greater than zero")
+    if N == None or N < 1:
+        raise ValueError("rayleigh.rnd(muX,N): N must be greater than zero")
 
     # Convert mean to mode
     modeX = muX * np.sqrt(2 / np.pi)
 
-    # Case (1): r is already a matrix of uniform random numbers
-    if c is None and isinstance(r, np.ndarray):
-        u = r
-        r_rows, c_cols = u.shape
-
-    # Case (2): Generate uniform samples with shape (r, c)
-    elif c is not None:
-        u = np.random.rand(r, c)
-        r_rows, c_cols = r, c
-
-    else:
-        raise ValueError("rayleigh_rnd: Either provide a matrix (r) or integers (r, c)")
+    muX = np.atleast_1d(muX)
+    n = len(muX) # number of rows
+    if N is not None:
+        u = np.random.rand(n, N) # uniform random values on [0,1]
+        r_rows, c_cols = n, N
 
     # Broadcast modeX if needed
     if np.isscalar(modeX):
@@ -155,6 +150,8 @@ def rnd(muX, r, c=None):
     # Inverse transform sampling
     x = modeX * np.sqrt(-2.0 * np.log(u))
 
-    return x
+    if n == 1:
+        x = x.flatten()
 
+    return x
 

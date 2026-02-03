@@ -226,6 +226,9 @@ def rnd(medX, covX, N, R=None):
     # Broadcasting: medX and VlnX are (n,), need to reshape for broadcasting with (n, N)
     x = np.exp(np.log(medX[:, np.newaxis]) + Y * np.sqrt(VlnX[:, np.newaxis]))
     
+    if n == 1:
+        x = x.flatten()
+
     ''' 
     # current output shape is (n, N). Add this if we want to transpose output:
     if n == 1:
