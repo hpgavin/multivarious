@@ -2,6 +2,7 @@
 # github.com/hpgavin/multivarious ... rvs/exponential
 
 import numpy as np
+from scipy.stats import norm
 
 def pdf(x, muX):
     '''
@@ -80,7 +81,7 @@ def inv(P, muX):
     return X
 
 
-def rnd(muX, r, c):
+def rnd(muX, n, N, R):
     '''
     exponential.rnd
 
@@ -88,26 +89,44 @@ def rnd(muX, r, c):
 
     INPUTS:
         muX  = mean of the exponential distribution
-        r    = number of rows in output sample
-        c    = number of columns in output sample
+        n = number of variables (rows)
+        N = number of values for each variable in the sample (columns)
+        R = correlation matrix (n x n) - not yet implemented
  
     OUTPUT:
-        x    = random samples shaped (r, c)
+        X    = random samples shaped (n, N)
 
     METHOD:
         Use inverse CDF method: x = -muX * log(U), where U ~ Uniform(0,1)
     '''
 
+    # Convert inputs to arrays
+    # Python does not implicitly handle scalars as arrays. 
+    muX = np.atleast_1d(muX).astype(int)
+
+    # Validate n is len(k)  
+    if len(muX) < n:
+        muX = muX[0]*np.ones(n)
+    if len(k) > n:
+        n = len(k)
+    if R is None:
+        R = np.eye(n) # In
+    T = np.eye(n) # In
+
     # Check parameter validity
-    if muX <= 0 or np.isinf(muX):
-        raise ValueError(f"exp_rnd: muX must be > 0 and finite")
+    if np.any(muX <= 0) or np.any(np.isinf(muX)):
+        raise ValueError(f"exp.rnd: muX must be > 0 and finite")
     
-    # Generate standard uniform [0,1]
-    u = np.random.rand(r, c)
+    # Generate correlated standard normal ~N(0,1)
+    Z = np.random.randn(n, N)
+    Y = T * Z
+
+    # Generate correlated standard uniform ~U[0,1]
+    U = norm.cdf(Y)
     
-    # Inverse transform: x = -muX * log(u)
-    x = -muX * np.log(u)
+    # Inverse transform: x = -muX * log(U)
+    X = -muX * np.log(U)
     
-    return x
+    return X
 
 

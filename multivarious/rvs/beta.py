@@ -155,7 +155,7 @@ def rnd(a, b, q, p, N, R=None):
             If None, defaults to identity matrix (uncorrelated samples).
 
     OUTPUT:
-        x : ndarray
+        X : ndarray
             Shape (n, N) array of correlated beta random samples.
             Each row corresponds to one random variable.
             Each column corresponds to one observation.
@@ -181,8 +181,9 @@ def rnd(a, b, q, p, N, R=None):
     '''
     
     # Convert inputs to arrays
-    a = np.atleast_1d(a).astype(float) # Note: we must convert inputs to arrays. 
-    b = np.atleast_1d(b).astype(float) # MATLAB implicitly handles scalars vs arrays. Python does not.
+    # Python does not implicitly handle scalars as arrays. 
+    a = np.atleast_1d(a).astype(float) 
+    b = np.atleast_1d(b).astype(float)
     q = np.atleast_1d(q).astype(float)
     p = np.atleast_1d(p).astype(float)
     
@@ -211,13 +212,13 @@ def rnd(a, b, q, p, N, R=None):
     # Convert R to array and validate its properties
     R = np.asarray(R)
     if R.shape != (n, n):
-        raise ValueError(f"Correlation matrix R must b square {n}×{n}, got {R.shape}")
+        raise ValueError(f"beta.rnd: Correlation matrix R must b square {n}×{n}, got {R.shape}")
     
     if not np.allclose(np.diag(R), 1.0): # diagonals must be 1s
-        raise ValueError("corr_beta_rnd: diagonal of R must equal 1")
+        raise ValueError("beta.rnd: diagonal of R must equal 1")
     
     if np.any(np.abs(R) > 1): # all elements must be [-1, 1] i.e valid correlations
-        raise ValueError("corr_beta_rnd: R values must be between -1 and 1")
+        raise ValueError("beta.rnd: R values must be between -1 and 1")
     # # -------------------------------------- End Input Validations
     
     # Eigenvalue decomposition of correlation matrix: R = V @ Λ @ V^T
@@ -226,7 +227,7 @@ def rnd(a, b, q, p, N, R=None):
     eVal, eVec = np.linalg.eig(R)
     
     if np.any(eVal < 0):
-        raise ValueError("corr_beta_rnd: R must be positive definite")
+        raise ValueError("beta.rnd: R must be positive definite")
     
     # Generate independent standard normal samples: Z ~ N(0, I)
     Z = np.random.randn(n, N) 
@@ -240,8 +241,11 @@ def rnd(a, b, q, p, N, R=None):
     U = norm.cdf(Y)
     
     # Transform each variable to its beta distribution via inverse CDF
-    x = np.zeros((n, N))
+    X = np.zeros((n, N))
     for i in range(n):
-        x[i, :] = inv(U[i, :], a[i], b[i], q[i], p[i])
-    
-    return x
+        X[i, :] = inv(U[i, :], a[i], b[i], q[i], p[i])
+        
+    if n == 1:
+        X = X.flatten()
+
+    return X

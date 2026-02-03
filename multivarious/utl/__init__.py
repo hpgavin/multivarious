@@ -20,6 +20,7 @@ or:
 
 from .avg_cov_func import avg_cov_func
 from .box_constraint import box_constraint
+from .fix_R import fix_R
 from .format_bank import format_bank
 from .format_plot import format_plot
 from .opt_options import opt_options
@@ -35,6 +36,7 @@ from .L1_plots import L1_plots
 
 __all__ = [ "avg_cov_func", 
             "box_constraint", 
+            "fix_R", 
             "format_bank", 
             "format_plot", 
             "opt_options", 

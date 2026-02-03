@@ -17,7 +17,7 @@ def pdf(x, m, c):
     m : float
         Mean of the distribution
     c : float
-        Coefficient of variation (std/mean), must be ≥ 0.5
+        Coefficient of variation (sdv/mean), must be ≥ 0.5
 
     Output
     ------
@@ -50,7 +50,7 @@ def cdf(x, params):
         Evaluation points
     params : sequence of floats
         [m, c] where m is the mean of the distribution and c is the
-        coefficient of variation (std/mean)
+        coefficient of variation (sdv/mean)
 
     Output
     ------
@@ -124,7 +124,7 @@ def inv(P, m, c):
     return x_new                    # return final quantiles
 
 
-def rnd(m, c, R, C):
+def rnd(m, c, n, N):
     '''
     gamma.rnd
 
@@ -136,15 +136,15 @@ def rnd(m, c, R, C):
     m : float
         Mean of the distribution
     c : float
-        Coefficient of variation (std/mean)
-    R : int
-        Number of rows in the output
-    C : int
-        Number of columns in the output
+        Coefficient of variation (sdv/mean)
+    n : int
+        Number of random variables (rows) 
+    N : int
+        Number of values of each random variable (columns)
 
     Output
     ------
-    x : ndarray of shape (R, C)
+    X : ndarray of shape (n, N)
         Random samples drawn from the Gamma distribution
 
     Reference
@@ -153,5 +153,11 @@ def rnd(m, c, R, C):
     '''
     k = 1.0 / c**2                  # shape parameter
     theta = c**2 * m                # scale parameter
-    x = np.random.gamma(shape=k, scale=theta, size=(R, C))  # draw samples using NumPy’s gamma RNG
-    return x
+    # draw samples using NumPy’s gamma RNG
+    X = np.random.gamma(shape=k, scale=theta, size=(n, N)) 
+
+    if n == 1:
+        X = X.flatten()
+
+    return X
+

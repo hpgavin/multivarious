@@ -131,7 +131,7 @@ def rnd(a, b, r, c=None, seed=None):
             Random seed for reproducibility
     
     Output:
-        x : ndarray
+        X : ndarray
             Random samples from the quadratic distribution
     """
     # Setup random number generator
@@ -152,7 +152,7 @@ def rnd(a, b, r, c=None, seed=None):
         raise ValueError("quadratic_rnd: Either provide a matrix (r) or integers (r, c)")
     
     # Solve cubic for each u value
-    x = np.zeros((r_dim, c_dim))
+    X = np.zeros((r_dim, c_dim))
     for i in range(r_dim):
         for j in range(c_dim):
             coeffs = [
@@ -168,6 +168,9 @@ def rnd(a, b, r, c=None, seed=None):
             if len(valid_roots) != 1:
                 raise ValueError(f"Expected 1 root in ({a}, {b}), found {len(valid_roots)}")
             
-            x[i, j] = valid_roots[0]
+            X[i, j] = valid_roots[0]
     
-    return x
+    if r_dim == 1: 
+        X = X.flatten()
+
+    return X

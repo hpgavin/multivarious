@@ -98,7 +98,7 @@ def inv(p, k):
     return x
 
 
-def rnd(k, R, C):
+def rnd(k, n, N, R):
     '''
     chi2.rnd
 
@@ -107,24 +107,44 @@ def rnd(k, R, C):
 
     INPUTS:
       k = degrees of freedom (must be > 0)
-      R = number of rows in output
-      C = number of columns in output
+      n = number of variables (rows)
+      N = number of values for each variable in the sample (columns)
+      R = correlation matrix (n x n) - not yet implemented
  
     OUTPUT:
-      X = random samples from Chi-squared(k), shape (R, C)
+      X = random samples from Chi-squared(k), shape (n, N)
     '''
-    if k <= 0:
-        raise ValueError("Degrees of freedom k must be > 0")
+
+    # Convert inputs to arrays
+    # Python does not implicitly handle scalars as arrays. 
+    k = np.atleast_1d(k).astype(int)
+
+    # Validate n is len(k)  
+    if len(k) < n:
+        k = k[0]*np.ones(n)
+    if len(k) > n:
+        n = len(k)
+    if R is None:
+        R = np.eye(n) # In
+    T = np.eye(n) # In
+    
+    # Validate k is not negative 
+    if np.any(k <= 0) or np.any(np.isinf(k)):
+        raise ValueError("chi2.rnd: Degrees of freedom k must be > 0")
 
     # Wilson-Hilferty transformation parameters
     m = 1 - 2 / (9 * k)
     s = np.sqrt(2 / (9 * k))
 
     # Standard normal random matrix
-    Z = np.random.randn(R, C)
+    Z = np.random.randn(n, N)
+    Y = T * Z
 
     # Apply transformation
-    X = k * (m + s * Z) ** 3
+    X = k * (m + s * Y) ** 3
+
+    if n == 1:
+        X = X.flatten()
 
     return X
 

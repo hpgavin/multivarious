@@ -52,7 +52,7 @@ def rnd(muX, cvX, r, c=None):
         c   : cols (optional)
 
     Returns:
-        x : random samples of shape (r,c) or shape of r
+        X : random samples of shape (r,c) or shape of r
     """
     if np.any(np.asarray(muX) <= 0):
         raise ValueError("muX must be > 0")
@@ -70,4 +70,9 @@ def rnd(muX, cvX, r, c=None):
     scale = np.sqrt(6) * sigma / np.pi
     loc = muX - scale * GAMMA
 
-    return loc - scale * np.log(-np.log(u))
+    X = loc - scale * np.log(-np.log(u))
+
+    if r == 1:
+        X = X.flatten()
+
+    return

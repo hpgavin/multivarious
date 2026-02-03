@@ -83,7 +83,7 @@ def inv(F, a, b):
     return x
 
 
-def rnd(a, b, r, c):
+def rnd(a, b, n, N):
     '''
     uniform.rnd
     
@@ -92,20 +92,23 @@ def rnd(a, b, r, c):
     INPUTS:
         a = float Lower bound
         b = float Upper bound (must be > a)
-        r = int Number of rows
-        c = int Number of columns
+        n = int Number of random variables (rows)
+        N = int Number of samples (columns)
     
     OUTPUT:
-        x : ndarray
+        X : ndarray
             Shape (r, c) array of uniform random samples
     '''
     if b <= a:
         raise ValueError(f"uniform_rnd: a = {a}, b = {b} — a must be less than b")
     
     # Generate standard uniform [0,1]
-    u = np.random.rand(r, c)
+    U = np.random.rand(n, N)
     
     # Transform to [a, b]: x = a + u * (b - a)
-    x = a + u * (b - a)
+    X = a + U * (b - a)
+
+    if n == 1:
+       X = X.flatten()
     
-    return x
+    return X

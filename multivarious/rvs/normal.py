@@ -107,4 +107,6 @@ def rnd(mu, sigma, size=(1,), seed=None):
     else:
         rng = seed
 
-    return rng.normal(loc=mu, scale=sigma, size=size)
+    X = rng.normal(loc=mu, scale=sigma, size=size)
+
+    return X

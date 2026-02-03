@@ -129,7 +129,7 @@ def inv(P, medX, covX):
     return x
 
 
-def rnd(medX, covX, N, R=None):
+def rnd(medX, covX, n, N, R=None):
     '''
     lognormal.rnd
  
@@ -140,13 +140,15 @@ def rnd(medX, covX, N, R=None):
                Median(s) of the lognormal distribution. If array, shape (n,) for n variables.
         covX : float or array_like
                Coefficient(s) of variation. If array, shape (n,) for n variables.
+          n  : int
+               number of random variables (rows)
           N  : int
-               Number of observations (samples) to generate.
+               Number of observations (samples) (columns) 
           R  : ndarray, optional
                If None, defaults to identity matrix (uncorrelated samples).
  
     Output:
-          x  : ndarray
+          X  : ndarray
                Shape (n, N) array of correlated lognormal random samples.
                Each row corresponds to one random variable.
                Each column corresponds to one observation.
@@ -178,12 +180,16 @@ def rnd(medX, covX, N, R=None):
     covX = np.atleast_1d(covX).astype(float)
     
     # Determine number of random variables
-    n = len(medX)
-    
-    # Validate all parameters --------------------------------------
-    if len(covX) != n:
-        raise ValueError(f"medX and covX must have the same length. "
-                        f"Got medX:{len(medX)}, covX:{len(covX)}")
+    # Validate n is len(k)  
+    if len(medX) < n:
+        medX = medX[0]*np.ones(n)
+    if len(medX) > n:
+        n = len(medX)
+    if len(covX) < n:
+        covX = covX[0]*np.ones(n)
+    if R is None: # Default to identity matrix (uncorrelated samples) 
+        R = np.eye(n) # In
+    T = np.eye(n) # In
     
     # Check parameter validity
     if np.any(medX <= 0):
@@ -191,27 +197,23 @@ def rnd(medX, covX, N, R=None):
     if np.any(covX <= 0):
         raise ValueError("lognormal_rnd: covX must be greater than zero")
     
-    # Default to identity matrix (uncorrelated samples) if no correlation specified
-    if R is None:
-        R = np.eye(n) # In
-    
     # Validate correlation matrix
     R = np.asarray(R)
     if R.shape != (n, n):
         raise ValueError(f"Correlation matrix R must be square {n}x{n}, got {R.shape}")
     
     if not np.allclose(np.diag(R), 1.0):
-        raise ValueError("corr_logn_rnd: diagonal of R must equal 1")
+        raise ValueError("lognormal.rnd: diagonal of R must equal 1")
     
     if np.any(np.abs(R) > 1):
-        raise ValueError("corr_logn_rnd: R values must be between -1 and 1")
+        raise ValueError("lognormal.rnd: R values must be between -1 and 1")
     # ---------------------------------------------------------------------
     
     # Decompose correlation matrix: R = V @ Λ @ V^T
-    eVal, eVec = np.linalg.eig(R)
+    eVal, eVec = np.linalg.eigh(R)
     
     if np.any(eVal < 0):
-        raise ValueError("corr_logn_rnd: R must be positive definite")
+        raise ValueError("lognormal.rnd: R must be positive definite")
     
     # Generate independent standard normal samples: Z ~ N(0, I)
     Z = np.random.randn(n, N)
@@ -224,15 +226,16 @@ def rnd(medX, covX, N, R=None):
     
     # Transform to lognormal: x = exp(log(medX) + Y * sqrt(VlnX))
     # Broadcasting: medX and VlnX are (n,), need to reshape for broadcasting with (n, N)
-    x = np.exp(np.log(medX[:, np.newaxis]) + Y * np.sqrt(VlnX[:, np.newaxis]))
+    X = np.exp(np.log(medX[:, np.newaxis]) + Y * np.sqrt(VlnX[:, np.newaxis]))
     
     if n == 1:
-        x = x.flatten()
+        X = X.flatten()
 
     ''' 
-    # current output shape is (n, N). Add this if we want to transpose output:
+    # current output shape is (n, N).
+    # Add this if we want to transpose output:
     if n == 1:
-    return x.T  # Return (N, 1) instead of (1, N) for single variable
-    return x
+    return X.T  # Return (N, 1) instead of (1, N) for single variable
+    return X
     '''
-    return x
+    return X

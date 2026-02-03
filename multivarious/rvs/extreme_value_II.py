@@ -133,7 +133,7 @@ def rnd(m, s, k, r, c):
             Number of columns
     
     Returns:
-        x : ndarray
+        X : ndarray
             Shape (r, c) array of random samples
     '''
     # Check parameter validity
@@ -144,6 +144,9 @@ def rnd(m, s, k, r, c):
     u = np.random.rand(r, c)
     
     # Inverse transform: x = m + s * (-log(u))^(-1/k)
-    x = m + s * (-np.log(u))**(-1 / k)
+    X = m + s * (-np.log(u))**(-1 / k)
     
-    return x
+    if r == 1:
+        X = X.flatten()
+
+    return X

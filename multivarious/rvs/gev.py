@@ -82,5 +82,9 @@ def rnd(param, r, c=None):
         # Generate r×c uniform samples
         u = np.random.rand(r, c)
 
-    x = m + (s / k) * ((-np.log(u))**(-k) - 1)
-    return x
+    X = m + (s / k) * ((-np.log(u))**(-k) - 1)
+
+    if r == 1:
+        X = X.flatten()
+
+    return X

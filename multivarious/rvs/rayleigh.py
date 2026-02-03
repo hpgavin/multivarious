@@ -120,7 +120,7 @@ def rnd(muX, N, seed=None):
             Number of columns in the output (used only if r is int)
 
     Output:
-        x : ndarray
+        X : ndarray
             Random samples drawn from the Rayleigh distribution
 
     Reference
@@ -148,10 +148,10 @@ def rnd(muX, N, seed=None):
         modeX = modeX * np.ones((r_rows, c_cols))
         
     # Inverse transform sampling
-    x = modeX * np.sqrt(-2.0 * np.log(u))
+    X = modeX * np.sqrt(-2.0 * np.log(u))
 
     if n == 1:
-        x = x.flatten()
+        X = X.flatten()
 
-    return x
+    return X
 

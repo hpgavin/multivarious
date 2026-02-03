@@ -125,7 +125,7 @@ def rnd(k, size=(1,), seed=None): # New
             Random seed or existing Generator for reproducibility
 
     Output:
-        x : ndarray
+        X : ndarray
             Array of shape `size` containing t-distributed random samples
 
     Reference:
@@ -137,5 +137,8 @@ def rnd(k, size=(1,), seed=None): # New
         rng = seed  # assume user passed Generator
 
     # Generate uniform samples and use inverse CDF
-    u = rng.random(size)
-    return inv(u, k)
+    U = rng.random(size)
+
+    X = inv(U, k)
+
+    return

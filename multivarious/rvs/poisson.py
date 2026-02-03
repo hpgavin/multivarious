@@ -82,7 +82,7 @@ def rnd(T, r=None, c=None):
             Number of columns in the output
 
     Output:
-        x : ndarray of shape (r, c)
+        X : ndarray of shape (r, c)
             Random samples drawn from the Poisson distribution
 
     Notes:
@@ -107,13 +107,18 @@ def rnd(T, r=None, c=None):
 
     # Initialize output matrix
     p = np.ones((r, c))                    # running product
-    x = np.zeros((r, c), dtype=int)        # counter
+    X = np.zeros((r, c), dtype=int)        # counter
 
     # Run multiplicative loop
     active = p >= L
     while np.any(active):
         p[active] *= np.random.rand(np.sum(active))
-        x[active] += 1
+        X[active] += 1
         active = p >= L
 
-    return x - 1
+    X = X - 1
+
+    if r == 1:
+        X = X.flatten() 
+
+    return X 

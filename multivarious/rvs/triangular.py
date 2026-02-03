@@ -135,7 +135,7 @@ def rnd(a, b, c, size=(1,), seed=None):
             Random seed or existing Generator for reproducibility
 
     Output:
-        x : ndarray
+        X : ndarray
             Array of shape `size` containing triangular random samples
 
     Reference:
@@ -146,5 +146,7 @@ def rnd(a, b, c, size=(1,), seed=None):
     else:
         rng = seed  # assume user passed Generator
 
-    u = rng.random(size)
-    return inv(u, a, b, c)
+    U = rng.random(size)
+    X = inv(U, a, b, c)
+ 
+    return X

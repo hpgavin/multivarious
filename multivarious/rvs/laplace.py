@@ -137,10 +137,13 @@ def rnd(mX, sX, r=None, c=None, z=None):
     mX = np.full((r, c), mX) if np.isscalar(mX) else np.asarray(mX)
     sX = np.full((r, c), sX) if np.isscalar(sX) else np.asarray(sX)
 
-    x = np.empty((r, c))
+    X = np.empty((r, c))
     in_mask = u <= 0.5
-    x[in_mask] = mX[in_mask] + sX[in_mask] / sr2 * np.log(2 * u[in_mask])
+    X[in_mask] = mX[in_mask] + sX[in_mask] / sr2 * np.log(2 * u[in_mask])
     ip_mask = ~in_mask
-    x[ip_mask] = mX[ip_mask] - sX[ip_mask] / sr2 * np.log(2 * (1 - u[ip_mask]))
+    X[ip_mask] = mX[ip_mask] - sX[ip_mask] / sr2 * np.log(2 * (1 - u[ip_mask]))
+        
+    if r == 1:
+        X = X.flatten()
 
-    return x
+    return X
