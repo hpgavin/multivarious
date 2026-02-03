@@ -126,7 +126,9 @@ def rnd(muX, n, N, R):
     
     # Inverse transform: x = -muX * log(U)
     X = -muX * np.log(U)
-    
-    return X
 
+    if n == 1:
+        X = X.flatten()
+
+    return X
 
