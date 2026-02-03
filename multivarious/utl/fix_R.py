@@ -1,109 +1,88 @@
 import numpy as np
+from multivarious.opt import sqp
+from multivarious.utl import format_plot
+from multivarious.utl import plot_cvg_hst
 
-"""
-import numpy as np
+def fit_R(v, C):
 
-matrix[(upper_tri_indices[1], upper_tri_indices[0])] = upper_tri_values
+    n = C.n
+    upper_tri_indices = C.idx
+    Ro = C.Ro
+    eVal_min = C.eVal
 
-import numpy as np
+    R = np.eye((n, n)) # Initialize an n x n identity matrix 
 
-# Example square matrix
-matrix = np.array([
-    [1, 2, 3, 4],
-    [2, 1, 5, 6],
-    [3, 5, 1, 7],
-    [4, 6, 7, 1]
-])
+    # Place the values into the upper triangle
+    R[upper_tri_indices] = v
 
-# Get the indices of the upper triangle (excluding the diagonal)
-upper_tri_indices = np.triu_indices(n=matrix.shape[0], k=1)
+    # Mirror the upper triangle to the lower triangle to make symmetric
+    R[(upper_tri_indices[1], upper_tri_indices[0])] = v
 
-# Extract the upper triangle elements into a 1D array
-upper_tri_values = matrix[upper_tri_indices]
+    eVal_0 = np.min ( np.eigh(R) )
 
-print(upper_tri_values)
+    f = np.trace( (R - Ro)@(R-Ro) ) # Frobeneous norm trace ??
 
-# 1D array of upper triangle elements (excluding diagonal)
-# Number of elements in upper triangle excluding diagonal = n*(n-1)/2
-upper_tri_values = np.array([2, 3, 4, l, 6, 7])  # length should be n*(n-1)/2
+    g = np.array([ eVal_min - eVal_0 ]) # ??
 
-# Initialize an n x n matrix with zeros
-matrix = np.zeros((n, n))
+    return f, g
 
-# Get upper triangle indices (excluding diagonal)
-upper_tri_indices = np.triu_indices(n, k=1)
-
-# Place the values into the upper triangle
-matrix[upper_tri_indices] = upper_tri_values
-
-# Mirror the upper triangle to the lower triangle to make symmetric
-matrix[(upper_tri_indices[1], upper_tri_indices[0])] = upper_tri_values
-
-# Optional: set diagonal to 1 if it's a correlation matrix
-np.fill_diagonal(matrix, 1)
-
-print(matrix)
-"""
-
-def fix_R(n, R):
+def fix_R(Ro, eVal_min):
     '''
     fix_R
 
-    fix a correlation matrix R to be square, pos.def, with 1s on diag
+    min || Ro - R(v) ||_F^2
+
+    v is the upper triangle (and lower triangle) of R
+
+    s.t. -1 < v < 1  and  0 < eVal_min < min(eVal(R(v)))
 
     INPUTS:
-      n = dimension of R
-      R = the correlation matrix
+      Ro = initial guess for the correlation matrix
+      eVal_min ... lowest acceptable eigenvalue of R
  
     OUTPUT:
       R = the fixed correlation matrix
-    '''
-
-    # If no correlation matrix provided, default to identity matrix
-    # Identity matrix R = I means all variables are independent (correlation = 0)
-    if R is None:
-        R = np.eye(n) # In
-        T = np.eye(n) # In
-        return R, T
-    
-    # Convert R to square array and validate its properties
-    R = np.asarray(R)
-    if R.shape != (n, n):
-        R = np.eye(n)
-        T = np.eye(n) # In
-        print(f"fix_R: Made the correlation matrix R I_{n}×{n}, got {R.shape}")
-        return R, T
-
-    # ensure that R is symmetric
-    R = 0.5 * ( R + R.T ) 
-
-    R_ok = False
-    while R_ok == False:
- 
-        if not np.allclose(np.diag(R), 1.0): # diagonals must be 1s
-            D = np.diag( 1/np.sqrt(np.diag(R)) )
-            R = D @ R @ D  # make diagonal equal to 1s 
-            print("fix_R: made diagonal of R equal to ones")
-
-        if np.any(np.abs(R) > 1): # all elements must be [-1, 1] 
-            R( R < -1 ) = -1
-            R( R > +1 ) = +1
-            print("fix_R: made values of R between -1 and 1")
-
-        # Eigenvalue decomposition of correlation matrix: R = V @ Λ @ V^T
-        #   eVec (V): matrix of eigenvectors (n×n)
-        #   eVal (Λ): array of eigenvalues (length n)
-        eVal, eVec = np.linalg.eigh(R)
-
-        if np.all(eVal > 1e-6):
-            R_ok = True
-        else: 
-            eVal( eVal < 1e-6 ) = 1e-6  
-            R = eVec @ np.diag(eVal) @ eVec.T
-            print("fix_R: Made R sufficiently positive definite")
 
     # Transformation matrix
     T = eVec @ np.diag(np.sqrt(eVal))
+    '''
 
-    return R, T
+    C = SimpleNamespace() # Constants used within the optimization analysis 
 
+    n = Ro.shape[0]
+   
+    # indices of the upper triangle (excluding the diagonal)
+    upper_tri_indices = np.triu_indices(n, k=1)
+
+    # upper triangle elements into a 1D array
+    v_init = Ro[upper_tri_indices]
+    v_ub =  np.ones( n*(n-1)/2 )
+    v_lb = -np.ones( n*(n-1)/2 )
+
+    C.n = n
+    C.Ro = Ro
+    C.idx = uppoer_triangle_indices
+    C.eVal = eVal_min
+
+    # optimization options ...
+    #        0     1       2       3        4         5     6     7    8
+    #       msg   tol_v   tol_f   tol_g  max_evals  pnlty expn  m_max cov_F
+    opts = [ 1,   0.01,   0.01,   1e-3,    50*n**3,  0.7,  0.5,   1,  0.05 ]
+
+    # Solve the optimization problem using one of ... ors , nms , sqp 
+    v_opt, f_opt, g_opt, cvg_hst, _,_ = sqp(fit_R, v_init, v_lb, v_ub, opts, C)
+
+    # Build the correlation matrix from v_opt
+    R = np.eye((n, n)) # Initialize an n x n identity matrix 
+
+    # Place the values into the upper triangle
+    R[upper_tri_indices] = v_opt
+
+    # Mirror the upper triangle to the lower triangle to make symmetric
+    R[(upper_tri_indices[1], upper_tri_indices[0])] = v_opt
+
+    # plot the convergence history
+    format_plot(font_size=15, line_width=3, marker_size=7)
+    plot_cvg_hst( cvg_hst , v_opt, opts, save_plots=True )
+
+    return R
