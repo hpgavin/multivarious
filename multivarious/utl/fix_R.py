@@ -1,5 +1,50 @@
 import numpy as np
 
+"""
+import numpy as np
+
+matrix[(upper_tri_indices[1], upper_tri_indices[0])] = upper_tri_values
+
+import numpy as np
+
+# Example square matrix
+matrix = np.array([
+    [1, 2, 3, 4],
+    [2, 1, 5, 6],
+    [3, 5, 1, 7],
+    [4, 6, 7, 1]
+])
+
+# Get the indices of the upper triangle (excluding the diagonal)
+upper_tri_indices = np.triu_indices(n=matrix.shape[0], k=1)
+
+# Extract the upper triangle elements into a 1D array
+upper_tri_values = matrix[upper_tri_indices]
+
+print(upper_tri_values)
+
+# 1D array of upper triangle elements (excluding diagonal)
+# Number of elements in upper triangle excluding diagonal = n*(n-1)/2
+upper_tri_values = np.array([2, 3, 4, l, 6, 7])  # length should be n*(n-1)/2
+
+# Initialize an n x n matrix with zeros
+matrix = np.zeros((n, n))
+
+# Get upper triangle indices (excluding diagonal)
+upper_tri_indices = np.triu_indices(n, k=1)
+
+# Place the values into the upper triangle
+matrix[upper_tri_indices] = upper_tri_values
+
+# Mirror the upper triangle to the lower triangle to make symmetric
+matrix[(upper_tri_indices[1], upper_tri_indices[0])] = upper_tri_values
+
+# Optional: set diagonal to 1 if it's a correlation matrix
+np.fill_diagonal(matrix, 1)
+
+print(matrix)
+"""
+
 def fix_R(n, R):
     '''
     fix_R
