@@ -1,7 +1,11 @@
 import numpy as np
+import matplotlib.pyplot as plt
+from multivarious.opt import ors
+from multivarious.opt import nms
 from multivarious.opt import sqp
-from multivarious.utl import plot_cvg_hst
-from multivarious.utl import format_plot
+from multivarious.utl.plot_cvg_hst import plot_cvg_hst
+from multivarious.utl.format_plot import format_plot
+from types import SimpleNamespace
 
 def fit_R(v, C):
 
@@ -11,7 +15,7 @@ def fit_R(v, C):
     Ro = C.Ro
     eVal_lb = C.eVal_lb
 
-    R = np.eye((n, n)) # Initialize an n x n identity matrix 
+    R = np.eye( n, n ) # Initialize an n x n identity matrix 
 
     # Place the values v into the upper triangle
     R[upper_tri_idx] = v
@@ -49,6 +53,8 @@ def fix_R(Ro, eVal_lb):
     '''
 
     n = Ro.shape[0]
+
+    plt.ion()
    
     # indices of the upper triangle (excluding the diagonal)
     upper_tri_idx = np.triu_indices(n, k=1)
@@ -62,16 +68,16 @@ def fix_R(Ro, eVal_lb):
 
     # upper triangle elements into a 1D array
     v_init = Ro[upper_tri_idx]
-    v_ub =  np.ones( n*(n-1)/2 )
-    v_lb = -np.ones( n*(n-1)/2 )
+    v_ub =  np.ones( int(n*(n-1)/2) )
+    v_lb = -np.ones( int(n*(n-1)/2) )
 
     # optimization options ...
     #        0     1       2       3        4         5     6     7    8
     #       msg   tol_v   tol_f   tol_g  max_evals  pnlty expn  m_max cov_F
-    opts = [ 1,   0.01,   0.01,   1e-3,    50*n**3,  0.7,  0.5,   1,  0.05 ]
+    opts = [ 1,   1e-3,   1e-3,   1e-3,    50*n**3,  10,   0.5,   1,  0.05 ]
 
     # Solve the optimization problem using one of ... ors , nms , sqp 
-    v_opt, f_opt, g_opt, cvg_hst, _,_ = sqp(fit_R, v_init, v_lb, v_ub, opts, C)
+    v_opt, f_opt, g_opt, cvg_hst, _,_ = nms(fit_R, v_init, v_lb, v_ub, opts, C)
 
     # Build the correlation matrix from v_opt
     R = np.eye( n, n ) # Initialize an n x n identity matrix 
