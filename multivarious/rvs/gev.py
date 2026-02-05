@@ -3,6 +3,8 @@
 
 import numpy as np
 
+from multivarious.utl.correlated_rvs import correlated_rvs
+
 def pdf(x, param):
     '''
     gev.pdf
@@ -57,32 +59,40 @@ def inv(p, param):
     return x
 
 
-def rnd(param, r, c=None):
+def rnd(m,s,k, N, R=None):
     '''
     gev.rnd
 
     Generate random samples from the GEV distribution.
     
     Parameters:
-        param : list [m, s, k]
-        r     : int or ndarray
-                If c is None: treat r as pre-generated samples
-                If c is provided: r is number of rows
-        c     : int or None
-                Number of columns (optional)
+        m     : float (n,)
+        s     : float (n,)
+        k     : float (n,)
+        N     : int 
+                Number of observations of the gev distribution
+        R     : float (n,n) correlation matrix
     Returns:
-        x : ndarray of GEV samples
+        X : ndarray of GEV samples
     '''
-    m, s, k = param
 
-    if c is None:
-        # r is a pre-generated sample matrix
-        u = np.asarray(r)
-    else:
-        # Generate r×c uniform samples
-        u = np.random.rand(r, c)
+    # Convert inputs to arrays
+    # Python does not implicitly handle scalars as arrays. 
+    m = np.atleast_1d(m).astype(float)
+    s = np.atleast_1d(s).astype(float)
+    k = np.atleast_1d(k).astype(float)
 
-    X = m + (s / k) * ((-np.log(u))**(-k) - 1)
+    # Determine number of random variables
+    n = len(a)
+
+    # Validate that all parameter arrays have the same length
+    if not (len(m) == n and len(s) == n and len(k) == n):
+        raise ValueError(f"All parameter arrays must have the same length. "
+                        f"Got m:{len(m)}, s:{len(s)}, k:{len(k)}")
+    
+    _, _, U = correlated_rvs(R,n,N)
+
+    X = m + (s / k) * ((-np.log(U))**(-k) - 1)
 
     if r == 1:
         X = X.flatten()

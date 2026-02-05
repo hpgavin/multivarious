@@ -1,5 +1,6 @@
 import numpy as np
 
+from multivarious.utl.correlated_rvs import correlated_rvs
 
 def pdf(x, muX, sigmaX):
     '''
@@ -89,7 +90,7 @@ def inv(P, muX, sigmaX):
     X[idx] = muX - sigmaX / sr2 * np.log(2 - 2 * P[idx]) 
     return X if X.size > 1 else X[0]
 
-def rnd(mX, sX, r=None, c=None, z=None):
+def rnd(mX, sX, N, R=None):
     '''
     laplace.rnd
 
@@ -116,34 +117,38 @@ def rnd(mX, sX, r=None, c=None, z=None):
     Reference:
     https://en.wikipedia.org/wiki/Laplace_distribution
     '''
+    
+    # Convert inputs to arrays
+    # Python does not implicitly handle scalars as arrays. 
+    mX = np.atleast_1d(mX).astype(float)
+    sX = np.atleast_1d(sX).astype(float)
+
+    # Determine number of random variables
+    n = len(mX)
+
+    # Validate that all parameter arrays have the same length
+    if not (len(mX) == n and len(sX) == n):
+        raise ValueError(f"All parameter arrays must have the same length. "
+                        f"Got mX:{len(mX)}, sX:{len(sX)}")
+
     if np.any(sX <= 0) or np.any(np.isinf(sX)):
-        raise ValueError("laplace_rnd: sX must be > 0 and finite")
+        raise ValueError(" laplace_rnd: sX must be > 0 and finite")
 
     sr2 = np.sqrt(2)
 
-    # Infer shape
-    if z is not None:
-        u = z
-        r, c = u.shape
-    else:
-        if r is None or c is None:
-            if np.isscalar(mX):
-                r, c = 1, 1
-            else:
-                r, c = np.asarray(mX).shape
-        u = np.random.rand(r, c)
+    _, _, U = correlated_rvs(R,n,N)
 
     # Broadcast parameters
-    mX = np.full((r, c), mX) if np.isscalar(mX) else np.asarray(mX)
-    sX = np.full((r, c), sX) if np.isscalar(sX) else np.asarray(sX)
+    mX = np.full((n, N), mX) if np.isscalar(mX) else np.asarray(mX)
+    sX = np.full((n, N), sX) if np.isscalar(sX) else np.asarray(sX)
 
-    X = np.empty((r, c))
+    X = np.empty((n, N))
     in_mask = u <= 0.5
-    X[in_mask] = mX[in_mask] + sX[in_mask] / sr2 * np.log(2 * u[in_mask])
+    X[in_mask] = mX[in_mask] + sX[in_mask] / sr2 * np.log(2 * U[in_mask])
     ip_mask = ~in_mask
-    X[ip_mask] = mX[ip_mask] - sX[ip_mask] / sr2 * np.log(2 * (1 - u[ip_mask]))
+    X[ip_mask] = mX[ip_mask] - sX[ip_mask] / sr2 * np.log(2 * (1 - U[ip_mask]))
         
-    if r == 1:
+    if n == 1:
         X = X.flatten()
 
     return X

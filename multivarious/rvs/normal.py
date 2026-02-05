@@ -1,6 +1,7 @@
 import numpy as np
 from scipy.stats import norm as scipy_norm
 
+from multivarious.utl.correlated_rvs import correlated_rvs
 
 def pdf(x, mu, sigma):
     '''
@@ -79,34 +80,43 @@ def inv(p, mu, sigma):
     return dist.ppf(p)
 
 
-def rnd(mu, sigma, size=(1,), seed=None):
+def rnd(mu, sigma, N, R=None):
     '''
     normal.rnd
-    Generates random samples from the normal distribution N(mu, sigma²).
+    Generates correlated random samples from the normal distribution N(mu, sigma²).
 
     Parameters:
-        mu : float
+        mu : float (n,)
             Mean of the distribution
-        sigma : float
+        sigma : float (n,)
             Standard deviation of the distribution (must be > 0)
-        size : tuple, optional
-            Shape of the output array (e.g., (1000,), (r, c)); default is (1,)
-        seed : int or numpy.random.Generator, optional
-            Random seed or Generator for reproducibility
+        N : int
+            number of observations of each of the n random variables 
+        R : float (n,n) - optional
+            correlation matrix
 
     Output:
-        x : ndarray
+        X : ndarray
             Array of normal random samples with shape `size`
 
     Reference:
     https://en.wikipedia.org/wiki/Normal_distribution
     '''
+    # Convert inputs to arrays
+    # Python does not implicitly handle scalars as arrays. 
+    mu = np.atleast_1d(mu).astype(float)
+    sigma = np.atleast_1d(sigma).astype(float)
 
-    if isinstance(seed, (int, type(None))):
-        rng = np.random.default_rng(seed)
-    else:
-        rng = seed
+    # Determine number of random variables
+    n = len(mu)
 
-    X = rng.normal(loc=mu, scale=sigma, size=size)
+    # Validate that all parameter arrays have the same length
+    if not (len(mu) == n and len(sigma) == n):
+        raise ValueError(f"All parameter arrays must have the same length. "
+                        f"Got mu:{len(mu)}, sigma:{len(sigma)}"
+
+    _, Y, _ = correlated_rvs(R,n,N)
+
+    X = mu + sigma*Y
 
     return X

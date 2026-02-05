@@ -3,6 +3,8 @@
 
 import numpy as np
 from scipy.stats import uniform as scipy_uniform
+from multivarious.utl.correlated_rvs import correlated_rvs
+
 
 def pdf(x, a, b):
     '''
@@ -83,7 +85,7 @@ def inv(F, a, b):
     return x
 
 
-def rnd(a, b, n, N):
+def rnd(a, b, N, R=none):
     '''
     uniform.rnd
     
@@ -99,12 +101,25 @@ def rnd(a, b, n, N):
         X : ndarray
             Shape (r, c) array of uniform random samples
     '''
-    if b <= a:
-        raise ValueError(f"uniform_rnd: a = {a}, b = {b} — a must be less than b")
+    # Convert inputs to arrays
+    # Python does not implicitly handle scalars as arrays. 
+    a = np.atleast_1d(a).astype(float)
+    b = np.atleast_1d(b).astype(float)
+
+    # Determine number of random variables
+    n = len(a)
+
+    # Validate that all parameter arrays have the same length
+    if not (len(a) == n and len(b) == n ):
+        raise ValueError(f"All parameter arrays must have the same length. "
+                        f"Got a:{len(a)}, b:{len(b)}")
+
+    if np.any(b <= a):
+        raise ValueError(f" uniform.rnd: a = {a}, b = {b} : a must be less than b")
     
-    # Generate standard uniform [0,1]
-    U = np.random.rand(n, N)
-    
+    # Generate correlated [0,1]
+    _, _, U = correlated_rvs(R,n,N)
+
     # Transform to [a, b]: x = a + u * (b - a)
     X = a + U * (b - a)
 

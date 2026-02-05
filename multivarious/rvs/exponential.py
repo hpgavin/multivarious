@@ -4,6 +4,9 @@
 import numpy as np
 from scipy.stats import norm
 
+from multivarious.utl.correlated_rvs import correlated_rvs
+
+
 def pdf(x, muX):
     '''
     exponential.pdf
@@ -105,30 +108,13 @@ def rnd(muX, N, R=None):
 
     # Check parameter validity
     if np.any(muX <= 0) or np.any(np.isinf(muX)):
-        raise ValueError(f"exp.rnd: muX must be > 0 and finite")
+        raise ValueError(f"exponential.rnd: muX must be > 0 and finite")
 
     n = len(muX)
 
-    if R is None:
-        R = np.eye(n) # In
-    
-    # Generate correlated standard normal ~N(0,1)
-    Z = np.random.randn(n, N)
+    _, _, U = correlated_rvs(R,n,N)
 
-    # Eigenvalue decomposition of correlation matrix: R = V @ Λ @ V^T
-    #   eVec (V): matrix of eigenvectors (n×n)
-    #   eVal (Λ): array of eigenvalues (length n)
-    eVal, eVec = np.linalg.eigh(R)
-
-    if np.any(eVal < 0):
-        raise ValueError("beta.rnd: R must be positive definite")
-
-    # Apply correlation structure
-    Y = eVec @ np.diag(np.sqrt(eVal)) @ Z
-
-    # Generate correlated standard uniform ~U[0,1]
-    U = norm.cdf(Y)
-    
+  
     # Inverse transform: x = -muX * log(U)
     X = -muX * np.log(U)
 

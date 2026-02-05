@@ -4,6 +4,8 @@
 import numpy as np
 from scipy.stats import norm
 
+from multivarious.utl.shrink_newton import nearcorr_shrink
+
 def pdf(x, k):
     '''
     chi2.pdf
@@ -52,7 +54,7 @@ def cdf(x, k):
     '''
     x = np.asarray(x, dtype=float)
     if k <= 0:
-        raise ValueError("Degrees of freedom k must be > 0")
+        raise ValueError(" chi2.cdf: Degrees of freedom k must be > 0")
 
     # Wilson-Hilferty approximation parameters
     m = 1 - 2 / (9 * k)         # mean of cube-root-transformed variable
@@ -83,7 +85,7 @@ def inv(p, k):
     '''
     p = np.asarray(p, dtype=float)
     if k <= 0:
-        raise ValueError("Degrees of freedom k must be > 0")
+        raise ValueError(" chi2.inv: Degrees of freedom k must be > 0")
 
     # Wilson-Hilferty transformation parameters
     m = 1 - 2 / (9 * k)         # mean of cube-root-transformed variable
@@ -119,34 +121,16 @@ def rnd(k, N, R=None):
 
     # Validate k is not negative 
     if np.any(k <= 0) or np.any(np.isinf(k)):
-        raise ValueError("chi2.rnd: Degrees of freedom k must be > 0")
+        raise ValueError(" chi2.rnd: Degrees of freedom k must be > 0")
 
     n = len(k) 
 
-    if R is None:
-        R = np.eye(n) # In
-    
     # Wilson-Hilferty transformation parameters
     m = 1 - 2 / (9 * k)
     s = np.sqrt(2 / (9 * k))
 
-    # Standard normal random matrix
-    Z = np.random.randn(n, N)
-
-    # Eigenvalue decomposition of correlation matrix: R = V @ Λ @ V^T
-    #   eVec (V): matrix of eigenvectors (n×n)
-    #   eVal (Λ): array of eigenvalues (length n)
-    eVal, eVec = np.linalg.eigh(R)
-
-    if np.any(eVal < 0):
-        raise ValueError("beta.rnd: R must be positive definite")
-
-    # Apply correlation structure
-    Y = eVec @ np.diag(np.sqrt(eVal)) @ Z
-
-    # Transform to uniform [0,1] via standard normal CDF, preserving correlation
-    U = norm.cdf(Y)
-
+    R, Y, U = correlated_rvs(R,n,N)
+   
     # Apply transformation
     X = k * (m + s * Y) ** 3
 

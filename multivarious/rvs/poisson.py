@@ -1,6 +1,7 @@
 import numpy as np
 from scipy.special import factorial
 
+from multivarious.utl.correlated_rvs import correlated_rvs
 
 def pmf(n, L):
     '''
@@ -66,7 +67,7 @@ def cdf(n, L):
     return F if F.size > 1 else F[0]        # Return scalar if input was scalar
 
 
-def rnd(T, r=None, c=None):
+def rnd(T, N, R=None):
     '''
     poisson.rnd
 
@@ -74,12 +75,13 @@ def rnd(T, r=None, c=None):
     multiplicative (Knuth) algorithm.
 
     Parameters:
-        T : float or ndarray
+        T : float or ndarray (n,)
             Return period (used to compute λ = 1/T)
-        r : int
-            Number of rows in the output
-        c : int
-            Number of columns in the output
+        N : int
+            Number of values of each of the n Poisson random variables
+        R : float (n,n)
+            Correlation matrix among the standardized Poisson random varibles
+            --- not implemented 
 
     Output:
         X : ndarray of shape (r, c)
@@ -90,24 +92,19 @@ def rnd(T, r=None, c=None):
     Reference:
     https://en.wikipedia.org/wiki/Poisson_distribution#Generating_Poisson-distributed_random_variables
     '''
-    # Infer r, c if not explicitly passed
-    if r is None or c is None:
-        if np.isscalar(T):
-            r, c = 1, 1
-        else:
-            r, c = np.asarray(T).shape
+    # Convert inputs to arrays
+    # Python does not implicitly handle scalars as arrays. 
+    T = np.atleast_1d(T).astype(float)
 
-    # Validate T is scalar or matches shape
-    T = np.asarray(T)
-    if T.size != 1 and T.shape != (r, c):
-        raise ValueError("poisson_rnd: T must be scalar or of shape (r, c)")
+    # Determine number of random variables
+    n = len(T)
 
     # Compute L = exp(-1/T)
     L = np.exp(-1.0 / T)
 
     # Initialize output matrix
-    p = np.ones((r, c))                    # running product
-    X = np.zeros((r, c), dtype=int)        # counter
+    p = np.ones((n, N))                    # running product
+    X = np.zeros((n, N), dtype=int)        # counter
 
     # Run multiplicative loop
     active = p >= L

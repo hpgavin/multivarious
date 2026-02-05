@@ -1,6 +1,8 @@
 import numpy as np
 from scipy.special import beta as beta_func, betaincinv
 
+from multivarious.utl.correlated_rvs import correlated_rvs
+
 def pdf(t, k):
     '''
     students_t.pdf
@@ -26,6 +28,7 @@ def pdf(t, k):
     f = (np.exp(-(k + 1) * np.log(1 + (t ** 2) / k) / 2)) / (np.sqrt(k) * beta_func(k / 2, 0.5))
 
     return f
+
 
 def cdf(t, k):
     '''
@@ -78,6 +81,7 @@ def cdf(t, k):
                 s = s + u
             return 0.5 + (ts * np.sqrt(ttf) * s) / 2.0
 
+
 def inv(p, k):
     '''
     students_t.inv
@@ -110,19 +114,19 @@ def inv(p, k):
     return x
 
 
-def rnd(k, size=(1,), seed=None): # New
+def rnd(k, N, R=None): 
     '''
     students_t.rnd
 
     Generate random samples from the Student's t-distribution with k degrees of freedom.
 
     Parameters:
-        k : int or float
+        k : int or float (n,)
             Degrees of freedom (must be > 0)
-        size : tuple, optional
+        N : number of samples of n student_t random variables 
             Output shape (e.g., (r, c)); default is (1,)
-        seed : int or np.random.Generator, optional
-            Random seed or existing Generator for reproducibility
+        R : float (n,n)
+            correlation matrix
 
     Output:
         X : ndarray
@@ -131,14 +135,14 @@ def rnd(k, size=(1,), seed=None): # New
     Reference:
     https://en.wikipedia.org/wiki/Student%27s_t-distribution
     '''
-    if isinstance(seed, (int, type(None))):
-        rng = np.random.default_rng(seed)
-    else:
-        rng = seed  # assume user passed Generator
 
-    # Generate uniform samples and use inverse CDF
-    U = rng.random(size)
+    # Convert inputs to arrays
+    # Python does not implicitly handle scalars as arrays. 
+    k = np.atleast_1d(k).astype(float)
 
-    X = inv(U, k)
+    _, _, U = correlated_rvs(R,n,N)
+
+
+    X = inv(U, k)  ## ?? is this all?
 
     return

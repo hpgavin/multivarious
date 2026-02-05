@@ -1,7 +1,12 @@
 #! /usr/bin/env -S python3 -i
 """
-shrink_newton.py
-Shrinking by Newton's method for nearest correlation matrix problem.
+correlated_rvs.py
+
+generate a sample of (n,N) correlated standard normal variables Y
+and associated standard uniform variables U 
+
+The correlation matrix R is corrected using the 
+Shrinking by the "shrink Newton" method by Nick Higham
 
 Based on Nick Higham's MATLAB implementation:
 https://github.com/higham/shrinking
@@ -89,7 +94,7 @@ def shrink_newton(M0, M1, tolN=1e-4, tolB=0):
         # update and continue
         alpha_0 = alpha_1
     
-    raise RuntimeError(f'Not converged in {max_iter} iterations')
+    raise RuntimeError(f' shrink_newton: not converged in {max_iter} iterations')
 
 def nearcorr_shrink(C, tolN=1e-4):
     """
@@ -122,7 +127,17 @@ def nearcorr_shrink(C, tolN=1e-4):
     >>> print(f"Shrinkage parameter: {alpha:.4f}")
     >>> print(f"Minimum eigenvalue: {np.linalg.eigh(C_fixed)[0][0]:.2e}")
     """
+
+    # Convert C to array and validate its properties
+    C = np.asarray(C)
     n = C.shape[0]
+    if C.shape != (n, n):
+        raise ValueError(f": Correlation matrix must be square {n}×{n}, not {C.shape}")
+    if not np.allclose(np.diag(C), 1.0): # diagonals must be 1s
+        raise ValueError(": Correlation matrix diagonal must be 1s")
+    if np.any(np.abs(C) > 1):
+        raise ValueError(": Correlation matrix values must be in [-1,1]")
+
     In = np.eye(n)
     
     # Find optimal shrinking parameter
@@ -132,6 +147,41 @@ def nearcorr_shrink(C, tolN=1e-4):
     C_fixed =  (1 - alpha) * C + alpha * In
     
     return C_fixed, alpha
+
+def correlated_rvs(R,n,N) 
+    """
+    Fix a potentialy erroneous correlation matrix, 
+    generate correlated standard normal random variables Y (n,N) 
+    and associated standard uniform random variables U (n,N) 
+    """
+
+    # If no correlation matrix provided, default to identity matrix
+    # Identity matrix R = I means all variables are independent (correl'n = 0)
+    if R is None:
+        R = np.eye(n) # In
+        eVal = np.ones(n)
+        eVec = np.eye(n)
+    else:
+        R, alpha = nearcorr_shrink(R, tolN = 1e-4)
+        print(f" Correlation matrix shrinkage: {alpha2:.6f}")
+        # Eigenvalue decomposition of correlation matrix: R = V @ Λ @ V^T
+        #   eVec (V): matrix of eigenvectors (n×n)
+        #   eVal (Λ): array of eigenvalues (length n)
+        eVal, eVec = np.linalg.eigh(R)
+        
+        if np.any(eVal < 0):
+            raise ValueError(" fix_R_Y_U: R must be positive definite")
+        
+    # Generate independent standard normal samples: Z ~ N(0, I)
+    Z = np.random.randn(n, N)
+    
+    # Apply correlation structure
+    Y = eVec @ np.diag(np.sqrt(eVal)) @ Z
+
+    # Transform to uniform [0,1] via standard normal CDF, preserving correlation
+    U = norm.cdf(Y)
+
+    return R, Y, U
 
 # Example usage and testing
 if __name__ == "__main__":
@@ -163,19 +213,23 @@ if __name__ == "__main__":
     
     # Example 2: Larger random matrix
     print("\n" + "="*60)
-    print("Testing on a 5×5 matrix\n")
     
+    n = 25
+    print(f"Testing on a {n}x{n} matrix\n")
     np.random.seed(42)
-    n = 5
-    C2 = np.random.rand(n, n)
-    C2 = (C2 + C2.T) / 2  # Make symmetric
-    C2 = C2 / np.outer(np.sqrt(np.diag(C2)), np.sqrt(np.diag(C2)))  # Unit diagonal
+    C2 = np.random.randn(n, n)
+    C2 = C2 @ C2.T # symmetric pos.def
+    C2 = C2 + 0.10*np.random.randn(n,n)
+    C2 = ( C2 + C2.T ) /2 # make symmetric
+    C2 = C2 / np.max(C2) # bounded to [-1,1]
+    C2 = C2 / np.outer(np.sqrt(np.diag(C2)), np.sqrt(np.diag(C2)))  # Unit diag
     
     eigval_orig2 = np.linalg.eigh(C2)[0]
     print(f"Original minimum eigenvalue: {eigval_orig2[0]:.6f}")
     
     C2_fixed, alpha2 = nearcorr_shrink(C2)
     eigval_fixed2 = np.linalg.eigh(C2_fixed)[0]
+    print(C2_fixed)
     
     print(f"Shrinkage parameter: {alpha2:.6f}")
     print(f"Fixed minimum eigenvalue: {eigval_fixed2[0]:.2e}")

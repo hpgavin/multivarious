@@ -2,6 +2,9 @@
 
 import numpy as np
 
+from multivarious.utl.correlated_rvs import correlated_rvs
+
+
 # Euler-Mascheroni constant
 GAMMA = 0.57721566490153286060651209008240243104215933593992
 
@@ -41,38 +44,45 @@ def inv(p, mu, sigma):
     loc = mu - scale * GAMMA
     return loc - scale * np.log(-np.log(p))
 
-def rnd(muX, cvX, r, c=None):
+
+def rnd(muX, cvX, N, R=None):
     """
     Generate samples from the Extreme Value Type I distribution.
 
     Args:
         muX : mean (scalar or array-like)
         cvX : coefficient of variation (scalar or array-like)
-        r   : rows OR uniform sample matrix
-        c   : cols (optional)
+        N   : number of values of each random variable 
+        R   : correlation matrix (n,n) 
 
     Returns:
-        X : random samples of shape (r,c) or shape of r
+        X : random samples of shape (n,N) or shape of r
     """
+    # Convert inputs to arrays
+    # Python does not implicitly handle scalars as arrays. 
+    muX = np.atleast_1d(muX).astype(float)
+    cvX = np.atleast_1d(cvX).astype(float)
+
+    n = len(muX)
+
+    if not (len(muX) == n and len(cvX) == n):  
+       raise ValueError(f"All parameter arrays must have the same length. "
+                        f"Got muX:{len(muX)}, cvX:{len(cvX)}")
+
     if np.any(np.asarray(muX) <= 0):
         raise ValueError("muX must be > 0")
     if np.any(np.asarray(cvX) <= 0):
         raise ValueError("cvX must be > 0")
 
-    if c is None:
-        u = np.asarray(r)
-    else:
-        u = np.random.rand(r, c)
+    _, _, U = correlated_rvs(R,n,N)
 
-    muX = np.broadcast_to(muX, u.shape)
-    cvX = np.broadcast_to(cvX, u.shape)
     sigma = cvX * muX
     scale = np.sqrt(6) * sigma / np.pi
     loc = muX - scale * GAMMA
 
-    X = loc - scale * np.log(-np.log(u))
+    X = loc - scale * np.log(-np.log(U))
 
-    if r == 1:
+    if n == 1:
         X = X.flatten()
 
     return

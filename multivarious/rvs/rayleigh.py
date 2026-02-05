@@ -1,5 +1,7 @@
 import numpy as np
 
+from multivarious.utl.correlated_rvs import correlated_rvs
+
 def pdf(X, muX):
     '''
     rayleigh.pdf
@@ -102,7 +104,7 @@ def inv(P, muX):
     return x
 
 
-def rnd(muX, N, seed=None):
+def rnd(muX, N, R=None)
     '''
     rayleigh.rnd
 
@@ -111,13 +113,11 @@ def rnd(muX, N, seed=None):
     uniform random numbers or by specifying the output dimensions.
 
     Input:
-        muX : float
-            Mean of the Rayleigh distribution (must be > 0)
-        r : int or ndarray
-            If int, number of rows in the output; if ndarray, a matrix of
-            uniform(0,1) random values
-        c : int, optional
-            Number of columns in the output (used only if r is int)
+        muX : float (n,1)
+        N : int, optional
+            Number of observations of n rayleigh random variables
+        R : float (n,n) , optional
+            correlation matrix
 
     Output:
         X : ndarray
@@ -128,30 +128,30 @@ def rnd(muX, N, seed=None):
     https://en.wikipedia.org/wiki/Rayleigh_distribution
     '''
 
+    # Convert inputs to arrays
+    # Python does not implicitly handle scalars as arrays. 
+    muX = np.atleast_1d(muX).astype(float)
+
+    n = len(muX) # number of rows
 
     if np.any(muX <= 0) or np.any(np.isinf(muX)):
-        raise ValueError("rayleigh.rnd(muX,N): muX must be greater than zero")
+        raise ValueError(" rayleigh.rnd(muX,N): muX must be greater than zero")
     if N == None or N < 1:
-        raise ValueError("rayleigh.rnd(muX,N): N must be greater than zero")
+        raise ValueError(" rayleigh.rnd(muX,N): N must be greater than zero")
 
     # Convert mean to mode
     modeX = muX * np.sqrt(2 / np.pi)
-
-    muX = np.atleast_1d(muX)
-    n = len(muX) # number of rows
-    if N is not None:
-        u = np.random.rand(n, N) # uniform random values on [0,1]
-        r_rows, c_cols = n, N
 
     # Broadcast modeX if needed
     if np.isscalar(modeX):
         modeX = modeX * np.ones((r_rows, c_cols))
         
+    _, _, U = correlated_rvs(R,n,N)
+
     # Inverse transform sampling
-    X = modeX * np.sqrt(-2.0 * np.log(u))
+    X = modeX * np.sqrt(-2.0 * np.log(U))
 
     if n == 1:
         X = X.flatten()
 
     return X
-

@@ -1,6 +1,8 @@
 import numpy as np
 from scipy.special import erf, erfinv
 
+from multivarious.utl.correlated_rvs import correlated_rvs
+
 
 def pdf(x, medX, covX):
     '''

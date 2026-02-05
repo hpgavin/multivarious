@@ -3,6 +3,8 @@
 
 import numpy as np
 
+from multivarious.utl.correlated_rvs import correlated_rvs
+
 
 def pdf(x, m, s, k):
     '''
@@ -114,39 +116,50 @@ def inv(P, m, s, k):
     return x
 
 
-def rnd(m, s, k, r, c):
+def rnd(m, s, k, N, R):
     '''
     extreme_value_II.rnd
     
     Generate random samples from Extreme Value Type II (Fréchet) distribution.
     
     Parameters:
-        m : float
+        m : float (n,)
             Location parameter
-        s : float
+        s : float (n,)
             Scale parameter (must be > 0)
-        k : float
+        k : float (n,)
             Shape parameter
-        r : int
-            Number of rows
-        c : int
-            Number of columns
+        N : int
+            Number of observations of each variable
+        R  : float (n,n) optional
+             correlation matrix
     
     Returns:
         X : ndarray
-            Shape (r, c) array of random samples
+            Shape (n, N) array of random samples
     '''
+    # Convert inputs to arrays
+    # Python does not implicitly handle scalars as arrays. 
+    m = np.atleast_1d(m).astype(float)
+    s = np.atleast_1d(s).astype(float)
+    k = np.atleast_1d(k).astype(float)
+
+    n = len(m)
+
+    if not (len(m) == n and len(s) == n and len(k) == n):  
+       raise ValueError(f"All parameter arrays must have the same length. "
+                        f"Got m:{len(m)}, s:{len(s)}, k:{len(k)}")
+
     # Check parameter validity
     if s <= 0:
-        raise ValueError(f"extII_rnd: s = {s}, must be > 0")
-    
-    # Generate standard uniform [0,1]
-    u = np.random.rand(r, c)
-    
+        raise ValueError(f" extreme_value_II.rnd: s = {s}, must be > 0")
+
+    _, _, U = correlated_rvs(R,n,N)
+
     # Inverse transform: x = m + s * (-log(u))^(-1/k)
-    X = m + s * (-np.log(u))**(-1 / k)
+    X = m + s * (-np.log(U))**(-1 / k)
     
-    if r == 1:
+    if n == 1:
         X = X.flatten()
 
     return X

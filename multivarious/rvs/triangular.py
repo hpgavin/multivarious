@@ -1,5 +1,7 @@
 import numpy as np
 
+from multivarious.utl.correlated_rvs import correlated_rvs
+
 def pdf(x, a, b, c):
     '''
     triangular.pdf
@@ -76,6 +78,7 @@ def cdf(x, a, b, c):
 
     return cdf
 
+
 def inv(p, a, b, c):
     '''
     triangular.inv
@@ -116,7 +119,8 @@ def inv(p, a, b, c):
 
     return x
 
-def rnd(a, b, c, size=(1,), seed=None):
+
+def rnd(a, b, c, N, R=None):
     '''
     triangular.rnd
 
@@ -141,12 +145,34 @@ def rnd(a, b, c, size=(1,), seed=None):
     Reference:
     http://en.wikipedia.org/wiki/Triangular_distribution
     '''
-    if isinstance(seed, (int, type(None))):
-        rng = np.random.default_rng(seed)
-    else:
-        rng = seed  # assume user passed Generator
 
-    U = rng.random(size)
-    X = inv(U, a, b, c)
+    # Convert inputs to arrays
+    # Python does not implicitly handle scalars as arrays. 
+    a = np.atleast_1d(a).astype(float)
+    b = np.atleast_1d(b).astype(float)
+    c = np.atleast_1d(c).astype(float)
+
+    # Determine number of random variables
+    n = len(a)
+
+    # Validate that all parameter arrays have the same length
+    if not (len(a) == n and len(b) == n and len(c) == n):
+        raise ValueError(f"All parameter arrays must have the same length. "
+                        f"Got a:{len(a)}, b:{len(b)}, c:{len(c)}")
+
+    if np.any(b <= a):
+        raise ValueError(" triangular.rnd: all b values must be greater than corresponding a values")
+    if np.any(c <= a):
+        raise ValueError(" triangular.rnd: all c values must be greater than corresponding a values")
+    if np.any(b <= c):
+        raise ValueError(" triangular.rnd: all b values must be greater than corresponding c values")
+
+    _, _, U = correlated_rvs(R,n,N)
+
+    # Transform each variable to its beta distribution via inverse CDF
+    X = np.zeros((n, N))
+    for i in range(n):
+        X[i, :] = inv(U[i, :], a[i], b[i], c[i])
+
  
     return X

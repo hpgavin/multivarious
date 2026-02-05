@@ -2,6 +2,8 @@ import numpy as np
 from scipy.special import gamma as gamma_func
 from scipy.special import gammainc
 
+from multivarious.utl.correlated_rvs import correlated_rvs
+
 
 def pdf(x, m, c):
     '''
@@ -124,7 +126,7 @@ def inv(P, m, c):
     return x_new                    # return final quantiles
 
 
-def rnd(m, c, n, N):
+def rnd(m, c, N, R, R):
     '''
     gamma.rnd
 
@@ -137,10 +139,9 @@ def rnd(m, c, n, N):
         Mean of the distribution
     c : float
         Coefficient of variation (sdv/mean)
-    n : int
-        Number of random variables (rows) 
     N : int
         Number of values of each random variable (columns)
+    R : correlation matrix (n,n) --- not implemented 
 
     Output
     ------
@@ -151,8 +152,26 @@ def rnd(m, c, n, N):
     ----------
     https://en.wikipedia.org/wiki/Gamma_distribution
     '''
+
+    # Convert inputs to arrays
+    # Python does not implicitly handle scalars as arrays. 
+    m = np.atleast_1d(m).astype(float)
+    c = np.atleast_1d(c).astype(float)
+
+    # Determine number of random variables
+    n = len(m)
+
+    # Validate that all parameter arrays have the same length
+    if not (len(m) == n and len(c) == n:
+        raise ValueError(f"All parameter arrays must have the same length. "
+                        f"Got m:{len(m)}, c:{len(c)}")
+
+    if np.any(m <= 0):
+        raise ValueError("gamma.rnd: all m values must be greater than 0") 
+
     k = 1.0 / c**2                  # shape parameter
     theta = c**2 * m                # scale parameter
+
     # draw samples using NumPy’s gamma RNG
     X = np.random.gamma(shape=k, scale=theta, size=(n, N)) 
 
@@ -160,4 +179,3 @@ def rnd(m, c, n, N):
         X = X.flatten()
 
     return X
-

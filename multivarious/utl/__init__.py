@@ -30,7 +30,7 @@ from .plot_lm import plot_lm
 from .plot_opt_surface import plot_opt_surface
 from .plot_spectra import plot_spectra 
 from .plot_ECDF_ci import plot_ECDF_ci
-from .shrink_newton import nearcorr_shrink
+from .shrink_newton import correlated_rvs
 from .L1_plots import L1_plots
 
 

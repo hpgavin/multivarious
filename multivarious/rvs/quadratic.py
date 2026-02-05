@@ -1,5 +1,7 @@
 import numpy as np
 
+from multivarious.utl.correlated_rvs import correlated_rvs
+
 def pdf(x, a, b):
     """
     quadratic.pdf
@@ -112,54 +114,54 @@ def inv(u, a, b):
     return x[0] if np.isscalar(u) or len(x) == 1 else x
 
 
-def rnd(a, b, r, c=None, seed=None):
+def rnd(a, b, N, R=None):
     """
     quadratic.rnd
     
     Generates random samples from the quadratic distribution on interval (a, b).
     
     Parameters:
-        a : float
+        a : float (n,)
             Lower bound (a < b)
-        b : float
+        b : float (n,)
             Upper bound (b > a)
-        r : int or ndarray
-            If int: number of rows; if ndarray: matrix of uniform(0,1) values
-        c : int, optional
-            Number of columns (used only if r is int)
-        seed : int or np.random.Generator, optional
-            Random seed for reproducibility
+        N : int 
+            number of observations of n quadratic random variables 
+        R : float, (n,n) optional
+            correlation matrixx
     
     Output:
         X : ndarray
             Random samples from the quadratic distribution
     """
-    # Setup random number generator
-    if isinstance(seed, (int, type(None))):
-        rng = np.random.default_rng(seed)
-    else:
-        rng = seed
-    
-    # Case 1: r is a matrix of uniform random values
-    if c is None and isinstance(r, np.ndarray):
-        u = r
-        r_dim, c_dim = u.shape
-    # Case 2: Generate uniform samples with shape (r, c)
-    elif c is not None and isinstance(r, int):
-        u = rng.random((r, c))
-        r_dim, c_dim = r, c
-    else:
-        raise ValueError("quadratic_rnd: Either provide a matrix (r) or integers (r, c)")
-    
+
+    # Convert inputs to arrays
+    # Python does not implicitly handle scalars as arrays. 
+    a = np.atleast_1d(a).astype(float)
+    b = np.atleast_1d(b).astype(float)
+
+    # Determine number of random variables
+    n = len(a)
+
+    # Validate that all parameter arrays have the same length
+    if not (len(a) == n and len(b) == n):
+        raise ValueError(f"All parameter arrays must have the same length. "
+                        f"Got a:{len(a)}, b:{len(b)}")
+
+    if np.any(b <= a):
+        raise ValueError(" quadratic.rnd: all b values must be greater than corresponding a values")
+
+    _, _, U = correlated_rvs(R,n,N)
+
     # Solve cubic for each u value
-    X = np.zeros((r_dim, c_dim))
-    for i in range(r_dim):
-        for j in range(c_dim):
+    X = np.zeros((n, N))
+    for i in range(n):
+        for j in range(N):
             coeffs = [
                 2,
                 -3 * (a + b),
                 6 * a * b,
-                a**3 - 3 * a**2 * b - u[i, j] * (a - b)**3
+                a**3 - 3 * a**2 * b - U[i, j] * (a - b)**3
             ]
             roots = np.roots(coeffs)
             real_roots = roots[np.abs(roots.imag) < 1e-10].real

@@ -5,8 +5,8 @@ import numpy as np
 from scipy.special import beta as beta_func
 from scipy.special import betainc
 from scipy.special import betaincinv
-from scipy.stats import norm
 
+from multivarious.utl.correlated_rvs import correlated_rvs
 
 def pdf(x, a, b, q, p):
     '''
@@ -189,55 +189,21 @@ def rnd(a, b, q, p, N, R=None):
     
     # Determine number of random variables
     n = len(a)
-    
 
-    # -------------------------------------- Input Validations:
     # Validate that all parameter arrays have the same length
     if not (len(b) == n and len(q) == n and len(p) == n):
         raise ValueError(f"All parameter arrays must have the same length. "
                         f"Got a:{len(a)}, b:{len(b)}, q:{len(q)}, p:{len(p)}")
     
     if np.any(b <= a):
-        raise ValueError("beta_rnd: all b values must be greater than corresponding a values")
+        raise ValueError("beta.rnd: all b values must be greater than corresponding a values")
     if np.any(q <= 0):
-        raise ValueError("beta_rnd: q must be positive")
+        raise ValueError("beta.rnd: q must be positive")
     if np.any(p <= 0):
-        raise ValueError("beta_rnd: p must be positive")
-    
-    # If no correlation matrix provided, default to identity matrix
-    # Identity matrix R = I means all variables are independent (correlation = 0)
-    if R is None:
-        R = np.eye(n) # In
-    
-    # Convert R to array and validate its properties
-    R = np.asarray(R)
-    if R.shape != (n, n):
-        raise ValueError(f"beta.rnd: Correlation matrix R must b square {n}×{n}, got {R.shape}")
-    
-    if not np.allclose(np.diag(R), 1.0): # diagonals must be 1s
-        raise ValueError("beta.rnd: diagonal of R must equal 1")
-    
-    if np.any(np.abs(R) > 1): # all elements must be [-1, 1] i.e valid correlations
-        raise ValueError("beta.rnd: R values must be between -1 and 1")
-    # -------------------------------------- End Input Validations
-    
-    # Generate independent standard normal samples: Z ~ N(0, I)
-    Z = np.random.randn(n, N) 
+        raise ValueError("beta.rnd: p must be positive")
 
-    # Eigenvalue decomposition of correlation matrix: R = V @ Λ @ V^T
-    #   eVec (V): matrix of eigenvectors (n×n)
-    #   eVal (Λ): array of eigenvalues (length n)
-    eVal, eVec = np.linalg.eigh(R)
-    
-    if np.any(eVal < 0):
-        raise ValueError("beta.rnd: R must be positive definite")
-    
-    # Apply correlation structure
-    Y = eVec @ np.diag(np.sqrt(eVal)) @ Z
-    
-    # Transform to uniform [0,1] via standard normal CDF, preserving correlation
-    U = norm.cdf(Y)
-    
+    _, _, U = correlated_rvs(R,n,N)
+   
     # Transform each variable to its beta distribution via inverse CDF
     X = np.zeros((n, N))
     for i in range(n):
