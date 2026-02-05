@@ -346,16 +346,15 @@ def sqp(func, v_init, v_lb=None, v_ub=None, options_in=None, consts=1.0):
 
         iteration += 1
 
+        g_max, idx_max_g = np.max(g), np.argmax(g)
+        cvg_f = abs(absSL * np.dot(gradf, SD) / (f + 1e-9)) 
+        cvg_v = np.max(np.abs(absSL * SD / (u + 1e-9)))
+
         # ----- Display progress -----
         if msg:
             elapsed = time.time() - start_time
             secs_left = int((max_evals - function_evals) * elapsed / function_evals)
             eta = (datetime.now() + timedelta(seconds=secs_left)).strftime('%H:%M:%S')
-
-            g_max, idx_max_g = np.max(g), np.argmax(g)
-            cvg_f = abs(absSL * np.dot(gradf, SD) / (f + 1e-9)) 
-            cvg_v = np.max(np.abs(absSL * SD / (u + 1e-9)))
-
             # print('\033[H\033[J', end='')  # clear screen
             print("\n *********************** SQP ****************************")
             print(f" iteration                = {iteration:5d}   "
@@ -439,8 +438,8 @@ def sqp(func, v_init, v_lb=None, v_ub=None, options_in=None, consts=1.0):
             [f_opt, np.max(g_opt), function_evals, cvg_v, cvg_f] ])
 
     # ----- Summary -----
+    dur = time.time() - start_time
     if msg:
-        dur = time.time() - start_time
         print(f" * objective = {f_opt:11.3e} ")
         print(" * ----------------------------------------------------------------------------")
         print(" *                v_init      v_lb     <    v_opt     <    v_ub      lambda")

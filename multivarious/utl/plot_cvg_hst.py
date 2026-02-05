@@ -87,7 +87,7 @@ def plot_cvg_hst(cvg_hst, v_opt, opts=[1,np.nan,np.nan,np.nan], fig_num=1000, cl
     fc = cvg_hst[n+2, :]  # Function count
     
     if fig_num:  # Make plots
-#       plt.ion() # interactive plot mode: on
+        plt.ion() # interactive plot mode: on
         
         # ====================================================================
         # FIGURE fig_num+1: Convergence Criteria
