@@ -20,7 +20,7 @@ import numpy as np
 from scipy.stats import norm as scipy_norm
 
 
-def shrink_newton(M0, M1, tolN=1e-4, tolB=0):
+def shrink_newton(M0, M1, tolrnc=1e-4 ):
     """
     Shrinking by Newton's method.
     
@@ -34,10 +34,8 @@ def shrink_newton(M0, M1, tolN=1e-4, tolB=0):
         Symmetric indefinite matrix to be fixed
     M1 : ndarray, shape (n, n)
         Symmetric positive definite target matrix (usually Identity)
-    tolN : float, optional
+    tolrnc : float, optional
         Convergence tolerance for Newton's method (default: 1e-4)
-    tolB : float, optional
-        Retained for compatibility with MATLAB version (not used here)
     
     Returns
     -------
@@ -59,7 +57,7 @@ def shrink_newton(M0, M1, tolN=1e-4, tolB=0):
     ...               [0.8, 0.9, 1.0]])  # Not PSD
     >>> I = np.eye(3)
     >>> alpha = shrink_newton(C, I)
-    >>> C_fixed = alpha * I + (1 - alpha) * C
+    >>> C_nnd = alpha * I + (1 - alpha) * C
 
     -----
     This is a simplified version of Higham's MATLAB code that used
@@ -77,7 +75,7 @@ def shrink_newton(M0, M1, tolN=1e-4, tolB=0):
     # then M is the off-diagonal part of M0
     M = M0 - M1
     
-    for n in range(max_iter):
+    for iter in range(max_iter):
         # Weighted average of M1 (symm) and M0 (I_n)
         S = alpha_0 * M1 + (1 - alpha_0) * M0
 
@@ -86,20 +84,21 @@ def shrink_newton(M0, M1, tolN=1e-4, tolB=0):
     
         # Eigenvector for the smallest eigenvalue of S
         # "eigh" returns eigenvalues in ascending order
-        v0 = eigvec[:, 0]
+        val0 = eigval[0] 
+        vec0 = eigvec[:, 0]
         
-        alpha_1 = ( v0 @ M0 @ v0 ) / ( v0 @ M @ v0 )
+        alpha_1 = ( vec0 @ M0 @ vec0 ) / ( vec0 @ M @ vec0 )
         
         # convergence criteria
-        if abs(alpha_0 - alpha_1) <= tolN:
-            return alpha_1
+        if val0 > -tolrnc or abs(alpha_0 - alpha_1) <= tolrnc:
+            return alpha_0, iter, val0
         
         # update and continue
         alpha_0 = alpha_1
     
     raise RuntimeError(f' shrink_newton: not converged in {max_iter} iterations')
 
-def nearcorr_shrink(C, tolN=1e-4):
+def nearcorr_shrink(C, tolrnc=1e-4):
     """
     Compute nearest correlation matrix using shrinking method.
     
@@ -111,12 +110,12 @@ def nearcorr_shrink(C, tolN=1e-4):
     C : ndarray, shape (n, n)
         Symmetric correlation-like matrix (unit diagonal, values in [-1,1])
         that may not be positive definite
-    tolN : float, optional
+    tolrnc : float, optional
         Convergence tolerance for Newton's method (default: 1e-4)
     
     Returns
     -------
-    C_fixed : ndarray, shape (n, n)
+    C_nnd : ndarray, shape (n, n)
         Nearest positive semidefinite correlation matrix
     alpha : float
         The shrinking parameter used
@@ -126,9 +125,9 @@ def nearcorr_shrink(C, tolN=1e-4):
     >>> C = np.array([[1.0, 0.9, 0.8],
     ...               [0.9, 1.0, 0.9],
     ...               [0.8, 0.9, 1.0]])
-    >>> C_fixed, alpha = nearcorr_shrink(C)
+    >>> C_nnd, alpha = nearcorr_shrink(C)
     >>> print(f"Shrinkage parameter: {alpha:.4f}")
-    >>> print(f"Minimum eigenvalue: {np.linalg.eigh(C_fixed)[0][0]:.2e}")
+    >>> print(f"Minimum eigenvalue: {np.linalg.eigh(C_nnd)[0][0]:.2e}")
     """
 
     # Convert C to array and validate its properties
@@ -144,12 +143,12 @@ def nearcorr_shrink(C, tolN=1e-4):
     In = np.eye(n)
     
     # Find optimal shrinking parameter
-    alpha = shrink_newton(C, In, tolN)
+    alpha, iter, eval0 = shrink_newton(C, In, tolrnc)
     
     # Compute the fixed correlation matrix
-    C_fixed =  (1 - alpha) * C + alpha * In
+    C_nnd =  (1 - alpha) * C + alpha * In
     
-    return C_fixed, alpha
+    return C_nnd, alpha, iter, eval0
 
 def correlated_rvs(R,n,N):
     """
@@ -158,28 +157,30 @@ def correlated_rvs(R,n,N):
     and associated standard uniform random variables U (n,N) 
     """
 
+    tolrnc = 1e-4  # eigenvalue tolerance
     # If no correlation matrix provided, default to identity matrix
     # Identity matrix R = I means all variables are independent (correl'n = 0)
     if R is None:
         R = np.eye(n) # In
-        eVal = np.ones(n)
-        eVec = np.eye(n)
+        eigval = np.ones(n)
+        eigvec = np.eye(n)
     else:
-        R, alpha = nearcorr_shrink(R, tolN = 1e-4)
-        print(f" Correlation matrix shrinkage: {alpha2:.6f}")
+        R, alpha, iter, eval0 = nearcorr_shrink(R, tolrnc)
+        print(f" correlated_rvs: Correlation matrix shrinkage ")
+        print(f"          alpha: {alpha:.6f}, iter: {iter}, eval0: {eval0:.6f}")
         # Eigenvalue decomposition of correlation matrix: R = V @ Λ @ V^T
-        #   eVec (V): matrix of eigenvectors (n×n)
-        #   eVal (Λ): array of eigenvalues (length n)
-        eVal, eVec = np.linalg.eigh(R)
+        #   eigvec (V): matrix of eigenvectors (n×n)
+        #   eigval (Λ): array of eigenvalues (length n)
+        eigval, eigvec = np.linalg.eigh(R)
         
-        if np.any(eVal < 0):
-            raise ValueError(" fix_R_Y_U: R must be positive definite")
+        if np.any(eigval < -2*tolrnc):
+            raise ValueError(f" correlated_rvs: R must be positive definite, eigval0 = {eigval[0]:10.2e}, iter = {iter}")
         
     # Generate independent standard normal samples: Z ~ N(0, I)
     Z = np.random.randn(n, N)
     
     # Apply correlation structure
-    Y = eVec @ np.diag(np.sqrt(eVal)) @ Z
+    Y = eigvec @ np.diag(np.sqrt(eigval)) @ Z
 
     # Transform to uniform [0,1] via standard normal CDF, preserving correlation
     norm = scipy_norm(loc=0, scale=1)
@@ -203,17 +204,17 @@ if __name__ == "__main__":
     print(f"Minimum eigenvalue: {eigval_orig[0]:.6f} (negative = not PSD)")
     
     # Fix using shrinking
-    C_fixed, alpha = nearcorr_shrink(C)
+    C_nnd, alpha = nearcorr_shrink(C)
     
     print(f"\nShrinkage parameter alpha: {alpha:.6f}")
-    print(f"\nFixed matrix C_fixed = {alpha:.4f}*I + {1-alpha:.4f}*C:")
-    print(C_fixed)
+    print(f"\nFixed matrix C_nnd = {alpha:.4f}*I + {1-alpha:.4f}*C:")
+    print(C_nnd)
     
-    eigval_fixed = np.linalg.eigh(C_fixed)[0]
-    print(f"\nEigenvalues: {eigval_fixed}")
-    print(f"Minimum eigenvalue: {eigval_fixed[0]:.2e} (should be ≈ 0)")
+    eigval_nnd = np.linalg.eigh(C_nnd)[0]
+    print(f"\nEigenvalues: {eigval_nnd}")
+    print(f"Minimum eigenvalue: {eigval_nnd[0]:.2e} (should be ≈ 0)")
     
-    print(f"\nFrobenius norm of change: {np.linalg.norm(C - C_fixed, 'fro'):.6f}")
+    print(f"\nFrobenius norm of change: {np.linalg.norm(C - C_nnd, 'fro'):.6f}")
     
     # Example 2: Larger random matrix
     print("\n" + "="*60)
@@ -231,10 +232,10 @@ if __name__ == "__main__":
     eigval_orig2 = np.linalg.eigh(C2)[0]
     print(f"Original minimum eigenvalue: {eigval_orig2[0]:.6f}")
     
-    C2_fixed, alpha2 = nearcorr_shrink(C2)
-    eigval_fixed2 = np.linalg.eigh(C2_fixed)[0]
-    print(C2_fixed)
+    C2_nnd, alpha = nearcorr_shrink(C2)
+    eigval_nnd2 = np.linalg.eigh(C2_nnd)[0]
+    print(C2_nnd)
     
-    print(f"Shrinkage parameter: {alpha2:.6f}")
-    print(f"Fixed minimum eigenvalue: {eigval_fixed2[0]:.2e}")
-    print(f"Frobenius norm of change: {np.linalg.norm(C2 - C2_fixed, 'fro'):.6f}")
+    print(f"Shrinkage parameter: {alpha:.6f}")
+    print(f"Fixed minimum eigenvalue: {eigval_nnd2[0]:.2e}")
+    print(f"Frobenius norm of change: {np.linalg.norm(C2 - C2_nnd, 'fro'):.6f}")
