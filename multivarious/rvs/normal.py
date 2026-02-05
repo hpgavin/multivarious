@@ -113,10 +113,13 @@ def rnd(mu, sigma, N, R=None):
     # Validate that all parameter arrays have the same length
     if not (len(mu) == n and len(sigma) == n):
         raise ValueError(f"All parameter arrays must have the same length. "
-                        f"Got mu:{len(mu)}, sigma:{len(sigma)}"
+                        f"Got mu:{len(mu)}, sigma:{len(sigma)}")
 
     _, Y, _ = correlated_rvs(R,n,N)
 
     X = mu + sigma*Y
+
+    if n == 1:
+        X = X.flatten()
 
     return X

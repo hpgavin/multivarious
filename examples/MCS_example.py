@@ -58,13 +58,13 @@ fig1.clear()
 
 # X1: Normal distribution
 plt.subplot(2, 3, 1)
-counts, bins, _ = plt.hist(X1, bins=nBins, density=True, color=ppl, edgecolor='none', alpha=0.7)
+counts, bins, _ = plt.hist(X1.T, bins=nBins, density=True, color=ppl, edgecolor='none', alpha=0.7)
 plt.plot(sort_X1, normal.pdf(sort_X1, mean1, sdv1), 'k-', linewidth=2)
 plt.ylabel('P.D.F.')
 plt.tight_layout()
 
 plt.subplot(2, 3, 4)
-plt.step(sort_X1, CDF, where='post', color=ppl, linewidth=2, label='Empirical')
+plt.step(sort_X1.T, CDF, where='post', color=ppl, linewidth=2, label='Empirical')
 plt.plot(sort_X1, normal.cdf(sort_X1, mean1, sdv1), 'k-', linewidth=0.5, label='Theoretical')
 plt.ylabel('C.D.F.')
 plt.xlabel(r'$X_1$ : normal')
@@ -72,7 +72,7 @@ plt.tight_layout()
 
 # X2: Lognormal distribution
 plt.subplot(2, 3, 2)
-counts, bins, _ = plt.hist(X2, bins=nBins, density=True, color=ppl, edgecolor='none', alpha=0.7)
+counts, bins, _ = plt.hist(X2.T, bins=nBins, density=True, color=ppl, edgecolor='none', alpha=0.7)
 plt.plot(sort_X2, lognormal.pdf(sort_X2, med2, cov2), 'k-', linewidth=2)
 plt.tight_layout()
 
@@ -84,7 +84,7 @@ plt.tight_layout()
 
 # X3: Rayleigh distribution
 plt.subplot(2, 3, 3)
-counts, bins, _ = plt.hist(X3, bins=nBins, density=True, color=ppl, edgecolor='none', alpha=0.7)
+counts, bins, _ = plt.hist(X3.T, bins=nBins, density=True, color=ppl, edgecolor='none', alpha=0.7)
 plt.plot(sort_X3, rayleigh.pdf(sort_X3, mean3), 'k-', linewidth=2)
 plt.tight_layout()
 
@@ -103,13 +103,13 @@ fig2 = plt.figure(2, figsize=(8, 6))
 fig2.clear()
 
 plt.subplot(2, 1, 1)
-counts, bins, _ = plt.hist(Y, bins=nBins, density=True, color=ppl, edgecolor='none', alpha=0.7)
+counts, bins, _ = plt.hist(Y.T, bins=nBins, density=True, color=ppl, edgecolor='none', alpha=0.7)
 plt.axvline(x=0, color='r', linewidth=3, label='Failure threshold')
 plt.ylabel('P.D.F.')
 plt.tight_layout()
 
 plt.subplot(2, 1, 2)
-plt.step(np.sort(Y), CDF, where='post', color=ppl, linewidth=2)
+plt.step(np.sort(Y), CDF.T, where='post', color=ppl, linewidth=2)
 plt.axvline(x=0, color='r', linewidth=3)
 plt.text(0.5, 0.5, 'Y>0', fontsize=12)
 plt.ylabel('C.D.F.')

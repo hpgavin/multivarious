@@ -104,7 +104,7 @@ def inv(P, muX):
     return x
 
 
-def rnd(muX, N, R=None)
+def rnd(muX, N, R=None):
     '''
     rayleigh.rnd
 

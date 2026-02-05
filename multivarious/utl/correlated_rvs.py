@@ -17,6 +17,9 @@ from finance," IMA Journal of Numerical Analysis, 22(3), 329-343, 2002.
 
 import numpy as np
 
+from scipy.stats import norm as scipy_norm
+
+
 def shrink_newton(M0, M1, tolN=1e-4, tolB=0):
     """
     Shrinking by Newton's method.
@@ -148,7 +151,7 @@ def nearcorr_shrink(C, tolN=1e-4):
     
     return C_fixed, alpha
 
-def correlated_rvs(R,n,N) 
+def correlated_rvs(R,n,N):
     """
     Fix a potentialy erroneous correlation matrix, 
     generate correlated standard normal random variables Y (n,N) 
@@ -179,6 +182,7 @@ def correlated_rvs(R,n,N)
     Y = eVec @ np.diag(np.sqrt(eVal)) @ Z
 
     # Transform to uniform [0,1] via standard normal CDF, preserving correlation
+    norm = scipy_norm(loc=0, scale=1)
     U = norm.cdf(Y)
 
     return R, Y, U
