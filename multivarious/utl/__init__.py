@@ -20,7 +20,6 @@ or:
 
 from .avg_cov_func import avg_cov_func
 from .box_constraint import box_constraint
-from .fix_R import fix_R
 from .format_bank import format_bank
 from .format_plot import format_plot
 from .opt_options import opt_options
@@ -31,12 +30,12 @@ from .plot_lm import plot_lm
 from .plot_opt_surface import plot_opt_surface
 from .plot_spectra import plot_spectra 
 from .plot_ECDF_ci import plot_ECDF_ci
+from .shrink_newton import nearcorr_shrink
 from .L1_plots import L1_plots
 
 
 __all__ = [ "avg_cov_func", 
             "box_constraint", 
-            "fix_R", 
             "format_bank", 
             "format_plot", 
             "opt_options", 
@@ -47,6 +46,7 @@ __all__ = [ "avg_cov_func",
             "plot_opt_surface", 
             "plot_spectra", 
             "plot_ECDF_ci", 
+            "shrink_newton",
             "L1_plots", 
           ]
 

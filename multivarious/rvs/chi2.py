@@ -125,7 +125,6 @@ def rnd(k, N, R=None):
 
     if R is None:
         R = np.eye(n) # In
-    T = np.eye(n) # In
     
     # Wilson-Hilferty transformation parameters
     m = 1 - 2 / (9 * k)
@@ -134,12 +133,19 @@ def rnd(k, N, R=None):
     # Standard normal random matrix
     Z = np.random.randn(n, N)
 
+    # Eigenvalue decomposition of correlation matrix: R = V @ Λ @ V^T
+    #   eVec (V): matrix of eigenvectors (n×n)
+    #   eVal (Λ): array of eigenvalues (length n)
+    eVal, eVec = np.linalg.eigh(R)
 
+    if np.any(eVal < 0):
+        raise ValueError("beta.rnd: R must be positive definite")
 
+    # Apply correlation structure
+    Y = eVec @ np.diag(np.sqrt(eVal)) @ Z
 
-
-
-    Y = T * Z
+    # Transform to uniform [0,1] via standard normal CDF, preserving correlation
+    U = norm.cdf(Y)
 
     # Apply transformation
     X = k * (m + s * Y) ** 3
@@ -148,5 +154,3 @@ def rnd(k, N, R=None):
         X = X.flatten()
 
     return X
-
-

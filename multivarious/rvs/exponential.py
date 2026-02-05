@@ -111,11 +111,20 @@ def rnd(muX, N, R=None):
 
     if R is None:
         R = np.eye(n) # In
-    T = np.eye(n) # In
     
     # Generate correlated standard normal ~N(0,1)
     Z = np.random.randn(n, N)
-    Y = T * Z
+
+    # Eigenvalue decomposition of correlation matrix: R = V @ Λ @ V^T
+    #   eVec (V): matrix of eigenvectors (n×n)
+    #   eVal (Λ): array of eigenvalues (length n)
+    eVal, eVec = np.linalg.eigh(R)
+
+    if np.any(eVal < 0):
+        raise ValueError("beta.rnd: R must be positive definite")
+
+    # Apply correlation structure
+    Y = eVec @ np.diag(np.sqrt(eVal)) @ Z
 
     # Generate correlated standard uniform ~U[0,1]
     U = norm.cdf(Y)
@@ -127,4 +136,3 @@ def rnd(muX, N, R=None):
         X = X.flatten()
 
     return X
-

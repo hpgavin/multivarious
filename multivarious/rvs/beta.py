@@ -247,4 +247,3 @@ def rnd(a, b, q, p, N, R=None):
         X = X.flatten()
 
     return X
-
