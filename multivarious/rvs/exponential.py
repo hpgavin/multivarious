@@ -81,15 +81,14 @@ def inv(P, muX):
     return X
 
 
-def rnd(muX, n, N, R):
+def rnd(muX, N, R=None):
     '''
     exponential.rnd
 
     Generate random samples from an exponential distribution with mean muX.
 
     INPUTS:
-        muX  = mean of the exponential distribution
-        n = number of variables (rows)
+        muX  = mean (n,) one component for each r.v.
         N = number of values for each variable in the sample (columns)
         R = correlation matrix (n x n) - not yet implemented
  
@@ -104,18 +103,15 @@ def rnd(muX, n, N, R):
     # Python does not implicitly handle scalars as arrays. 
     muX = np.atleast_1d(muX).astype(int)
 
-    # Validate n is len(k)  
-    if len(muX) < n:
-        muX = muX[0]*np.ones(n)
-    if len(k) > n:
-        n = len(k)
-    if R is None:
-        R = np.eye(n) # In
-    T = np.eye(n) # In
-
     # Check parameter validity
     if np.any(muX <= 0) or np.any(np.isinf(muX)):
         raise ValueError(f"exp.rnd: muX must be > 0 and finite")
+
+    n = len(muX)
+
+    if R is None:
+        R = np.eye(n) # In
+    T = np.eye(n) # In
     
     # Generate correlated standard normal ~N(0,1)
     Z = np.random.randn(n, N)

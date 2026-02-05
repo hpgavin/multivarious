@@ -137,17 +137,17 @@ def inv(F, a, b, q, p):
 def rnd(a, b, q, p, N, R=None):
     '''
     beta.rnd
-    Generate N observations of correlated (or uncorrelated) beta random variables.
+    Generate N observations of n correlated (or uncorrelated) beta random var's
 
     INPUT:
-        a : float or array_like
-            Lower bound(s) of the distribution. If array, shape (n,) for n variables.
-        b : float or array_like
-            Upper bound(s) of the distribution. If array, shape (n,) for n variables.
+        a : float or array_like (n,)
+            Lower bound(s) of the distribution. shape (n,) for n random variables
+        b : float or array_like (n,)
+            Upper bound(s) of the distribution. shape (n,) for n random variables
         q : float or array_like
-            First shape parameter(s). If array, shape (n,) for n variables.
+            First shape parameter(s). shape (n,) for n random variables
         p : float or array_like
-            Second shape parameter(s). If array, shape (n,) for n variables.
+            Second shape parameter(s). shape (n,) for n random variables
         N : int
             Number of observations (samples) to generate.
         R : ndarray, optional
@@ -219,22 +219,20 @@ def rnd(a, b, q, p, N, R=None):
     
     if np.any(np.abs(R) > 1): # all elements must be [-1, 1] i.e valid correlations
         raise ValueError("beta.rnd: R values must be between -1 and 1")
-    # # -------------------------------------- End Input Validations
+    # -------------------------------------- End Input Validations
     
+    # Generate independent standard normal samples: Z ~ N(0, I)
+    Z = np.random.randn(n, N) 
+
     # Eigenvalue decomposition of correlation matrix: R = V @ Λ @ V^T
     #   eVec (V): matrix of eigenvectors (n×n)
     #   eVal (Λ): array of eigenvalues (length n)
-    eVal, eVec = np.linalg.eig(R)
+    eVal, eVec = np.linalg.eigh(R)
     
     if np.any(eVal < 0):
         raise ValueError("beta.rnd: R must be positive definite")
     
-    # Generate independent standard normal samples: Z ~ N(0, I)
-    Z = np.random.randn(n, N) 
-    
     # Apply correlation structure
-    # Y = V @ sqrt(Λ) @ Z, so Y ~ N(0, R)
-    #   = eVec @ sqrt(eVal) @ Z
     Y = eVec @ np.diag(np.sqrt(eVal)) @ Z
     
     # Transform to uniform [0,1] via standard normal CDF, preserving correlation
@@ -249,3 +247,4 @@ def rnd(a, b, q, p, N, R=None):
         X = X.flatten()
 
     return X
+

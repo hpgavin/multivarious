@@ -98,17 +98,15 @@ def inv(p, k):
     return x
 
 
-def rnd(k, n, N, R):
+def rnd(k, N, R=None):
     '''
     chi2.rnd
-
-    Generates random samples from a Chi-squared distribution using the
-    Wilson-Hilferty transformation (approximation).
+    Generate N observations of n correlated (or uncorrelated) chi2 random var's
+    via the Wilson-Hilferty transformation (a good approximation).
 
     INPUTS:
-      k = degrees of freedom (must be > 0)
-      n = number of variables (rows)
-      N = number of values for each variable in the sample (columns)
+      k = degrees of freedom (must be > 0), (n,) one component for each r.v.
+      N = number of values for each random variable in the sample (columns)
       R = correlation matrix (n x n) - not yet implemented
  
     OUTPUT:
@@ -119,25 +117,28 @@ def rnd(k, n, N, R):
     # Python does not implicitly handle scalars as arrays. 
     k = np.atleast_1d(k).astype(int)
 
-    # Validate n is len(k)  
-    if len(k) < n:
-        k = k[0]*np.ones(n)
-    if len(k) > n:
-        n = len(k)
-    if R is None:
-        R = np.eye(n) # In
-    T = np.eye(n) # In
-    
     # Validate k is not negative 
     if np.any(k <= 0) or np.any(np.isinf(k)):
         raise ValueError("chi2.rnd: Degrees of freedom k must be > 0")
 
+    n = len(k) 
+
+    if R is None:
+        R = np.eye(n) # In
+    T = np.eye(n) # In
+    
     # Wilson-Hilferty transformation parameters
     m = 1 - 2 / (9 * k)
     s = np.sqrt(2 / (9 * k))
 
     # Standard normal random matrix
     Z = np.random.randn(n, N)
+
+
+
+
+
+
     Y = T * Z
 
     # Apply transformation
@@ -147,4 +148,5 @@ def rnd(k, n, N, R):
         X = X.flatten()
 
     return X
+
 
