@@ -1,7 +1,8 @@
 import numpy as np
 from scipy.special import factorial
 
-from multivarious.utl.correlated_rvs import correlated_rvs
+
+#from multivarious.utl.correlated_rvs import correlated_rvs
 
 def pmf(n, L):
     '''
@@ -67,7 +68,7 @@ def cdf(n, L):
     return F if F.size > 1 else F[0]        # Return scalar if input was scalar
 
 
-def rnd(T, N, R=None):
+def rnd(T, N, R=None, seed=None):
     '''
     poisson.rnd
 
@@ -92,6 +93,9 @@ def rnd(T, N, R=None):
     Reference:
     https://en.wikipedia.org/wiki/Poisson_distribution#Generating_Poisson-distributed_random_variables
     '''
+
+    rng = np.random.default_rng(seed)
+
     # Convert inputs to arrays
     # Python does not implicitly handle scalars as arrays. 
     T = np.atleast_1d(T).astype(float)
@@ -99,17 +103,16 @@ def rnd(T, N, R=None):
     # Determine number of random variables
     n = len(T)
 
-    # Compute L = exp(-1/T)
-    L = np.exp(-1.0 / T)
-
     # Initialize output matrix
     p = np.ones((n, N))                    # running product
     X = np.zeros((n, N), dtype=int)        # counter
 
+    L = np.exp(-1.0 / T)
+
     # Run multiplicative loop
     active = p >= L
     while np.any(active):
-        p[active] *= np.random.rand(np.sum(active))
+        p[active] *= rng.random(np.sum(active))
         X[active] += 1
         active = p >= L
 

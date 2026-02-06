@@ -43,7 +43,7 @@ def pdf(x, m, s, k):
     return f
 
 
-def cdf(x, m, s, k):
+def cdf(x, params ):
     '''
     extreme_value_II.cdf
     
@@ -52,6 +52,7 @@ def cdf(x, m, s, k):
     Parameters:
         x : array_like
             Evaluation points
+        params : array_like  [ m , s , k ] 
         m : float
             Location parameter (lower bound)
         s : float
@@ -65,6 +66,8 @@ def cdf(x, m, s, k):
     '''
     x = np.asarray(x, dtype=float)
     
+    m, s, k = params
+
     # Check parameter validity
     if s <= 0:
         raise ValueError(f"extII_cdf: s = {s}, must be > 0")
@@ -116,7 +119,7 @@ def inv(P, m, s, k):
     return x
 
 
-def rnd(m, s, k, N, R):
+def rnd(m, s, k, N, R=None, seed=None):
     '''
     extreme_value_II.rnd
     
@@ -151,13 +154,16 @@ def rnd(m, s, k, N, R):
                         f"Got m:{len(m)}, s:{len(s)}, k:{len(k)}")
 
     # Check parameter validity
-    if s <= 0:
+    if np.any(s) <= 0:
         raise ValueError(f" extreme_value_II.rnd: s = {s}, must be > 0")
 
-    _, _, U = correlated_rvs(R,n,N)
+    _, _, U = correlated_rvs(R, n, N, seed)
 
     # Inverse transform: x = m + s * (-log(u))^(-1/k)
-    X = m + s * (-np.log(U))**(-1 / k)
+    # Transform each variable to its extreme type II  distribution 
+    X = np.zeros((n, N))
+    for i in range(n):
+        X[i, :] = m[i] + s[i] * (-np.log(U[i,:]))**(-1 / k[i])
     
     if n == 1:
         X = X.flatten()

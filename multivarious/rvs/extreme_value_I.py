@@ -8,19 +8,19 @@ from multivarious.utl.correlated_rvs import correlated_rvs
 # Euler-Mascheroni constant
 GAMMA = 0.57721566490153286060651209008240243104215933593992
 
-def _mu_cv_to_loc_scale(mu, cv):
-    """Helper: Convert (mu, cv) to (location, scale) for Gumbel."""
-    sigma = mu * cv
+def _meanX_covnX_to_loc_scale(meanX, covnX):
+    """Helper: Convert (meanX, covnX) to (location, scale) for Gumbel."""
+    sigma = meanX * covnX
     scale = np.sqrt(6) * sigma / np.pi
-    loc = mu - scale * GAMMA
+    loc = meanX - scale * GAMMA
     return loc, scale
 
 
-def pdf(x, mu, cv):
+def pdf(x, meanX, covnX):
     """
-    PDF of Extreme Value Type I (Gumbel) distribution, param'd by (mu, cv).
+    PDF of Extreme Value Type I (Gumbel) distribution, param'd by (meanX, covnX).
     """
-    loc, scale = _mu_cv_to_loc_scale(mu, cv)
+    loc, scale = _meanX_covnX_to_loc_scale(meanX, covnX)
     z = (x - loc) / scale
     exp_z = np.exp(-z)
     return exp_z * np.exp(-exp_z) / scale
@@ -28,30 +28,31 @@ def pdf(x, mu, cv):
 
 def cdf(x, params):
     """
-    CDF of Extreme Value Type I (Gumbel) distribution, param'd by [mu, cv].
+    CDF of Extreme Value Type I (Gumbel) distribution, param'd by array [meanX, covnX].
     """
-    mu, cv = params
-    loc, scale = _mu_cv_to_loc_scale(mu, cv)
+    
+    meanX, covnX = params
+    
+    loc, scale = _meanX_covnX_to_loc_scale(meanX, covnX)
     z = (x - loc) / scale
     return np.exp(-np.exp(-z))
 
 
-def inv(p, mu, sigma):
+def inv(p, meanX, stdvX):
     """
     Inverse CDF (quantile) of Extreme Value Type I (Gumbel) distribution.
     """
-    scale = np.sqrt(6) * sigma / np.pi
-    loc = mu - scale * GAMMA
+    loc, scale = _meanX_covnX_to_loc_scale(meanX, covnX)
     return loc - scale * np.log(-np.log(p))
 
 
-def rnd(muX, cvX, N, R=None):
+def rnd(meanX, covnX, N, R=None, seed=None):
     """
     Generate samples from the Extreme Value Type I distribution.
 
     Args:
-        muX : mean (scalar or array-like)
-        cvX : coefficient of variation (scalar or array-like)
+        meanX : mean (scalar or array-like)
+        covnX : coefficient of variation (scalar or array-like)
         N   : number of values of each random variable 
         R   : correlation matrix (n,n) 
 
@@ -60,29 +61,28 @@ def rnd(muX, cvX, N, R=None):
     """
     # Convert inputs to arrays
     # Python does not implicitly handle scalars as arrays. 
-    muX = np.atleast_1d(muX).astype(float)
-    cvX = np.atleast_1d(cvX).astype(float)
+    meanX = np.atleast_1d(meanX).astype(float)
+    covnX = np.atleast_1d(covnX).astype(float)
 
-    n = len(muX)
+    n = len(meanX)
 
-    if not (len(muX) == n and len(cvX) == n):  
+    if not (len(meanX) == n and len(covnX) == n):  
        raise ValueError(f"All parameter arrays must have the same length. "
-                        f"Got muX:{len(muX)}, cvX:{len(cvX)}")
+                        f"Got meanX:{len(meanX)}, covnX:{len(covnX)}")
 
-    if np.any(np.asarray(muX) <= 0):
-        raise ValueError("muX must be > 0")
-    if np.any(np.asarray(cvX) <= 0):
-        raise ValueError("cvX must be > 0")
+    if np.any(np.asarray(meanX) <= 0):
+        raise ValueError("meanX must be > 0")
+    if np.any(np.asarray(covnX) <= 0):
+        raise ValueError("covnX must be > 0")
 
-    _, _, U = correlated_rvs(R,n,N)
+    loc, scale = _meanX_covnX_to_loc_scale(meanX, covnX)
 
-    sigma = cvX * muX
-    scale = np.sqrt(6) * sigma / np.pi
-    loc = muX - scale * GAMMA
+    _, _, U = correlated_rvs( R, n, N, seed )
 
+    # Apply transformation
     X = loc - scale * np.log(-np.log(U))
 
     if n == 1:
         X = X.flatten()
 
-    return
+    return X

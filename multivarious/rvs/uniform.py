@@ -2,9 +2,8 @@
 # github.com/hpgavin/multivarious ... rvs/uniform
 
 import numpy as np
-from scipy.stats import uniform as scipy_uniform
-from multivarious.utl.correlated_rvs import correlated_rvs
 
+from multivarious.utl.correlated_rvs import correlated_rvs
 
 def pdf(x, a, b):
     '''
@@ -33,22 +32,25 @@ def pdf(x, a, b):
     return f
 
 
-def cdf(x, a, b):
+def cdf(x, params ):
     '''
     uniform.cdf
 
     Computes the CDF of the uniform distribution on [a, b].
     
     INPUT:
-        x   = array_like of evaluation points
-        a   = float Lower bound
-        b   = float Upper bound (must be > a)
+        x   : array_like of evaluation points
+        params: array_like  [ a , b ]
+        a   : float Lower bound
+        b   : float Upper bound (must be > a)
     
     OUTPUT:
         F   = ndarray
               CDF values at each point in x
     '''
     x = np.asarray(x, dtype=float)
+
+    a, b = params
     
     if b <= a:
         raise ValueError(f"uniform_cdf: a = {a}, b = {b} — a must be less than b")
@@ -85,7 +87,7 @@ def inv(F, a, b):
     return x
 
 
-def rnd(a, b, N, R=none):
+def rnd(a, b, N, R=None, seed=None ):
     '''
     uniform.rnd
     
@@ -118,7 +120,7 @@ def rnd(a, b, N, R=none):
         raise ValueError(f" uniform.rnd: a = {a}, b = {b} : a must be less than b")
     
     # Generate correlated [0,1]
-    _, _, U = correlated_rvs(R,n,N)
+    _, _, U = correlated_rvs( R, n, N, seed )
 
     # Transform to [a, b]: x = a + u * (b - a)
     X = a + U * (b - a)

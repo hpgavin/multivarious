@@ -33,7 +33,7 @@ def pdf(x, a, b):
     return f
 
 
-def cdf(x, a, b):
+def cdf(x, params):
     """
     quadratic.cdf
     
@@ -42,6 +42,7 @@ def cdf(x, a, b):
     Parameters:
         x : array_like
             Evaluation points
+        params: array_like [ a , b ]
         a : float
             Lower bound (a < b)
         b : float
@@ -55,6 +56,9 @@ def cdf(x, a, b):
     CDF formula: F(x) = (a-x)^2 * (a - 3b + 2x) / (a-b)^3 for a <= x <= b
     """
     x = np.asarray(x, dtype=float)
+
+    a, b = params 
+
     F = np.zeros_like(x, dtype=float)
     
     # CDF = 1 for x >= b
@@ -114,7 +118,7 @@ def inv(u, a, b):
     return x[0] if np.isscalar(u) or len(x) == 1 else x
 
 
-def rnd(a, b, N, R=None):
+def rnd(a, b, N, R=None, seed=None):
     """
     quadratic.rnd
     
@@ -151,7 +155,7 @@ def rnd(a, b, N, R=None):
     if np.any(b <= a):
         raise ValueError(" quadratic.rnd: all b values must be greater than corresponding a values")
 
-    _, _, U = correlated_rvs(R,n,N)
+    _, _, U = correlated_rvs( R, n, N, seed )
 
     # Solve cubic for each u value
     X = np.zeros((n, N))

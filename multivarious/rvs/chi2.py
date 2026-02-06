@@ -2,9 +2,9 @@
 # github.com/hpgavin/multivarious ... rvs/chi2
 
 import numpy as np
-from scipy.stats import norm
+from scipy.stats import norm as scipy_norm
 
-from multivarious.utl.shrink_newton import nearcorr_shrink
+from multivarious.utl.correlated_rvs import correlated_rvs
 
 def pdf(x, k):
     '''
@@ -33,7 +33,7 @@ def pdf(x, k):
     z = (x / k) ** (1/3)
 
     # Approximate PDF using normal distribution
-    f = norm.pdf(z, m, s)
+    f = scipy_norm.pdf(z, m, s)
 
     return f
 
@@ -64,7 +64,7 @@ def cdf(x, k):
     z = (x / k) ** (1 / 3)
 
     # Apply normal CDF using transformed variable
-    F = norm.cdf(z, loc=m, scale=s)
+    F = scipy_norm.cdf(z, loc=m, scale=s)
 
     return F
 
@@ -92,7 +92,7 @@ def inv(p, k):
     s = np.sqrt(2 / (9 * k))    # std dev of cube-root-transformed variable
 
     # Inverse normal CDF
-    z = norm.ppf(p, loc=m, scale=s)
+    z = scipy_norm.ppf(p, loc=m, scale=s)
 
     # Apply inverse transformation: x = k * z³
     x = k * z**3
@@ -100,7 +100,7 @@ def inv(p, k):
     return x
 
 
-def rnd(k, N, R=None):
+def rnd(k, N, R=None, seed=None):
     '''
     chi2.rnd
     Generate N observations of n correlated (or uncorrelated) chi2 random var's
@@ -129,10 +129,12 @@ def rnd(k, N, R=None):
     m = 1 - 2 / (9 * k)
     s = np.sqrt(2 / (9 * k))
 
-    R, Y, U = correlated_rvs(R,n,N)
+    R, Y, U = correlated_rvs( R, n, N, seed )
    
     # Apply transformation
-    X = k * (m + s * Y) ** 3
+    X = np.zeros((n, N))
+    for i in range(n):
+        X[i, :] = k[i] * ( m[i] + s[i] * Y[i, :]) ** 3
 
     if n == 1:
         X = X.flatten()

@@ -17,8 +17,11 @@ from finance," IMA Journal of Numerical Analysis, 22(3), 329-343, 2002.
 
 import numpy as np
 
-from scipy.stats import norm as scipy_norm
+#from multivarious.rvs import normal
+#from scipy.stats import norm as scipy_norm
 
+from scipy.special import erf
+from math import sqrt
 
 def shrink_newton(M0, M1, tolrnc=1e-4 ):
     """
@@ -98,6 +101,7 @@ def shrink_newton(M0, M1, tolrnc=1e-4 ):
     
     raise RuntimeError(f' shrink_newton: not converged in {max_iter} iterations')
 
+
 def nearcorr_shrink(C, tolrnc=1e-4):
     """
     Compute nearest correlation matrix using shrinking method.
@@ -150,12 +154,15 @@ def nearcorr_shrink(C, tolrnc=1e-4):
     
     return C_nnd, alpha, iter, eval0
 
-def correlated_rvs(R,n,N):
+
+def correlated_rvs(R, n, N, seed):
     """
     Fix a potentialy erroneous correlation matrix, 
     generate correlated standard normal random variables Y (n,N) 
     and associated standard uniform random variables U (n,N) 
     """
+
+    rng = np.random.default_rng(seed)
 
     tolrnc = 1e-4  # eigenvalue tolerance
     # If no correlation matrix provided, default to identity matrix
@@ -177,16 +184,17 @@ def correlated_rvs(R,n,N):
             raise ValueError(f" correlated_rvs: R must be positive definite, eigval0 = {eigval[0]:10.2e}, iter = {iter}")
         
     # Generate independent standard normal samples: Z ~ N(0, I)
-    Z = np.random.randn(n, N)
+    Z = rng.standard_normal((n, N))
     
     # Apply correlation structure
     Y = eigvec @ np.diag(np.sqrt(eigval)) @ Z
 
     # Transform to uniform [0,1] via standard normal CDF, preserving correlation
-    norm = scipy_norm(loc=0, scale=1)
-    U = norm.cdf(Y)
+    # Standard normal CDF of Y are correlated uniformly distributed rv's in [0 1]
+    U = (1.0 + erf(Y / sqrt(2.0))) / 2.0  
 
     return R, Y, U
+
 
 # Example usage and testing
 if __name__ == "__main__":

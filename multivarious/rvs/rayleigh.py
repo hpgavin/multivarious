@@ -2,16 +2,16 @@ import numpy as np
 
 from multivarious.utl.correlated_rvs import correlated_rvs
 
-def pdf(X, muX):
+def pdf(X, meanX):
     '''
     rayleigh.pdf
 
-    Computes the PDF of the Rayleigh distribution using the mean parameter muX.
+    Computes the PDF of the Rayleigh distribution using the mean parameter meanX.
 
     Input:
         X : array_like
             Evaluation points
-        muX : float
+        meanX : float
             Mean of the Rayleigh distribution (must be > 0)
 
     Output:
@@ -24,8 +24,8 @@ def pdf(X, muX):
 
     X = np.asarray(X, dtype=float)
 
-    # Convert mean to mode: modeX = muX * sqrt(2 / pi)
-    modeX = muX * np.sqrt(2 / np.pi)
+    # Convert mean to mode: modeX = meanX * sqrt(2 / pi)
+    modeX = meanX * np.sqrt(2 / np.pi)
 
     # Replace non-positive values to prevent invalid evaluation
     X = np.where(X <= 0, 0.01, X)
@@ -36,15 +36,15 @@ def pdf(X, muX):
     return f
 
 
-def cdf(X, muX):
+def cdf(X, meanX):
     '''
     rayleigh.cdf
-    Computes the CDF of the Rayleigh distribution using the mean parameter muX.
+    Computes the CDF of the Rayleigh distribution using the mean parameter meanX.
 
     Input:
         X : array_like
             Evaluation points
-        muX : float
+        meanX : float
             Mean of the Rayleigh distribution (must be > 0)
 
     Output:
@@ -60,8 +60,8 @@ def cdf(X, muX):
     # Replace X <= 0 with small positive number (to match MATLAB behavior)
     X[X <= 0] = 0.01
 
-    # Convert mean muX to modeX using Rayleigh identity
-    modeX = muX * np.sqrt(2 / np.pi)
+    # Convert mean meanX to modeX using Rayleigh identity
+    modeX = meanX * np.sqrt(2 / np.pi)
 
     # Apply the Rayleigh CDF formula
     F = 1.0 - np.exp(-0.5 * (X / modeX)**2)
@@ -69,17 +69,17 @@ def cdf(X, muX):
     return F
 
 
-def inv(P, muX):
+def inv(P, meanX):
     '''
     rayleigh.inv
 
     Computes the inverse CDF (quantile function) of the Rayleigh distribution
-    using the mean parameter muX.
+    using the mean parameter meanX.
 
     INPUT:
         P : array_like
             Non-exceedance probabilities (0 ≤ P ≤ 1)
-        muX : float
+        meanX : float
             Mean of the Rayleigh distribution (must be > 0)
 
     OUTPUT:
@@ -96,7 +96,7 @@ def inv(P, muX):
     P[P >= 1] = 1.0
 
     # Convert mean to mode using mu = mode * sqrt(pi / 2)
-    modeX = muX * np.sqrt(2 / np.pi)
+    modeX = meanX * np.sqrt(2 / np.pi)
 
     # Compute the inverse CDF formula
     x = modeX * np.sqrt(-2.0 * np.log(1 - P))
@@ -104,16 +104,16 @@ def inv(P, muX):
     return x
 
 
-def rnd(muX, N, R=None):
+def rnd(meanX, N, R=None, seed=None):
     '''
     rayleigh.rnd
 
     Generates random samples from the Rayleigh distribution using the mean
-    parameter muX. Samples can be generated either by passing a matrix of
+    parameter meanX. Samples can be generated either by passing a matrix of
     uniform random numbers or by specifying the output dimensions.
 
     Input:
-        muX : float (n,1)
+        meanX : float (n,1)
         N : int, optional
             Number of observations of n rayleigh random variables
         R : float (n,n) , optional
@@ -130,23 +130,23 @@ def rnd(muX, N, R=None):
 
     # Convert inputs to arrays
     # Python does not implicitly handle scalars as arrays. 
-    muX = np.atleast_1d(muX).astype(float)
+    meanX = np.atleast_1d(meanX).astype(float)
 
-    n = len(muX) # number of rows
+    n = len(meanX) # number of rows
 
-    if np.any(muX <= 0) or np.any(np.isinf(muX)):
-        raise ValueError(" rayleigh.rnd(muX,N): muX must be greater than zero")
+    if np.any(meanX <= 0) or np.any(np.isinf(meanX)):
+        raise ValueError(" rayleigh.rnd(meanX,N): meanX must be greater than zero")
     if N == None or N < 1:
-        raise ValueError(" rayleigh.rnd(muX,N): N must be greater than zero")
+        raise ValueError(" rayleigh.rnd(meanX,N): N must be greater than zero")
 
     # Convert mean to mode
-    modeX = muX * np.sqrt(2 / np.pi)
+    modeX = meanX * np.sqrt(2 / np.pi)
 
     # Broadcast modeX if needed
     if np.isscalar(modeX):
         modeX = modeX * np.ones((r_rows, c_cols))
         
-    _, _, U = correlated_rvs(R,n,N)
+    _, _, U = correlated_rvs( R, n, N, seed )
 
     # Inverse transform sampling
     X = modeX * np.sqrt(-2.0 * np.log(U))

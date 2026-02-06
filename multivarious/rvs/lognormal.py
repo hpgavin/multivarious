@@ -50,7 +50,7 @@ def pdf(x, medX, covX):
     return f
 
 
-def cdf(x, medX, covX, return_ll=False):
+def cdf(x, params, return_ll=False):
     ''' 
     lognormal.cdf
  
@@ -58,6 +58,7 @@ def cdf(x, medX, covX, return_ll=False):
  
     Parameters:
          x     = array_like of Evaluation points
+        params = array_like [ medX, covX ]
         medX   = float of Median of X
         covX   = float of Coefficient of variation of X
      return_ll = bool, optional
@@ -72,6 +73,8 @@ def cdf(x, medX, covX, return_ll=False):
         where V = log(1 + covX²)
     ''' 
     x = np.asarray(x, dtype=float)
+
+    medX, covX = params
     
     # Check parameter validity
     if medX <= 0:
@@ -131,7 +134,7 @@ def inv(P, medX, covX):
     return x
 
 
-def rnd(medX, covX, N, R=None):
+def rnd(medX, covX, N, R=None, seed=None):
     '''
     lognormal.rnd
  
@@ -195,7 +198,7 @@ def rnd(medX, covX, N, R=None):
     # Compute variance of log(X) for each variable
     VlnX = np.log(1 + covX**2)
     
-    _, Y, _ = correlated_rvs(R,n,N)
+    _, Y, _ = correlated_rvs(R, n, N, seed)
 
     # Transform to lognormal: x = exp(log(medX) + Y * sqrt(VlnX))
     # Broadcasting: medX and VlnX are (n,),

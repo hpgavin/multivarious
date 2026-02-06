@@ -51,7 +51,7 @@ def pdf(x, a, b, q, p):
     return f
 
 
-def cdf(x, a, b, q, p):
+def cdf(x, params ):
     '''
     beta.cdf
 
@@ -61,13 +61,14 @@ def cdf(x, a, b, q, p):
     INPUTS:
         x = array_like 
             Evaluation points
-        a = float 
+        params = array_like [ a , b , q, p  ]
+        a = params[0] float 
             Minimum of the distribution
-        b = float
+        b = params[1] float
             Maximum of the distribution (must be > a)
-        q = float
+        q = params[2] float
             First shape parameter
-        p = float 
+        p = params[3] float 
             Second shape parameter
 
     OUTPUT:
@@ -78,6 +79,8 @@ def cdf(x, a, b, q, p):
     where I is the regularized incomplete beta function.
     '''
     x = np.asarray(x, dtype=float)
+
+    a, b, q, p = params
 
     # Check parameter validity
     if b <= a:
@@ -134,7 +137,7 @@ def inv(F, a, b, q, p):
     return x
 
 
-def rnd(a, b, q, p, N, R=None):
+def rnd(a, b, q, p, N, R=None, seed=None):
     '''
     beta.rnd
     Generate N observations of n correlated (or uncorrelated) beta random var's
@@ -202,8 +205,11 @@ def rnd(a, b, q, p, N, R=None):
     if np.any(p <= 0):
         raise ValueError("beta.rnd: p must be positive")
 
-    _, _, U = correlated_rvs(R,n,N)
-   
+    _, _, U = correlated_rvs(R,n,N,seed)
+
+    size = U.shape 
+    print(f'size = {size[0]} {size[1]}') 
+
     # Transform each variable to its beta distribution via inverse CDF
     X = np.zeros((n, N))
     for i in range(n):

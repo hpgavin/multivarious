@@ -114,7 +114,7 @@ def inv(p, k):
     return x
 
 
-def rnd(k, N, R=None): 
+def rnd(k, N, R=None, seed=None ): 
     '''
     students_t.rnd
 
@@ -140,9 +140,8 @@ def rnd(k, N, R=None):
     # Python does not implicitly handle scalars as arrays. 
     k = np.atleast_1d(k).astype(float)
 
-    _, _, U = correlated_rvs(R,n,N)
+    _, _, U = correlated_rvs( R, n, N, seed )
 
-
-    X = inv(U, k)  ## ?? is this all?
+    X = inv(U, k) 
 
     return

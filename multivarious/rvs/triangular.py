@@ -39,7 +39,7 @@ def pdf(x, a, b, c):
     return pdf
 
 
-def cdf(x, a, b, c):
+def cdf(x, params):
     '''
     triangular.cdf
 
@@ -48,6 +48,7 @@ def cdf(x, a, b, c):
     Parameters:
         x : array_like
             Evaluation points
+        params : array_like [ a, b, c ]
         a : float
             Lower bound
         b : float
@@ -65,6 +66,9 @@ def cdf(x, a, b, c):
     '''
 
     x = np.asarray(x)
+
+    a, b, c = params
+
     cdf = np.zeros_like(x, dtype=float)
 
     left = (x <= a)
@@ -120,7 +124,7 @@ def inv(p, a, b, c):
     return x
 
 
-def rnd(a, b, c, N, R=None):
+def rnd(a, b, c, N, R=None, seed ):
     '''
     triangular.rnd
 
@@ -167,7 +171,7 @@ def rnd(a, b, c, N, R=None):
     if np.any(b <= c):
         raise ValueError(" triangular.rnd: all b values must be greater than corresponding c values")
 
-    _, _, U = correlated_rvs(R,n,N)
+    _, _, U = correlated_rvs( R, n, N, seed )
 
     # Transform each variable to its beta distribution via inverse CDF
     X = np.zeros((n, N))

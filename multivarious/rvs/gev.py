@@ -5,7 +5,7 @@ import numpy as np
 
 from multivarious.utl.correlated_rvs import correlated_rvs
 
-def pdf(x, param):
+def pdf(x, m, s, k):
     '''
     gev.pdf
 
@@ -16,7 +16,6 @@ def pdf(x, param):
     Returns:
         f     : same shape as x, PDF values
     '''
-    m, s, k = param
     z = (x - m) / s
     arg = 1 + k * z
     f = (1 / s) * np.exp(-arg**(-1 / k)) * arg**(-1 - 1 / k)
@@ -24,18 +23,19 @@ def pdf(x, param):
     return np.real(f)
 
 
-def cdf(x, param):
+def cdf(x, params):
     '''
     gev.cdf 
 
     Compute the CDF of the generalized extreme value distribution.
     Parameters:
-        x     : scalar or array-like
-        param : list or array-like of [m, s, k]
+        x      : scalar or array-like
+        params : array-like [m, s, k]
     Returns:
-        F     : same shape as x, CDF values
+        F      : same shape as x, CDF values
     '''
-    m, s, k = param
+    
+    m, s, k = params
     z = (x - m) / s
     arg = 1 + k * z
     F = np.exp(-arg**(-1 / k))
@@ -43,7 +43,7 @@ def cdf(x, param):
     return np.real(F)
 
 
-def inv(p, param):
+def inv(p, m, s, k):
     '''
     gev.inv
 
@@ -59,7 +59,7 @@ def inv(p, param):
     return x
 
 
-def rnd(m,s,k, N, R=None):
+def rnd(m, s, k, N, R=None, seed=None):
     '''
     gev.rnd
 
@@ -83,18 +83,21 @@ def rnd(m,s,k, N, R=None):
     k = np.atleast_1d(k).astype(float)
 
     # Determine number of random variables
-    n = len(a)
+    n = len(m)
 
     # Validate that all parameter arrays have the same length
     if not (len(m) == n and len(s) == n and len(k) == n):
         raise ValueError(f"All parameter arrays must have the same length. "
                         f"Got m:{len(m)}, s:{len(s)}, k:{len(k)}")
     
-    _, _, U = correlated_rvs(R,n,N)
+    _, _, U = correlated_rvs( R, n, N, seed )
 
-    X = m + (s / k) * ((-np.log(U))**(-k) - 1)
+    # Apply transformation --- this is wrong ---
+    X = np.zeros((n, N))
+    for i in range(n):
+        X[i, :] = m[i] + ( s[i] / k[i] ) * ((-np.log(U[i,:]))**(-k[i]) - 1) 
 
-    if r == 1:
+    if n == 1:
         X = X.flatten()
 
     return X

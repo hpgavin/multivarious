@@ -1,21 +1,22 @@
 import numpy as np
 from scipy.stats import norm as scipy_norm
+from scipy.special import scipy_erf
 
-from multivarious.utl.correlated_rvs import correlated_rvs
+from multivarious.utl import correlated_rvs
 
-def pdf(x, mu, sigma):
+def pdf(x, meanX=0.0, stdvX=1.0):
     '''
     normal.pdf
 
-    Computes the PDF of the normal distribution N(mu, sigma²).
+    Computes the PDF of the normal distribution N(meanX, stdvX²).
 
     Parameters:
         x : array_like or float
             Evaluation points
-        mu : float
+        meanX : float
             Mean of the distribution
-        sigma : float
-            Standard deviation of the distribution (must be > 0)
+        stdvX : float
+            Standard deviation of the distribution (meanXst be > 0)
 
     Output:
         f : ndarray or float
@@ -24,23 +25,24 @@ def pdf(x, mu, sigma):
     Reference:
     https://en.wikipedia.org/wiki/Normal_distribution
     '''
-    dist = scipy_norm(loc=mu, scale=sigma)
+    dist = scipy_norm(loc=meanX, scale=stdvX)
     return dist.pdf(x)
 
 
-def cdf(x, mu, sigma):
+def cdf(x, params ):
     '''
     normal.cdf
 
-    Computes the CDF of the normal distribution N(mu, sigma²).
+    Computes the CDF of the normal distribution N(meanX, stdvX²).
 
     Parameters:
         x : array_like or float
             Evaluation points
-        mu : float
+        params : array_like [ meanX , stdvX ]
+        meanX : float
             Mean of the distribution
-        sigma : float
-            Standard deviation of the distribution (must be > 0)
+        stdvX : float
+            Standard deviation of the distribution (meanXst be > 0)
 
     Output:
         F : ndarray or float
@@ -50,23 +52,26 @@ def cdf(x, mu, sigma):
     https://en.wikipedia.org/wiki/Normal_distribution
     '''
 
-    dist = scipy_norm(loc=mu, scale=sigma)
-    return dist.cdf(x)
+    meanX, stdvX = params 
+
+    F = (1.0 + scipy_erf(Y / sqrt(2.0))) / 2.0
+
+    return F
 
 
-def inv(p, mu, sigma):
+def inv(p, meanX=0.0, stdvX=1.0):
     '''
     normal.inv
 
-    Computes the inverse CDF (quantile function) of the normal distribution N(mu, sigma²).
+    Computes the inverse CDF (quantile function) of the normal distribution N(meanX, stdvX²).
 
     Parameters:
         p : array_like or float
-            Probability values (must be in [0, 1])
-        mu : float
+            Probability values (meanXst be in [0, 1])
+        meanX : float
             Mean of the distribution
-        sigma : float
-            Standard deviation of the distribution (must be > 0)
+        stdvX : float
+            Standard deviation of the distribution (stdvX > 0)
 
     Output:
         x : ndarray or float
@@ -76,24 +81,27 @@ def inv(p, mu, sigma):
     https://en.wikipedia.org/wiki/Normal_distribution
     '''
 
-    dist = scipy_norm(loc=mu, scale=sigma)
+    dist = scipy_norm(loc=meanX, scale=stdvX)
+
     return dist.ppf(p)
 
 
-def rnd(mu, sigma, N, R=None):
+def rnd(meanX=0.0, stdvX=1.0, N=1, R=None, seed=None):
     '''
     normal.rnd
-    Generates correlated random samples from the normal distribution N(mu, sigma²).
+    Generates correlated random samples from the normal distribution N(meanX, stdvX²).
 
     Parameters:
-        mu : float (n,)
+        meanX : float (n,)
             Mean of the distribution
-        sigma : float (n,)
-            Standard deviation of the distribution (must be > 0)
+        stdvX : float (n,)
+            Standard deviation of the distribution (meanXst be > 0)
         N : int
             number of observations of each of the n random variables 
         R : float (n,n) - optional
             correlation matrix
+        seed : int ( seed >= 0 )
+            seed for numpy.random.default_rng
 
     Output:
         X : ndarray
@@ -104,20 +112,20 @@ def rnd(mu, sigma, N, R=None):
     '''
     # Convert inputs to arrays
     # Python does not implicitly handle scalars as arrays. 
-    mu = np.atleast_1d(mu).astype(float)
-    sigma = np.atleast_1d(sigma).astype(float)
+    meanX = np.atleast_1d(meanX).astype(float)
+    stdvX = np.atleast_1d(stdvX).astype(float)
 
     # Determine number of random variables
-    n = len(mu)
+    n = len(meanX)
 
     # Validate that all parameter arrays have the same length
-    if not (len(mu) == n and len(sigma) == n):
-        raise ValueError(f"All parameter arrays must have the same length. "
-                        f"Got mu:{len(mu)}, sigma:{len(sigma)}")
+    if not (len(meanX) == n and len(stdvX) == n):
+        raise ValueError(f"All parameter arrays meanXst have the same length. "
+                        f"Got meanX:{len(meanX)}, stdvX:{len(stdvX)}")
 
-    _, Y, _ = correlated_rvs(R,n,N)
+    _, Y, _ = correlated_rvs( R, n, N, seed )
 
-    X = mu + sigma*Y
+    X = meanX + stdvX*Y
 
     if n == 1:
         X = X.flatten()

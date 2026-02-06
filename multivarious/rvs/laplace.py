@@ -2,19 +2,19 @@ import numpy as np
 
 from multivarious.utl.correlated_rvs import correlated_rvs
 
-def pdf(x, muX, sigmaX):
+def pdf(x, meanX, stdvX):
     '''
     laplace.pdf
 
     Computes the PDF of the Laplace distribution with mean (location)
-    parameter muX and standard deviation (scale) parameter sigmaX.
+    parameter meanX and standard deviation (scale) parameter stdvX.
 
     Parameters:
         x : array_like or float
             Evaluation points
-        muX : float
+        meanX : float
             Mean (location) parameter
-        sigmaX : float
+        stdvX : float
             Standard deviation (scale) parameter (must be > 0)
 
     Output:
@@ -26,7 +26,7 @@ def pdf(x, muX, sigmaX):
     '''
     x = np.asarray(x, dtype=float)
     sr2 = np.sqrt(2)
-    f = (1 / (sr2 * sigmaX)) * np.exp(-sr2 * np.abs(x - muX) / sigmaX)
+    f = (1 / (sr2 * stdvX)) * np.exp(-sr2 * np.abs(x - meanX) / stdvX)
     return f
 
 
@@ -34,14 +34,14 @@ def cdf(x, params):
     '''
     laplace.cdf
 
-    Computes the CDF of the Laplace distribution with parameters muX and sigmaX.
+    Computes the CDF of the Laplace distribution with parameters meanX and stdvX.
 
     Parameters:
         x : array_like or float
             Evaluation points
-        params : sequence of floats
-            [muX, sigmaX] where muX is the mean (location) parameter and
-            sigmaX is the standard deviation (scale) parameter (must be > 0)
+        params : array_like 
+            [meanX, stdvX] where meanX is the mean (location) parameter and
+            stdvX is the standard deviation (scale) parameter (must be > 0)
 
     Output:
         F : ndarray or float
@@ -51,29 +51,30 @@ def cdf(x, params):
     https://en.wikipedia.org/wiki/Laplace_distribution
     '''
     x = np.asarray(x, dtype=float)
-    muX = params[0]
-    sigmaX = params[1]
+
+    meanX, stdvX = params
+
     sr2 = np.sqrt(2)
 
     F = np.zeros_like(x)
-    F[x <= muX] = 0.5 * np.exp(-sr2 * np.abs(x[x <= muX] - muX) / sigmaX)
-    F[x > muX] = 1 - 0.5 * np.exp(-sr2 * np.abs(x[x > muX] - muX) / sigmaX)
+    F[x <= meanX] = 0.5 * np.exp(-sr2 * np.abs(x[x <= meanX] - meanX) / stdvX)
+    F[x > meanX] = 1 - 0.5 * np.exp(-sr2 * np.abs(x[x > meanX] - meanX) / stdvX)
     return F
 
 
-def inv(P, muX, sigmaX):
+def inv(P, meanX, stdvX):
     '''
     laplace.inv
 
     Computes the inverse CDF (quantile function) of the Laplace distribution
-    with mean (location) muX and standard deviation (scale) sigmaX.
+    with mean (location) meanX and standard deviation (scale) stdvX.
 
     Parameters:
         P : array_like or float
             Non-exceedance probabilities (must be in [0, 1])
-        muX : float
+        meanX : float
             Mean (location) parameter
-        sigmaX : float
+        stdvX : float
             Standard deviation (scale) parameter (must be > 0)
 
     Output:
@@ -85,12 +86,12 @@ def inv(P, muX, sigmaX):
     '''
     P = np.atleast_1d(np.asarray(P, dtype=float))
     sr2 = np.sqrt(2)
-    X = muX + sigmaX / sr2 * np.log(2 * P)  
-    idx = X >= muX
-    X[idx] = muX - sigmaX / sr2 * np.log(2 - 2 * P[idx]) 
+    X = meanX + stdvX / sr2 * np.log(2 * P)  
+    idx = X >= meanX
+    X[idx] = meanX - stdvX / sr2 * np.log(2 - 2 * P[idx]) 
     return X if X.size > 1 else X[0]
 
-def rnd(mX, sX, N, R=None):
+def rnd(meanX, stdvX, N, R=None, seed=None):
     '''
     laplace.rnd
 
@@ -98,9 +99,9 @@ def rnd(mX, sX, N, R=None):
     inverse transform sampling method.
 
     Parameters:
-        mX : float
+        meanX : float
             Mean (location) parameter
-        sX : float
+        stdvX : float
             Standard deviation (scale) parameter (must be > 0)
         r : int
             Number of rows in the output
@@ -120,33 +121,36 @@ def rnd(mX, sX, N, R=None):
     
     # Convert inputs to arrays
     # Python does not implicitly handle scalars as arrays. 
-    mX = np.atleast_1d(mX).astype(float)
-    sX = np.atleast_1d(sX).astype(float)
+    meanX = np.atleast_1d(meanX).astype(float)
+    stdvX = np.atleast_1d(stdvX).astype(float)
 
     # Determine number of random variables
-    n = len(mX)
+    n = len(meanX)
 
     # Validate that all parameter arrays have the same length
-    if not (len(mX) == n and len(sX) == n):
+    if not (len(meanX) == n and len(stdvX) == n):
         raise ValueError(f"All parameter arrays must have the same length. "
-                        f"Got mX:{len(mX)}, sX:{len(sX)}")
+                        f"Got meanX:{len(meanX)}, stdvX:{len(stdvX)}")
 
-    if np.any(sX <= 0) or np.any(np.isinf(sX)):
-        raise ValueError(" laplace_rnd: sX must be > 0 and finite")
+    if np.any(stdvX <= 0) or np.any(np.isinf(stdvX)):
+        raise ValueError(" laplace_rnd: stdvX must be > 0 and finite")
 
     sr2 = np.sqrt(2)
 
-    _, _, U = correlated_rvs(R,n,N)
+    _, _, U = correlated_rvs( R, n, N, seed )
 
     # Broadcast parameters
-    mX = np.full((n, N), mX) if np.isscalar(mX) else np.asarray(mX)
-    sX = np.full((n, N), sX) if np.isscalar(sX) else np.asarray(sX)
+#   meanX = np.full((n, N), meanX) if np.isscalar(meanX) else np.asarray(meanX)
+#   stdvX = np.full((n, N), stdvX) if np.isscalar(stdvX) else np.asarray(stdvX)
 
     X = np.empty((n, N))
-    in_mask = u <= 0.5
-    X[in_mask] = mX[in_mask] + sX[in_mask] / sr2 * np.log(2 * U[in_mask])
+    in_mask = U <= 0.5
+    X[in_mask] = meanX[in_mask] + stdvX[in_mask] / sr2 * np.log(2 * U[in_mask])
     ip_mask = ~in_mask
-    X[ip_mask] = mX[ip_mask] - sX[ip_mask] / sr2 * np.log(2 * (1 - U[ip_mask]))
+
+    X = np.zeros(n,N)
+    for i in range(n):
+        X[i,ip_mask] = meanX[i] - stdvX[i] / sr2 * np.log(2 * (1 - U[i,ip_mask]))
         
     if n == 1:
         X = X.flatten()
