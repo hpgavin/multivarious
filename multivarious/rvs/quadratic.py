@@ -141,8 +141,8 @@ def rnd(a, b, N, R=None, seed=None):
 
     # Convert inputs to arrays
     # Python does not implicitly handle scalars as arrays. 
-    a = np.atleast_1d(a).astype(float)
-    b = np.atleast_1d(b).astype(float)
+    a = np.atleast_1d(a).reshape(-1,1).astype(float)#[:,0]
+    b = np.atleast_1d(b).reshape(-1,1).astype(float)#[:,0]
 
     # Determine number of random variables
     n = len(a)
@@ -157,26 +157,11 @@ def rnd(a, b, N, R=None, seed=None):
 
     _, _, U = correlated_rvs( R, n, N, seed )
 
-    # Solve cubic for each u value
     X = np.zeros((n, N))
-    for i in range(n):
-        for j in range(N):
-            coeffs = [
-                2,
-                -3 * (a + b),
-                6 * a * b,
-                a**3 - 3 * a**2 * b - U[i, j] * (a - b)**3
-            ]
-            roots = np.roots(coeffs)
-            real_roots = roots[np.abs(roots.imag) < 1e-10].real
-            valid_roots = real_roots[(real_roots > a) & (real_roots < b)]
-            
-            if len(valid_roots) != 1:
-                raise ValueError(f"Expected 1 root in ({a}, {b}), found {len(valid_roots)}")
-            
-            X[i, j] = valid_roots[0]
+    for i in range(N):
+        X[i, :] = inv(U[i,:], a[i], b[i])
     
-    if r_dim == 1: 
+    if n == 1: 
         X = X.flatten()
 
     return X

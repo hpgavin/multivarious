@@ -12,6 +12,12 @@ from multivarious.rvs import gamma
 from multivarious.rvs import gev 
 from multivarious.rvs import laplace
 from multivarious.rvs import lognormal
+from multivarious.rvs import normal 
+from multivarious.rvs import poisson
+from multivarious.rvs import quadratic
+from multivarious.rvs import rayleigh
+from multivarious.rvs import triangular
+from multivarious.rvs import uniform
 from multivarious.utl import format_plot
 
 # --- Parameters ---
@@ -57,14 +63,14 @@ print("Correlation matrix R:\n", R)
 #X = extreme_value_I.rnd( meanX, covnX, N, R )
 #X = extreme_value_II.rnd( m, s, k, N, R )
 #X = gamma.rnd( meanX, covnX, N, R )
-#X = gev.rnd( m, s, k, N, R )
-X = laplace.rnd( meanX, stdvX, N, R )
+X = gev.rnd( m, s, k, N, R )
+#X = laplace.rnd( meanX, stdvX, N, R )
 #X = lognormal.rnd( mednX, covnX, N, R )
 #X = normal.rnd( meanX, stdvX, N, R )
 #X = poisson.rnd( T, N, R )
-#X = quadratic.rnd( a, b, N, R )
-#X = students_t.rnd( k, N, R )
+#X = quadratic.rnd( a, b, N, R ) ## trouble
 #X = rayleigh.rnd( meanX, N, R )
+#X = students_t.rnd( k, N, R )
 #X = triangular.rnd( a, b, c, N, R )
 #X = uniform.rnd( a, b, N, R )
 
@@ -86,10 +92,10 @@ print(f'estimated mean, std.dev. and correlation of log10 X  ...  sample size = 
 print('estimated from the sample of log-normal correlated X')
 print('------------------------------------------------------------------')
 
-print("Estimated mean X:\n", mean_X_sample.flatten())
-print("Estimated std.dev X:\n", np.sqrt(np.diag(covr_X_sample)))
-print("Estimated correlation X:\n", np.corrcoef(X))
-print("Estimated correlation Z:\n", np.corrcoef(Z))
+print("Estimated mean of X:\n", mean_X_sample.flatten())
+print("Estimated sdvn of X:\n", np.sqrt(np.diag(covr_X_sample)))
+print("Estimated correlation of X:\n", np.corrcoef(X))
+print("Estimated correlation of Z:\n", np.corrcoef(Z))
 
 #print("Estimated mean log10(X):\n", mean_log10X_sample.flatten())
 #print("Estimated std.dev log10(X):\n", np.sqrt(np.diag(covr_log10X_sample)))

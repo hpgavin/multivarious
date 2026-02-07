@@ -98,7 +98,7 @@ def rnd(T, N, R=None, seed=None):
 
     # Convert inputs to arrays
     # Python does not implicitly handle scalars as arrays. 
-    T = np.atleast_1d(T).astype(float)
+    T = np.atleast_1d(T).reshape(-1,1).astype(float)
 
     # Determine number of random variables
     n = len(T)
@@ -118,7 +118,7 @@ def rnd(T, N, R=None, seed=None):
 
     X = X - 1
 
-    if r == 1:
+    if n == 1:
         X = X.flatten() 
 
     return X 

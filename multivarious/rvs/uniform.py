@@ -103,10 +103,10 @@ def rnd(a, b, N, R=None, seed=None ):
         X : ndarray
             Shape (r, c) array of uniform random samples
     '''
-    # Convert inputs to arrays
     # Python does not implicitly handle scalars as arrays. 
-    a = np.atleast_1d(a).astype(float)
-    b = np.atleast_1d(b).astype(float)
+    # Convert inputs to 2D (column) arrays
+    a = np.atleast_2d(a).reshape(-1,1).astype(float)
+    b = np.atleast_2d(b).reshape(-1,1).astype(float)
 
     # Determine number of random variables
     n = len(a)
@@ -122,7 +122,7 @@ def rnd(a, b, N, R=None, seed=None ):
     # Generate correlated [0,1]
     _, _, U = correlated_rvs( R, n, N, seed )
 
-    # Transform to [a, b]: x = a + u * (b - a)
+    # Transform to [a, b]: x = a + U * (b - a)
     X = a + U * (b - a)
 
     if n == 1:

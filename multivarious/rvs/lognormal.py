@@ -1,10 +1,12 @@
 import numpy as np
-from scipy.special import erf, erfinv
+from scipy.special import erf as scipy_erf
+from scipy.special import erfinv as scipy_erfinv
+
 
 from multivarious.utl.correlated_rvs import correlated_rvs
 
 
-def pdf(x, medX, covX):
+def pdf(x, mednX, covnX):
     '''
     lognormal.pdf
  
@@ -13,21 +15,21 @@ def pdf(x, medX, covX):
     INPUTS:
       x     = (array_like) 
               Evaluation points. Must be > 0 since lognormal is defined for x > 0.
-      medX  = float
+      mednX  = float
               Median of the lognormal distribution (X = exp(Y), where Y is normal)
-      covX  = float
-              Coefficient of variation of X: (covX = std(X) / mean(X))
+      covnX  = float
+              Coefficient of variation of X: (covnX = std(X) / mean(X))
  
     OUTPUT:
       f     = ndarray
               values of the PDF at each point in x
  
     FORMULAS:
-      Variance log(x): V_lnX = log(1 + covX²), then:
+      Variance log(x): V_lnX = log(1 + covnX²), then:
 
-    If X ~ Lognormal(medX, covX), then log(X) ~ Normal with:
-        mean = log(medX)
-        variance = log(1 + covX²)
+    If X ~ Lognormal(mednX, covnX), then log(X) ~ Normal with:
+        mean = log(mednX)
+        variance = log(1 + covnX²)
         
     Reference: https://en.wikipedia.org/wiki/Log-normal_distribution
     '''
@@ -41,11 +43,11 @@ def pdf(x, medX, covX):
     x = np.where(x <= 0, 0.01, x)
     
     # Compute variance of log(X)
-    VlnX = np.log(1 + covX**2)
+    VlnX = np.log(1 + covnX**2)
     
     # Compute using Lognormal PDF formula
     f = (1 / (x * np.sqrt(2 * np.pi * VlnX))) * \
-        np.exp(-0.5 * (np.log(x / medX))**2 / VlnX)
+        np.exp(-0.5 * (np.log(x / mednX))**2 / VlnX)
     
     return f
 
@@ -58,9 +60,9 @@ def cdf(x, params, return_ll=False):
  
     Parameters:
          x     = array_like of Evaluation points
-        params = array_like [ medX, covX ]
-        medX   = float of Median of X
-        covX   = float of Coefficient of variation of X
+        params = array_like [ mednX, covnX ]
+        mednX   = float of Median of X
+        covnX   = float of Coefficient of variation of X
      return_ll = bool, optional
                  If True, also return log-likelihood
     Output: 
@@ -69,36 +71,36 @@ def cdf(x, params, return_ll=False):
          ll    = float, optional
                  Log-likelihood (only if return_ll=True)
     Notes:
-        Lognormal CDF: F(x) = (1 + erf((log(x) - log(medX)) / sqrt(2V))) / 2
-        where V = log(1 + covX²)
+        Lognormal CDF: F(x) = (1 + erf((log(x) - log(mednX)) / sqrt(2V))) / 2
+        where V = log(1 + covnX²)
     ''' 
     x = np.asarray(x, dtype=float)
 
-    medX, covX = params
+    mednX, covnX = params
     
     # Check parameter validity
-    if medX <= 0:
-        raise ValueError(f"lognormal_cdf: medX = {medX}, must be > 0")
-    if covX <= 0:
-        raise ValueError(f"lognormal_cdf: covX = {covX}, must be > 0")
+    if mednX <= 0:
+        raise ValueError(f"lognormal_cdf: mednX = {mednX}, must be > 0")
+    if covnX <= 0:
+        raise ValueError(f"lognormal_cdf: covnX = {covnX}, must be > 0")
     
     # Replace invalid x <= 0 with 0.01 to avoid log(0)
     x = np.where(x <= 0, 0.01, x)
     
     # Compute variance of log(X)
-    VlnX = np.log(1 + covX**2)
+    VlnX = np.log(1 + covnX**2)
     
     # Lognormal CDF formula
-    F = 0.5 * (1 + erf((np.log(x) - np.log(medX)) / np.sqrt(2 * VlnX)))
+    F = 0.5 * (1 + scipy_erf((np.log(x) - np.log(mednX)) / np.sqrt(2 * VlnX)))
     
     if return_ll:
-        ll = np.sum(np.log(pdf(x, medX, covX)))
+        ll = np.sum(np.log(pdf(x, mednX, covnX)))
         return F, ll
     
     return F
 
 
-def inv(P, medX, covX):
+def inv(P, mednX, covnX):
     '''
     lognormal.inv
  
@@ -106,16 +108,16 @@ def inv(P, medX, covX):
  
     INPUTS:
       p     = array_like of Probability values (scalar or array), must be in (0,1)
-      medX  = float (Median of the lognormal distribution)
-      covX  = float (Coefficient of variation)
+      mednX  = float (Median of the lognormal distribution)
+      covnX  = float (Coefficient of variation)
  
     OUTPUT:
       x     = ndarray
               Quantile values such that P(X <= x) = P
    
     FORMULA:
-        x = exp( log(medX) + sqrt(2V_lnX) * erfinv(2p - 1) )
-            where V_lnX = log(1 + covX²)
+        x = exp( log(mednX) + sqrt(2V_lnX) * erfinv(2p - 1) )
+            where V_lnX = log(1 + covnX²)
     NOTES:
         Instead of calculating P(X <= x) = p, this function finds x such that
         P(X <= x) = p. In other words, what number x has a cumulative probability p?
@@ -123,27 +125,26 @@ def inv(P, medX, covX):
     P = np.asarray(P, dtype=float)
     
     # Clip probabilities to avoid erfinv(±1) = ±∞
-    # Matches MATLAB: P(find(P<=0)) = eps; P(find(P>=1)) = 1-eps;
-    eps = np.finfo(float).eps     # smallest positive float
-    P = np.clip(P, eps, 1 - eps)  # restrict P to (0, 1)
+    eps = np.finfo(float).eps       # smallest positive float
+    P = np.clip(P, eps, 1.0 - eps)  # restrict P to (0, 1)
 
     # Compute lognormal quantile using inverse CDF formula
-    VlnX = np.log(1 + covX**2)  # Variance of log(X)
-    x = np.exp(np.log(medX) + np.sqrt(2 * VlnX) * erfinv(2 * P - 1)) 
+    VlnX = np.log(1 + covnX**2)  # Variance of log(X)
+    x = np.exp(np.log(mednX) + np.sqrt(2 * VlnX) * scipy_erfinv(2 * P - 1)) 
 
     return x
 
 
-def rnd(medX, covX, N, R=None, seed=None):
+def rnd(mednX, covnX, N, R=None, seed=None):
     '''
     lognormal.rnd
  
     Generate N observations of correlated (or uncorrelated) lognormal random variables.
  
     Parameters:
-        medX : float or array_like
+        mednX : float or array_like
                Median(s) of the lognormal distribution. If array, shape (n,) for n variables.
-        covX : float or array_like
+        covnX : float or array_like
                Coefficient(s) of variation. If array, shape (n,) for n variables.
           N  : int
                Number of observations of n lognormal random variables
@@ -160,11 +161,11 @@ def rnd(medX, covX, N, R=None, seed=None):
         1. Perform eigenvalue decomposition of correlation matrix R = V @ Lambda @ V^T
         2. Generate uncorrelated standard normal samples Z ~ N(0, I)
         3. Apply correlation structure: Y = V @ sqrt(Lambda) @ Z, so Y ~ N(0, R)
-        4. Transform to lognormal: X = exp(log(medX) + Y * sqrt(V))
-        where V = log(1 + covX²)
+        4. Transform to lognormal: X = exp(log(mednX) + Y * sqrt(V))
+        where V = log(1 + covnX²)
     
     If X is a lognormal random variable, then log(X) is normally 
-    distributed with mean log(medX) and variance log(1+covX²)
+    distributed with mean log(mednX) and variance log(1+covnX²)
     
     Examples
     --------
@@ -172,38 +173,38 @@ def rnd(medX, covX, N, R=None, seed=None):
             x = rnd(1.0, 0.5, N=1000)
         
         # Multiple correlated variables
-            medX = np.array([1.0, 2.0])
-            covX = np.array([0.5, 0.3])
+            mednX = np.array([1.0, 2.0])
+            covnX = np.array([0.5, 0.3])
             R = np.array([[1.0, 0.7], [0.7, 1.0]])
-            x = rnd(medX, covX, N=1000, R=R)
+            x = rnd(mednX, covnX, N=1000, R=R)
     '''
     
-    # Convert inputs to arrays
-    # Python does not implicitly handle scalars as arrays. 
-    medX = np.atleast_1d(medX).astype(float)
-    covX = np.atleast_1d(covX).astype(float)
+    # Python does not implicitly handle scalars as arrays ... so ...
+    # Convert array_like inputs to numpy column vectors (2D arrays) of floats
+    mednX = np.atleast_2d(mednX).reshape(-1, 1).astype(float)
+    covnX = np.atleast_2d(covnX).reshape(-1, 1).astype(float)
 
-    n = len(medX)
+    n = len(mednX)
 
     # Validate that all parameter arrays have the same length
-    if not (len(medX) == n and len(covX) == n):
+    if not (len(mednX) == n and len(covnX) == n):
         raise ValueError(f"All parameter arrays must have the same length. "
-                        f"Got medX:{len(medX)}, covX:{len(covX)}")
+                        f"Got mednX:{len(mednX)}, covnX:{len(covnX)}")
     
-    if np.any(medX <= 0):
-        raise ValueError(" lognormal.rnd: medX must be positive")
-    if np.any(covX <= 0):
-        raise ValueError(" lognormal.rnd: covX must be positive")
+    if np.any(mednX <= 0):
+        raise ValueError(" lognormal.rnd: mednX must be positive")
+    if np.any(covnX <= 0):
+        raise ValueError(" lognormal.rnd: covnX must be positive")
 
     # Compute variance of log(X) for each variable
-    VlnX = np.log(1 + covX**2)
+    VlnX = np.log(1 + covnX**2)
     
     _, Y, _ = correlated_rvs(R, n, N, seed)
 
-    # Transform to lognormal: x = exp(log(medX) + Y * sqrt(VlnX))
-    # Broadcasting: medX and VlnX are (n,),
+    # Transform to lognormal: x = exp(log(mednX) + Y * sqrt(VlnX))
+    # Broadcasting: mednX and VlnX are (n,),
     # need to reshape for broadcasting with (n, N) ?
-    X = np.exp( np.log(medX) + Y * np.sqrt(VlnX) )
+    X = np.exp( np.log(mednX) + Y * np.sqrt(VlnX) )
     
     if n == 1:
         X = X.flatten()

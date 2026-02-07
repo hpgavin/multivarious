@@ -124,7 +124,7 @@ def inv(p, a, b, c):
     return x
 
 
-def rnd(a, b, c, N, R=None, seed ):
+def rnd(a, b, c, N, R=None, seed=None ):
     '''
     triangular.rnd
 
@@ -152,9 +152,9 @@ def rnd(a, b, c, N, R=None, seed ):
 
     # Convert inputs to arrays
     # Python does not implicitly handle scalars as arrays. 
-    a = np.atleast_1d(a).astype(float)
-    b = np.atleast_1d(b).astype(float)
-    c = np.atleast_1d(c).astype(float)
+    a = np.atleast_2d(a).reshape(-1,1).astype(float)
+    b = np.atleast_2d(b).reshape(-1,1).astype(float)
+    c = np.atleast_2d(c).reshape(-1,1).astype(float)
 
     # Determine number of random variables
     n = len(a)
@@ -173,10 +173,9 @@ def rnd(a, b, c, N, R=None, seed ):
 
     _, _, U = correlated_rvs( R, n, N, seed )
 
-    # Transform each variable to its beta distribution via inverse CDF
+    # Transform each variable to its triangular distribution via inverse CDF
     X = np.zeros((n, N))
     for i in range(n):
         X[i, :] = inv(U[i, :], a[i], b[i], c[i])
 
- 
     return X

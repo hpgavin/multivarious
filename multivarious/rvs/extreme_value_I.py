@@ -38,7 +38,7 @@ def cdf(x, params):
     return np.exp(-np.exp(-z))
 
 
-def inv(p, meanX, stdvX):
+def inv(p, meanX, covnX):
     """
     Inverse CDF (quantile) of Extreme Value Type I (Gumbel) distribution.
     """

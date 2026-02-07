@@ -130,7 +130,7 @@ def rnd(meanX, N, R=None, seed=None):
 
     # Convert inputs to arrays
     # Python does not implicitly handle scalars as arrays. 
-    meanX = np.atleast_1d(meanX).astype(float)
+    meanX = np.atleast_2d(meanX).reshape(-1,1).astype(float)
 
     n = len(meanX) # number of rows
 
@@ -144,7 +144,7 @@ def rnd(meanX, N, R=None, seed=None):
 
     # Broadcast modeX if needed
     if np.isscalar(modeX):
-        modeX = modeX * np.ones((r_rows, c_cols))
+        modeX = modeX * np.ones((n, N))
         
     _, _, U = correlated_rvs( R, n, N, seed )
 
