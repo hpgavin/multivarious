@@ -104,7 +104,7 @@ def rnd(meanX, N, R=None, seed=None):
 
     # Convert inputs to arrays
     # Python does not implicitly handle scalars as arrays. 
-    meanX = np.atleast_1d(meanX).astype(float)
+    meanX = np.atleast_1d(meanX).reshape(-1,1).astype(float)
 
     print("meanX:\n", meanX)
 

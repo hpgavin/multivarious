@@ -163,7 +163,7 @@ def rnd(m, s, k, N, R=None, seed=None):
     # Transform each variable to its extreme type II  distribution 
     X = np.zeros((n, N))
     for i in range(n):
-        X[i, :] = m[i] + s[i] * (-np.log(U[i,:]))**(-1 / k[i])
+        X[i, :] = inv(U[i,:], m[i], s[i], k[i])
     
     if n == 1:
         X = X.flatten()

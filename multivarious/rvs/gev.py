@@ -17,9 +17,10 @@ def pdf(x, m, s, k):
         f     : same shape as x, PDF values
     '''
     z = (x - m) / s
-    arg = 1 + k * z
-    f = (1 / s) * np.exp(-arg**(-1 / k)) * arg**(-1 - 1 / k)
-    f = np.where(arg < 0, np.finfo(float).eps, f)
+    kzp1 = k * z + 1
+    f = (1 / s) * np.exp(-kzp1**(-1 / k)) * kzp1**(-1 - 1 / k)
+    f = np.where(kzp1 < 0, np.finfo(float).eps, f)
+
     return np.real(f)
 
 
@@ -34,12 +35,12 @@ def cdf(x, params):
     Returns:
         F      : same shape as x, CDF values
     '''
-    
     m, s, k = params
     z = (x - m) / s
-    arg = 1 + k * z
-    F = np.exp(-arg**(-1 / k))
-    F = np.where(arg < 0, np.finfo(float).eps, F)
+    kzp1 = k * z + 1
+    F = np.exp(-kzp1**(-1 / k))
+    F = np.where(kzp1 < 0, np.finfo(float).eps, F)
+
     return np.real(F)
 
 
@@ -54,8 +55,8 @@ def inv(p, m, s, k):
     Returns:
         x     : same shape as p, quantiles
     '''
-    m, s, k = param
     x = m + (s / k) * ((-np.log(p))**(-k) - 1)
+
     return x
 
 
@@ -75,9 +76,8 @@ def rnd(m, s, k, N, R=None, seed=None):
     Returns:
         X : ndarray of GEV samples
     '''
-
-    # Convert inputs to arrays
     # Python does not implicitly handle scalars as arrays. 
+    # Convert inputs to arrays
     m = np.atleast_1d(m).astype(float)
     s = np.atleast_1d(s).astype(float)
     k = np.atleast_1d(k).astype(float)
@@ -95,7 +95,7 @@ def rnd(m, s, k, N, R=None, seed=None):
     # Apply transformation --- this is wrong ---
     X = np.zeros((n, N))
     for i in range(n):
-        X[i, :] = m[i] + ( s[i] / k[i] ) * ((-np.log(U[i,:]))**(-k[i]) - 1) 
+        X[i, :] = inv(U[i,:], m[i], s[i], k[i])
 
     if n == 1:
         X = X.flatten()

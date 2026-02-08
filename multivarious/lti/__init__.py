@@ -1,5 +1,15 @@
 """
 multivarious.lti: a multivarious subpackage for linear time invariant systems
+
+Each module in this package defines one function whose name matches the
+module filename (case-sensitive). Re-export all of them here so users may call:
+
+  import line                                  function call 
+  ---------------------------------            -------------------
+  import multivarious as m                     m.lti.lsym() 
+  from multivarious.lti import lsym            lsym()
+  from multivarious.lti import *               lsym()
+
 """
 
 # multivarious/lti/__init__.py

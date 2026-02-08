@@ -40,7 +40,8 @@ from scipy.optimize import minimize
 
 from multivarious.utl.plot_opt_surface import plot_opt_surface
 from multivarious.utl.opt_options import opt_options
-
+from multivarious.utl.opt_report import opt_report
+ 
 
 def sqp(func, v_init, v_lb=None, v_ub=None, options_in=None, consts=1.0):
     """
@@ -102,6 +103,7 @@ def sqp(func, v_init, v_lb=None, v_ub=None, options_in=None, consts=1.0):
     tol_f     = float(options[2])  # objective convergence tol
     tol_g     = float(options[3])  # constraint tol
     max_evals = int(options[4])    # budget
+    find_feas = int(options[9])    # stop once a feasible solution is found
     del_min   = float(options[16]) # min parameter change for finite diff
     del_max   = float(options[17]) # max parameter change for finite diff
     options[5] = -1                # no penalty factor involved in SQP
@@ -166,13 +168,14 @@ def sqp(func, v_init, v_lb=None, v_ub=None, options_in=None, consts=1.0):
               [f, np.max(g), function_evals, 1.0, 1.0] ])
 
 
-    if msg:
+    if msg > 1:
         print(" *********************** SQP ****************************")
         print(f" iteration                = {iteration:5d}   "
               f"{'*** feasible ***' if np.max(g0) <= tol_g else '!!! infeasible !!!'}")
         print(f" function evaluations     = {function_evals:5d} of {max_evals:5d}")
+        if n < 15:
+            print(" variables                 = " + " ".join(f"{v:11.3e}" for v in v0))
         print(f" objective                = {f:11.3e}")
-        print(" variables                 = " + " ".join(f"{v:11.3e}" for v in v0))
         print(f" max constraint           = {np.max(g0):11.3e}")
         print(" *********************** SQP ****************************")
 
@@ -351,7 +354,7 @@ def sqp(func, v_init, v_lb=None, v_ub=None, options_in=None, consts=1.0):
         cvg_v = np.max(np.abs(absSL * SD / (u + 1e-9)))
 
         # ----- Display progress -----
-        if msg:
+        if msg > 1:
             elapsed = time.time() - start_time
             secs_left = int((max_evals - function_evals) * elapsed / function_evals)
             eta = (datetime.now() + timedelta(seconds=secs_left)).strftime('%H:%M:%S')
@@ -362,8 +365,9 @@ def sqp(func, v_init, v_lb=None, v_ub=None, options_in=None, consts=1.0):
             print(f" function evaluations     = {function_evals:5d} of {max_evals:5d}"
                   f" ({100.0*function_evals/max_evals:4.1f}%)")
             print(f" e.t.a.                   = {eta} ")
+            if n < 15:
+                print(f" variables                = " + " ".join(f"{v:11.3e}" for v in (u-s0)/s1))
             print(f" objective                = {f:11.3e}")
-            print(f" variables                = " + " ".join(f"{v:11.3e}" for v in (u-s0)/s1))
             print(f" max constraint           = {g_max:11.3e}  ({idx_max_g+1})")
             print(f" Step Size                = {StepLength:11.3e}")
             print(f" BFGS method              : {how}")
@@ -391,24 +395,34 @@ def sqp(func, v_init, v_lb=None, v_ub=None, options_in=None, consts=1.0):
         cvg_f = abs(absSL * np.dot(gradf, SD) / (f + 1e-9)) 
         cvg_v = np.max(np.abs(absSL * SD / ( s0+s1+u + 1e-9 )))
 
-        if ((cvg_v < tol_v and cvg_f < tol_f) and
-            ((g_max < tol_g) or (howqp == 'infeasible' and g_max > 0))):
+        feasible = converged = stalled = False # convergence criteria
 
+        if (g_max < tol_g and howqp != 'infeasible'):
+            feasible = True
+
+        if feasible and find_feas: 
+            converged = True
+
+        if (cvg_v < tol_v and cvg_f < tol_f):
+            converged = True
+
+        if converged:
             end_iterations = True
 
-            if howqp != 'infeasible':
-                print(f' * Woo Hoo!  Converged solution found in {function_evals} function evaluations!')
-                if cvg_v < tol_v:
-                    print(' *           convergence in design variables')
-                if cvg_f < tol_f:
-                    print(' *           convergence in design objective')
-                if g_max < tol_g:
-                    print(' * Woo Hoo!  Converged solution is feasible')
-                else:
-                    print(' * Boo Hoo!  Converged solution is NOT feasible!')
-            else:
-                if g_max > tol_g:
-                    print(' * Boo Hoo Hoo!  No feasible solution found.')
+        """
+        if feasible and converged: 
+            print(f' * Woo Hoo!  Converged solution found in {function_evals} function evaluations!')
+            if cvg_v < tol_v:
+                print(' *           convergence in design variables')
+            if cvg_f < tol_f:
+                print(' *           convergence in design objective')
+            if g_max < tol_g:
+                print(' * Woo Hoo!  Converged solution is feasible')
+        else:
+            print(' * Boo Hoo!  Converged solution is NOT feasible!')
+        else:
+            if g_max > tol_g:
+                print(' * Boo Hoo Hoo!  No feasible solution found.')
 
         elif function_evals >= max_evals:
             u_opt = OLDU
@@ -418,6 +432,7 @@ def sqp(func, v_init, v_lb=None, v_ub=None, options_in=None, consts=1.0):
             print(' * Increase tol_v (options[1]), tol_f (options[2]), or max_evals (options[4])')
             print(' * and try, try, try again!')
             end_iterations = True
+        """
 
     # ============================ end main loop ============================
 
@@ -440,17 +455,22 @@ def sqp(func, v_init, v_lb=None, v_ub=None, options_in=None, consts=1.0):
     # ----- Summary -----
     dur = time.time() - start_time
     if msg:
+        opt_report(v_init, v_opt, f_opt, g_opt, v_lb, v_ub, tol_v, tol_f, tol_g,
+                   lambda_qp, start_time, function_evals, max_evals,
+                   find_feas, feasible, converged, stalled )
+
+    """
         print(f" * objective = {f_opt:11.3e} ")
         print(" * ----------------------------------------------------------------------------")
         print(" *                v_init      v_lb     <    v_opt     <    v_ub      lambda")
         print(" * ----------------------------------------------------------------------------")
         for i in range(n):
-            eqlb = '=' if v_opt[i] < v_lb[i] + tol_g + 10 * 1e-12 else ' '
-            equb = '=' if v_opt[i] > v_ub[i] - tol_g - 10 * 1e-12 else ' '
+            eqlb = '=' if v_opt[i] < v_lb[i] + tol_g + 1e-6 else ' '
+            equb = '=' if v_opt[i] > v_ub[i] - tol_g - 1e-6 else ' '
             lulb = ''
-            if eqlb == '=':
+            if eqlb == '=' and lambda_qp != None:
                 lulb = f'{lambda_qp[m + i]:12.5f}'
-            elif equb == '=':
+            elif equb == '=' and lambda_qp != None:
                 lulb = f'{lambda_qp[m + n + i]:12.5f}'
             print(f" *  v[{i+1:3d}]  {v_init[i]:11.4f} "
                   f"{v_lb[i]:11.4f} {eqlb} {v_opt[i]:12.5f} {equb} {v_ub[i]:11.4f} {lulb}")
@@ -469,6 +489,7 @@ def sqp(func, v_init, v_lb=None, v_ub=None, options_in=None, consts=1.0):
         if len(active_cstr) > 0:
             print(" * Active Constraints: " + "  ".join(f"{i+1:2d}" for i in active_cstr))
         print(" * ----------------------------------------------------------------------------")
+    """
 
     if msg > 2:
         plt.figure(1003)
@@ -478,11 +499,6 @@ def sqp(func, v_init, v_lb=None, v_ub=None, options_in=None, consts=1.0):
 
     # Trim history
     cvg_hst = cvg_hst[:, :iteration]
-
-    elapsed = time.time() - start_time
-    completion_time = datetime.now().strftime('%H:%M:%S')
-    elapsed_str = str(timedelta(seconds=int(elapsed)))
-    print(f' * Completion  : {completion_time} ({elapsed_str}) ({dur:.2f}) s\n')
 
     return v_opt, f_opt, g_opt, cvg_hst, lambda_qp, HESS
 

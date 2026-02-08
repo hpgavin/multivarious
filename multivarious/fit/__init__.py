@@ -4,16 +4,11 @@ multivarious.fit: a multivarious subpackage for fitimization
 Each module in this package defines one function whose name matches the
 module filename (case-sensitive). Re-export all of them here so users may call:
 
-    import multivarious as m
-    m.fit.lm.lm(...)
-    m.fit.poly_fit(...)
-
-or:
-
-    from multivarious.fit.lm import lm
-    from multivarious.fit.lm import levenberg_marquardt
-
-    y = sqp(...)
+  import line                                  function call 
+  ---------------------------------            -------------------
+  import multivarious as m                     m.fit.poly_fit() 
+  from multivarious.dsp import poly_fit        poly_fit()
+  from multivarious.rvs import *               poly_fit()
 
 """
 

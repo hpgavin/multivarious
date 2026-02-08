@@ -3,21 +3,8 @@
 import numpy as np
 import matplotlib.pyplot as plt
 
-from multivarious.rvs import beta
-from multivarious.rvs import chi2
-from multivarious.rvs import exponential
-from multivarious.rvs import extreme_value_I
-from multivarious.rvs import extreme_value_II
-from multivarious.rvs import gamma
-from multivarious.rvs import gev 
-from multivarious.rvs import laplace
-from multivarious.rvs import lognormal
-from multivarious.rvs import normal 
-from multivarious.rvs import poisson
-from multivarious.rvs import quadratic
-from multivarious.rvs import rayleigh
-from multivarious.rvs import triangular
-from multivarious.rvs import uniform
+from multivarious.rvs import *           # import all the distributions
+
 from multivarious.utl import format_plot
 
 # --- Parameters ---
@@ -63,7 +50,7 @@ print("Correlation matrix R:\n", R)
 #X = extreme_value_I.rnd( meanX, covnX, N, R )
 #X = extreme_value_II.rnd( m, s, k, N, R )
 #X = gamma.rnd( meanX, covnX, N, R )
-X = gev.rnd( m, s, k, N, R )
+X = gev.rnd( m, s, k, N, R ) ## error 
 #X = laplace.rnd( meanX, stdvX, N, R )
 #X = lognormal.rnd( mednX, covnX, N, R )
 #X = normal.rnd( meanX, stdvX, N, R )

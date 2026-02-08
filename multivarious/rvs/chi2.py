@@ -117,7 +117,7 @@ def rnd(k, N, R=None, seed=None):
 
     # Convert inputs to arrays
     # Python does not implicitly handle scalars as arrays. 
-    k = np.atleast_1d(k).astype(int)
+    k = np.atleast_1d(k).reshape(-1,1).astype(int)
 
     # Validate k is not negative 
     if np.any(k <= 0) or np.any(np.isinf(k)):
@@ -129,7 +129,7 @@ def rnd(k, N, R=None, seed=None):
     m = 1 - 2 / (9 * k)
     s = np.sqrt(2 / (9 * k))
 
-    R, Y, U = correlated_rvs( R, n, N, seed )
+    _, Y, _ = correlated_rvs( R, n, N, seed )
    
     # Apply transformation
     X = np.zeros((n, N))

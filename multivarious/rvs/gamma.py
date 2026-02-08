@@ -2,7 +2,7 @@ import numpy as np
 from scipy.special import gamma as gamma_func
 from scipy.special import gammainc
 
-#from multivarious.utl.correlated_rvs import correlated_rvs
+from multivarious.utl.correlated_rvs import correlated_rvs
 
 
 def pdf(x, meanX, covnX):
@@ -32,8 +32,8 @@ def pdf(x, meanX, covnX):
     '''
     x = np.asarray(x, dtype=float)  # ensure x is a NumPy array
 
-    k = 1.0 / c**2                  # shape parameter (alpha)
-    theta = covnX**2 * meanX                # scale parameter (beta)
+    k = 1.0 / covnX**2              # shape parameter (alpha)
+    theta = covnX**2 * meanX        # scale parameter (beta)
     f = theta**(-k) * x**(k - 1) * np.exp(-x / theta) / gamma_func(k)  # Gamma PDF formula
     f[x < 0] = 1e-12                # assign small value for negative x (domain correction)
     return f
@@ -69,7 +69,8 @@ def cdf(x, params):
     meanX, covnX = params
 
     if covnX < 0.5:
-        print(f'gamma_cdf: covnX = {c:.4f}, lower limit of coefficient of variation is 0.5')
+        print(' gamma_cdf: covnX = ', covnX )
+        print(f' gamma_cdf:  lower limit of coefficient of variation is 0.5')
 
     k = 1.0 / covnX**2              # shape parameter
     theta = covnX**2 * meanX        # scale parameter
@@ -108,9 +109,10 @@ def inv(P, meanX, covnX):
     P = np.asarray(P, dtype=float)  # ensure array type
 
     if np.any(covnX < 0.5):
-        print(f'gamma_inv: covnX = {c:.4f}, lower limit of coefficient of variation is 0.5')
+        print('gamma_inv:  covnX = ', covnX)
+        print(f'gamma_inv: lower limit of coefficient of variation is 0.5')
 
-    myeps = 1e-12                   # numerical tolerance
+    myeps = 1e-12                    # numerical tolerance
     max_iter = 100                   # max Newton-Raphson iterations
     x_old = np.sqrt(myeps) * np.ones_like(P)  # initialize guesses for x
 
@@ -168,17 +170,19 @@ def rnd(meanX, covnX, N, R=None, seed=None):
     # Validate that all parameter arrays have the same length
     if not len(meanX) == n and len(covnX) == n:
         raise ValueError(f"All parameter arrays must have the same length. "
-                        f"Got m:{len(meanX)}, c:{len(covnX)}")
+                        f"Got meanX:{len(meanX)}, covnX:{len(covnX)}")
 
     if np.any(meanX <= 0):
         raise ValueError("gamma.rnd: all meanX values must be greater than 0") 
 
-    k = 1.0 / covnX**2                  # shape parameter
-    theta = covnX**2 * meanX            # scale parameter
+    # correlated uniform random variables 
+    _, _, U = correlated_rvs(R, n, N, seed)
 
-    # draw samples using NumPy’s gamma RNG
-    X = rng.gamma(shape=k, scale=theta, size=(n, N)) 
-
+    # Transform each variable to its gamma distribution 
+    X = np.zeros((n, N))
+    for i in range(n):
+        X[i, :] = inv(U[i,:], meanX[i], covnX[i])
+    
     if n == 1:
         X = X.flatten()
 

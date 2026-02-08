@@ -327,14 +327,15 @@ def ors(func, v_init, v_lb=None, v_ub=None, options=None, consts=None):
                 print(f' function evaluations    = {function_evals:5d}  of  {max_evals:5d}  '
                       f'({100*function_evals/max_evals:4.1f}%)')
                 print(f' e.t.a.                  = {eta}')
-                print(f' objective               = {f_opt:11.3e}')
-                print(f' variables               = ', end='')
-                for val in v_opt:
-                    print(f'{val:11.3e}', end='')
+                if n < 15:
+                    print(f' variables               = ', end='')
+                    for val in v_opt:
+                        print(f'{val:11.3e}', end='')
                 print()
-                print(f' max constraint          = {max_g:11.3e} ({idx_max_g+1})')
-                print(f' objective convergence   = {cvg_f:11.4e}    tol_f = {tol_f:8.6f}')
+                print(f' objective               = {f_opt:11.3e}')
+                print(f" constraint              = {np.max(g_opt):11.4e}    tol_g = {tol_g:8.6f}")
                 print(f' variable  convergence   = {cvg_v:11.4e}    tol_v = {tol_v:8.6f}')
+                print(f' objective convergence   = {cvg_f:11.4e}    tol_f = {tol_f:8.6f}')
                 print(f' c.o.v. of F_A           = {c0:11.3e}')
                 print(f' step std.dev            = {step_stdev:7.3f}{step_txt}')
                 print(' +-+-+-+-+-+-+-+-+-+-+- ORS -+-+-+-+-+-+-+-+-+-+-+-+-+')
@@ -393,10 +394,11 @@ def ors(func, v_init, v_lb=None, v_ub=None, options=None, consts=None):
  
     # final report
     if msg:
+        lambda_qp = None
         opt_report(v_init, v_opt, f_opt, g_opt, v_lb, v_ub,
                    tol_v, tol_f, tol_g,
-                   start_time, function_evals, max_evals, 
-                   feasible, converged, stalled )
+                   lambda_qp, start_time, function_evals, max_evals, 
+                   find_feas, feasible, converged, stalled )
 
     return v_opt, f_opt, g_opt, cvg_hst, iteration, function_evals
 

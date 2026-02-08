@@ -222,14 +222,14 @@ def nms(func, v_init, v_lb=None, v_ub=None, options_in=None, consts=1.0):
     for i in range(n):
         xtx += f"   vertex {(i+2):1d} "
 
-    if msg:
-        print('\033[H\033[J', end='')  # Clear screen
+    # Print the initial simplex, objective and constraints
+    if msg > 1:
+#       print('\033[H\033[J', end='')  # Clear screen
         print(" ======================= NMS ============================")
         print(f" iteration                = {iteration:5d}   "
               f"{'*** feasible ***' if np.max(g_opt) <= tol_g else '!!! infeasible !!!'}")
         print(f" function evaluations     = {function_evals:5d} of {max_evals:5d}")
-        print(f" objective                = {f_opt:11.3e}")
-        if n < 10:
+        if n < 15:
             vv = s0[:, np.newaxis] + s1[:, np.newaxis] * simplex
             print(xtx)
             for j in range(n):
@@ -237,6 +237,7 @@ def nms(func, v_init, v_lb=None, v_ub=None, options_in=None, consts=1.0):
                 print(vstr)
             print(" f_A    = " + " ".join(f"{f:11.3e}" for f in f_all))
             print(" max(g) = " + " ".join(f"{g:11.3e}" for g in g_max))
+        print(f" objective                = {f_opt:12.4e}")
         print(" ======================= NMS ============================\n")
 
     # ============================ main loop ============================
@@ -383,7 +384,7 @@ def nms(func, v_init, v_lb=None, v_ub=None, options_in=None, consts=1.0):
                       [ f_opt, max_g, function_evals, cvg_v, cvg_f ] ])
 
         # ----- Display progress -----
-        if msg:
+        if msg > 1:
             elapsed = time.time() - start_time
             secs_left = int((max_evals - function_evals) * elapsed / function_evals)
             eta = (datetime.now() + timedelta(seconds=secs_left)).strftime('%H:%M:%S')
@@ -396,9 +397,7 @@ def nms(func, v_init, v_lb=None, v_ub=None, options_in=None, consts=1.0):
             print(f" function evaluations     = {function_evals:5d} of {max_evals:5d}"
                   f" ({100.0*function_evals/max_evals:4.1f}%)")
             print(f" e.t.a.                   = {eta} ")
-            print(f" objective                = {f_opt:11.3e}")
-
-            if n < 10:
+            if n < 15:
                 vv = (simplex - s0[:, np.newaxis]) / s1[:, np.newaxis]
                 print(xtx)
                 for j in range(n):
@@ -412,8 +411,10 @@ def nms(func, v_init, v_lb=None, v_ub=None, options_in=None, consts=1.0):
                 print(" variables             = " + " ".join(f"{v:11.3e}" for v in vv))
                 print(f" max constraint       = {np.max(g_opt):11.3e}")
 
-            print(f" objective convergence    = {cvg_f:11.4e}   tol_f = {tol_f:8.6f}")
+            print(f" objective                = {f_opt:11.4e}")
+            print(f" constraint               = {np.max(g_opt):11.4e}   tol_g = {tol_g:8.6f}")
             print(f" variable  convergence    = {cvg_v:11.4e}   tol_v = {tol_v:8.6f}")
+            print(f" objective convergence    = {cvg_f:11.4e}   tol_f = {tol_f:8.6f}")
             print(f" c.o.v. of F_A            = {cJ_all[0]:11.4e}")
             print(" ======================= NMS ============================\n")
 
@@ -463,9 +464,10 @@ def nms(func, v_init, v_lb=None, v_ub=None, options_in=None, consts=1.0):
 
     # final report
     if msg:
+        lambda_qp = None
         opt_report(v_init, v_opt, f_opt, g_opt, v_lb, v_ub, tol_v, tol_f, tol_g,
-                   start_time, function_evals, max_evals,
-                   feasible, converged, stalled )
+                   lambda_qp, start_time, function_evals, max_evals,
+                   find_feas, feasible, converged, stalled )
 
     return v_opt, f_opt, g_opt, cvg_hst, function_evals, iteration
 

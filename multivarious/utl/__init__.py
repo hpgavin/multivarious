@@ -4,15 +4,11 @@ multivarious.utl: a multivarious subpackage for general utility functions
 Each module in this package defines one function whose name matches the
 module filename (case-sensitive). Re-export all of them here so users may call:
 
-    import multivarious as m
-    m.utl.avg_cov_func(...)
-    m.opt.sqp(...)
-    m.opt.poly_fit(...)
-
-or:
-
-    from multivarious.utl import plot_ECDF_ci
-    plot_ECDF_ci(...)
+  import line                                  function call 
+  ---------------------------------            -------------------
+  import multivarious as m                     m.utl.plot_cvg_hst() 
+  from multivarious.utl import plot_cvg_hst    plot_cvg_hst()
+  from multivarious.utl import *               plot_cvg_hst()
 
 """
 

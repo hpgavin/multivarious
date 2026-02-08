@@ -93,13 +93,13 @@ def inv(u, a, b):
     u = np.atleast_1d(u)
     x = np.zeros_like(u, dtype=float)
     
-    for i in range(len(u)):
+    for j in range(len(u)):
         # Coefficients of cubic equation
         coeffs = [
             2,
             -3 * (a + b),
             6 * a * b,
-            a**3 - 3 * a**2 * b - u[i] * (a - b)**3
+            a**3 - 3 * a**2 * b - u[j] * (a - b)**3
         ]
         
         # Find roots
@@ -112,7 +112,7 @@ def inv(u, a, b):
         if len(valid_roots) != 1:
             raise ValueError(f"Expected 1 root in ({a}, {b}), found {len(valid_roots)}")
         
-        x[i] = valid_roots[0]
+        x[j] = valid_roots[0]
     
     # Return scalar if input was scalar
     return x[0] if np.isscalar(u) or len(x) == 1 else x
@@ -141,8 +141,8 @@ def rnd(a, b, N, R=None, seed=None):
 
     # Convert inputs to arrays
     # Python does not implicitly handle scalars as arrays. 
-    a = np.atleast_1d(a).reshape(-1,1).astype(float)#[:,0]
-    b = np.atleast_1d(b).reshape(-1,1).astype(float)#[:,0]
+    a = np.atleast_1d(a).reshape(-1,1).astype(float)[:,0]
+    b = np.atleast_1d(b).reshape(-1,1).astype(float)[:,0]
 
     # Determine number of random variables
     n = len(a)
@@ -158,7 +158,7 @@ def rnd(a, b, N, R=None, seed=None):
     _, _, U = correlated_rvs( R, n, N, seed )
 
     X = np.zeros((n, N))
-    for i in range(N):
+    for i in range(n):
         X[i, :] = inv(U[i,:], a[i], b[i])
     
     if n == 1: 

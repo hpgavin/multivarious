@@ -1,18 +1,16 @@
 """
 multivarious.rvs - a multivarious subpackage for random variables
 
-Each distribution is a module that exposes the usual functions:
+Each module defines a probability distribution that exposes the usual functions:
     pdf(), cdf(), inv(), rnd()
 
 Usage patterns forces module-style calls:
 
-    import multivarious as m
-    x = m.rvs.beta.rnd(a, b, p, q, N)
-
-or:
-
-    from multivarious.rvs import beta
-    x = beta.rnd(a, b, p, q, N)
+  import line                                  function call 
+  ---------------------------------            -------------------
+  import multivarious as m                     m.rvs.beta.rnd() 
+  from multivarious.rvs import beta            beta.rnd()
+  from multivarious.rvs import *               beta.rnd()
 
 Do **not** re-export the individual functions here keep them in their module
 so callers must use the module namespace (helpful for clarity and avoiding
@@ -23,7 +21,10 @@ name collisions).
 
 from typing import TYPE_CHECKING
 
+# quantile.py contains a single function, quantile_ci.py
 from .quantile_ci import quantile_ci
+
+from . import beta, chi2, exponential, extreme_value_I, extreme_value_II, gamma, gev, laplace, lognormal, normal, poisson, quadratic, quantile_ci, rayleigh, students_t, triangular, uniform
 
 __all__ = [
     "quantile_ci", 

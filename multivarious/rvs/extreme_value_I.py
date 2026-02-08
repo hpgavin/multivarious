@@ -43,6 +43,7 @@ def inv(p, meanX, covnX):
     Inverse CDF (quantile) of Extreme Value Type I (Gumbel) distribution.
     """
     loc, scale = _meanX_covnX_to_loc_scale(meanX, covnX)
+
     return loc - scale * np.log(-np.log(p))
 
 
@@ -61,8 +62,8 @@ def rnd(meanX, covnX, N, R=None, seed=None):
     """
     # Convert inputs to arrays
     # Python does not implicitly handle scalars as arrays. 
-    meanX = np.atleast_1d(meanX).astype(float)
-    covnX = np.atleast_1d(covnX).astype(float)
+    meanX = np.atleast_1d(meanX).reshape(-1,1).astype(float)
+    covnX = np.atleast_1d(covnX).reshape(-1,1).astype(float)
 
     n = len(meanX)
 
