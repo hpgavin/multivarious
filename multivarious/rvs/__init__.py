@@ -24,7 +24,7 @@ from typing import TYPE_CHECKING
 # quantile.py contains a single function, quantile_ci.py
 from .quantile_ci import quantile_ci
 
-from . import beta, chi2, exponential, extreme_value_I, extreme_value_II, gamma, gev, laplace, lognormal, normal, poisson, quadratic, quantile_ci, rayleigh, students_t, triangular, uniform
+from . import beta, binomial, chi2, exponential, extreme_value_I, extreme_value_II, gamma, gev, laplace, lognormal, normal, poisson, quadratic, quantile_ci, rayleigh, students_t, triangular, uniform
 
 __all__ = [
     "quantile_ci", 
@@ -51,6 +51,7 @@ __all__ = [
 if TYPE_CHECKING: # pragma: no cover
     from . import (
         beta,
+        binomial,
         chi2,
         exponential,
         extreme_value_I,

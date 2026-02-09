@@ -102,6 +102,7 @@ methods: distribution.pdf(), distribution.cdf(), distribution.inv(), distributio
 | module               | description                                                                                         |
 | -------------------- | --------------------------------------------------------------------------------------------------- |
 | **beta**             | [beta](http://en.wikipedia.org/wiki/Beta_distribution)                                              |
+| **binomial**         | [binomial](http://en.wikipedia.org/wiki/Binomial_distribution)                                              |
 | **chi2**             | [chi-squared](http://en.wikipedia.org/wiki/Chi-squared_distribution)                                |
 | **exponential**      | [exponential](http://en.wikipedia.org/wiki/Exponential_distribution)                                |
 | **extreme_value_I**  | [type I extreme value]( )                                                                           |
