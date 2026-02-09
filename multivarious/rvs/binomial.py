@@ -35,7 +35,7 @@ def _ppp_(p, n, m ):
     if np.any(p <= 0) or np.any(np.isinf(p)) or np.any( p >= 1):
         raise ValueError(" binomial.rnd(p,N): p must be between zero and one") 
 
-    if not ( (len(n) == lp or len(n) == 1) and (len(m) == lp or len(m) == 1 ):
+    if not ( (len(n) == lp or len(n) == 1) and (len(m) == lp or len(m) == 1) ):
         raise ValueError(f"n and m arrays must have the same length as p. "
                          f"Got p:{len(p)}, n:{len(n)}, m:{len(m)}")
    
@@ -79,7 +79,7 @@ def pmf(n, m, p):
         * p = expected number of events in one attempt.
     '''
 
-    p, n, m, _ =  _ppp_( p, n, m ):
+    p, n, m, _ =  _ppp_( p, n, m )
 
     p = factorial(m) / (factorial(n) * factorial(m-n)) * p**n * (1-p)**(m-n)
 
@@ -108,7 +108,7 @@ def cdf(n, m, p):
     https://en.wikipedia.org/wiki/Binomial_distribution
     '''
 
-    p, n, m, _ =  _ppp_(p, n, m ):
+    p, n, m, _ =  _ppp_(p, n, m )
 
     F = np.empty_like(n, dtype=float)      # Initialize result array
 
@@ -149,7 +149,7 @@ def rnd(m, p, N, R=None, seed=None):
     # Python does not implicitly handle scalars as arrays. 
     p = np.atleast_2d(p).reshape(-1,1).astype(float)
 
-    p, _, m, n =  _ppp_(p, 0, m ):
+    p, _, m, n =  _ppp_(p, 0, m )
 
     if N == None or N < 1:
         raise ValueError(" binomial.rnd(p,N): N must be greater than zero")

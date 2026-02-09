@@ -2,6 +2,49 @@ import numpy as np
 
 from multivarious.utl.correlated_rvs import correlated_rvs
 
+
+def _ppp_(x, a, b, c):
+    '''
+    Validate and preprocess input parameters for consistency and correctness.
+
+    Parameters:
+        x : array_like
+            Evaluation points
+        a : float
+            Lower bound
+        b : float
+            Upper bound (must be > a)
+        c : float
+            Mode (must satisfy a < c < b)
+    '''
+
+    # Convert inputs to arrays
+    # Python does not implicitly handle scalars as arrays. 
+    x = np.atleast_1d(x).astype(float)
+    a = np.atleast_2d(a).reshape(-1,1).astype(float)
+    b = np.atleast_2d(b).reshape(-1,1).astype(float)
+    c = np.atleast_2d(c).reshape(-1,1).astype(float)
+    n = len(a)   
+
+    # Validate parameter dimensions 
+    if not ( len(a) == n and len(b) == n and len(c) == n ):
+        raise ValueError(f"a, b, ,c arrays must have the same length. "
+                         f"Got a:{len(a)}, b:{len(b)}, c:{len(c)}")
+
+    # Validate parameter values
+    if not np.any(a <= b):
+        raise ValueError(f"triangular: c must be less than b"
+                         f"Got: len(c) = {len(c)}, len(b) = {len(b)}") 
+    if not np.any(c <= b):
+        raise ValueError(f"triangular: c must be less than b"
+                         f"Got: len(c) = {len(c)}, len(b) = {len(b)}") 
+    if not np.any(b <= c):
+        raise ValueError(f"triangular: b must be less than c"
+                         f"Got: len(c) = {len(c)}, len(b) = {len(b)}") 
+
+    return x, a, b, c, n
+
+
 def pdf(x, a, b, c):
     '''
     triangular.pdf
@@ -24,7 +67,9 @@ def pdf(x, a, b, c):
             
     Reference:   http://en.wikipedia.org/wiki/Triangular_distribution
     '''
-    x = np.asarray(x)
+
+    x, a, b, c, n = _ppp_(x, a, b, c)
+
     pdf = np.zeros_like(x, dtype=float)
 
     # Left side of peak (pdf piecewise formula)
@@ -65,9 +110,9 @@ def cdf(x, params):
     http://en.wikipedia.org/wiki/Triangular_distribution
     '''
 
-    x = np.asarray(x)
-
     a, b, c = params
+
+    x, a, b, c, n = _ppp_(x, a, b, c)
 
     cdf = np.zeros_like(x, dtype=float)
 
@@ -107,7 +152,9 @@ def inv(p, a, b, c):
     Reference:
     http://en.wikipedia.org/wiki/Triangular_distribution
     '''
-    p = np.asarray(p)
+
+    p, a, b, c, n = _ppp_(p, a, b, c)
+
     p = np.clip(p, np.finfo(float).eps, 1 - np.finfo(float).eps)
     
     Fc = (c - a) / (b - a)
@@ -150,11 +197,10 @@ def rnd(a, b, c, N, R=None, seed=None ):
     http://en.wikipedia.org/wiki/Triangular_distribution
     '''
 
+    p, a, b, c, n = _ppp_(p, a, b, c)
+
     # Convert inputs to arrays
     # Python does not implicitly handle scalars as arrays. 
-    a = np.atleast_2d(a).reshape(-1,1).astype(float)
-    b = np.atleast_2d(b).reshape(-1,1).astype(float)
-    c = np.atleast_2d(c).reshape(-1,1).astype(float)
 
     # Determine number of random variables
     n = len(a)

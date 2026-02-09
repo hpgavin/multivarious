@@ -8,44 +8,38 @@ def _ppp_(x, a, b, q, p ):
         x : array_like
             Evaluation points
         a : float
-            Minimum of the distribution
+            Lower bound
         b : float
-            Maximum of the distribution (must be > a)
-        q : float
-            First shape parameter
-        p : float
-            Second shape parameter
+            Upper bound (must be > a)
+        c : float
+            Mode (must satisfy a < c < b)
     '''
 
     # Convert inputs to arrays
     # Python does not implicitly handle scalars as arrays. 
     x = np.atleast_1d(x).astype(float)
-    a = np.atleast_1d(a).astype(float) 
+    a = np.atleast_1d(a).astype(float)
     b = np.atleast_1d(b).astype(float)
-    q = np.atleast_1d(q).astype(float)
-    p = np.atleast_1d(p).astype(float)
-    n = len(a)   
+    c = np.atleast_1d(c).astype(float)
+    n = len(a)
+
+
+    # Validate parameter dimensions 
+    if not ( len(a) == n and len(b) == n and len(c) == n ):
+        raise ValueError(f"a, b, ,c arrays must have the same length. "
+                         f"Got a:{len(a)}, b:{len(b)}, c:{len(c)}")
     
-    # Check parameter validity
-    if b <= a:
-        raise ValueError(f"beta_pdf: a = {a}, b = {b} — a must be less than b")
- 
-
-    if not ( (len(t) == n or len(t) == 1) and len(T) == n ):
-        raise ValueError(f"T and t arrays must have the same length. "
-                         f"Got t:{len(t)}, T:{len(T)}")
-
-    # Validate that all parameter arrays have the same length
-    if not (len(b) == n and len(q) == n and len(p) == n):
-        raise ValueError(f"All parameter arrays must have the same length. "
-                        f"Got a:{len(a)}, b:{len(b)}, q:{len(q)}, p:{len(p)}")
+    # Validate parameter values
+    if not np.any(a <= b):
+        raise ValueError(f"triangular: c must be less than b"
+                         f"Got: len(c) = {len(c)}, len(b) = {len(b)}")
+    if not np.any(c <= b):
+        raise ValueError(f"triangular: c must be less than b"
+                         f"Got: len(c) = {len(c)}, len(b) = {len(b)}")
+    if not np.any(b <= c):
+        raise ValueError(f"triangular: b must be less than c"
+                         f"Got: len(c) = {len(c)}, len(b) = {len(b)}")
     
-    if np.any(b <= a):
-        raise ValueError("beta.rnd: all b values must be greater than corresponding a values")
-    if np.any(q <= 0):
-        raise ValueError("beta.rnd: q must be positive")
-    if np.any(p <= 0):
-        raise ValueError("beta.rnd: p must be positive")
-
-    return x, a, b, q, p, n
+    return x, a, b, c, n
+    
 

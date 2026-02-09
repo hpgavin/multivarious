@@ -50,9 +50,9 @@ print("Correlation matrix R:\n", R)
 #X = extreme_value_I.rnd( meanX, covnX, N, R )
 #X = extreme_value_II.rnd( m, s, k, N, R )
 #X = gamma.rnd( meanX, covnX, N, R )
-X = gev.rnd( m, s, k, N, R ) ## error 
+#X = gev.rnd( m, s, k, N, R ) ## error 
 #X = laplace.rnd( meanX, stdvX, N, R )
-#X = lognormal.rnd( mednX, covnX, N, R )
+X = lognormal.rnd( mednX, covnX, N, R )
 #X = normal.rnd( meanX, stdvX, N, R )
 #X = poisson.rnd( T, N, R )
 #X = quadratic.rnd( a, b, N, R ) ## trouble

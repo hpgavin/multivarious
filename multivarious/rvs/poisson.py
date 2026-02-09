@@ -154,7 +154,7 @@ def rnd(t, T, N, R=None, seed=None):
         
         active_idx = U[i,:] >= s
 
-        while np.any(active) 
+        while np.any(active):
             x[active_idx] += 1
             p[active_idx] *= (t/T) / x[active_idx]
             s[active_idx] += p[active_idx]
