@@ -8,6 +8,56 @@ from scipy.special import betaincinv
 
 from multivarious.utl.correlated_rvs import correlated_rvs
 
+def _ppp_(x, a, b, q, p ):
+    '''
+    Validate and preprocess input parameters for consistency and correctness.
+
+    Parameters:
+        x : array_like
+            Evaluation points
+        a : float
+            Minimum of the distribution
+        b : float
+            Maximum of the distribution (must be > a)
+        q : float
+            First shape parameter
+        p : float
+            Second shape parameter
+    '''
+
+    # Convert inputs to arrays
+    # Python does not implicitly handle scalars as arrays. 
+    x = np.atleast_1d(x).astype(float)
+    a = np.atleast_1d(a).astype(float) 
+    b = np.atleast_1d(b).astype(float)
+    q = np.atleast_1d(q).astype(float)
+    p = np.atleast_1d(p).astype(float)
+    n = len(a)   
+    
+    # Check parameter validity
+    if b <= a:
+        raise ValueError(f"beta_pdf: a = {a}, b = {b} — a must be less than b")
+ 
+
+    if not ( (len(t) == n or len(t) == 1) and len(T) == n ):
+        raise ValueError(f"T and t arrays must have the same length. "
+                         f"Got t:{len(t)}, T:{len(T)}")
+
+    # Validate that all parameter arrays have the same length
+    if not (len(b) == n and len(q) == n and len(p) == n):
+        raise ValueError(f"All parameter arrays must have the same length. "
+                        f"Got a:{len(a)}, b:{len(b)}, q:{len(q)}, p:{len(p)}")
+    
+    if np.any(b <= a):
+        raise ValueError("beta.rnd: all b values must be greater than corresponding a values")
+    if np.any(q <= 0):
+        raise ValueError("beta.rnd: q must be positive")
+    if np.any(p <= 0):
+        raise ValueError("beta.rnd: p must be positive")
+
+    return x, a, b, q, p, n
+
+
 def pdf(x, a, b, q, p):
     '''
     beta.pdf
@@ -31,12 +81,9 @@ def pdf(x, a, b, q, p):
         f : ndarray
             PDF evaluated at x
     '''
-    x = np.asarray(x, dtype=float)
-    
-    # Check parameter validity
-    if b <= a:
-        raise ValueError(f"beta_pdf: a = {a}, b = {b} — a must be less than b")
-    
+
+    x, a, b, q, p, n = _ppp_(x, a, b, q, p, n)
+
     # Initialize PDF output as zeros
     f = np.zeros_like(x)
 
@@ -78,13 +125,10 @@ def cdf(x, params ):
         F(x) = I_{(x - a) / (b - a)} (q, p)
     where I is the regularized incomplete beta function.
     '''
-    x = np.asarray(x, dtype=float)
 
     a, b, q, p = params
 
-    # Check parameter validity
-    if b <= a:
-        raise ValueError(f"beta_cdf: a = {a}, b = {b} — a must be less than b")
+    x, a, b, q, p, n = _ppp_(x, a, b, q, p, n)
 
     # Compute z = (x - a) / (b - a), clipped to [0, 1]
     z = (x - a) / (b - a)
@@ -118,11 +162,9 @@ def inv(F, a, b, q, p):
     x : ndarray
         Quantile values corresponding to input probabilities F
     '''
+    _, a, b, q, p, n = _ppp_(0, a, b, q, p, n)
+
     F = np.asarray(F, dtype=float)
-    
-    # Check that a < b (valid interval)
-    if b <= a:
-        raise ValueError(f'beta_inv: a = {a}, b = {b} → a must be less than b')
     
     # Check that F values are valid probabilities
     if np.any((F < 0) | (F > 1)):
@@ -183,32 +225,9 @@ def rnd(a, b, q, p, N, R=None, seed=None):
             x = rnd(a, b, q, p, N=1000, R=R)
     '''
     
-    # Convert inputs to arrays
-    # Python does not implicitly handle scalars as arrays. 
-    a = np.atleast_1d(a).astype(float) 
-    b = np.atleast_1d(b).astype(float)
-    q = np.atleast_1d(q).astype(float)
-    p = np.atleast_1d(p).astype(float)
-    
-    # Determine number of random variables
-    n = len(a)
-
-    # Validate that all parameter arrays have the same length
-    if not (len(b) == n and len(q) == n and len(p) == n):
-        raise ValueError(f"All parameter arrays must have the same length. "
-                        f"Got a:{len(a)}, b:{len(b)}, q:{len(q)}, p:{len(p)}")
-    
-    if np.any(b <= a):
-        raise ValueError("beta.rnd: all b values must be greater than corresponding a values")
-    if np.any(q <= 0):
-        raise ValueError("beta.rnd: q must be positive")
-    if np.any(p <= 0):
-        raise ValueError("beta.rnd: p must be positive")
-
+    _, a, b, q, p, n = _ppp_(0, a, b, q, p, n)
+   
     _, _, U = correlated_rvs(R,n,N,seed)
-
-    size = U.shape 
-    print(f'size = {size[0]} {size[1]}') 
 
     # Transform each variable to its beta distribution via inverse CDF
     X = np.zeros((n, N))

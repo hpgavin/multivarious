@@ -3,6 +3,52 @@ from scipy.special import factorial
 
 from multivarious.utl.correlated_rvs import correlated_rvs
 
+
+
+def _ppp_(p, n, m ):
+    '''
+    Validate and preprocess input parameters for consistency and correctness.
+
+    Parameters:
+        x : array_like
+            Evaluation points
+        a : float
+            Minimum of the distribution
+        b : float
+            Maximum of the distribution (must be > a)
+        q : float
+            First shape parameter
+        p : float
+            Second shape parameter
+    '''
+
+    # Convert inputs to arrays
+    # Python does not implicitly handle scalars as arrays. 
+    p = np.atleast_1d(p).astype(float)
+    n = np.atleast_1d(np.round(n)).astype(int)  # Ensure n is integer-valued
+    m = np.atleast_1d(np.round(m)).astype(int)  # Ensure m is integer-valued
+    lp = len(p)   
+    
+    n = np.where(n < 0, 0, n)  # clip negative values to 0
+
+    # Check parameter validity
+    if np.any(p <= 0) or np.any(np.isinf(p)) or np.any( p >= 1):
+        raise ValueError(" binomial.rnd(p,N): p must be between zero and one") 
+
+    if not ( (len(n) == lp or len(n) == 1) and (len(m) == lp or len(m) == 1 ):
+        raise ValueError(f"n and m arrays must have the same length as p. "
+                         f"Got p:{len(p)}, n:{len(n)}, m:{len(m)}")
+   
+    if np.any(p <= 0):
+        raise ValueError("binomial: p must be positive")
+    if np.any(m < 0):
+        raise ValueError("binomial: m must be positive")
+    if np.any(n < 0):
+        raise ValueError("binomial: n must be positive")
+
+    return p, n, m, lp
+
+
 def pmf(n, m, p):
     '''
     binomial.pmf
@@ -32,8 +78,8 @@ def pmf(n, m, p):
         * Two events can't happen at the exact same instant (events are discrete)
         * p = expected number of events in one attempt.
     '''
-    n = np.atleast_1d(np.round(n)).astype(int)  # Ensure n is integer-valued
-    n = np.where(n < 0, 0, n)  # clip negative values to 0
+
+    p, n, m, _ =  _ppp_( p, n, m ):
 
     p = factorial(m) / (factorial(n) * factorial(m-n)) * p**n * (1-p)**(m-n)
 
@@ -61,8 +107,9 @@ def cdf(n, m, p):
     Reference:
     https://en.wikipedia.org/wiki/Binomial_distribution
     '''
-    n = np.round(n).astype(int)            # Ensure n is integer-valued
-    n = np.atleast_1d(n)                   # Support scalar and array inputs
+
+    p, n, m, _ =  _ppp_(p, n, m ):
+
     F = np.empty_like(n, dtype=float)      # Initialize result array
 
     for i, ni in enumerate(n):
@@ -97,14 +144,13 @@ def rnd(m, p, N, R=None, seed=None):
     Reference:
     https://en.wikipedia.org/wiki/Binomial_distribution#Generating_Binomial-distributed_random_variables
      '''
+
     # Convert inputs to arrays
     # Python does not implicitly handle scalars as arrays. 
     p = np.atleast_2d(p).reshape(-1,1).astype(float)
 
-    n = len(p)  # number of rows
+    p, _, m, n =  _ppp_(p, 0, m ):
 
-    if np.any(p <= 0) or np.any(np.isinf(p)) or np.any( p >= 1):
-        raise ValueError(" binomial.rnd(p,N): p must be between zero and one") 
     if N == None or N < 1:
         raise ValueError(" binomial.rnd(p,N): N must be greater than zero")
     
