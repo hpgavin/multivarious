@@ -27,7 +27,7 @@ def pdf(x, meanX=0.0, sdvnX=1.0):
     https://en.wikipedia.org/wiki/Normal_distribution
     '''
     z = (x - meanX) / sdvnX
-    f = 1.0 / np.sqrt(2 * np.pi) * np.exp(-z**2.0 / 2.0)
+    f = 1.0 / np.sqrt(2 * np.pi*sdvnX**2) * np.exp(-(z**2.0) / 2.0)
 
     return f 
 
@@ -57,7 +57,9 @@ def cdf(x, params ):
 
     meanX, sdvnX = params 
 
-    F = (1.0 + scipy_erf(Y / sqrt(2.0))) / 2.0
+    z = (x - meanX) / sdvnX
+
+    F = (1.0 + scipy_erf(z / np.sqrt(2.0))) / 2.0
 
     return F
 

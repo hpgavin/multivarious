@@ -33,21 +33,13 @@ def _ppp_(x, a, b, q, p ):
     q = np.atleast_1d(q).astype(float)
     p = np.atleast_1d(p).astype(float)
     n = len(a)   
-    
-    # Check parameter validity
-    if b <= a:
-        raise ValueError(f"beta_pdf: a = {a}, b = {b} — a must be less than b")
- 
 
-    if not ( (len(t) == n or len(t) == 1) and len(T) == n ):
-        raise ValueError(f"T and t arrays must have the same length. "
-                         f"Got t:{len(t)}, T:{len(T)}")
-
-    # Validate that all parameter arrays have the same length
+    # Validate parameter dimensions 
     if not (len(b) == n and len(q) == n and len(p) == n):
         raise ValueError(f"All parameter arrays must have the same length. "
                         f"Got a:{len(a)}, b:{len(b)}, q:{len(q)}, p:{len(p)}")
     
+    # Validate parameter values 
     if np.any(b <= a):
         raise ValueError("beta.rnd: all b values must be greater than corresponding a values")
     if np.any(q <= 0):
@@ -82,7 +74,7 @@ def pdf(x, a, b, q, p):
             PDF evaluated at x
     '''
 
-    x, a, b, q, p, n = _ppp_(x, a, b, q, p, n)
+    x, a, b, q, p, n = _ppp_(x, a, b, q, p)
 
     # Initialize PDF output as zeros
     f = np.zeros_like(x)
@@ -128,7 +120,7 @@ def cdf(x, params ):
 
     a, b, q, p = params
 
-    x, a, b, q, p, n = _ppp_(x, a, b, q, p, n)
+    x, a, b, q, p, n = _ppp_(x, a, b, q, p)
 
     # Compute z = (x - a) / (b - a), clipped to [0, 1]
     z = (x - a) / (b - a)
@@ -162,7 +154,7 @@ def inv(F, a, b, q, p):
     x : ndarray
         Quantile values corresponding to input probabilities F
     '''
-    _, a, b, q, p, n = _ppp_(0, a, b, q, p, n)
+    _, a, b, q, p, n = _ppp_(0, a, b, q, p)
 
     F = np.asarray(F, dtype=float)
     
@@ -225,7 +217,7 @@ def rnd(a, b, q, p, N, R=None, seed=None):
             x = rnd(a, b, q, p, N=1000, R=R)
     '''
     
-    _, a, b, q, p, n = _ppp_(0, a, b, q, p, n)
+    _, a, b, q, p, n = _ppp_(0, a, b, q, p)
    
     _, _, U = correlated_rvs(R,n,N,seed)
 

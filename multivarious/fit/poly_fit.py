@@ -8,18 +8,15 @@ Minimizes the Chi-square error criterion with optional regularization.
 Provides comprehensive error analysis including parameter uncertainties,
 confidence intervals, correlation matrix, and information criteria.
 
-Translation from MATLAB by Claude, 2025-10-24
-Original by H.P. Gavin
-
 Reference:
 H.P. Gavin, "Fitting Models to Data: Generalized Linear Least Squares 
 and Error Analysis"
-https://people.duke.edu/~hpgavin/SystemID/linear-least-sqaures.pdf
+https://people.duke.edu/~hpgavin/SystemID/CouresNotes/linear-least-sqaures.pdf
 """
 
 import numpy as np
 import matplotlib.pyplot as plt
-from scipy.stats import norm
+from scipy.stats import norm as scipy_normal
 from multivarious.utl.plot_ECDF_ci import plot_ECDF_ci
 
 
@@ -34,9 +31,9 @@ def poly_fit(x, y, p, figNo=0, Sy=None, rof=None, b=0.0):
     
     Parameters
     ----------
-    x : array_like, shape (m,)
+    x : array_like, shape (N,)
         Known vector of independent variables
-    y : array_like, shape (m,)
+    y : array_like, shape (N,)
         Measured vector of dependent variables
     p : array_like, shape (n,)
         Vector of real powers (x^p) for each polynomial term
@@ -44,7 +41,7 @@ def poly_fit(x, y, p, figNo=0, Sy=None, rof=None, b=0.0):
         Figure number for plotting. Use 0 to suppress plotting (default: 0)
     Sy : float or array_like, optional
         Measurement errors for each value of y. 
-        Scalar or shape (m,) (default: 1.0)
+        Scalar or shape (N,) (default: 1.0)
     rof : array_like, shape (2,), optional
         Range of fit [x_min, x_max] (default: [min(x), max(x)])
     b : float, optional
@@ -73,13 +70,11 @@ def poly_fit(x, y, p, figNo=0, Sy=None, rof=None, b=0.0):
     condNo : float
         Condition number of regularized system matrix
     
-    Notes
-    -----
     Unlike numpy.polyfit, this function allows:
-    - Any real-valued powers (not just integer exponents)
-    - Weighted least squares with measurement errors
-    - Regularization parameter
-    - Comprehensive error analysis and visualization
+    . Any real-valued powers (not just integer exponents)
+    . Weighted least squares with measurement errors
+    . Regularization parameter
+    . Comprehensive error analysis and visualization
     """
     
     # Convert inputs to numpy arrays
@@ -147,27 +142,20 @@ def poly_fit(x, y, p, figNo=0, Sy=None, rof=None, b=0.0):
         invVy = np.eye(Nd) / Vr  # Computed from residuals
     else:
         invVy = ISy              # Provided by user
-    
     # Parameter covariance matrix
     Vc = np.linalg.inv(B.T @ invVy @ B + b * np.eye(Np))
-    
     # Regularized least squares adjustment
     if b != 0:
         Vy = np.linalg.inv(ISy)
         Vc = Vc @ (B.T @ ISy @ Vy @ ISy @ B) @ Vc
-    
     # Standard errors of parameters
     Sc = np.sqrt(np.diag(Vc))
-    
     # Parameter cross-correlation matrix
     Rc = Vc / np.outer(Sc, Sc)
-    
     # Standard error of the fit
     Sy_fit = np.sqrt(np.diag(B_fit @ Vc @ B_fit.T))
-    
     # R-squared (coefficient of determination)
     R2 = 1 - np.sum((y - B @ c)**2) / np.sum((y - np.mean(y))**2)
-    
     # Akaike Information Criterion
     AIC = np.log(2 * np.pi * Np * Vr) + (B @ c - y).T @ invVy @ (B @ c - y) + 2 * Np
     
@@ -205,7 +193,7 @@ def _plot_results(x, y, x_fit, y_fit, B, c, Sy_fit, Vr,
     
     # Confidence intervals
     CI = np.array([0.90, 0.99])
-    z = norm.ppf(1 - (1 - CI) / 2)
+    z = scipy_normal.ppf(1 - (1 - CI) / 2)
     
     # Confidence bands for the model
     yps95 = y_fit + z[0] * Sy_fit
@@ -298,7 +286,7 @@ def _plot_results(x, y, x_fit, y_fit, B, c, Sy_fit, Vr,
     mu, std = np.mean(residuals), np.std(residuals)
     xmin, xmax = plt.xlim()
     x_normal = np.linspace(xmin, xmax, 100)
-    p_normal = norm.pdf(x_normal, mu, std)
+    p_normal = scipy_normal.pdf(x_normal, mu, std)
     # Scale to match histogram
     p_normal_scaled = p_normal * len(residuals) * (bins[1] - bins[0])
     plt.plot(x_normal, p_normal_scaled, 'r-', linewidth=2, 

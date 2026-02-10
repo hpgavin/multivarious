@@ -1,5 +1,4 @@
 #! /usr/bin/env -S python3 -i
-
 """
 poly_fit_example.py - example for the use of poly_fit.py
 2025-12-02
@@ -7,24 +6,25 @@ poly_fit_example.py - example for the use of poly_fit.py
 
 import numpy as np
 import matplotlib.pyplot as plt
+from multivarious.fit import poly_fit
 
 """
 Test poly_fit with example data
 """
-    
 print("\n" + "="*70)
 print("Testing poly_fit.py")
 print("="*70)
     
 # Generate test data
 np.random.seed(42)
-x_l = -1
-x_h = 1
-Nd = 40
+x_l = -1  # Lower end of the fit domain
+x_h =  1  # Upper end of the fit domain
+Nd  = 40  # Number of data points
     
-x = np.linspace(x_l, x_h, Nd)
+x = np.linspace(x_l, x_h, Nd)  # the independent data points from x_l to x_h
     
-measurement_error = 0.20
+measurement_error = 0.20   # the level simulated measurement error 
+# simulate the measured data including the measurement error 
 y = -np.cos(4*x) + 1.0 * x**3 * np.exp(-x/3) + measurement_error * np.random.randn(Nd)
     
 print(f"\nGenerated {Nd} data points")
@@ -36,7 +36,8 @@ print("\n" + "-"*70)
 print("Test 1: Powers [0, 1, 2, 3, 4]")
 print("-"*70)
     
-p1 = np.array([0, 1, 2, 3, 4])
+p1 = np.array([0, 1, 2, 3, 4])   # the powers of the polynomial terms 
+# ... run poly_fit() to do the fit! ...
 c1, x_fit1, y_fit1, Sc1, Sy_fit1, Rc1, R2_1, Vr1, AIC1, cond1 = \
         poly_fit(x, y, p1, figNo=10)
     
