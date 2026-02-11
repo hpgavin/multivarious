@@ -114,7 +114,7 @@ def cdf(x, params ):
     # Only compute for x > m
     for i in range(n): 
         mask = x > m[i]  # Compute only for x > m
-        z = (x[mask] - m) / s
+        z = (x[mask] - m[i]) / s[i]
         F[i,mask] = np.exp(-z**(-k[i]))
     
     return F

@@ -71,7 +71,7 @@ def pmf(k, t, T):
     return p
 
 
-def cdf(k, t, T):
+def cdf(k, params ):
     '''
     poisson.cdf
 
@@ -94,6 +94,8 @@ def cdf(k, t, T):
     https://en.wikipedia.org/wiki/Incomplete_gamma_function#Regularized_gamma_functions_and_Poisson_random_variables
     https://docs.scipy.org/doc/scipy/reference/generated/scipy.special.gammaincc.html
     '''
+
+    t, T = params
 
     k, t, T, n = _ppp_(k, t, T)
    

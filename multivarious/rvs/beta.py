@@ -130,7 +130,9 @@ def cdf(x, params ):
     z = np.clip(z, 0, 1)
 
     # Evaluate the regularized incomplete beta function
-    F = betainc(q, p, z)
+    F = np.zeros((n,N))
+    for i in range(n):
+       F[i,:] = betainc(q[i], p[i], z[i,:])
 
     return F
 

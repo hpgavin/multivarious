@@ -61,10 +61,12 @@ def pdf(x, a, b):
     x, a, b, n, N = _ppp_(x, a, b)
 
     f = np.zeros((n,N))
-    
+
     for i in range(n):
-        mask = (a[i] < x) & (x < b[i]) # PDF is nonzero only in (a, b)
-        f[i,mask] = 6 * (x[mask] - a[i]) * (x[mask] - b[i]) / (a[i] - b[i])**3
+        f[i,:] = 6 * (x - a[i]) * (x - b[i]) / (a[i] - b[i])**3
+    
+        f[i, x >= b[i]] = 0.0 # PDF = 0 for x >= b
+        f[i, x <= a[i]] = 0.0 # PDF = 0 for x <= b
     
     return f
 
@@ -97,12 +99,12 @@ def cdf(x, params):
 
     F = np.zeros((n,N))
     
-    # CDF = 1 for x >= b
-    F[x >= b] = 1.0
-    
     # CDF formula for a <= x <= b
-    mask = (a <= x) & (x <= b)
-    F[mask] = ((a - x[mask])**2 * (a - 3*b + 2*x[mask])) / (a - b)**3
+    for i in range(n):
+        F[i,:] = ((a[i] - x)**2 * (a[i]- 3*b[i] + 2*x)) / (a[i] - b[i])**3
+
+        F[i, x >= b[i]] = 1.0 # CDF = 1 for x >= b
+        F[i, x <= a[i]] = 0.0 # CDF = 0 for x <= b
     
     return F
 

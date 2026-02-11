@@ -2,7 +2,9 @@
 # github.com/hpgavin/multivarious ... rvs/students_t
 
 import numpy as np
-from scipy.special import beta as beta_func, betaincinv
+import math
+from scipy.special import gamma
+from scipy.special import betainc, betaincinv
 
 from multivarious.utl.correlated_rvs import correlated_rvs
 
@@ -31,12 +33,13 @@ def _ppp_(t, k):
     t = np.atleast_1d(t).astype(float)
     k = np.atleast_1d(k).reshape(-1,1).astype(int)
     n = len(k)   
+    N = len(t)
         
     # Validate parameter values 
     if np.any(k <= 0):
         raise ValueError("students_t: k must be > 0")
 
-    return t, k, n
+    return t, k, n, N
 
 
 def pdf(t, k):
@@ -64,10 +67,17 @@ def pdf(t, k):
     https://en.wikipedia.org/wiki/Student%27s_t-distribution
     """
     
-    t, k, n = _ppp_(t, k)
+    t, k, n, _ = _ppp_(t, k)
 
-    # Compute the PDF using the known closed-form
-    f = (np.exp(-(k + 1) * np.log(1 + (t ** 2) / k) / 2)) / (np.sqrt(k) * beta_func(k / 2, 0.5))
+    numerator = gamma((k + 1) / 2)
+    denominator = np.sqrt(k * np.pi) * gamma(k / 2)
+    power = -(k + 1) / 2
+    f = (numerator / denominator) * (1 + (t**2) / k) ** power
+
+    return f
+
+#   # Compute the PDF using the known closed-form
+#   f = (np.exp(-(k + 1) * np.log(1 + (t ** 2) / k) / 2)) / (np.sqrt(k) * beta_func(k / 2, 0.5))
 
     return f
 
@@ -101,35 +111,24 @@ def cdf(t, k):
     https://en.wikipedia.org/wiki/Student%27s_t-distribution
     """
     
-    t, k, n = _ppp_(t, k)
+    t, k, n, N = _ppp_(t, k)
 
-    if k == 1:
-        # Cauchy distribution
-        return 0.5 + np.arctan(t) / np.pi
+    F = np.zeros((n,N))
 
-    elif k == 2:
-        return 0.5 + t / (2 * np.sqrt(2 + t**2))
+    for i in range(n): 
 
-    else:
-        ts = t / np.sqrt(k)
-        ttf = 1 / (1 + ts**2)
+        a = k[i] / 2.0
+        x = k[i] / (k[i] + t**2)
 
-        u = np.ones_like(ts, dtype=float)
-        s = np.ones_like(ts, dtype=float)
+        F[i,t == 0] = 0.5
 
-        if k % 2 == 1:  # odd degrees of freedom
-            m = (k - 1) // 2
-            for ii in range(2, m + 1):
-                u = u * (1 - 1 / (2 * ii - 1)) * ttf
-                s = s + u
-            return 0.5 + (ts * ttf * s + np.arctan(ts)) / np.pi
+        mask = t > 0
+        F[i,mask] = 1 - 0.5 * betainc(a, 0.5, x[mask])
 
-        else:  # even degrees of freedom
-            m = k // 2
-            for ii in range(1, m):
-                u = u * (1 - 1 / (2 * ii)) * ttf
-                s = s + u
-            return 0.5 + (ts * np.sqrt(ttf) * s) / 2.0
+        mask = t < 0
+        F[i,mask] =     0.5 * betainc(a, 0.5, x[mask])
+
+    return F
 
 
 def inv(p, k):
@@ -158,7 +157,7 @@ def inv(p, k):
     https://en.wikipedia.org/wiki/Student%27s_t-distribution
     """
     
-    _, k, _ = _ppp_(0, k)
+    _, k, _, _ = _ppp_(0, k)
     
     p = np.asarray(p)
 
@@ -204,7 +203,7 @@ def rnd(k, N, R=None, seed=None):
     https://en.wikipedia.org/wiki/Student%27s_t-distribution
     """
 
-    _, k, n = _ppp_(0, k)
+    _, k, n, _ = _ppp_(0, k)
 
     _, _, U = correlated_rvs(R, n, N, seed)
 

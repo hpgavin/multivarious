@@ -36,6 +36,7 @@ def _ppp_(x, meanX, sdvnX):
     meanX = np.atleast_1d(meanX).reshape(-1,1).astype(float)
     sdvnX = np.atleast_1d(sdvnX).reshape(-1,1).astype(float)
     n = len(meanX)   
+    N = len(x)
         
     # Validate parameter dimensions 
     if not (len(meanX) == n and len(sdvnX) == n):
@@ -46,7 +47,7 @@ def _ppp_(x, meanX, sdvnX):
     if np.any(sdvnX <= 0):
         raise ValueError("laplace: all sdvnX values must be greater than zero")
 
-    return x, meanX, sdvnX, n
+    return x, meanX, sdvnX, n, N
 
 
 def pdf(x, meanX, sdvnX):
@@ -77,7 +78,7 @@ def pdf(x, meanX, sdvnX):
     https://en.wikipedia.org/wiki/Laplace_distribution
     """
 
-    x, meanX, sdvnX, n = _ppp_(x, meanX, sdvnX)
+    x, meanX, sdvnX, n, N = _ppp_(x, meanX, sdvnX)
 
     sr2 = np.sqrt(2)
     f = (1 / (sr2 * sdvnX)) * np.exp(-sr2 * np.abs(x - meanX) / sdvnX)
@@ -116,13 +117,17 @@ def cdf(x, params):
     
     meanX, sdvnX = params
 
-    x, meanX, sdvnX, n = _ppp_(x, meanX, sdvnX)
+    x, meanX, sdvnX, n, N = _ppp_(x, meanX, sdvnX)
 
     sr2 = np.sqrt(2)
 
-    F = np.zeros_like(x)
-    F[x <= meanX] = 0.5 * np.exp(sr2 * (x[x <= meanX] - meanX) / sdvnX)
-    F[x > meanX] = 1 - 0.5 * np.exp(-sr2 * (x[x > meanX] - meanX) / sdvnX)
+    F = np.zeros((n,N))
+
+    for i in range(n): 
+        mask = x <= meanX[i]
+        F[i,mask] =       0.5 * np.exp( sr2 * (x[mask] - meanX[i]) / sdvnX[i])
+        mask = ~mask
+        F[i,mask] = 1.0 - 0.5 * np.exp(-sr2 * (x[mask] - meanX[i]) / sdvnX[i])
     
     return F
 
@@ -156,18 +161,19 @@ def inv(P, meanX, sdvnX):
     https://en.wikipedia.org/wiki/Laplace_distribution
     """
     
-    _, meanX, sdvnX, n = _ppp_(0, meanX, sdvnX)
+    _, meanX, sdvnX, n, N = _ppp_(P, meanX, sdvnX)
 
     P = np.asarray(P, dtype=float)
 
     sr2 = np.sqrt(2)
 
-    x = np.zeros(P.shape)
+    x = np.zeros((n,N))
   
-    idx = P <= 0.5 
-    x[idx] = meanX + sdvnX / sr2 * np.log(2 * P[idx]) 
-    idx = ~idx
-    x[idx] = meanX - sdvnX / sr2 * np.log(2 * (1 - P[idx]))
+    mask = P <= 0.5 
+    for i in range(n): 
+        x[i,mask] = meanX[i] + sdvnX[i] / sr2 * np.log(2 * P[mask]) 
+        mask = ~mask
+        x[i,mask] = meanX[i] - sdvnX[i] / sr2 * np.log(2 * (1 - P[mask]))
 
     return x if x.size > 1 else x.item()
 
@@ -207,7 +213,7 @@ def rnd(meanX, sdvnX, N, R=None, seed=None):
     https://en.wikipedia.org/wiki/Laplace_distribution
     """
     
-    _, meanX, sdvnX, n = _ppp_(0, meanX, sdvnX)
+    _, meanX, sdvnX, n, _ = _ppp_(0, meanX, sdvnX)
 
     _, _, U = correlated_rvs(R, n, N, seed)
 

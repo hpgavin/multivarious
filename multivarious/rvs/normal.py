@@ -88,7 +88,7 @@ def pdf(x, meanX=0.0, sdvnX=1.0):
     return f 
 
 
-def cdf(x, meanX=0.0, sdvnX=1.0):
+def cdf(x, params ):
     """
     normal.cdf
 
@@ -114,6 +114,8 @@ def cdf(x, meanX=0.0, sdvnX=1.0):
     ---------
     https://en.wikipedia.org/wiki/Normal_distribution
     """
+
+    meanX, sdvnX = params
 
     x, meanX, sdvnX, _ = _ppp_(x, meanX, sdvnX)
 

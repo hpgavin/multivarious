@@ -112,16 +112,17 @@ def cdf(x, params):
 
     x, a, b, c, n, N = _ppp_(x, a, b, c)
 
-    cdf = np.zeros_like(x, dtype=float)
+    cdf = np.zeros((n,N))
 
-    left = (x <= a)
-    mid1 = (a < x) & (x < c)
-    mid2 = (c <= x) & (x < b)
-    right = (x >= b)
+    for i in range(n): 
+        left = (x <= a[i])
+        mid1 = (a[i] < x) & (x < c[i])
+        mid2 = (c[i] <= x) & (x < b[i])
+        right = (x >= b[i])
 
-    cdf[mid1] = ((x[mid1] - a) ** 2) / ((b - a) * (c - a))
-    cdf[mid2] = 1 - ((b - x[mid2]) ** 2) / ((b - a) * (b - c))
-    cdf[right] = 1.0
+        cdf[i,mid1] = ((x[mid1] - a[i]) ** 2) / ((b[i] - a[i]) * (c[i] - a[i]))
+        cdf[i,mid2] = 1 - ((b[i] - x[mid2]) ** 2) / ((b[i] - a[i]) * (b[i] - c[i]))
+        cdf[i,right] = 1.0
 
     return cdf
 

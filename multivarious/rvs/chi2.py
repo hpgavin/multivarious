@@ -28,6 +28,10 @@ def _ppp_(x, k):
             Wilson-Hilferty transformation mean
         s : ndarray
             Wilson-Hilferty transformation standard deviation
+
+    Reference
+    ---------
+    https://en.wikipedia.org/wiki/Chi-squared_distribution#Asymptotic_properties
     """ 
 
     # Convert inputs to arrays
@@ -35,6 +39,7 @@ def _ppp_(x, k):
     x = np.atleast_1d(x).astype(float)
     k = np.atleast_1d(k).reshape(-1,1).astype(float)
     n = len(k)   
+    N = len(x)
         
     # Validate parameter values 
     if np.any(k <= 0):
@@ -44,7 +49,7 @@ def _ppp_(x, k):
     m = 1 - 2 / (9 * k)         # mean of cube-root-transformed variable
     s = np.sqrt(2 / (9 * k))    # std dev of cube-root-transformed variable
 
-    return x, k, n, m, s
+    return x, k, n, m, s, N
 
 
 def pdf(x, k):
@@ -71,16 +76,16 @@ def pdf(x, k):
 
     Reference
     ---------
-    https://en.wikipedia.org/wiki/Chi-squared_distribution
+    https://en.wikipedia.org/wiki/Chi-squared_distribution#Asymptotic_properties
     """
     
-    x, k, n, m, s = _ppp_(x, k)
+    x, k, n, m, s, N = _ppp_(x, k)
     
     # Transform x into z-space: Z = (X / k)^{1/3}
-    z = (x / k) ** (1/3)
+    z = ( (x / k) ** (1/3) - m ) / s
 
     # Approximate PDF using normal distribution
-    f = scipy_normal.pdf(z, m, s)
+    f = scipy_normal.pdf(z, 0, 1) * (np.sqrt(2)*s)
 
     return f
 
@@ -108,16 +113,16 @@ def cdf(x, k):
 
     Reference
     ---------
-    https://en.wikipedia.org/wiki/Chi-squared_distribution
+    https://en.wikipedia.org/wiki/Chi-squared_distribution#Asymptotic_properties
     """
 
-    x, k, n, m, s = _ppp_(x, k)
+    x, k, n, m, s, N = _ppp_(x, k)
 
     # Apply transformation: (X/k)^(1/3)
-    z = (x / k) ** (1 / 3)
+    z = ( (x / k) ** (1/3) - m ) / s
 
     # Apply normal CDF using transformed variable
-    F = scipy_normal.cdf(z, loc=m, scale=s)
+    F = scipy_normal.cdf(z, 0, 1)
 
     return F
 
@@ -145,18 +150,20 @@ def inv(p, k):
 
     Reference
     ---------
-    https://en.wikipedia.org/wiki/Chi-squared_distribution
+    https://en.wikipedia.org/wiki/Chi-squared_distribution#Asymptotic_properties
     """
 
-    _, k, n, m, s = _ppp_(0, k)
+    _, k, n, m, s, _ = _ppp_(0, k)
 
     p = np.asarray(p, dtype=float)
 
     # Inverse normal CDF
-    z = scipy_normal.ppf(p, loc=m, scale=s)
+    z = scipy_normal.ppf(p, m, s)
 
-    # Apply inverse transformation: x = k * z³
+    # Apply inverse transformation: x = k * z**3
     x = k * z**3
+
+    x [ x <= 0 ] = 1e-12
 
     return x
 
@@ -191,19 +198,22 @@ def rnd(k, N, R=None, seed=None):
 
     Reference
     ---------
-    https://en.wikipedia.org/wiki/Chi-squared_distribution
+    https://en.wikipedia.org/wiki/Chi-squared_distribution#Asymptotic_properties
     """
 
-    _, k, n, m, s = _ppp_(0, k)
+    _, k, n, m, s, _ = _ppp_(0, k)
 
-    _, Y, _ = correlated_rvs(R, n, N, seed)
+    _, Y, U = correlated_rvs(R, n, N, seed)
    
     # Apply transformation
     X = np.zeros((n, N))
     for i in range(n):
         X[i, :] = k[i] * (m[i] + s[i] * Y[i, :]) ** 3
+#       X[i, :] = inv(U[i,:], k[i])  
 
     if n == 1:
         X = X.flatten()
+
+    X [ X <= 0 ] = 1e-12
 
     return X

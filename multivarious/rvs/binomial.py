@@ -84,7 +84,7 @@ def pmf(n, m, p):
     return P
 
 
-def cdf(n, m, p):
+def cdf(n, params):
     '''
     binomial.cdf
 
@@ -103,14 +103,16 @@ def cdf(n, m, p):
     Reference:
     https://en.wikipedia.org/wiki/Binomial_distribution
     '''
+    m, p = params 
 
     n, m, p, nb, Nb =  _ppp_( n, m, p )
 
     F = np.zeros((nb,Nb))
 
-    for i, ni in enumerate(n):
-        ns = np.arange(0, ni + 1)          # k = 0 to n
-        F[i] = np.sum( factorial(m) / (factorial(ns) * factorial(m-ns) ) * p**ns  * (1-p)**(m-ns) )
+    P = pmf( n, m, p )
+
+    for i in range(nb): 
+        F[i,:] = np.cumsum( P[i,:] )
 
     return F if F.size > 1 else F[0]        # Return scalar if input was scalar
 
@@ -150,14 +152,16 @@ def rnd(m, p, N, R=None, seed=None):
 
     X = np.zeros((nb, N), dtype=int)
     
-    for trial in range(m[0]):
-        # Generate correlated uniforms for this sample
+    # Accumulate successes over attempts
+    for attempt in range(np.max(m)):
+
         _, _, U = correlated_rvs(R, nb, N, seed)
 
-        # Bernoulli success if U < p, shape (nb, N)
-        successes = (U < p) 
+        successes = (U < p) # Bernoulli success if U < p, shape (nb, N)
     
-        # Accumulate successes over trials
-        X += successes.astype(int)
-    
+        # add up successes for the i-th r.v. only up to m[i] attempts 
+        for i in range(nb):
+            if attempt <= m[i]:
+                X[i,:] += successes[i,:].astype(int)
+
     return X
