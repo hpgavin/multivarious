@@ -5,6 +5,38 @@ import numpy as np
 
 from multivarious.utl.correlated_rvs import correlated_rvs
 
+
+def _ppp_(x, a, b):
+    '''
+    Validate and preprocess input parameters for consistency and correctness.
+
+    Parameters:
+        x : array_like
+            Evaluation points
+        a : float or array_like
+            Minimum of the distribution
+        b : float or array_like
+    ''' 
+
+    # Convert inputs to arrays
+    # Python does not implicitly handle scalars as arrays. 
+    x = np.atleast_1d(x).astype(float)
+    a = np.atleast_2d(a).reshape(-1,1).astype(float)
+    b = np.atleast_2d(b).reshape(-1,1).astype(float)
+    n = len(a)   
+        
+    # Validate parameter dimensions 
+    if not (len(a) == n and len(b)):
+        raise ValueError(f"All parameter arrays must have the same length. "
+                        f"Got a:{len(a)}, b:{len(b)}")
+
+    # Validate parameter values 
+    if np.any(b <= a):
+        raise ValueError("uniform: all b values must be greater than corresponding a values")
+
+    return x, a, b, n
+
+
 def pdf(x, a, b):
     '''
     uniform.pdf
@@ -20,10 +52,8 @@ def pdf(x, a, b):
         f   = ndarray
               PDF values at each point in x
     '''
-    x = np.asarray(x, dtype=float)
-    
-    if b <= a:
-        raise ValueError(f"uniform_pdf: a = {a}, b = {b} — a must be less than b")
+
+    x, a, b, n = _ppp_(x, a, b)
     
     f = np.zeros_like(x)
     valid = (x >= a) & (x <= b)
@@ -33,6 +63,7 @@ def pdf(x, a, b):
 
 
 def cdf(x, params ):
+    x, a, b, n = _ppp_(x, a, b)
     '''
     uniform.cdf
 
@@ -48,12 +79,9 @@ def cdf(x, params ):
         F   = ndarray
               CDF values at each point in x
     '''
-    x = np.asarray(x, dtype=float)
-
     a, b = params
     
-    if b <= a:
-        raise ValueError(f"uniform_cdf: a = {a}, b = {b} — a must be less than b")
+    x, a, b, n = _ppp_(x, a, b)
     
     F = np.clip((x - a) / (b - a), 0, 1)
     
@@ -74,10 +102,9 @@ def inv(F, a, b):
         x = ndarray
             Quantile values corresponding to probabilities F
     '''
+    _, a, b, n = _ppp_(0, a, b)
+
     F = np.asarray(F, dtype=float)
-    
-    if b <= a:
-        raise ValueError(f'uniform_inv: a = {a}, b = {b} → a must be less than b')
     
     if np.any((F < 0) | (F > 1)):
         raise ValueError('uniform_inv: F must be between 0 and 1')
@@ -105,20 +132,12 @@ def rnd(a, b, N, R=None, seed=None ):
     '''
     # Python does not implicitly handle scalars as arrays. 
     # Convert inputs to 2D (column) arrays
-    a = np.atleast_2d(a).reshape(-1,1).astype(float)
-    b = np.atleast_2d(b).reshape(-1,1).astype(float)
 
     # Determine number of random variables
-    n = len(a)
-
     # Validate that all parameter arrays have the same length
-    if not (len(a) == n and len(b) == n ):
-        raise ValueError(f"All parameter arrays must have the same length. "
-                        f"Got a:{len(a)}, b:{len(b)}")
 
-    if np.any(b <= a):
-        raise ValueError(f" uniform.rnd: a = {a}, b = {b} : a must be less than b")
-    
+    _, a, b, n = _ppp_(0, a, b)
+
     # Generate correlated [0,1]
     _, _, U = correlated_rvs( R, n, N, seed )
 

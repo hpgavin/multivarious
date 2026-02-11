@@ -29,6 +29,7 @@ from . import beta, binomial, chi2, exponential, extreme_value_I, extreme_value_
 __all__ = [
     "quantile_ci", 
     "beta",
+    "binomial", 
     "chi2",
     "exponential",
     "extreme_value_I",

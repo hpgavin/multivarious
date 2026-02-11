@@ -21,9 +21,9 @@ def _ppp_(x, a, b, c):
     # Convert inputs to arrays
     # Python does not implicitly handle scalars as arrays. 
     x = np.atleast_1d(x).astype(float)
-    a = np.atleast_2d(a).reshape(-1,1).astype(float)
-    b = np.atleast_2d(b).reshape(-1,1).astype(float)
-    c = np.atleast_2d(c).reshape(-1,1).astype(float)
+    a = np.atleast_1d(a).astype(float)
+    b = np.atleast_1d(b).astype(float)
+    c = np.atleast_1d(c).astype(float)
     n = len(a)   
 
     # Validate parameter dimensions 
@@ -38,9 +38,9 @@ def _ppp_(x, a, b, c):
     if not np.any(c <= b):
         raise ValueError(f"triangular: c must be less than b"
                          f"Got: len(c) = {len(c)}, len(b) = {len(b)}") 
-    if not np.any(b <= c):
-        raise ValueError(f"triangular: b must be less than c"
-                         f"Got: len(c) = {len(c)}, len(b) = {len(b)}") 
+    if not np.any(a <= c):
+        raise ValueError(f"triangular: a must be less than c"
+                         f"Got: len(a) = {len(a)}, len(c) = {len(c)}") 
 
     return x, a, b, c, n
 
@@ -153,7 +153,7 @@ def inv(p, a, b, c):
     http://en.wikipedia.org/wiki/Triangular_distribution
     '''
 
-    p, a, b, c, n = _ppp_(p, a, b, c)
+    _, a, b, c, n = _ppp_(0, a, b, c)
 
     p = np.clip(p, np.finfo(float).eps, 1 - np.finfo(float).eps)
     
@@ -197,7 +197,7 @@ def rnd(a, b, c, N, R=None, seed=None ):
     http://en.wikipedia.org/wiki/Triangular_distribution
     '''
 
-    p, a, b, c, n = _ppp_(p, a, b, c)
+    _, a, b, c, n = _ppp_(0, a, b, c)
 
     # Convert inputs to arrays
     # Python does not implicitly handle scalars as arrays. 

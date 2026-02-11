@@ -2,6 +2,43 @@ import numpy as np
 
 from multivarious.utl.correlated_rvs import correlated_rvs
 
+def _ppp_(x, meanX, sdvnX ):
+    '''
+    Validate and preprocess input parameters for consistency and correctness.
+
+    Parameters:
+        x : array_like
+            Evaluation points
+        a : float
+            Minimum of the distribution
+        b : float
+            Maximum of the distribution (must be > a)
+        q : float
+            First shape parameter
+        p : float
+            Second shape parameter
+    ''' 
+
+    # Convert inputs to arrays
+    # Python does not implicitly handle scalars as arrays. 
+    x = np.atleast_1d(x).astype(float)
+
+    meanX = np.atleast_1d(meanX).astype(float)
+    sdvnX = np.atleast_1d(sdvnX).astype(float)
+    n = len(meanX)   
+        
+    # Validate parameter dimensions 
+    if not (len(meanX) == n and len(sdvnX) == n):
+        raise ValueError(f"All parameter arrays must have the same length. "
+                        f"Got meanX:{len(meanX)}, meanX:{len(meanX)}")
+
+    # Validate parameter values 
+    if np.any(sdvnX <= 0):
+        raise ValueError("laplace: all sdvnX values must be greater than zero")
+
+    return x, meanX, sdvnX, n
+
+
 def pdf(x, meanX, sdvnX):
     '''
     laplace.pdf
@@ -24,7 +61,9 @@ def pdf(x, meanX, sdvnX):
     Reference:
     https://en.wikipedia.org/wiki/Laplace_distribution
     '''
-    x = np.asarray(x, dtype=float)
+
+    x, meanX, sdvnX, n = _ppp_(x, meanX, sdvnX)
+
     sr2 = np.sqrt(2)
     f = (1 / (sr2 * sdvnX)) * np.exp(-sr2 * np.abs(x - meanX) / sdvnX)
     return f
@@ -50,9 +89,9 @@ def cdf(x, params):
     Reference:
     https://en.wikipedia.org/wiki/Laplace_distribution
     '''
-    x = np.asarray(x, dtype=float)
-
     meanX, sdvnX = params
+
+    x, meanX, sdvnX, n = _ppp_(x, meanX, sdvnX)
 
     sr2 = np.sqrt(2)
 
@@ -84,12 +123,18 @@ def inv(P, meanX, sdvnX):
     Reference:
     https://en.wikipedia.org/wiki/Laplace_distribution
     '''
-    P = np.atleast_1d(np.asarray(P, dtype=float))
+    _, meanX, sdvnX, n = _ppp_(0, meanX, sdvnX)
+
     sr2 = np.sqrt(2)
-    X = meanX + sdvnX / sr2 * np.log(2 * P)  
-    idx = X >= meanX
-    X[idx] = meanX - sdvnX / sr2 * np.log(2 - 2 * P[idx]) 
-    return X if X.size > 1 else X[0]
+
+    x = np.zeros(P.shape)
+  
+    idx = P <= 0.5 
+    x[idx] = meanX + sdvnX / sr2 * np.log(2 * P[idx]) 
+    idx = ~idx
+    x[idx] = meanX - sdvnX / sr2 * np.log(2 * (1 - P[idx]))
+
+    return x if x.size > 1 else x[0]
 
 def rnd(meanX, sdvnX, N, R=None, seed=None):
     '''
@@ -119,35 +164,15 @@ def rnd(meanX, sdvnX, N, R=None, seed=None):
     https://en.wikipedia.org/wiki/Laplace_distribution
     '''
     
-    # Python does not implicitly handle scalars as arrays ... so ...
-    # Convert array_like inputs to numpy column vectors (2D arrays) of floats 
-    meanX = np.atleast_2d(meanX).reshape(-1, 1).astype(float)
-    sdvnX = np.atleast_2d(sdvnX).reshape(-1, 1).astype(float)
-
-    # Determine number of random variables
-    n = len(meanX)
-
-    # Validate that all parameter arrays have the same length
-    if not (len(meanX) == n and len(sdvnX) == n):
-        raise ValueError(f"All parameter arrays must have the same length. "
-                        f"Got meanX:{len(meanX)}, sdvnX:{len(sdvnX)}")
-
-    if np.any(sdvnX <= 0) or np.any(np.isinf(sdvnX)):
-        raise ValueError(" laplace_rnd: sdvnX must be > 0 and finite")
+    _, meanX, sdvnX, n = _ppp_(0, meanX, sdvnX)
 
     sr2 = np.sqrt(2)
 
     _, _, U = correlated_rvs( R, n, N, seed )
 
-    # Broadcast parameters (meaning, make meanX the same dimesion as X)
-    meanX = meanX @ np.ones((1,N))
-    sdvnX = sdvnX @ np.ones((1,N))
-
     X = np.empty((n, N))
-    idx = U <= 0.5
-    X[idx] = meanX[idx] + sdvnX[idx] / sr2 * np.log(2 * U[idx])
-    idx = ~idx
-    X[idx] = meanX[idx] - sdvnX[idx] / sr2 * np.log(2 * (1 - U[idx]))
+    for i in range(n):
+        X[i,:] = inv(U[i,:], meanX[i], sdvnX[i])
 
     if n == 1:
         X = X.flatten()

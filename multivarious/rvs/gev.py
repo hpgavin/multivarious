@@ -5,6 +5,41 @@ import numpy as np
 
 from multivarious.utl.correlated_rvs import correlated_rvs
 
+
+def _ppp_(x, m, s, k):
+    '''
+    Validate and preprocess input parameters for consistency and correctness.
+
+    Parameters:
+        x : array_like
+            Evaluation points
+        a : float
+            Minimum of the distribution
+        b : float
+            Maximum of the distribution (must be > a)
+        q : float
+            First shape parameter
+        p : float
+            Second shape parameter
+    ''' 
+
+    # Convert inputs to arrays
+    # Python does not implicitly handle scalars as arrays. 
+    x = np.atleast_1d(x).astype(float)
+
+    m = np.atleast_2d(m).reshape(-1,1).astype(float)
+    s = np.atleast_2d(s).reshape(-1,1).astype(float)
+    k = np.atleast_1d(k).astype(float)
+    n = len(m)   
+        
+    # Validate parameter dimensions 
+    if not (len(m) == n and len(s) == n and len(k) == n):
+        raise ValueError(f"All parameter arrays must have the same length. "
+                        f"Got m:{len(m)}, s:{len(s)}, k:{len(k)}")
+
+    return x, m, s, k, n
+
+
 def pdf(x, m, s, k):
     '''
     gev.pdf
@@ -16,6 +51,9 @@ def pdf(x, m, s, k):
     Returns:
         f     : same shape as x, PDF values
     '''
+
+    x, m, s, k, n = _ppp_(x, m, s, k) 
+
     z = (x - m) / s
     kzp1 = k * z + 1
     f = (1 / s) * np.exp(-kzp1**(-1 / k)) * kzp1**(-1 - 1 / k)
@@ -36,6 +74,9 @@ def cdf(x, params):
         F      : same shape as x, CDF values
     '''
     m, s, k = params
+
+    x, m, s, k, n = _ppp_(x, m, s, k) 
+
     z = (x - m) / s
     kzp1 = k * z + 1
     F = np.exp(-kzp1**(-1 / k))
@@ -55,6 +96,9 @@ def inv(p, m, s, k):
     Returns:
         x     : same shape as p, quantiles
     '''
+
+    _, m, s, k, n = _ppp_(0, m, s, k) 
+
     x = m + (s / k) * ((-np.log(p))**(-k) - 1)
 
     return x
@@ -76,20 +120,8 @@ def rnd(m, s, k, N, R=None, seed=None):
     Returns:
         X : ndarray of GEV samples
     '''
-    # Python does not implicitly handle scalars as arrays. 
-    # Convert inputs to arrays
-    m = np.atleast_1d(m).astype(float)
-    s = np.atleast_1d(s).astype(float)
-    k = np.atleast_1d(k).astype(float)
-
-    # Determine number of random variables
-    n = len(m)
-
-    # Validate that all parameter arrays have the same length
-    if not (len(m) == n and len(s) == n and len(k) == n):
-        raise ValueError(f"All parameter arrays must have the same length. "
-                        f"Got m:{len(m)}, s:{len(s)}, k:{len(k)}")
-    
+    _, m, s, k, n = _ppp_(0, m, s, k) 
+   
     _, _, U = correlated_rvs( R, n, N, seed )
 
     # Apply transformation --- this is wrong ---

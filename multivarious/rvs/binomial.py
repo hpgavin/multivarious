@@ -26,7 +26,7 @@ def _ppp_(p, n, m ):
     # Python does not implicitly handle scalars as arrays. 
     p = np.atleast_1d(p).astype(float)
     n = np.atleast_1d(np.round(n)).astype(int)  # Ensure n is integer-valued
-    m = np.atleast_1d(np.round(m)).astype(int)  # Ensure m is integer-valued
+    m = np.atleast_1d(np.round(m)).astype(int)  # Ensure m is integer-valued scalar
     lp = len(p)   
     
     n = np.where(n < 0, 0, n)  # clip negative values to 0
@@ -35,10 +35,10 @@ def _ppp_(p, n, m ):
     if np.any(p <= 0) or np.any(np.isinf(p)) or np.any( p >= 1):
         raise ValueError(" binomial.rnd(p,N): p must be between zero and one") 
 
-    if not ( (len(n) == lp or len(n) == 1) and (len(m) == lp or len(m) == 1) ):
+    if not ( (len(m) == 1) ):
         raise ValueError(f"n and m arrays must have the same length as p. "
                          f"Got p:{len(p)}, n:{len(n)}, m:{len(m)}")
-   
+
     if np.any(p <= 0):
         raise ValueError("binomial: p must be positive")
     if np.any(m < 0):
@@ -158,13 +158,13 @@ def rnd(m, p, N, R=None, seed=None):
 
     X = np.zeros((n, N), dtype=int)
     
-    for trial in range(m):
+    for trial in range(m[0]):
         # Generate correlated uniforms for this sample
-        _, _, U = correlated_rvs(n, N, R)
+        _, _, U = correlated_rvs(R, n, N)
 
         # Bernoulli success if U < p, shape (n, N)
-        successes = (U < p[:, np.newaxis])
-        
+        successes = (U < p) 
+    
         # Accumulate successes over trials
         X += successes.astype(int)
     

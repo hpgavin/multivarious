@@ -22,8 +22,8 @@ stdvX = np.arange(n, 0, -1).reshape(-1,1) * 1 / n
 covnX = stdvX / meanX
 mednX = meanX / np.sqrt(1 + covnX**2)
 
-a = meanX - 0.3*meanX
-b = meanX + 0.3*meanX
+a = meanX + 1.0
+b = meanX + 2.0
 c =  0.3*a + 0.7*b  
 q = np.arange(n+1, 1, -1)
 p = np.arange(2, n+2)
@@ -31,6 +31,9 @@ k = q
 m = meanX
 s = stdvX
 T = meanX
+t = 1
+mb = 10 # bernoulli trials 
+pb = [ 0.3, 0.4, 0.7 ] # bernoulli probabilities 
 
 print("meanX:\n", meanX)
 print("stdvX:\n", stdvX)
@@ -44,18 +47,19 @@ print("Correlation matrix R:\n", R)
 
 # --- Generate sample of correlated random variables ---
 
-X = beta.rnd( a, b, q, p, N, R )
+#X = beta.rnd( a, b, q, p, N, R )
+X = binomial.rnd( mb, pb, N, R )
 #X = chi2.rnd( k, N, R )
 #X = exponential.rnd( meanX, N, R )
 #X = extreme_value_I.rnd( meanX, covnX, N, R )
 #X = extreme_value_II.rnd( m, s, k, N, R )
 #X = gamma.rnd( meanX, covnX, N, R )
-#X = gev.rnd( m, s, k, N, R ) ## error 
+#X = gev.rnd( m, s, k, N, R )  # ??
 #X = laplace.rnd( meanX, stdvX, N, R )
 #X = lognormal.rnd( mednX, covnX, N, R )
 #X = normal.rnd( meanX, stdvX, N, R )
-#X = poisson.rnd( T, N, R )
-#X = quadratic.rnd( a, b, N, R ) ## trouble
+#X = poisson.rnd(t, T, N, R ) # !!
+#X = quadratic.rnd( a, b, N, R ) 
 #X = rayleigh.rnd( meanX, N, R )
 #X = students_t.rnd( k, N, R )
 #X = triangular.rnd( a, b, c, N, R )

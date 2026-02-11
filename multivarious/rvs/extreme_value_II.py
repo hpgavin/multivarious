@@ -6,6 +6,50 @@ import numpy as np
 from multivarious.utl.correlated_rvs import correlated_rvs
 
 
+# generic pre processing of parameters (ppp) 
+
+def _ppp_(x, m, s, k):
+    '''
+    Validate and preprocess input parameters for consistency and correctness.
+
+    Parameters:
+        x : array_like
+            Evaluation points
+        a : float
+            Minimum of the distribution
+        b : float
+            Maximum of the distribution (must be > a)
+        q : float
+            First shape parameter
+        p : float
+            Second shape parameter
+    ''' 
+
+    # Convert inputs to arrays
+    # Python does not implicitly handle scalars as arrays. 
+    x = np.atleast_1d(x).astype(float)
+
+    m = np.atleast_2d(m).reshape(-1,1).astype(float)
+    s = np.atleast_2d(s).reshape(-1,1).astype(float)
+    k = np.atleast_1d(k).astype(float)
+    n = len(m)   
+        
+    # Validate parameter dimensions 
+    if not (len(m) == n and len(s) == n and len(k) == n):
+        raise ValueError(f"All parameter arrays must have the same length. "
+                        f"Got m:{len(m)}, s:{len(s)}, k:{len(k)}")
+
+   # Validate parameter values 
+    if np.any(m <= 0):
+        raise ValueError("extreme_value_II: m must be > 0")
+    if np.any(s <= 0):
+        raise ValueError("extreme_value_II: s must be > 0")
+    if np.any(k <= 0):
+        raise ValueError("extreme_value_II: k must be > 0")
+
+    return x, m, s, k, n
+
+
 def pdf(x, m, s, k):
     '''
     extreme_value_II.pdf
@@ -26,11 +70,8 @@ def pdf(x, m, s, k):
         f : ndarray
             PDF values at each point in x
     '''
-    x = np.asarray(x, dtype=float)
-    
-    # Check parameter validity
-    if s <= 0:
-        raise ValueError(f"extII_pdf: s = {s}, must be > 0")
+
+    x, m, s, k, n = _ppp_(x, m, s, k)
     
     # Initialize PDF as zeros
     f = np.zeros_like(x)
@@ -64,14 +105,10 @@ def cdf(x, params ):
         F : ndarray
             CDF values at each point in x
     '''
-    x = np.asarray(x, dtype=float)
-    
     m, s, k = params
 
-    # Check parameter validity
-    if s <= 0:
-        raise ValueError(f"extII_cdf: s = {s}, must be > 0")
-    
+    x, m, s, k, n = _ppp_(x, m, s, k)
+
     # Initialize CDF as zeros
     F = np.zeros_like(x)
     
@@ -103,11 +140,10 @@ def inv(P, m, s, k):
         x : ndarray
             Quantile values corresponding to probabilities P
     '''
+
+    _, m, s, k, n = _ppp_(0, m, s, k)
+
     P = np.asarray(P, dtype=float)
-    
-    # Check parameter validity
-    if s <= 0:
-        raise ValueError(f"extII_inv: s = {s}, must be > 0")
     
     # Clip probabilities to avoid log(0) or log(1)
     eps = np.finfo(float).eps
@@ -141,21 +177,7 @@ def rnd(m, s, k, N, R=None, seed=None):
         X : ndarray
             Shape (n, N) array of random samples
     '''
-    # Convert inputs to arrays
-    # Python does not implicitly handle scalars as arrays. 
-    m = np.atleast_1d(m).astype(float)
-    s = np.atleast_1d(s).astype(float)
-    k = np.atleast_1d(k).astype(float)
-
-    n = len(m)
-
-    if not (len(m) == n and len(s) == n and len(k) == n):  
-       raise ValueError(f"All parameter arrays must have the same length. "
-                        f"Got m:{len(m)}, s:{len(s)}, k:{len(k)}")
-
-    # Check parameter validity
-    if np.any(s) <= 0:
-        raise ValueError(f" extreme_value_II.rnd: s = {s}, must be > 0")
+    _, m, s, k, n = _ppp_(0, m, s, k)
 
     _, _, U = correlated_rvs(R, n, N, seed)
 

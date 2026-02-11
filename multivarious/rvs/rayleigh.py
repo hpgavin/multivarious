@@ -2,7 +2,46 @@ import numpy as np
 
 from multivarious.utl.correlated_rvs import correlated_rvs
 
-def pdf(X, meanX):
+
+# generic pre processing of parameters (ppp) 
+
+def _ppp_(x, meanX):
+    '''
+    Validate and preprocess input parameters for consistency and correctness.
+
+    Parameters:
+        x : array_like
+            Evaluation points
+        a : float
+            Minimum of the distribution
+        b : float
+            Maximum of the distribution (must be > a)
+        q : float
+            First shape parameter
+        p : float
+            Second shape parameter
+    ''' 
+
+    # Convert inputs to arrays
+    # Python does not implicitly handle scalars as arrays. 
+    x = np.atleast_1d(x).astype(float)
+    meanX = np.atleast_2d(meanX).reshape(-1,1).astype(float)
+    n = len(meanX)   
+        
+    # Validate parameter values 
+    if np.any(meanX <= 0):
+        raise ValueError("rayleigh: all meanX values must be greater than zero")
+
+    # Replace non-positive values to prevent invalid evaluation
+    x[x <= 0] =  np.sum(meanX)/(n*1e3)
+
+    # Convert mean meanX to modeX using Rayleigh identity
+    modeX = meanX * np.sqrt(2 / np.pi)
+
+    return x, meanX, modeX, n
+
+
+def pdf(x, meanX):
     '''
     rayleigh.pdf
 
@@ -22,21 +61,15 @@ def pdf(X, meanX):
     https://en.wikipedia.org/wiki/Rayleigh_distribution
     '''
 
-    X = np.asarray(X, dtype=float)
-
-    # Convert mean to mode: modeX = meanX * sqrt(2 / pi)
-    modeX = meanX * np.sqrt(2 / np.pi)
-
-    # Replace non-positive values to prevent invalid evaluation
-    X = np.where(X <= 0, 0.01, X)
+    x, meanX, modeX, n = _ppp_(x, meanX)
 
     # Apply the Rayleigh PDF formula
-    f = (X / modeX**2) * np.exp(-0.5 * (X / modeX)**2)
+    f = (x / modeX**2) * np.exp(-0.5 * (x / modeX)**2)
 
     return f
 
 
-def cdf(X, meanX):
+def cdf(x, meanX):
     '''
     rayleigh.cdf
     Computes the CDF of the Rayleigh distribution using the mean parameter meanX.
@@ -55,13 +88,7 @@ def cdf(X, meanX):
     https://en.wikipedia.org/wiki/Rayleigh_distribution
     '''
 
-    X = np.asarray(X, dtype=float).copy()
-    
-    # Replace X <= 0 with small positive number (to match MATLAB behavior)
-    X[X <= 0] = 0.01
-
-    # Convert mean meanX to modeX using Rayleigh identity
-    modeX = meanX * np.sqrt(2 / np.pi)
+    x, meanX, modeX, n = _ppp_(x, meanX)
 
     # Apply the Rayleigh CDF formula
     F = 1.0 - np.exp(-0.5 * (X / modeX)**2)
@@ -89,20 +116,19 @@ def inv(P, meanX):
     Reference:
     https://en.wikipedia.org/wiki/Rayleigh_distribution
     '''
+
+    _, meanX, modeX, n = _ppp_(0, meanX)
+
     P = np.asarray(P, dtype=float).copy()
 
-    # Clamp values: ensure P stays in [0, 1] just like MATLAB does
+    # Clamp values: ensure P stays in [0, 1] 
     P[P <= 0] = 0.0
     P[P >= 1] = 1.0
-
-    # Convert mean to mode using mu = mode * sqrt(pi / 2)
-    modeX = meanX * np.sqrt(2 / np.pi)
 
     # Compute the inverse CDF formula
     x = modeX * np.sqrt(-2.0 * np.log(1 - P))
 
     return x
-
 
 def rnd(meanX, N, R=None, seed=None):
     '''
@@ -128,24 +154,8 @@ def rnd(meanX, N, R=None, seed=None):
     https://en.wikipedia.org/wiki/Rayleigh_distribution
     '''
 
-    # Convert inputs to arrays
-    # Python does not implicitly handle scalars as arrays. 
-    meanX = np.atleast_2d(meanX).reshape(-1,1).astype(float)
+    _, meanX, modeX, n = _ppp_(0, meanX)
 
-    n = len(meanX) # number of rows
-
-    if np.any(meanX <= 0) or np.any(np.isinf(meanX)):
-        raise ValueError(" rayleigh.rnd(meanX,N): meanX must be greater than zero")
-    if N == None or N < 1:
-        raise ValueError(" rayleigh.rnd(meanX,N): N must be greater than zero")
-
-    # Convert mean to mode
-    modeX = meanX * np.sqrt(2 / np.pi)
-
-    # Broadcast modeX if needed
-    if np.isscalar(modeX):
-        modeX = modeX * np.ones((n, N))
-        
     _, _, U = correlated_rvs( R, n, N, seed )
 
     # Inverse transform sampling

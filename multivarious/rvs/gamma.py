@@ -5,6 +5,51 @@ from scipy.special import gammainc
 from multivarious.utl.correlated_rvs import correlated_rvs
 
 
+def _ppp_(x, meanX, covnX ):
+    '''
+    Validate and preprocess input parameters for consistency and correctness.
+
+    Parameters:
+        x : array_like
+            Evaluation points
+        a : float
+            Minimum of the distribution
+        b : float
+            Maximum of the distribution (must be > a)
+        q : float
+            First shape parameter
+        p : float
+            Second shape parameter
+    ''' 
+
+    # Convert inputs to arrays
+    # Python does not implicitly handle scalars as arrays. 
+    x = np.atleast_1d(x).astype(float)
+
+    meanX = np.atleast_2d(meanX).reshape(-1,1).astype(float)
+    covnX = np.atleast_2d(covnX).reshape(-1,1).astype(float)
+    n = len(meanX)   
+        
+    # Validate parameter dimensions 
+    if not (len(meanX) == n and len(covnX) == n):
+        raise ValueError(f"All parameter arrays must have the same length. "
+                        f"Got meanX:{len(meanX)}, covnX:{len(covnX)}")
+
+    # Validate parameter values 
+    if np.any(covnX <= 0):
+        raise ValueError("gamma: all covnX values must be greater than zero")
+
+    covnX[covnX < 0.5] = 0.5
+    if np.any(covnX < 0.5):
+        raise ValueError(f' gamma_cdf:  lower limit of coefficient of variation is 0.5')
+        print(' gamma_cdf: covnX = ', covnX )
+
+    k = 1.0 / covnX**2              # shape parameter (alpha)
+    theta = covnX**2 * meanX        # scale parameter (beta)
+
+    return x, meanX, covnX, k, theta, n
+
+
 def pdf(x, meanX, covnX):
     '''
     gamma.pdf
@@ -30,12 +75,12 @@ def pdf(x, meanX, covnX):
     ----------
     https://en.wikipedia.org/wiki/Gamma_distribution
     '''
-    x = np.asarray(x, dtype=float)  # ensure x is a NumPy array
+    x, meanX, covnX, k, theta, n = _ppp_(x, meanX, covnX )
 
-    k = 1.0 / covnX**2              # shape parameter (alpha)
-    theta = covnX**2 * meanX        # scale parameter (beta)
     f = theta**(-k) * x**(k - 1) * np.exp(-x / theta) / gamma_func(k)  # Gamma PDF formula
-    f[x < 0] = 1e-12                # assign small value for negative x (domain correction)
+
+    f = np.where(x <= 0, 1e-12, f) # replace negative x with small value for stability
+
     return f
 
 
@@ -64,20 +109,14 @@ def cdf(x, params):
     ----------
     https://en.wikipedia.org/wiki/Gamma_distribution
     '''
-    x = np.asarray(x, dtype=float)
-
     meanX, covnX = params
 
-    if covnX < 0.5:
-        print(' gamma_cdf: covnX = ', covnX )
-        print(f' gamma_cdf:  lower limit of coefficient of variation is 0.5')
+    x, meanX, covnX, k, theta, n = _ppp_(x, meanX, covnX )
 
-    k = 1.0 / covnX**2              # shape parameter
-    theta = covnX**2 * meanX        # scale parameter
-    xp = np.copy(x)                 # copy x to avoid modifying input
-    xp[x < 0] = 1e-5                # replace negative x with small value for stability
-    F = gammainc(k, xp / theta)     # regularized lower incomplete gamma function
-    F[x <= 0] = 0.0                 # set CDF = 0 for x ≤ 0
+    xp = np.copy(x)                  # copy x to avoid modifying input
+    xp = np.where(x <= 0, 1e-12, xp) # replace negative x with small value for stability
+    F = gammainc(k, xp / theta)      # regularized lower incomplete gamma function
+    F = np.where(x <= 0, 0.0, F)     # replace negative x with small value for stability
     return F
 
 
@@ -106,24 +145,24 @@ def inv(P, meanX, covnX):
     ----------
     https://en.wikipedia.org/wiki/Gamma_distribution
     '''
+    _, meanX, covnX, _, _, _ = _ppp_(0, meanX, covnX )
+
     P = np.asarray(P, dtype=float)  # ensure array type
 
-    if np.any(covnX < 0.5):
-        print('gamma_inv:  covnX = ', covnX)
-        print(f'gamma_inv: lower limit of coefficient of variation is 0.5')
-
-    myeps = 1e-12                    # numerical tolerance
+    my_eps = 1e-12                   # numerical tolerance
     max_iter = 100                   # max Newton-Raphson iterations
-    x_old = np.sqrt(myeps) * np.ones_like(P)  # initialize guesses for x
+    x_old = np.sqrt(my_eps) * np.ones_like(P)  # initialize guesses for x
 
     for iter in range(max_iter):
         F_x = cdf(x_old, [meanX, covnX])    # evaluate current CDF
         f_x = pdf(x_old,  meanX, covnX )    # evaluate current PDF
         h = (F_x - P) / f_x                 # Newton-Raphson step
         x_new = x_old - h                   # update estimate
-        x_new[x_new <= myeps] = x_old[x_new <= myeps] / 10 # prevent values <= 0
+        idx = np.where( x_new <= my_eps )
+        if np.any(idx):
+            x_new[idx] = x_old[idx] / 10.0  # prevent values <= 0
         h = x_old - x_new                   # change in x
-        if np.max(np.abs(h)) < np.sqrt(myeps):  # convergence check
+        if np.max(np.abs(h)) < np.sqrt(my_eps):  # convergence check
             break
         x_old = x_new                       # update for next iteration
 
@@ -157,25 +196,11 @@ def rnd(meanX, covnX, N, R=None, seed=None):
     https://en.wikipedia.org/wiki/Gamma_distribution
     '''
 
+    _, meanX, covnX, _, _, n = _ppp_(0, meanX, covnX )
+
     rng = np.random.default_rng(seed)
 
-    # Convert inputs to arrays
-    # Python does not implicitly handle scalars as arrays. 
-    meanX = np.atleast_1d(meanX).astype(float)
-    covnX = np.atleast_1d(covnX).astype(float)
-
-    # Determine number of random variables
-    n = len(meanX)
-
-    # Validate that all parameter arrays have the same length
-    if not len(meanX) == n and len(covnX) == n:
-        raise ValueError(f"All parameter arrays must have the same length. "
-                        f"Got meanX:{len(meanX)}, covnX:{len(covnX)}")
-
-    if np.any(meanX <= 0):
-        raise ValueError("gamma.rnd: all meanX values must be greater than 0") 
-
-    # correlated uniform random variables 
+    # Correlated uniform random variables 
     _, _, U = correlated_rvs(R, n, N, seed)
 
     # Transform each variable to its gamma distribution 

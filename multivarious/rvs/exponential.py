@@ -7,6 +7,33 @@ from scipy.stats import norm
 from multivarious.utl.correlated_rvs import correlated_rvs
 
 
+def _ppp_(x, meanX):
+    '''
+    Validate and preprocess input parameters for consistency and correctness.
+
+    Parameters:
+        x : array_like
+            Evaluation points
+        meanX : float or array_like 
+            mean of the distribution 
+    ''' 
+
+    # Convert inputs to arrays
+    # Python does not implicitly handle scalars as arrays. 
+    x = np.atleast_1d(x).astype(float)
+    meanX = np.atleast_1d(meanX).reshape(-1,1).astype(float)
+    n = len(meanX)   
+        
+    # Validate parameter values 
+    if np.any(meanX <= 0):
+        raise ValueError("exponential: all meanX values must positive")
+
+    # Prevent negative or zero values (log not defined)
+    x = np.where(x < 0, 0.01, x)
+
+    return x, meanX, n
+
+
 def pdf(x, meanX):
     '''
     exponential.pdf
@@ -23,10 +50,8 @@ def pdf(x, meanX):
     FORMULA:
       f(x) = (1/meanX) * exp(-x / meanX), for x >= 0
     '''
-    x = np.asarray(x, dtype=float)
 
-    # Prevent negative or zero values (log not defined)
-    x = np.where(x < 0, 0.01, x)
+    x, meanX, n = _ppp_(x, meanX)
 
     f = np.exp(-x / meanX) / meanX
     
@@ -49,12 +74,11 @@ def cdf(x, meanX):
     FORMULA:
       F(x) = 1 - exp(-x / meanX), for x >= 0
     '''
-    x = np.asarray(x, dtype=float)
 
-    # Prevent issues with x <= 0
-    x = np.where(x <= 0, 0.01, x)
+    x, meanX, n = _ppp_(x, meanX)
 
     F = 1.0 - np.exp(-x / meanX)
+
     return F
 
 
@@ -74,9 +98,10 @@ def inv(P, meanX):
     FORMULA:
       X = -meanX * log(1 - P)
     '''
-    P = np.asarray(P, dtype=float)
+    
+    _, meanX, n = _ppp_(0, meanX)
 
-    # Clip invalid P values just like in MATLAB
+    # Clip invalid P values 
     P = np.where(P < 0, 0.0, P)
     P = np.where(P > 1, 1.0, P)
 
@@ -102,17 +127,7 @@ def rnd(meanX, N, R=None, seed=None):
         Use inverse CDF method: x = -meanX * log(U), where U ~ Uniform(0,1)
     '''
 
-    # Convert inputs to arrays
-    # Python does not implicitly handle scalars as arrays. 
-    meanX = np.atleast_1d(meanX).reshape(-1,1).astype(float)
-
-    print("meanX:\n", meanX)
-
-    # Check parameter validity
-    if np.any(meanX <= 0) or np.any(np.isinf(meanX)):
-        raise ValueError(f"exponential.rnd: meanX must be > 0 and finite")
-
-    n = len(meanX)
+    _, meanX, n = _ppp_(0, meanX)
 
     _, _, U = correlated_rvs( R, n, N, seed )
 

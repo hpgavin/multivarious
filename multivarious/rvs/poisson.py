@@ -22,7 +22,7 @@ def _ppp_(k, t, T):
     T = np.atleast_1d(T).reshape(-1, 1).astype(float)
     n = len(T)  
 
-    if not ( (len(t) == n or len(t) == 1) and len(T) == n ):
+    if not ( (len(t) == n or len(t) == 1) and (len(T) == n or len(T) == 1)):
         raise ValueError(f"T and t arrays must have the same length. "
                          f"Got t:{len(t)}, T:{len(T)}")
 
@@ -136,30 +136,56 @@ def rnd(t, T, N, R=None, seed=None):
     Returns:
         X : ndarray shape (n, N)
             Poisson counts for each of n processes and each of N samples
-    '''
+  
 
+    https://en.wikipedia.org/wiki/Poisson_distribution#Computational_methods
+
+    Poisson generator based upon the inversion by sequential search:
+
+    Devroye, Luc (1986). "Discrete Univariate Distributions".
+    Non-Uniform Random Variate Generation. New York, NY: Springer-Verlag.
+    pp. 485–553.
+    doi:10.1007/978-1-4613-8643-8_10. ISBN 978-1-4613-8645-2.
+
+    init:
+        Let x ← 0, p ← e−λ, s ← p.
+        Generate uniform random number u in [0,1].
+    while u > s do:
+        x ← x + 1.
+        p ← p × λ / x.
+        s ← s + p.
+    return x.
+    '''
     _, t, T, n = _ppp_(0, t, T)
     
-    exp_tT = np.exp(-t / T).flatten()  # shape (n,)
+    L = (t/T).flatten()
+
+    exp_tT = np.exp(-L)  # shape (n,)
     
     X = np.zeros((n, N), dtype=int)
-    
-    # Generate N correlated standard uniform samples of n values
-    _, _, U = correlated_rvs(n, N, R, seed)
 
-    for i in range(N):
+    # N observations of n correlated standard uniform variables 
+    _, _, U = correlated_rvs(R, n, N, seed)
+
+    for j in range(N):
         x = np.zeros(n, dtype=int)
-        p = exp_tT
-        s = p
+        p = exp_tT.copy() # !!
+        s = p.copy()      # !!
         
-        active_idx = U[i,:] >= s
+        active_idx = U[:,j] > s
+        iteration = 0
 
-        while np.any(active):
+        while np.any(active_idx) and  np.max(x) < 100:
             x[active_idx] += 1
-            p[active_idx] *= (t/T) / x[active_idx]
+            p[active_idx] *= L[active_idx] / x[active_idx]
             s[active_idx] += p[active_idx]
-            active_idx = U[i,:] >= s
-        
-        X[:, i] = x  
+            active_idx = U[:, j] > s
+            iteration += 1
+
+        X[:, j] = x  
+
+        if iteration >= 100:
+            print(f"Warning: large iteration count at sample {j}")
     
     return X
+

@@ -133,12 +133,12 @@ def nearcorr_shrink(C, tolrnc=1e-4):
     >>> print(f"Shrinkage parameter: {alpha:.4f}")
     >>> print(f"Minimum eigenvalue: {np.linalg.eigh(C_nnd)[0][0]:.2e}")
     """
-
+ 
     # Convert C to array and validate its properties
     C = np.asarray(C)
     n = C.shape[0]
     if C.shape != (n, n):
-        raise ValueError(f": Correlation matrix must be square {n}×{n}, not {C.shape}")
+        raise ValueError(f": Correlation matrix must be square ({n},{n}), not {C.shape}")
     if not np.allclose(np.diag(C), 1.0): # diagonals must be 1s
         raise ValueError(": Correlation matrix diagonal must be 1s")
     if np.any(np.abs(C) > 1):
@@ -155,13 +155,12 @@ def nearcorr_shrink(C, tolrnc=1e-4):
     return C_nnd, alpha, iter, eval0
 
 
-def correlated_rvs(R, n, N, seed):
+def correlated_rvs(R, n, N=1, seed=None):
     """
     Fix a potentialy erroneous correlation matrix, 
     generate correlated standard normal random variables Y (n,N) 
     and associated standard uniform random variables U (n,N) 
     """
-
     rng = np.random.default_rng(seed)
 
     tolrnc = 1e-4  # eigenvalue tolerance
@@ -174,7 +173,7 @@ def correlated_rvs(R, n, N, seed):
     else:
         R, alpha, iter, eval0 = nearcorr_shrink(R, tolrnc)
         print(f" correlated_rvs: Correlation matrix shrinkage ")
-        print(f"          alpha: {alpha:.6f}, iter: {iter}, eval0: {eval0:.6f}")
+        print(f"          alpha: {alpha:.6f}, iter: {iter}, eval[0]: {eval0:.6f}")
         # Eigenvalue decomposition of correlation matrix: R = V @ Λ @ V^T
         #   eigvec (V): matrix of eigenvectors (n×n)
         #   eigval (Λ): array of eigenvalues (length n)

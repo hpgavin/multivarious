@@ -3,6 +3,39 @@ from scipy.special import beta as beta_func, betaincinv
 
 from multivarious.utl.correlated_rvs import correlated_rvs
 
+
+# generic pre processing of parameters (ppp) 
+
+def _ppp_(t, k):
+    '''
+    Validate and preprocess input parameters for consistency and correctness.
+
+    Parameters:
+        x : array_like
+            Evaluation points
+        a : float
+            Minimum of the distribution
+        b : float
+            Maximum of the distribution (must be > a)
+        q : float
+            First shape parameter
+        p : float
+            Second shape parameter
+    ''' 
+
+    # Convert inputs to arrays
+    # Python does not implicitly handle scalars as arrays. 
+    t = np.atleast_1d(t).astype(float)
+    k = np.atleast_2d(k).reshape(-1,1).astype(int)
+    n = len(k)   
+        
+   # Validate parameter values 
+    if np.any(k <= 0):
+        raise ValueError("students_t: k must be > 0")
+
+    return t, k, n
+
+
 def pdf(t, k):
     '''
     students_t.pdf
@@ -22,7 +55,7 @@ def pdf(t, k):
     https://en.wikipedia.org/wiki/Student%27s_t-distribution
     '''
     
-    t = np.asarray(t, dtype=float)
+    t, k, n = _ppp_(t, k)
 
     # Compute the PDF using the known closed-form
     f = (np.exp(-(k + 1) * np.log(1 + (t ** 2) / k) / 2)) / (np.sqrt(k) * beta_func(k / 2, 0.5))
@@ -51,7 +84,7 @@ def cdf(t, k):
     Reference:
     https://en.wikipedia.org/wiki/Student%27s_t-distribution
     '''
-    t = np.asarray(t, dtype=float)
+    t, k, n = _ppp_(t, k)
 
     if k == 1:
         # Cauchy distribution
@@ -102,8 +135,10 @@ def inv(p, k):
     Reference:
     https://en.wikipedia.org/wiki/Student%27s_t-distribution
     '''
-    p = np.asarray(p)
+    _, k, _ = _ppp_(0, k)
     
+    p = np.asarray(p)
+
     # Compute the inverse CDF using the relationship with the incomplete beta function
     # betaincinv(a, b, y) finds x such that betainc(a, b, x) = y
     z = betaincinv(k / 2.0, 0.5, 2 * np.minimum(p, 1 - p))
@@ -136,12 +171,12 @@ def rnd(k, N, R=None, seed=None ):
     https://en.wikipedia.org/wiki/Student%27s_t-distribution
     '''
 
-    # Convert inputs to arrays
-    # Python does not implicitly handle scalars as arrays. 
-    k = np.atleast_1d(k).astype(float)
+    _, k, n = _ppp_(0, k)
 
     _, _, U = correlated_rvs( R, n, N, seed )
 
-    X = inv(U, k) 
+    X = np.zeros((n,N))
+    for i in range(n):
+        X[i, :] = inv(U[i, ], k[i]) 
 
-    return
+    return X

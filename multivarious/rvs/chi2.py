@@ -2,9 +2,43 @@
 # github.com/hpgavin/multivarious ... rvs/chi2
 
 import numpy as np
-from scipy.stats import norm as scipy_norm
+from scipy.stats import norm as scipy_normal
 
 from multivarious.utl.correlated_rvs import correlated_rvs
+
+def _ppp_(x, k):
+    '''
+    Validate and preprocess input parameters for consistency and correctness.
+
+    Parameters:
+        x : array_like
+            Evaluation points
+        a : float
+            Minimum of the distribution
+        b : float
+            Maximum of the distribution (must be > a)
+        q : float
+            First shape parameter
+        p : float
+            Second shape parameter
+    ''' 
+
+    # Convert inputs to arrays
+    # Python does not implicitly handle scalars as arrays. 
+    x = np.atleast_1d(x).astype(float)
+    k = np.atleast_2d(k).reshape(-1,1).astype(float)
+    n = len(k)   
+        
+    # Validate parameter values 
+    if np.any(k <= 0):
+        raise ValueError("beta.rnd: all b values must be greater than corresponding a values")
+
+    # Wilson-Hilferty approximation parameters
+    m = 1 - 2 / (9 * k)         # mean of cube-root-transformed variable
+    s = np.sqrt(2 / (9 * k))    # std dev of cube-root-transformed variable
+
+    return x, k, n, m, s
+
 
 def pdf(x, k):
     '''
@@ -23,17 +57,13 @@ def pdf(x, k):
       f : array-like
           Approximate PDF values at x
     '''
-    x = np.asarray(x, dtype=float)
+    x, k, n, m, s = _ppp_(x, k)
     
-    # Wilson-Hilferty transformation parameters
-    m = 1 - 2 / (9 * k)             # Approximate mean of Z = (X/k)^{1/3}
-    s = np.sqrt(2 / (9 * k))        # Approximate std. dev. of Z
-
     # Transform x into z-space: Z = (X / k)^{1/3}
     z = (x / k) ** (1/3)
 
     # Approximate PDF using normal distribution
-    f = scipy_norm.pdf(z, m, s)
+    f = scipy_normal.pdf(z, m, s)
 
     return f
 
@@ -52,19 +82,14 @@ def cdf(x, k):
     OUTPUT:
       F = approximate cumulative probability evaluated at x
     '''
-    x = np.asarray(x, dtype=float)
-    if k <= 0:
-        raise ValueError(" chi2.cdf: Degrees of freedom k must be > 0")
 
-    # Wilson-Hilferty approximation parameters
-    m = 1 - 2 / (9 * k)         # mean of cube-root-transformed variable
-    s = np.sqrt(2 / (9 * k))    # std dev of cube-root-transformed variable
+    x, k, n, m, s = _ppp_(x, k)
 
     # Apply transformation: (X/k)^(1/3)
     z = (x / k) ** (1 / 3)
 
     # Apply normal CDF using transformed variable
-    F = scipy_norm.cdf(z, loc=m, scale=s)
+    F = scipy_normal.cdf(z, loc=m, scale=s)
 
     return F
 
@@ -83,16 +108,13 @@ def inv(p, k):
     OUTPUT:
       x = quantile values such that Prob[X ≤ x] = p
     '''
-    p = np.asarray(p, dtype=float)
-    if k <= 0:
-        raise ValueError(" chi2.inv: Degrees of freedom k must be > 0")
 
-    # Wilson-Hilferty transformation parameters
-    m = 1 - 2 / (9 * k)         # mean of cube-root-transformed variable
-    s = np.sqrt(2 / (9 * k))    # std dev of cube-root-transformed variable
+    _, k, n, m, s = _ppp_(0, k)
+
+    p = np.asarray(p, dtype=float)
 
     # Inverse normal CDF
-    z = scipy_norm.ppf(p, loc=m, scale=s)
+    z = scipy_normal.ppf(p, loc=m, scale=s)
 
     # Apply inverse transformation: x = k * z³
     x = k * z**3
@@ -115,19 +137,7 @@ def rnd(k, N, R=None, seed=None):
       X = random samples from Chi-squared(k), shape (n, N)
     '''
 
-    # Convert inputs to arrays
-    # Python does not implicitly handle scalars as arrays. 
-    k = np.atleast_1d(k).reshape(-1,1).astype(int)
-
-    # Validate k is not negative 
-    if np.any(k <= 0) or np.any(np.isinf(k)):
-        raise ValueError(" chi2.rnd: Degrees of freedom k must be > 0")
-
-    n = len(k) 
-
-    # Wilson-Hilferty transformation parameters
-    m = 1 - 2 / (9 * k)
-    s = np.sqrt(2 / (9 * k))
+    _, k, n, m, s = _ppp_(0, k)
 
     _, Y, _ = correlated_rvs( R, n, N, seed )
    

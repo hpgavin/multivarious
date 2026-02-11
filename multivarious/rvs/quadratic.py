@@ -2,6 +2,39 @@ import numpy as np
 
 from multivarious.utl.correlated_rvs import correlated_rvs
 
+
+def _ppp_(x, a, b):
+    '''
+    Validate and preprocess input parameters for consistency and correctness.
+
+    Parameters:
+        x : array_like
+            Evaluation points
+        a : float
+            Minimum of the distribution
+        b : float
+            Maximum of the distribution (must be > a)
+    ''' 
+
+    # Convert inputs to arrays
+    # Python does not implicitly handle scalars as arrays. 
+    x = np.atleast_1d(x).astype(float)
+
+    a = np.atleast_1d(a).astype(float)
+    b = np.atleast_1d(b).astype(float)
+    n = len(a)   
+        
+    # Validate parameter dimensions 
+    if not (len(a) == n and len(b) == n):
+        raise ValueError(f"All parameter arrays must have the same length. "
+                        f"Got a:{len(a)}, b:{len(b)}, q:{len(q)}, p:{len(p)}")
+
+    if np.any(b <= a):
+        raise ValueError("quadratic: all b values must be greater than corresponding a values")
+
+    return x, a, b, n
+
+
 def pdf(x, a, b):
     """
     quadratic.pdf
@@ -23,7 +56,9 @@ def pdf(x, a, b):
     Reference:
     Quadratic distribution with PDF: f(x) = 6(x-a)(x-b)/(a-b)^3 for a < x < b
     """
-    x = np.asarray(x, dtype=float)
+
+    x, a, b, _ = _ppp_(x, a, b)
+
     f = np.zeros_like(x, dtype=float)
     
     # PDF is nonzero only in (a, b)
@@ -55,9 +90,9 @@ def cdf(x, params):
     Reference:
     CDF formula: F(x) = (a-x)^2 * (a - 3b + 2x) / (a-b)^3 for a <= x <= b
     """
-    x = np.asarray(x, dtype=float)
-
     a, b = params 
+
+    x, a, b, _ = _ppp_(x, a, b)
 
     F = np.zeros_like(x, dtype=float)
     
@@ -81,16 +116,23 @@ def inv(u, a, b):
     Parameters:
         u : array_like or float
             Probability values (0 <= u <= 1)
-        a : float
+        a : scalar float
             Lower bound (a < b)
-        b : float
+        b : scalar float
             Upper bound (b > a)
     
     Output:
         x : ndarray or float
             Quantile values corresponding to probabilities u
     """
+
+    _, a, b, _ = _ppp_(0, a, b)
+
+    a = a[0] # scalar
+    b = b[0] # scalar
+
     u = np.atleast_1d(u)
+
     x = np.zeros_like(u, dtype=float)
     
     for j in range(len(u)):
@@ -139,21 +181,7 @@ def rnd(a, b, N, R=None, seed=None):
             Random samples from the quadratic distribution
     """
 
-    # Convert inputs to arrays
-    # Python does not implicitly handle scalars as arrays. 
-    a = np.atleast_1d(a).reshape(-1,1).astype(float)[:,0]
-    b = np.atleast_1d(b).reshape(-1,1).astype(float)[:,0]
-
-    # Determine number of random variables
-    n = len(a)
-
-    # Validate that all parameter arrays have the same length
-    if not (len(a) == n and len(b) == n):
-        raise ValueError(f"All parameter arrays must have the same length. "
-                        f"Got a:{len(a)}, b:{len(b)}")
-
-    if np.any(b <= a):
-        raise ValueError(" quadratic.rnd: all b values must be greater than corresponding a values")
+    _, a, b, n = _ppp_(0, a, b)
 
     _, _, U = correlated_rvs( R, n, N, seed )
 

@@ -8,38 +8,42 @@ def _ppp_(x, a, b, q, p ):
         x : array_like
             Evaluation points
         a : float
-            Lower bound
+            Minimum of the distribution
         b : float
-            Upper bound (must be > a)
-        c : float
-            Mode (must satisfy a < c < b)
-    '''
+            Maximum of the distribution (must be > a)
+        q : float
+            First shape parameter
+        p : float
+            Second shape parameter
+    ''' 
 
     # Convert inputs to arrays
     # Python does not implicitly handle scalars as arrays. 
     x = np.atleast_1d(x).astype(float)
-    a = np.atleast_1d(a).astype(float)
-    b = np.atleast_1d(b).astype(float)
-    c = np.atleast_1d(c).astype(float)
-    n = len(a)
 
-
+    a = np.atleast_2d(a).reshape(-1,1).astype(float)
+    b = np.atleast_2d(b).reshape(-1,1).astype(float)
+    q = np.atleast_1d(q).astype(float)
+    p = np.atleast_1d(p).astype(float)
+    n = len(a)   
+        
     # Validate parameter dimensions 
-    if not ( len(a) == n and len(b) == n and len(c) == n ):
-        raise ValueError(f"a, b, ,c arrays must have the same length. "
-                         f"Got a:{len(a)}, b:{len(b)}, c:{len(c)}")
-    
-    # Validate parameter values
-    if not np.any(a <= b):
-        raise ValueError(f"triangular: c must be less than b"
-                         f"Got: len(c) = {len(c)}, len(b) = {len(b)}")
-    if not np.any(c <= b):
-        raise ValueError(f"triangular: c must be less than b"
-                         f"Got: len(c) = {len(c)}, len(b) = {len(b)}")
-    if not np.any(b <= c):
-        raise ValueError(f"triangular: b must be less than c"
-                         f"Got: len(c) = {len(c)}, len(b) = {len(b)}")
-    
-    return x, a, b, c, n
-    
+    if not (len(b) == n and len(q) == n and len(p) == n):
+        raise ValueError(f"All parameter arrays must have the same length. "
+                        f"Got a:{len(a)}, b:{len(b)}, q:{len(q)}, p:{len(p)}")
+
+   # Validate parameter values 
+    if np.any(meanX <= 0):
+        raise ValueError("extreme_value_I: meanX must be > 0")
+    if np.any(covnX <= 0):
+        raise ValueError("extreme_value_I: covnX must be > 0")
+
+    if np.any(b <= a):
+        raise ValueError("beta.rnd: all b values must be greater than corresponding a values")
+    if np.any(q <= 0):
+        raise ValueError("beta.rnd: q must be positive")
+    if np.any(p <= 0):
+        raise ValueError("beta.rnd: p must be positive")
+
+    return x, a, b, q, p, n
 

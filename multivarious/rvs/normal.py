@@ -2,8 +2,41 @@ import numpy as np
 from scipy.special import erf as scipy_erf
 from scipy.special import erfinv as scipy_erfinv
 
-
 from multivarious.utl import correlated_rvs
+
+
+def _ppp_(x, meanX, sdvnX):
+    '''
+    Validate and preprocess input parameters for consistency and correctness.
+
+    Parameters:
+        x : array_like
+            Evaluation points
+        meanX : float
+            Minimum of the distribution
+        sdvnX : float
+            Maximum of the distribution (must be > a)
+     ''' 
+
+    # Convert inputs to arrays
+    # Python does not implicitly handle scalars as arrays. 
+    x = np.atleast_1d(x).astype(float)
+
+    meanX = np.atleast_2d(meanX).reshape(-1,1).astype(float)
+    sdvnX = np.atleast_2d(sdvnX).reshape(-1,1).astype(float)
+    n = len(meanX)   
+        
+    # Validate parameter dimensions 
+    if not (len(meanX) == n and len(sdvnX) == n):
+        raise ValueError(f"All parameter arrays must have the same length. "
+                        f"Got meanX:{len(meanX)}, sdvnX:{len(sdvnX)}") 
+
+    # Validate parameter values 
+    if np.any(sdvnX <= 0):
+        raise ValueError("normal: sdvnX must be > 0")
+
+    return x, meanX, sdvnX, n
+
 
 def pdf(x, meanX=0.0, sdvnX=1.0):
     '''
@@ -26,7 +59,11 @@ def pdf(x, meanX=0.0, sdvnX=1.0):
     Reference:
     https://en.wikipedia.org/wiki/Normal_distribution
     '''
+ 
+    x, meanX, covnX = _ppp_(x, meanX, covnX)
+
     z = (x - meanX) / sdvnX
+
     f = 1.0 / np.sqrt(2 * np.pi*sdvnX**2) * np.exp(-(z**2.0) / 2.0)
 
     return f 
@@ -57,6 +94,8 @@ def cdf(x, params ):
 
     meanX, sdvnX = params 
 
+    _, meanX, covnX = _ppp_(0, meanX, covnX)
+
     z = (x - meanX) / sdvnX
 
     F = (1.0 + scipy_erf(z / np.sqrt(2.0))) / 2.0
@@ -86,9 +125,11 @@ def inv(p, meanX=0.0, sdvnX=1.0):
     https://en.wikipedia.org/wiki/Normal_distribution
     '''
 
+    x, meanX, covnX = _ppp_(x, meanX, covnX)
+
     # Clip probabilities to avoid erfinv(±1) = ±∞
-    eps = np.finfo(float).eps       # smallest positive float
-    P = np.clip(P, eps, 1.0 - eps)  # restrict P to (0, 1)
+    my_eps = 1e-12     # small, not zero
+    P = np.clip(P, my_eps, 1.0 - my_eps)  # restrict P to (my_eps, 1-my_eps)
     
     # Compute lognormal quantile using inverse CDF formula
     z = np.sqrt(2) * scipy_erfinv(2 * P - 1) 
@@ -122,19 +163,7 @@ def rnd(meanX=0.0, sdvnX=1.0, N=1, R=None, seed=None):
     https://en.wikipedia.org/wiki/Normal_distribution
     '''
 
-    
-    # Python does not implicitly handle scalars as arrays ... so ...
-    # Convert array_like inputs to numpy column vectors (2D arrays) of floats
-    meanX = np.atleast_2d(meanX).reshape(-1, 1).astype(float)
-    sdvnX = np.atleast_2d(sdvnX).reshape(-1, 1).astype(float)
-
-    # Determine number of random variables
-    n = len(meanX)
-
-    # Validate that all parameter arrays have the same length
-    if not (len(meanX) == n and len(sdvnX) == n):
-        raise ValueError(f"All parameter arrays meanXst have the same length. "
-                        f"Got meanX:{len(meanX)}, sdvnX:{len(sdvnX)}")
+    _, meanX, sdvnX, n = _ppp_(0, meanX, sdvnX) # Correlated standard normal variables (n,N)
 
     _, Y, _ = correlated_rvs( R, n, N, seed )
 
