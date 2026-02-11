@@ -8,7 +8,7 @@ def _ppp_(n, m, p):
     '''
     Validate and preprocess input parameters for consistency and correctness.
 
-    Parameters:
+    INPUTS:
         n : number of successful outcomes (N,)
         m : int scalar or array_like (n,)
             number of attempts 
@@ -48,7 +48,7 @@ def pmf(n, m, p):
 
     Computes the Probability Mass Function (PMF) of the Binomial distribution.
 
-    Parameters:
+    INPUTS:
         n : number of successful outcomes (N,)
         m : int scalar or array_like (n,)
             number of attempts 
@@ -90,7 +90,7 @@ def cdf(n, m, p):
 
     Computes the Cumulative Distribution Function (CDF) of the Binomial distribution.
 
-    Parameters:
+    INPUTS:
         n : number of successful outcomes (Nb,)
         m : int scalar or array_like (nb,)
             number of attempts 
@@ -119,7 +119,7 @@ def rnd(m, p, N, R=None, seed=None):
     '''
     Generate N samples of n correlated Binomial(m, p) variables with correlation matrix R.
     
-    Parameters:
+    INPUTS:
         m : int scalar or array_like (n,)
             number of attempts 
         p : float scalar or array_like (n,)
@@ -131,7 +131,7 @@ def rnd(m, p, N, R=None, seed=None):
         seed : int or None
             Random seed
     
-    Returns:
+    OUTPUTS:
         samples : ndarray shape (n, N)
             Binomial counts for each variable and sample
 
@@ -152,9 +152,9 @@ def rnd(m, p, N, R=None, seed=None):
     
     for trial in range(m[0]):
         # Generate correlated uniforms for this sample
-        _, _, U = correlated_rvs(R, n, N)
+        _, _, U = correlated_rvs(R, nb, N, seed)
 
-        # Bernoulli success if U < p, shape (n, N)
+        # Bernoulli success if U < p, shape (nb, N)
         successes = (U < p) 
     
         # Accumulate successes over trials

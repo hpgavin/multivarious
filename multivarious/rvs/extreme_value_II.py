@@ -12,7 +12,7 @@ def _ppp_(x, m, s, k):
     '''
     Validate and preprocess input parameters for consistency and correctness.
 
-    Parameters:
+    INPUTS:
         x : array_like
             Evaluation points
         a : float
@@ -57,7 +57,7 @@ def pdf(x, m, s, k):
     
     Computes the PDF of the Extreme Value Type II (Fréchet) distribution.
     
-    Parameters:
+    INPUTS:
         x : array_like
             Evaluation points
         m : float
@@ -67,7 +67,7 @@ def pdf(x, m, s, k):
         k : float
             Shape parameter
     
-    Returns:
+    OUTPUTS:
         f : ndarray
             PDF values at each point in x
     '''
@@ -90,7 +90,7 @@ def cdf(x, params ):
     
     Computes the CDF of the Extreme Value Type II (Fréchet) distribution.
     
-    Parameters:
+    INPUTS:
         x : array_like
             Evaluation points
         params : array_like  [ m , s , k ] 
@@ -101,7 +101,7 @@ def cdf(x, params ):
         k : float
             Shape parameter
     
-    Returns:
+    OUTPUTS:
         F : ndarray
             CDF values at each point in x
     '''
@@ -126,7 +126,7 @@ def inv(P, m, s, k):
     
     Computes the inverse CDF (quantile function) of the Extreme Value Type II distribution.
     
-    Parameters:
+    INPUTS:
         P : array_like
             Probability values (must be in (0, 1))
         m : float
@@ -136,7 +136,7 @@ def inv(P, m, s, k):
         k : float
             Shape parameter
     
-    Returns:
+    OUTPUTS:
         x : ndarray
             Quantile values corresponding to probabilities P
     '''
@@ -161,7 +161,7 @@ def rnd(m, s, k, N, R=None, seed=None):
     
     Generate random samples from Extreme Value Type II (Fréchet) distribution.
     
-    Parameters:
+    INPUTS:
         m : float (n,)
             Location parameter
         s : float (n,)
@@ -173,7 +173,7 @@ def rnd(m, s, k, N, R=None, seed=None):
         R  : float (n,n) optional
              correlation matrix
     
-    Returns:
+    OUTPUTS:
         X : ndarray
             Shape (n, N) array of random samples
     '''

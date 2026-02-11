@@ -7,7 +7,7 @@ def _ppp_(x, a, b):
     '''
     Validate and preprocess input parameters for consistency and correctness.
 
-    Parameters:
+    INPUTS:
         x : array_like
             Evaluation points
         a : float
@@ -28,7 +28,7 @@ def _ppp_(x, a, b):
     # Validate parameter dimensions 
     if not (len(a) == n and len(b) == n):
         raise ValueError(f"All parameter arrays must have the same length. "
-                        f"Got a:{len(a)}, b:{len(b)}, q:{len(q)}, p:{len(p)}")
+                        f"Got a:{len(a)}, b:{len(b)}")
 
     if np.any(b <= a):
         raise ValueError("quadratic: all b values must be greater than corresponding a values")
@@ -42,7 +42,7 @@ def pdf(x, a, b):
     
     Computes the PDF of the quadratic distribution on interval (a, b).
     
-    Parameters:
+    INPUTS:
         x : array_like
             Evaluation points
         a : float
@@ -75,7 +75,7 @@ def cdf(x, params):
     
     Computes the CDF of the quadratic distribution on interval (a, b).
     
-    Parameters:
+    INPUTS:
         x : array_like
             Evaluation points
         params: array_like [ a , b ]
@@ -114,7 +114,7 @@ def inv(u, a, b):
     Computes the inverse CDF (quantile function) by solving cubic equations
     for given probability values.
     
-    Parameters:
+    INPUTS:
         u : array_like or float
             Probability values (0 <= u <= 1)
         a : scalar float
@@ -167,7 +167,7 @@ def rnd(a, b, N, R=None, seed=None):
     
     Generates random samples from the quadratic distribution on interval (a, b).
     
-    Parameters:
+    INPUTS:
         a : float (n,)
             Lower bound (a < b)
         b : float (n,)

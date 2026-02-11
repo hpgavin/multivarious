@@ -1,22 +1,29 @@
-# exponential distribution
+## exponential distribution
 # github.com/hpgavin/multivarious ... rvs/exponential
 
 import numpy as np
-from scipy.stats import norm
 
 from multivarious.utl.correlated_rvs import correlated_rvs
 
 
 def _ppp_(x, meanX):
-    '''
+    """
     Validate and preprocess input parameters for consistency and correctness.
 
-    Parameters:
+    INPUTS:
         x : array_like
             Evaluation points
         meanX : float or array_like 
-            mean of the distribution 
-    ''' 
+            Mean(s) of the distribution (must be > 0)
+
+    OUTPUTS:
+        x : ndarray
+            Evaluation points as array
+        meanX : ndarray
+            Means as column array
+        n : int
+            Number of random variables
+    """ 
 
     # Convert inputs to arrays
     # Python does not implicitly handle scalars as arrays. 
@@ -26,7 +33,7 @@ def _ppp_(x, meanX):
         
     # Validate parameter values 
     if np.any(meanX <= 0):
-        raise ValueError("exponential: all meanX values must positive")
+        raise ValueError("exponential: all meanX values must be positive")
 
     # Prevent negative or zero values (log not defined)
     x = np.where(x < 0, 0.01, x)
@@ -35,21 +42,29 @@ def _ppp_(x, meanX):
 
 
 def pdf(x, meanX):
-    '''
+    """
     exponential.pdf
 
     Computes the Probability Density Function (PDF) of the exponential distribution.
 
     INPUTS:
-      x    = evaluation points (must be x >= 0)
-      meanX  = mean of the exponential distribution
+        x : array_like
+            Evaluation points (must be x >= 0)
+        meanX : float or array_like, shape (n,)
+            Mean(s) of the exponential distribution (must be > 0)
  
-    OUTPUT:
-      f    = PDF evaluated at x
+    OUTPUTS:
+        f : ndarray, shape (n, N)
+            PDF values at each point in x for each of n random variables
  
-    FORMULA:
-      f(x) = (1/meanX) * exp(-x / meanX), for x >= 0
-    '''
+    Notes
+    -----
+    f(x) = (1/meanX) * exp(-x / meanX) for x >= 0
+
+    Reference
+    ---------
+    https://en.wikipedia.org/wiki/Exponential_distribution
+    """
 
     x, meanX, n = _ppp_(x, meanX)
 
@@ -59,21 +74,29 @@ def pdf(x, meanX):
 
 
 def cdf(x, meanX):
-    '''
+    """
     exponential.cdf
 
-    Computes the Cumulative Distribution Function (CDF) of the exponential.
+    Computes the Cumulative Distribution Function (CDF) of the exponential distribution.
 
     INPUTS:
-      x    = values at which to evaluate the CDF (x >= 0)
-      meanX  = mean of the exponential distribution
+        x : array_like
+            Evaluation points (x >= 0)
+        meanX : float or array_like, shape (n,)
+            Mean(s) of the exponential distribution (must be > 0)
  
-    OUTPUT:
-      F    = CDF values at each x
+    OUTPUTS:
+        F : ndarray, shape (n, N)
+            CDF values at each point in x for each of n random variables
  
-    FORMULA:
-      F(x) = 1 - exp(-x / meanX), for x >= 0
-    '''
+    Notes
+    -----
+    F(x) = 1 - exp(-x / meanX) for x >= 0
+
+    Reference
+    ---------
+    https://en.wikipedia.org/wiki/Exponential_distribution
+    """
 
     x, meanX, n = _ppp_(x, meanX)
 
@@ -83,21 +106,29 @@ def cdf(x, meanX):
 
 
 def inv(P, meanX):
-    '''
+    """
     exponential.inv
 
     Computes the inverse CDF (quantile function) of the exponential distribution.
 
     INPUTS:
-      P    = probability values (0 <= P <= 1)
-      meanX  = mean of the exponential distribution
+        P : array_like
+            Probability values (0 <= P <= 1)
+        meanX : float or array_like, shape (n,)
+            Mean(s) of the exponential distribution (must be > 0)
 
-    OUTPUT:
-      X    = quantiles corresponding to P
+    OUTPUTS:
+        X : ndarray
+            Quantiles corresponding to probabilities P
 
-    FORMULA:
-      X = -meanX * log(1 - P)
-    '''
+    Notes
+    -----
+    X = -meanX * log(1 - P)
+
+    Reference
+    ---------
+    https://en.wikipedia.org/wiki/Exponential_distribution
+    """
     
     _, meanX, n = _ppp_(0, meanX)
 
@@ -106,30 +137,45 @@ def inv(P, meanX):
     P = np.where(P > 1, 1.0, P)
 
     X = -meanX * np.log(1 - P)
+    
     return X
 
 
 def rnd(meanX, N, R=None, seed=None):
-    '''
+    """
     exponential.rnd
 
     Generate random samples from an exponential distribution with mean meanX.
 
     INPUTS:
-        meanX  = mean (n,) one component for each r.v.
-        N = number of values for each variable in the sample (columns)
-        R = correlation matrix (n x n) - not yet implemented
+        meanX : float or array_like, shape (n,)
+            Mean(s) of the distribution (must be > 0)
+        N : int
+            Number of observations per random variable
+        R : ndarray, shape (n, n), optional
+            Correlation matrix for generating correlated samples.
+            If None, generates uncorrelated samples.
+        seed : int, optional
+            Random seed for reproducibility
  
-    OUTPUT:
-        X    = random samples shaped (n, N)
+    OUTPUTS:
+        X : ndarray, shape (n, N) or shape (N,) if n=1
+            Random samples from the exponential distribution.
+            Each row corresponds to one random variable.
+            Each column corresponds to one sample.
 
-    METHOD:
-        Use inverse CDF method: x = -meanX * log(U), where U ~ Uniform(0,1)
-    '''
+    Notes
+    -----
+    Uses inverse CDF method: x = -meanX * log(U) where U ~ Uniform(0,1)
+
+    Reference
+    ---------
+    https://en.wikipedia.org/wiki/Exponential_distribution
+    """
 
     _, meanX, n = _ppp_(0, meanX)
 
-    _, _, U = correlated_rvs( R, n, N, seed )
+    _, _, U = correlated_rvs(R, n, N, seed)
 
     # Inverse transform: x = -meanX * log(U)
     X = -meanX * np.log(U)

@@ -1,3 +1,6 @@
+## gamma distribution
+# github.com/hpgavin/multivarious ... rvs/gamma
+
 import numpy as np
 from scipy.special import gamma as gamma_func
 from scipy.special import gammainc
@@ -5,22 +8,32 @@ from scipy.special import gammainc
 from multivarious.utl.correlated_rvs import correlated_rvs
 
 
-def _ppp_(x, meanX, covnX ):
-    '''
+def _ppp_(x, meanX, covnX):
+    """
     Validate and preprocess input parameters for consistency and correctness.
 
-    Parameters:
+    INPUTS:
         x : array_like
             Evaluation points
-        a : float
-            Minimum of the distribution
-        b : float
-            Maximum of the distribution (must be > a)
-        q : float
-            First shape parameter
-        p : float
-            Second shape parameter
-    ''' 
+        meanX : float or array_like
+            Mean(s) of the distribution (must be > 0)
+        covnX : float or array_like
+            Coefficient(s) of variation (must be ≥ 0.5)
+
+    OUTPUTS:
+        x : ndarray
+            Evaluation points as array
+        meanX : ndarray
+            Means as column array
+        covnX : ndarray
+            Coefficients of variation as column array
+        k : ndarray
+            Shape parameters (alpha)
+        theta : ndarray
+            Scale parameters (beta)
+        n : int
+            Number of random variables
+    """ 
 
     # Convert inputs to arrays
     # Python does not implicitly handle scalars as arrays. 
@@ -36,13 +49,10 @@ def _ppp_(x, meanX, covnX ):
                         f"Got meanX:{len(meanX)}, covnX:{len(covnX)}")
 
     # Validate parameter values 
-    if np.any(covnX <= 0):
-        raise ValueError("gamma: all covnX values must be greater than zero")
-
-    covnX[covnX < 0.5] = 0.5
     if np.any(covnX < 0.5):
-        raise ValueError(f' gamma_cdf:  lower limit of coefficient of variation is 0.5')
-        print(' gamma_cdf: covnX = ', covnX )
+        print(f'gamma: lower limit of coefficient of variation is 0.5')
+        print(f'gamma: covnX = {covnX.flatten()}')
+        covnX[covnX < 0.5] = 0.5
 
     k = 1.0 / covnX**2              # shape parameter (alpha)
     theta = covnX**2 * meanX        # scale parameter (beta)
@@ -51,101 +61,113 @@ def _ppp_(x, meanX, covnX ):
 
 
 def pdf(x, meanX, covnX):
-    '''
+    """
     gamma.pdf
 
-    Computes the PDF of the Gamma distribution using its mean (m)
-    and coefficient of variation (covnX).
+    Computes the PDF of the Gamma distribution using its mean and
+    coefficient of variation.
 
-    Parameters
-    ----------
-    x : array_like or float
-        Evaluation points
-    meanX : float
-        Mean of the distribution
-    covnX : float
-        Coefficient of variation (sdv/mean), must be ≥ 0.5
+    INPUTS:
+        x : array_like
+            Evaluation points
+        meanX : float or array_like, shape (n,)
+            Mean(s) of the distribution
+        covnX : float or array_like, shape (n,)
+            Coefficient(s) of variation (stddev/mean), must be ≥ 0.5
 
-    Output
-    ------
-    f : ndarray or float
-        PDF values evaluated at each point in x
+    OUTPUTS:
+        f : ndarray, shape (n, N)
+            PDF values evaluated at each point in x for each of n random variables
+
+    Notes
+    -----
+    f(x) = (1/Γ(k)θ^k) x^(k-1) exp(-x/θ)
+    where k = 1/covnX² and θ = covnX²·meanX
 
     Reference
-    ----------
+    ---------
     https://en.wikipedia.org/wiki/Gamma_distribution
-    '''
-    x, meanX, covnX, k, theta, n = _ppp_(x, meanX, covnX )
+    """
+    
+    x, meanX, covnX, k, theta, n = _ppp_(x, meanX, covnX)
 
-    f = theta**(-k) * x**(k - 1) * np.exp(-x / theta) / gamma_func(k)  # Gamma PDF formula
+    f = theta**(-k) * x**(k - 1) * np.exp(-x / theta) / gamma_func(k)
 
-    f = np.where(x <= 0, 1e-12, f) # replace negative x with small value for stability
+    f = np.where(x <= 0, 1e-12, f)  # replace negative x with small value for stability
 
     return f
 
 
 def cdf(x, params):
-    '''
+    """
     gamma.cdf
 
-    Computes the CDF of the Gamma distribution in terms of its mean (m)
-    and coefficient of variation (covnX).
+    Computes the CDF of the Gamma distribution in terms of its mean and
+    coefficient of variation.
 
-    Parameters
-    ----------
-    x : array_like or float
-        Evaluation points
-    params : array_like [ meanX, covnX ]
-        meanX : (float) the mean of X
-        covnX : (float) the coefficient of variation of X
-        coefficient of variation (sdv/mean)
+    INPUTS:
+        x : array_like
+            Evaluation points
+        params : array_like [meanX, covnX]
+            meanX : float or array_like
+                Mean(s) of X
+            covnX : float or array_like
+                Coefficient(s) of variation (stddev/mean)
 
-    Output
-    ------
-    F : ndarray or float
-        CDF values evaluated at each point in x
+    OUTPUTS:
+        F : ndarray, shape (n, N)
+            CDF values evaluated at each point in x for each of n random variables
+
+    Notes
+    -----
+    F(x) = γ(k, x/θ) / Γ(k) where γ is the lower incomplete gamma function
 
     Reference
-    ----------
+    ---------
     https://en.wikipedia.org/wiki/Gamma_distribution
-    '''
+    """
+    
     meanX, covnX = params
 
-    x, meanX, covnX, k, theta, n = _ppp_(x, meanX, covnX )
+    x, meanX, covnX, k, theta, n = _ppp_(x, meanX, covnX)
 
-    xp = np.copy(x)                  # copy x to avoid modifying input
-    xp = np.where(x <= 0, 1e-12, xp) # replace negative x with small value for stability
-    F = gammainc(k, xp / theta)      # regularized lower incomplete gamma function
-    F = np.where(x <= 0, 0.0, F)     # replace negative x with small value for stability
+    xp = np.copy(x)                   # copy x to avoid modifying input
+    xp = np.where(x <= 0, 1e-12, xp)  # replace negative x with small value for stability
+    F = gammainc(k, xp / theta)       # regularized lower incomplete gamma function
+    F = np.where(x <= 0, 0.0, F)      # replace negative x with small value for stability
+    
     return F
 
 
 def inv(P, meanX, covnX):
-    '''
+    """
     gamma.inv
 
     Computes the inverse CDF (quantile function) of the Gamma distribution
     defined by mean meanX and coefficient of variation covnX, for given probabilities P.
 
-    Parameters
-    ----------
-    P : array_like or float
-        Non-exceedance probabilities (values between 0 and 1)
-    meanX : float
-        Mean of the Gamma distribution
-    covnX : float
-        Coefficient of variation (must be ≥ 0.5)
+    INPUTS:
+        P : array_like
+            Non-exceedance probabilities (values between 0 and 1)
+        meanX : float or array_like, shape (n,)
+            Mean(s) of the Gamma distribution
+        covnX : float or array_like, shape (n,)
+            Coefficient(s) of variation (must be ≥ 0.5)
 
-    Output
-    ------
-    x : ndarray or float
-        Quantile values such that Prob[X ≤ x] = P
+    OUTPUTS:
+        x : ndarray
+            Quantile values such that Prob[X ≤ x] = P
+
+    Notes
+    -----
+    Uses Newton-Raphson iteration to solve F(x) = P
 
     Reference
-    ----------
+    ---------
     https://en.wikipedia.org/wiki/Gamma_distribution
-    '''
-    _, meanX, covnX, _, _, _ = _ppp_(0, meanX, covnX )
+    """
+    
+    _, meanX, covnX, _, _, _ = _ppp_(0, meanX, covnX)
 
     P = np.asarray(P, dtype=float)  # ensure array type
 
@@ -155,10 +177,10 @@ def inv(P, meanX, covnX):
 
     for iter in range(max_iter):
         F_x = cdf(x_old, [meanX, covnX])    # evaluate current CDF
-        f_x = pdf(x_old,  meanX, covnX )    # evaluate current PDF
+        f_x = pdf(x_old, meanX, covnX)      # evaluate current PDF
         h = (F_x - P) / f_x                 # Newton-Raphson step
         x_new = x_old - h                   # update estimate
-        idx = np.where( x_new <= my_eps )
+        idx = np.where(x_new <= my_eps)
         if np.any(idx):
             x_new[idx] = x_old[idx] / 10.0  # prevent values <= 0
         h = x_old - x_new                   # change in x
@@ -170,35 +192,41 @@ def inv(P, meanX, covnX):
 
 
 def rnd(meanX, covnX, N, R=None, seed=None):
-    '''
+    """
     gamma.rnd
 
     Generates random samples from the Gamma distribution with mean meanX and
-    coefficient of variation c.
+    coefficient of variation covnX.
 
-    Parameters
-    ----------
-    meanX : float
-        Mean of the distribution
-    covnX : float
-        Coefficient of variation (sdv/mean)
-    N : int
-        Number of values of each random variable (columns)
-    R : correlation matrix (n,n) --- not implemented 
+    INPUTS:
+        meanX : float or array_like, shape (n,)
+            Mean(s) of the distribution
+        covnX : float or array_like, shape (n,)
+            Coefficient(s) of variation (stddev/mean)
+        N : int
+            Number of observations per random variable
+        R : ndarray, shape (n, n), optional
+            Correlation matrix for generating correlated samples.
+            If None, generates uncorrelated samples.
+        seed : int, optional
+            Random seed for reproducibility
 
-    Output
-    ------
-    X : ndarray of shape (n, N)
-        Random samples drawn from the Gamma distribution
+    OUTPUTS:
+        X : ndarray, shape (n, N) or shape (N,) if n=1
+            Random samples drawn from the Gamma distribution.
+            Each row corresponds to one random variable.
+            Each column corresponds to one sample.
+
+    Notes
+    -----
+    Uses inverse transform method with correlated uniform variates.
 
     Reference
-    ----------
+    ---------
     https://en.wikipedia.org/wiki/Gamma_distribution
-    '''
+    """
 
-    _, meanX, covnX, _, _, n = _ppp_(0, meanX, covnX )
-
-    rng = np.random.default_rng(seed)
+    _, meanX, covnX, _, _, n = _ppp_(0, meanX, covnX)
 
     # Correlated uniform random variables 
     _, _, U = correlated_rvs(R, n, N, seed)

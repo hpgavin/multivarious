@@ -7,7 +7,7 @@ def _ppp_(x, a, b, c):
     '''
     Validate and preprocess input parameters for consistency and correctness.
 
-    Parameters:
+    INPUTS:
         x : array_like
             Evaluation points
         a : float
@@ -33,15 +33,12 @@ def _ppp_(x, a, b, c):
                          f"Got a:{len(a)}, b:{len(b)}, c:{len(c)}")
 
     # Validate parameter values
-    if not np.any(a <= b):
-        raise ValueError(f"triangular: c must be less than b"
-                         f"Got: len(c) = {len(c)}, len(b) = {len(b)}") 
-    if not np.any(c <= b):
-        raise ValueError(f"triangular: c must be less than b"
-                         f"Got: len(c) = {len(c)}, len(b) = {len(b)}") 
-    if not np.any(a <= c):
-        raise ValueError(f"triangular: a must be less than c"
-                         f"Got: len(a) = {len(a)}, len(c) = {len(c)}") 
+    if not np.all(a <= b):
+        raise ValueError("triangular: all a values must be less than or equal to b")
+    if not np.all(a <= c):
+        raise ValueError("triangular: all a values must be less than or equal to c")
+    if not np.all(c <= b):
+        raise ValueError("triangular: all c values must be less than or equal to b") 
 
     return x, a, b, c, n, N
 
@@ -52,7 +49,7 @@ def pdf(x, a, b, c):
 
     Computes the PDF of the triangular distribution on [a, b] with mode c.
 
-    Parameters:
+    INPUTS:
         x : array_like
             Evaluation points
         a : float
@@ -91,7 +88,7 @@ def cdf(x, params):
 
     Computes the CDF of the triangular distribution on [a, b] with mode c.
 
-    Parameters:
+    INPUTS:
         x : array_like
             Evaluation points
         params : array_like [ a, b, c ]
@@ -136,7 +133,7 @@ def inv(p, a, b, c):
     Computes the inverse CDF (quantile function) of the triangular distribution
     on [a, b] with mode c.
 
-    Parameters:
+    INPUTS:
         p : array_like
             Probability values (must be in [0, 1])
         a : float
@@ -178,7 +175,7 @@ def rnd(a, b, c, N, R=None, seed=None ):
 
     Generate random samples from the triangular distribution on [a, b] with mode c.
 
-    Parameters:
+    INPUTS:
         a : float
             Lower bound
         b : float

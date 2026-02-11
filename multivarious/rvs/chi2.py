@@ -1,4 +1,4 @@
-# chi-squared distribution
+## chi-squared distribution
 # github.com/hpgavin/multivarious ... rvs/chi2
 
 import numpy as np
@@ -8,21 +8,27 @@ from multivarious.utl.correlated_rvs import correlated_rvs
 
 
 def _ppp_(x, k):
-    '''
+    """
     Validate and preprocess input parameters for consistency and correctness.
 
-    Parameters:
+    INPUTS:
         x : array_like
             Evaluation points
-        a : float
-            Minimum of the distribution
-        b : float
-            Maximum of the distribution (must be > a)
-        q : float
-            First shape parameter
-        p : float
-            Second shape parameter
-    ''' 
+        k : float or array_like
+            Degrees of freedom (must be > 0)
+
+    OUTPUTS:
+        x : ndarray
+            Evaluation points as array
+        k : ndarray
+            Degrees of freedom as column array
+        n : int
+            Number of random variables
+        m : ndarray
+            Wilson-Hilferty transformation mean
+        s : ndarray
+            Wilson-Hilferty transformation standard deviation
+    """ 
 
     # Convert inputs to arrays
     # Python does not implicitly handle scalars as arrays. 
@@ -32,7 +38,7 @@ def _ppp_(x, k):
         
     # Validate parameter values 
     if np.any(k <= 0):
-        raise ValueError("beta.rnd: all b values must be greater than corresponding a values")
+        raise ValueError("chi2: all k values must be greater than zero")
 
     # Wilson-Hilferty approximation parameters
     m = 1 - 2 / (9 * k)         # mean of cube-root-transformed variable
@@ -42,22 +48,32 @@ def _ppp_(x, k):
 
 
 def pdf(x, k):
-    '''
+    """
     chi2.pdf
 
     Computes the PDF of the Chi-squared distribution using the 
     Wilson-Hilferty transformation.
 
     INPUTS:
-      x : array-like
-          Points to evaluate the PDF
-      k : float or array-like
-          Degrees of freedom (must be positive)
+        x : array_like
+            Evaluation points
+        k : float or array_like, shape (n,)
+            Degrees of freedom (must be > 0)
 
-    OUTPUT:
-      f : array-like
-          Approximate PDF values at x
-    '''
+    OUTPUTS:
+        f : ndarray, shape (n, N)
+            Approximate PDF values at each point in x for each of n random variables
+
+    Notes
+    -----
+    Uses Wilson-Hilferty transformation to approximate chi-squared distribution
+    via normal distribution: Z = (X/k)^(1/3) ~ N(m, s²)
+
+    Reference
+    ---------
+    https://en.wikipedia.org/wiki/Chi-squared_distribution
+    """
+    
     x, k, n, m, s = _ppp_(x, k)
     
     # Transform x into z-space: Z = (X / k)^{1/3}
@@ -70,19 +86,30 @@ def pdf(x, k):
 
 
 def cdf(x, k):
-    '''
+    """
     chi2.cdf
 
     Approximates the CDF of the chi-squared distribution using the
     Wilson-Hilferty transformation, which maps chi2(k) into a normal distribution.
 
     INPUTS:
-      x = evaluation points
-      k = degrees of freedom (must be > 0)
+        x : array_like
+            Evaluation points
+        k : float or array_like, shape (n,)
+            Degrees of freedom (must be > 0)
  
-    OUTPUT:
-      F = approximate cumulative probability evaluated at x
-    '''
+    OUTPUTS:
+        F : ndarray, shape (n, N)
+            Approximate cumulative probability evaluated at x for each of n random variables
+
+    Notes
+    -----
+    Uses Wilson-Hilferty transformation: Z = (X/k)^(1/3) ~ N(m, s²)
+
+    Reference
+    ---------
+    https://en.wikipedia.org/wiki/Chi-squared_distribution
+    """
 
     x, k, n, m, s = _ppp_(x, k)
 
@@ -96,19 +123,30 @@ def cdf(x, k):
 
 
 def inv(p, k):
-    '''
+    """
     chi2.inv
  
     Approximates the inverse CDF (quantile function) of the chi-squared distribution
     using the Wilson-Hilferty transformation.
  
     INPUTS:
-      p = non-exceedance probabilities (values between 0 and 1)
-      k = degrees of freedom (must be > 0)
+        p : array_like
+            Non-exceedance probabilities (values between 0 and 1)
+        k : float or array_like, shape (n,)
+            Degrees of freedom (must be > 0)
  
-    OUTPUT:
-      x = quantile values such that Prob[X ≤ x] = p
-    '''
+    OUTPUTS:
+        x : ndarray
+            Quantile values such that Prob[X ≤ x] = p
+
+    Notes
+    -----
+    Uses Wilson-Hilferty transformation: x = k * z³ where z ~ N(m, s²)
+
+    Reference
+    ---------
+    https://en.wikipedia.org/wiki/Chi-squared_distribution
+    """
 
     _, k, n, m, s = _ppp_(0, k)
 
@@ -124,28 +162,46 @@ def inv(p, k):
 
 
 def rnd(k, N, R=None, seed=None):
-    '''
+    """
     chi2.rnd
-    Generate N observations of n correlated (or uncorrelated) chi2 random var's
+    
+    Generate N observations of n correlated (or uncorrelated) chi2 random variables
     via the Wilson-Hilferty transformation (a good approximation).
 
     INPUTS:
-      k = degrees of freedom (must be > 0), (n,) one component for each r.v.
-      N = number of values for each random variable in the sample (columns)
-      R = correlation matrix (n x n) - not yet implemented
+        k : float or array_like, shape (n,)
+            Degrees of freedom (must be > 0)
+        N : int
+            Number of observations per random variable
+        R : ndarray, shape (n, n), optional
+            Correlation matrix for generating correlated samples.
+            If None, generates uncorrelated samples.
+        seed : int, optional
+            Random seed for reproducibility
  
-    OUTPUT:
-      X = random samples from Chi-squared(k), shape (n, N)
-    '''
+    OUTPUTS:
+        X : ndarray, shape (n, N) or shape (N,) if n=1
+            Random samples from Chi-squared(k) distribution.
+            Each row corresponds to one random variable.
+            Each column corresponds to one sample.
+
+    Notes
+    -----
+    Uses Wilson-Hilferty transformation via correlated normal variates.
+
+    Reference
+    ---------
+    https://en.wikipedia.org/wiki/Chi-squared_distribution
+    """
 
     _, k, n, m, s = _ppp_(0, k)
 
-    _, Y, _ = correlated_rvs( R, n, N, seed )
+    _, Y, _ = correlated_rvs(R, n, N, seed)
    
     # Apply transformation
     X = np.zeros((n, N))
     for i in range(n):
-        X[i, :] = k[i] * ( m[i] + s[i] * Y[i, :]) ** 3
+        X[i, :] = k[i] * (m[i] + s[i] * Y[i, :]) ** 3
 
     if n == 1:
         X = X.flatten()

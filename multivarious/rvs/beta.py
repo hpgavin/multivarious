@@ -12,7 +12,7 @@ def _ppp_(x, a, b, q, p ):
     '''
     Validate and preprocess input parameters for consistency and correctness.
 
-    Parameters:
+    INPUTS:
         x : array_like
             Evaluation points
         a : float

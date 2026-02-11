@@ -1,22 +1,35 @@
+## normal distribution
+# github.com/hpgavin/multivarious ... rvs/normal
+
 import numpy as np
 from scipy.special import erf as scipy_erf
 from scipy.special import erfinv as scipy_erfinv
 
-from multivarious.utl import correlated_rvs
+from multivarious.utl.correlated_rvs import correlated_rvs
 
 
 def _ppp_(x, meanX, sdvnX):
-    '''
+    """
     Validate and preprocess input parameters for consistency and correctness.
 
-    Parameters:
+    INPUTS:
         x : array_like
             Evaluation points
-        meanX : float
-            Minimum of the distribution
-        sdvnX : float
-            Maximum of the distribution (must be > a)
-     ''' 
+        meanX : float or array_like
+            Mean(s) of the distribution
+        sdvnX : float or array_like
+            Standard deviation(s) of the distribution (must be > 0)
+
+    OUTPUTS:
+        x : ndarray
+            Evaluation points as row array
+        meanX : ndarray
+            Means as column array
+        sdvnX : ndarray
+            Standard deviations as column array
+        n : int
+            Number of random variables
+    """ 
 
     # Convert inputs to arrays
     # Python does not implicitly handle scalars as arrays. 
@@ -39,26 +52,32 @@ def _ppp_(x, meanX, sdvnX):
 
 
 def pdf(x, meanX=0.0, sdvnX=1.0):
-    '''
+    """
     normal.pdf
 
     Computes the PDF of the normal distribution N(meanX, sdvnX²).
 
-    Parameters:
-        x : array_like or float
+    INPUTS:
+        x : array_like
             Evaluation points
-        meanX : float
-            Mean of the distribution
-        sdvnX : float
-            Standard deviation of the distribution (meanXst be > 0)
+        meanX : float or array_like, shape (n,)
+            Mean(s) of the distribution
+        sdvnX : float or array_like, shape (n,)
+            Standard deviation(s) of the distribution (must be > 0)
 
-    Output:
-        f : ndarray or float
-            PDF values at each point in x
+    OUTPUTS:
+        f : ndarray, shape (n, N)
+            PDF values at each point in x for each of n random variables
 
-    Reference:
+    Notes
+    -----
+    The normal (Gaussian) distribution with mean μ and standard deviation σ:
+    f(x) = (1/√(2πσ²)) exp(-(x-μ)²/(2σ²))
+
+    Reference
+    ---------
     https://en.wikipedia.org/wiki/Normal_distribution
-    '''
+    """
  
     x, meanX, sdvnX, _ = _ppp_(x, meanX, sdvnX)
 
@@ -69,32 +88,34 @@ def pdf(x, meanX=0.0, sdvnX=1.0):
     return f 
 
 
-def cdf(x, params ):
-    '''
+def cdf(x, meanX=0.0, sdvnX=1.0):
+    """
     normal.cdf
 
     Computes the CDF of the normal distribution N(meanX, sdvnX²).
 
-    Parameters:
-        x : array_like or float
+    INPUTS:
+        x : array_like
             Evaluation points
-        params : array_like [ meanX , sdvnX ]
-        meanX : float
-            Mean of the distribution
-        sdvnX : float
-            Standard deviation of the distribution (meanXst be > 0)
+        meanX : float or array_like, shape (n,)
+            Mean(s) of the distribution
+        sdvnX : float or array_like, shape (n,)
+            Standard deviation(s) of the distribution (must be > 0)
 
-    Output:
-        F : ndarray or float
-            CDF values at each point in x
+    OUTPUTS:
+        F : ndarray, shape (n, N)
+            CDF values at each point in x for each of n random variables
 
-    Reference:
+    Notes
+    -----
+    F(x) = (1 + erf((x-μ)/(σ√2)))/2
+
+    Reference
+    ---------
     https://en.wikipedia.org/wiki/Normal_distribution
-    '''
+    """
 
-    meanX, sdvnX = params 
-
-    _, meanX, sdvnX, _ = _ppp_(0, meanX, sdvnX)
+    x, meanX, sdvnX, _ = _ppp_(x, meanX, sdvnX)
 
     z = (x - meanX) / sdvnX
 
@@ -104,68 +125,87 @@ def cdf(x, params ):
 
 
 def inv(p, meanX=0.0, sdvnX=1.0):
-    '''
+    """
     normal.inv
 
     Computes the inverse CDF (quantile function) of the normal distribution N(meanX, sdvnX²).
 
-    Parameters:
-        p : array_like or float
-            Probability values (meanXst be in [0, 1])
-        meanX : float
-            Mean of the distribution
-        sdvnX : float
-            Standard deviation of the distribution (sdvnX > 0)
+    INPUTS:
+        p : array_like
+            Probability values (must be in [0, 1])
+        meanX : float or array_like, shape (n,)
+            Mean(s) of the distribution
+        sdvnX : float or array_like, shape (n,)
+            Standard deviation(s) of the distribution (must be > 0)
 
-    Output:
-        x : ndarray or float
+    OUTPUTS:
+        x : ndarray
             Quantile values corresponding to probabilities p
 
-    Reference:
-    https://en.wikipedia.org/wiki/Normal_distribution
-    '''
+    Notes
+    -----
+    x = μ + σ√2 · erfinv(2p - 1)
 
-    x, meanX, sdvnX, _ = _ppp_(x, meanX, sdvnX)
+    Reference
+    ---------
+    https://en.wikipedia.org/wiki/Normal_distribution
+    """
+
+    _, meanX, sdvnX, _ = _ppp_(0, meanX, sdvnX)
+
+    p = np.asarray(p, dtype=float)
 
     # Clip probabilities to avoid erfinv(±1) = ±∞
     my_eps = 1e-12     # small, not zero
-    P = np.clip(P, my_eps, 1.0 - my_eps)  # restrict P to (my_eps, 1-my_eps)
+    p = np.clip(p, my_eps, 1.0 - my_eps)  # restrict p to (my_eps, 1-my_eps)
     
-    # Compute lognormal quantile using inverse CDF formula
-    z = np.sqrt(2) * scipy_erfinv(2 * P - 1) 
-    x = meanX + stdvX * z
+    # Compute normal quantile using inverse CDF formula
+    z = np.sqrt(2) * scipy_erfinv(2 * p - 1) 
+    x = meanX + sdvnX * z
 
     return x
 
 
 def rnd(meanX=0.0, sdvnX=1.0, N=1, R=None, seed=None):
-    '''
+    """
     normal.rnd
+    
     Generates correlated random samples from the normal distribution N(meanX, sdvnX²).
 
-    Parameters:
-        meanX : float (n,)
-            Mean of the distribution
-        sdvnX : float (n,)
-            Standard deviation of the distribution (meanXst be > 0)
+    INPUTS:
+        meanX : float or array_like, shape (n,)
+            Mean(s) of the distribution
+        sdvnX : float or array_like, shape (n,)
+            Standard deviation(s) of the distribution (must be > 0)
         N : int
-            number of observations of each of the n random variables 
-        R : float (n,n) - optional
-            correlation matrix
-        seed : int ( seed >= 0 )
-            seed for numpy.random.default_rng
+            Number of observations per random variable
+        R : ndarray, shape (n, n), optional
+            Correlation matrix for generating correlated samples.
+            If None, generates uncorrelated samples.
+        seed : int, optional
+            Random seed for reproducibility
 
-    Output:
-        X : ndarray
-            Array of normal random samples with shape `size`
+    OUTPUTS:
+        X : ndarray, shape (n, N) or shape (N,) if n=1
+            Array of normal random samples.
+            Each row corresponds to one random variable.
+            Each column corresponds to one sample.
 
-    Reference:
+    Notes
+    -----
+    Uses eigenvalue decomposition of correlation matrix to generate 
+    correlated standard normal variates, then transforms to desired
+    mean and standard deviation.
+
+    Reference
+    ---------
     https://en.wikipedia.org/wiki/Normal_distribution
-    '''
+    """
 
-    _, meanX, sdvnX, n = _ppp_(0, meanX, sdvnX) # Correlated standard normal variables (n,N)
+    _, meanX, sdvnX, n = _ppp_(0, meanX, sdvnX)
 
-    _, Y, _ = correlated_rvs( R, n, N, seed )
+    # Correlated standard normal variables (n,N)
+    _, Y, _ = correlated_rvs(R, n, N, seed)
 
     X = meanX + sdvnX*Y
 

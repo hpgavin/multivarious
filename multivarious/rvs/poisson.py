@@ -7,7 +7,7 @@ def _ppp_(k, t, T):
     '''
     Validate and preprocess input parameters for consistency and correctness."
 
-    Parameters:
+    INPUTS:
         k : array_like or scalar
             Number of observed events (integer ≥ 0)
         t : scalar float positive valued
@@ -35,7 +35,7 @@ def pmf(k, t, T):
 
     Computes the Probability Mass Function (PMF) of the Poisson distribution.
 
-    Parameters:
+    INPUTS:
         k : array_like or scalar
             Number of observed events (integer ≥ 0)
         t : scalar float positive valued
@@ -77,7 +77,7 @@ def cdf(k, t, T):
 
     Computes the Cumulative Distribution Function (CDF) of the Poisson distribution.
 
-    Parameters:
+    INPUTS:
         k : array_like or scalar
             Number of observed events (integer ≥ 0)
         t : scalar float positive valued
@@ -121,7 +121,7 @@ def rnd(t, T, N, R=None, seed=None):
     Generate N samples of n correlated Poisson counts 
     Correlation is applied across the n processes at each iteration and shared for all N samples.
     
-    Parameters:
+    INPUTS:
         t : scalar or array-like shape (n,)
             Duration of observation for each process
         T : scalar or array-like shape (n,)
@@ -133,7 +133,7 @@ def rnd(t, T, N, R=None, seed=None):
         seed : int or None
             Random number generator seed
     
-    Returns:
+    OUTPUTS:
         X : ndarray shape (n, N)
             Poisson counts for each of n processes and each of N samples
   

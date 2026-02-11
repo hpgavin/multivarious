@@ -10,7 +10,7 @@ def _ppp_(x, m, s, k):
     '''
     Validate and preprocess input parameters for consistency and correctness.
 
-    Parameters:
+    INPUTS:
         x : array_like
             Evaluation points
         a : float
@@ -45,10 +45,10 @@ def pdf(x, m, s, k):
     gev.pdf
 
     Compute the PDF of the generalized extreme value distribution.
-    Parameters:
+    INPUTS:
         x     : scalar or array-like
         param : list or array-like of [m, s, k]
-    Returns:
+    OUTPUTS:
         f     : same shape as x, PDF values
     '''
 
@@ -68,10 +68,10 @@ def cdf(x, params):
     gev.cdf 
 
     Compute the CDF of the generalized extreme value distribution.
-    Parameters:
+    INPUTS:
         x      : scalar or array-like
         params : array-like [m, s, k]
-    Returns:
+    OUTPUTS:
         F      : same shape as x, CDF values
     '''
     m, s, k = params
@@ -91,10 +91,10 @@ def inv(p, m, s, k):
     gev.inv
 
     Compute the inverse CDF (quantile function) of the GEV distribution.
-    Parameters:
+    INPUTS:
         p     : scalar or array-like in (0,1)
         param : list or array-like of [m, s, k]
-    Returns:
+    OUTPUTS:
         x     : same shape as p, quantiles
     '''
 
@@ -111,14 +111,14 @@ def rnd(m, s, k, N, R=None, seed=None):
 
     Generate random samples from the GEV distribution.
     
-    Parameters:
+    INPUTS:
         m     : float (n,)
         s     : float (n,)
         k     : float (n,)
         N     : int 
                 Number of observations of the gev distribution
         R     : float (n,n) correlation matrix
-    Returns:
+    OUTPUTS:
         X : ndarray of GEV samples
     '''
     _, m, s, k, n = _ppp_(0, m, s, k) 
