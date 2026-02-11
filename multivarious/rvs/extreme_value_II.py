@@ -29,10 +29,11 @@ def _ppp_(x, m, s, k):
     # Python does not implicitly handle scalars as arrays. 
     x = np.atleast_1d(x).astype(float)
 
-    m = np.atleast_2d(m).reshape(-1,1).astype(float)
-    s = np.atleast_2d(s).reshape(-1,1).astype(float)
+    m = np.atleast_1d(m).reshape(-1,1).astype(float)
+    s = np.atleast_1d(s).reshape(-1,1).astype(float)
     k = np.atleast_1d(k).astype(float)
     n = len(m)   
+    N = len(x)   
         
     # Validate parameter dimensions 
     if not (len(m) == n and len(s) == n and len(k) == n):
@@ -47,7 +48,7 @@ def _ppp_(x, m, s, k):
     if np.any(k <= 0):
         raise ValueError("extreme_value_II: k must be > 0")
 
-    return x, m, s, k, n
+    return x, m, s, k, n, N
 
 
 def pdf(x, m, s, k):
@@ -71,15 +72,14 @@ def pdf(x, m, s, k):
             PDF values at each point in x
     '''
 
-    x, m, s, k, n = _ppp_(x, m, s, k)
+    x, m, s, k, n, N = _ppp_(x, m, s, k)
     
-    # Initialize PDF as zeros
-    f = np.zeros_like(x)
+    f = np.zeros((n,N))  # Initialize PDF as zeros
     
-    # Only compute for x > m
-    valid = x > m
-    z = (x[valid] - m) / s
-    f[valid] = (k / s) * z**(-1 - k) * np.exp(-z**(-k))
+    for i in range(n): 
+        mask = x > m[i]  # Compute only for x > m
+        z = (x[mask] - m[i]) / s[i]
+        f[i,mask] = (k[i] / s[i]) * z**(-1 - k[i]) * np.exp(-z**(-k[i]))
     
     return f
 
@@ -107,15 +107,15 @@ def cdf(x, params ):
     '''
     m, s, k = params
 
-    x, m, s, k, n = _ppp_(x, m, s, k)
+    x, m, s, k, n, N = _ppp_(x, m, s, k)
 
-    # Initialize CDF as zeros
-    F = np.zeros_like(x)
+    F = np.zeros((n,N))  # Initialize PDF as zeros
     
     # Only compute for x > m
-    valid = x > m
-    z = (x[valid] - m) / s
-    F[valid] = np.exp(-z**(-k))
+    for i in range(n): 
+        mask = x > m[i]  # Compute only for x > m
+        z = (x[mask] - m) / s
+        F[i,mask] = np.exp(-z**(-k[i]))
     
     return F
 
@@ -141,7 +141,7 @@ def inv(P, m, s, k):
             Quantile values corresponding to probabilities P
     '''
 
-    _, m, s, k, n = _ppp_(0, m, s, k)
+    _, m, s, k, n, _ = _ppp_(0, m, s, k)
 
     P = np.asarray(P, dtype=float)
     
@@ -177,7 +177,7 @@ def rnd(m, s, k, N, R=None, seed=None):
         X : ndarray
             Shape (n, N) array of random samples
     '''
-    _, m, s, k, n = _ppp_(0, m, s, k)
+    _, m, s, k, n, _ = _ppp_(0, m, s, k)
 
     _, _, U = correlated_rvs(R, n, N, seed)
 

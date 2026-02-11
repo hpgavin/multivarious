@@ -25,7 +25,7 @@ def _ppp_(x, meanX):
     # Convert inputs to arrays
     # Python does not implicitly handle scalars as arrays. 
     x = np.atleast_1d(x).astype(float)
-    meanX = np.atleast_2d(meanX).reshape(-1,1).astype(float)
+    meanX = np.atleast_1d(meanX).reshape(-1,1).astype(float)
     n = len(meanX)   
         
     # Validate parameter values 

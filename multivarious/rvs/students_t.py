@@ -26,7 +26,7 @@ def _ppp_(t, k):
     # Convert inputs to arrays
     # Python does not implicitly handle scalars as arrays. 
     t = np.atleast_1d(t).astype(float)
-    k = np.atleast_2d(k).reshape(-1,1).astype(int)
+    k = np.atleast_1d(k).reshape(-1,1).astype(int)
     n = len(k)   
         
    # Validate parameter values 

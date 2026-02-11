@@ -21,10 +21,10 @@ def _ppp_(x, a, b, q, p ):
     # Python does not implicitly handle scalars as arrays. 
     x = np.atleast_1d(x).astype(float)
 
-    a = np.atleast_2d(a).reshape(-1,1).astype(float)
-    b = np.atleast_2d(b).reshape(-1,1).astype(float)
-    q = np.atleast_1d(q).astype(float)
-    p = np.atleast_1d(p).astype(float)
+    a = np.atleast_1d(a).reshape(-1,1).astype(float)
+    b = np.atleast_1d(b).reshape(-1,1).astype(float)
+    q = np.atleast_1d(q).reshape(-1,1).astype(float)
+    p = np.atleast_1d(p).reshape(-1,1).astype(float)
     n = len(a)   
         
     # Validate parameter dimensions 

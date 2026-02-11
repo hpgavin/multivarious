@@ -23,6 +23,7 @@ def _ppp_(x, a, b):
     a = np.atleast_1d(a).astype(float)
     b = np.atleast_1d(b).astype(float)
     n = len(a)   
+    N = len(x)   
         
     # Validate parameter dimensions 
     if not (len(a) == n and len(b) == n):
@@ -32,7 +33,7 @@ def _ppp_(x, a, b):
     if np.any(b <= a):
         raise ValueError("quadratic: all b values must be greater than corresponding a values")
 
-    return x, a, b, n
+    return x, a, b, n, N
 
 
 def pdf(x, a, b):
@@ -57,13 +58,13 @@ def pdf(x, a, b):
     Quadratic distribution with PDF: f(x) = 6(x-a)(x-b)/(a-b)^3 for a < x < b
     """
 
-    x, a, b, _ = _ppp_(x, a, b)
+    x, a, b, n, N = _ppp_(x, a, b)
 
-    f = np.zeros_like(x, dtype=float)
+    f = np.zeros((n,N))
     
-    # PDF is nonzero only in (a, b)
-    mask = (a < x) & (x < b)
-    f[mask] = 6 * (x[mask] - a) * (x[mask] - b) / (a - b)**3
+    for i in range(n):
+        mask = (a[i] < x) & (x < b[i]) # PDF is nonzero only in (a, b)
+        f[i,mask] = 6 * (x[mask] - a[i]) * (x[mask] - b[i]) / (a[i] - b[i])**3
     
     return f
 
@@ -92,9 +93,9 @@ def cdf(x, params):
     """
     a, b = params 
 
-    x, a, b, _ = _ppp_(x, a, b)
+    x, a, b, n, N = _ppp_(x, a, b)
 
-    F = np.zeros_like(x, dtype=float)
+    F = np.zeros((n,N))
     
     # CDF = 1 for x >= b
     F[x >= b] = 1.0
@@ -126,7 +127,7 @@ def inv(u, a, b):
             Quantile values corresponding to probabilities u
     """
 
-    _, a, b, _ = _ppp_(0, a, b)
+    _, a, b, _, _ = _ppp_(0, a, b)
 
     a = a[0] # scalar
     b = b[0] # scalar
@@ -181,7 +182,7 @@ def rnd(a, b, N, R=None, seed=None):
             Random samples from the quadratic distribution
     """
 
-    _, a, b, n = _ppp_(0, a, b)
+    _, a, b, n, _ = _ppp_(0, a, b)
 
     _, _, U = correlated_rvs( R, n, N, seed )
 

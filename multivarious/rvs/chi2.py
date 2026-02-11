@@ -6,6 +6,7 @@ from scipy.stats import norm as scipy_normal
 
 from multivarious.utl.correlated_rvs import correlated_rvs
 
+
 def _ppp_(x, k):
     '''
     Validate and preprocess input parameters for consistency and correctness.
@@ -26,7 +27,7 @@ def _ppp_(x, k):
     # Convert inputs to arrays
     # Python does not implicitly handle scalars as arrays. 
     x = np.atleast_1d(x).astype(float)
-    k = np.atleast_2d(k).reshape(-1,1).astype(float)
+    k = np.atleast_1d(k).reshape(-1,1).astype(float)
     n = len(k)   
         
     # Validate parameter values 
@@ -50,7 +51,7 @@ def pdf(x, k):
     INPUTS:
       x : array-like
           Points to evaluate the PDF
-      k : float
+      k : float or array-like
           Degrees of freedom (must be positive)
 
     OUTPUT:

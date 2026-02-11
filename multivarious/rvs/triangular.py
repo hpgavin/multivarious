@@ -25,6 +25,7 @@ def _ppp_(x, a, b, c):
     b = np.atleast_1d(b).astype(float)
     c = np.atleast_1d(c).astype(float)
     n = len(a)   
+    N = len(x)
 
     # Validate parameter dimensions 
     if not ( len(a) == n and len(b) == n and len(c) == n ):
@@ -42,7 +43,7 @@ def _ppp_(x, a, b, c):
         raise ValueError(f"triangular: a must be less than c"
                          f"Got: len(a) = {len(a)}, len(c) = {len(c)}") 
 
-    return x, a, b, c, n
+    return x, a, b, c, n, N
 
 
 def pdf(x, a, b, c):
@@ -68,20 +69,20 @@ def pdf(x, a, b, c):
     Reference:   http://en.wikipedia.org/wiki/Triangular_distribution
     '''
 
-    x, a, b, c, n = _ppp_(x, a, b, c)
+    x, a, b, c, n, N = _ppp_(x, a, b, c)
 
-    pdf = np.zeros_like(x, dtype=float)
+    f = np.zeros((n,N))
 
-    # Left side of peak (pdf piecewise formula)
-    left = (a <= x) & (x < c)
-    pdf[left] = 2 * (x[left] - a) / ((b - a) * (c - a))
+    for i in range(n):
+        # Left side of peak (pdf piecewise formula)
+        left = (a[i] <= x) & (x < c[i])
+        f[i,left] = 2 * (x[left] - a[i]) / ((b[i] - a[i]) * (c[i] - a[i]))
 
-    # Right side of peak (pdf piecewise formula)
-    right = (c <= x) & (x <= b)
-    pdf[right] = 2 * (b - x[right]) / ((b - a) * (b - c))
+        # Right side of peak (pdf piecewise formula)
+        right = (c[i] <= x) & (x <= b[i])
+        f[i,right] = 2 * (b[i] - x[right]) / ((b[i] - a[i]) * (b[i] - c[i]))
 
-    # Outside [a, b] => already zero
-    return pdf
+    return f  # Outside [a, b] => already zero
 
 
 def cdf(x, params):
@@ -112,7 +113,7 @@ def cdf(x, params):
 
     a, b, c = params
 
-    x, a, b, c, n = _ppp_(x, a, b, c)
+    x, a, b, c, n, N = _ppp_(x, a, b, c)
 
     cdf = np.zeros_like(x, dtype=float)
 
@@ -153,7 +154,7 @@ def inv(p, a, b, c):
     http://en.wikipedia.org/wiki/Triangular_distribution
     '''
 
-    _, a, b, c, n = _ppp_(0, a, b, c)
+    _, a, b, c, n, _ = _ppp_(0, a, b, c)
 
     p = np.clip(p, np.finfo(float).eps, 1 - np.finfo(float).eps)
     
@@ -197,7 +198,7 @@ def rnd(a, b, c, N, R=None, seed=None ):
     http://en.wikipedia.org/wiki/Triangular_distribution
     '''
 
-    _, a, b, c, n = _ppp_(0, a, b, c)
+    _, a, b, c, n, _ = _ppp_(0, a, b, c)
 
     # Convert inputs to arrays
     # Python does not implicitly handle scalars as arrays. 

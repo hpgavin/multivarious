@@ -33,6 +33,7 @@ def _ppp_(x, a, b, q, p ):
     q = np.atleast_1d(q).astype(float)
     p = np.atleast_1d(p).astype(float)
     n = len(a)   
+    N = len(x)
 
     # Validate parameter dimensions 
     if not (len(b) == n and len(q) == n and len(p) == n):
@@ -47,7 +48,7 @@ def _ppp_(x, a, b, q, p ):
     if np.any(p <= 0):
         raise ValueError("beta.rnd: p must be positive")
 
-    return x, a, b, q, p, n
+    return x, a, b, q, p, n, N
 
 
 def pdf(x, a, b, q, p):
@@ -74,18 +75,20 @@ def pdf(x, a, b, q, p):
             PDF evaluated at x
     '''
 
-    x, a, b, q, p, n = _ppp_(x, a, b, q, p)
+    x, a, b, q, p, n, N = _ppp_(x, a, b, q, p)
 
     # Initialize PDF output as zeros
-    f = np.zeros_like(x)
+    f = np.zeros((n,N))
 
     # Only compute for values within [a, b]
-    valid = (x >= a) & (x <= b)
     
     # Beta PDF formula (with change of variable from [0,1] to [a,b])
-    numerator = (x[valid] - a) ** (q - 1) * (b - x[valid]) ** (p - 1)
-    denominator = beta_func(q, p) * (b - a) ** (q + p - 1)
-    f[valid] = numerator / denominator
+
+    for i in range(n): 
+        mask = (x >= a[i]) & (x <= b[i])
+        numerator = (x[mask] - a[i])**(q[i] - 1) * (b[i] - x[mask])**(p[i]-1)
+        denominator = beta_func(q[i], p[i]) * (b[i] - a[i])**(q[i] + p[i] - 1)
+        f[i,mask] = numerator / denominator
 
     return f
 
@@ -120,7 +123,7 @@ def cdf(x, params ):
 
     a, b, q, p = params
 
-    x, a, b, q, p, n = _ppp_(x, a, b, q, p)
+    x, a, b, q, p, n, N = _ppp_(x, a, b, q, p)
 
     # Compute z = (x - a) / (b - a), clipped to [0, 1]
     z = (x - a) / (b - a)
@@ -154,7 +157,7 @@ def inv(F, a, b, q, p):
     x : ndarray
         Quantile values corresponding to input probabilities F
     '''
-    _, a, b, q, p, n = _ppp_(0, a, b, q, p)
+    _, a, b, q, p, n, _ = _ppp_(0, a, b, q, p)
 
     F = np.asarray(F, dtype=float)
     
@@ -217,7 +220,7 @@ def rnd(a, b, q, p, N, R=None, seed=None):
             x = rnd(a, b, q, p, N=1000, R=R)
     '''
     
-    _, a, b, q, p, n = _ppp_(0, a, b, q, p)
+    _, a, b, q, p, n, _ = _ppp_(0, a, b, q, p)
    
     _, _, U = correlated_rvs(R,n,N,seed)
 

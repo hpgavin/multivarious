@@ -4,49 +4,42 @@ from scipy.special import factorial
 from multivarious.utl.correlated_rvs import correlated_rvs
 
 
-
-def _ppp_(p, n, m ):
+def _ppp_(n, m, p):
     '''
     Validate and preprocess input parameters for consistency and correctness.
 
     Parameters:
-        x : array_like
-            Evaluation points
-        a : float
-            Minimum of the distribution
-        b : float
-            Maximum of the distribution (must be > a)
-        q : float
-            First shape parameter
-        p : float
-            Second shape parameter
+        n : number of successful outcomes (N,)
+        m : int scalar or array_like (n,)
+            number of attempts 
+        p : float scalar or array_like (n,)
+            event probabilities of a single attempt for each variable
     '''
 
     # Convert inputs to arrays
     # Python does not implicitly handle scalars as arrays. 
-    p = np.atleast_1d(p).astype(float)
-    n = np.atleast_1d(np.round(n)).astype(int)  # Ensure n is integer-valued
-    m = np.atleast_1d(np.round(m)).astype(int)  # Ensure m is integer-valued scalar
-    lp = len(p)   
+    p = np.atleast_1d(p).reshape(-1,1).astype(float)
+    n = np.atleast_1d(np.round(n)).reshape(-1,1).astype(int)  # n is int
+    m = np.atleast_1d(np.round(m)).reshape(-1,1).astype(int)  # m is int
+    nb = len(p)   
+    Nb = len(n)
     
     n = np.where(n < 0, 0, n)  # clip negative values to 0
 
     # Check parameter validity
     if np.any(p <= 0) or np.any(np.isinf(p)) or np.any( p >= 1):
-        raise ValueError(" binomial.rnd(p,N): p must be between zero and one") 
+        raise ValueError(" binomial: p must be between zero and one") 
 
-    if not ( (len(m) == 1) ):
-        raise ValueError(f"n and m arrays must have the same length as p. "
-                         f"Got p:{len(p)}, n:{len(n)}, m:{len(m)}")
+    if not ( len(m) == nb ):
+        raise ValueError(f" m array must have the same length as p. "
+                         f"Got m:{len(m)}, p:{len(p)}")
 
-    if np.any(p <= 0):
-        raise ValueError("binomial: p must be positive")
-    if np.any(m < 0):
-        raise ValueError("binomial: m must be positive")
-    if np.any(n < 0):
-        raise ValueError("binomial: n must be positive")
+    # n, m, p must be non-negative
+    n[ n < 0 ] = 0   
+    m[ m < 0 ] = 0
+    p[ p < 0 ] = 0.0
 
-    return p, n, m, lp
+    return n, m, p, nb, Nb
 
 
 def pmf(n, m, p):
@@ -56,15 +49,14 @@ def pmf(n, m, p):
     Computes the Probability Mass Function (PMF) of the Binomial distribution.
 
     Parameters:
-        n : array_like or scalar int
-            Number of observed events (integer ≥ 0)
-        m : scalar int
-            the number of attempts (integer ≥ 0)
-        p : scalar float positive valued
-            probability of the occurance of an event in one attempt
+        n : number of successful outcomes (N,)
+        m : int scalar or array_like (n,)
+            number of attempts 
+        p : float scalar or array_like (n,)
+            event probabilities of a single attempt for each variable
 
     Output:
-        p : ndarray
+        p : ndarray (n,N)
             Probability of observing n events out of m attempts
 
     Reference:
@@ -79,11 +71,17 @@ def pmf(n, m, p):
         * p = expected number of events in one attempt.
     '''
 
-    p, n, m, _ =  _ppp_( p, n, m )
+    n, m, p, nb, Nb =  _ppp_( n, m, p )
 
-    p = factorial(m) / (factorial(n) * factorial(m-n)) * p**n * (1-p)**(m-n)
+    P = np.zeros((nb,Nb))
 
-    return p
+    for i in range(nb): 
+        ni = np.arange(m[i]) # can not have more successes than attempts!
+        facts = factorial(m[i]) / (factorial(ni) * factorial(m[i]-ni))
+        facts = facts.flatten()
+        P[i,ni] = facts * ( p[i]**ni * (1-p[i])**(m[i]-ni) ).flatten()
+
+    return P
 
 
 def cdf(n, m, p):
@@ -93,24 +91,22 @@ def cdf(n, m, p):
     Computes the Cumulative Distribution Function (CDF) of the Binomial distribution.
 
     Parameters:
-        n : array_like or scalar
-            Number of observed events (integer ≥ 0)
-        m : float
-            Number of attempts for the occurance of the event (integer ≥ 0)
-        p : scalar float positive valued
-            probability of the occurance of an event in one attempt
-
+        n : number of successful outcomes (Nb,)
+        m : int scalar or array_like (nb,)
+            number of attempts 
+        p : float scalar or array_like (nb,)
+            event probabilities of a single attempt for each variable
     Output:
-        F : ndarray or float
+        F : ndarray or float (nb,Nb)
             Cumulative probability P(N ≤ n)
 
     Reference:
     https://en.wikipedia.org/wiki/Binomial_distribution
     '''
 
-    p, n, m, _ =  _ppp_(p, n, m )
+    n, m, p, nb, Nb =  _ppp_( n, m, p )
 
-    F = np.empty_like(n, dtype=float)      # Initialize result array
+    F = np.zeros((nb,Nb))
 
     for i, ni in enumerate(n):
         ns = np.arange(0, ni + 1)          # k = 0 to n
@@ -124,10 +120,10 @@ def rnd(m, p, N, R=None, seed=None):
     Generate N samples of n correlated Binomial(m, p) variables with correlation matrix R.
     
     Parameters:
-        m : int
-            Number of Bernoulli trials per Binomial variable
-        p : float or array-like shape (n,)
-            Probability of success per trial for each variable
+        m : int scalar or array_like (n,)
+            number of attempts 
+        p : float scalar or array_like (n,)
+            event probabilities of a single attempt for each variable
         N : int
             Number of samples to generate
         R : ndarray shape (n, n)
@@ -145,18 +141,14 @@ def rnd(m, p, N, R=None, seed=None):
     https://en.wikipedia.org/wiki/Binomial_distribution#Generating_Binomial-distributed_random_variables
      '''
 
-    # Convert inputs to arrays
-    # Python does not implicitly handle scalars as arrays. 
-    p = np.atleast_2d(p).reshape(-1,1).astype(float)
-
-    p, _, m, n =  _ppp_(p, 0, m )
+    _, m, p, nb, _ =  _ppp_( 0, m, p )
 
     if N == None or N < 1:
         raise ValueError(" binomial.rnd(p,N): N must be greater than zero")
     
     rng = np.random.default_rng(seed)
 
-    X = np.zeros((n, N), dtype=int)
+    X = np.zeros((nb, N), dtype=int)
     
     for trial in range(m[0]):
         # Generate correlated uniforms for this sample

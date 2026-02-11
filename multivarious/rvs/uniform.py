@@ -21,9 +21,10 @@ def _ppp_(x, a, b):
     # Convert inputs to arrays
     # Python does not implicitly handle scalars as arrays. 
     x = np.atleast_1d(x).astype(float)
-    a = np.atleast_2d(a).reshape(-1,1).astype(float)
-    b = np.atleast_2d(b).reshape(-1,1).astype(float)
+    a = np.atleast_1d(a).reshape(-1,1).astype(float)
+    b = np.atleast_1d(b).reshape(-1,1).astype(float)
     n = len(a)   
+    N = len(x)
         
     # Validate parameter dimensions 
     if not (len(a) == n and len(b)):
@@ -34,7 +35,7 @@ def _ppp_(x, a, b):
     if np.any(b <= a):
         raise ValueError("uniform: all b values must be greater than corresponding a values")
 
-    return x, a, b, n
+    return x, a, b, n, N
 
 
 def pdf(x, a, b):
@@ -53,17 +54,18 @@ def pdf(x, a, b):
               PDF values at each point in x
     '''
 
-    x, a, b, n = _ppp_(x, a, b)
+    x, a, b, n, N = _ppp_(x, a, b)
     
-    f = np.zeros_like(x)
-    valid = (x >= a) & (x <= b)
-    f[valid] = 1.0 / (b - a)
+    f = np.zeros((n,N))
+
+    for i in range(n): 
+        mask = (x >= a[i]) & (x <= b[i])
+        f[i,mask] = 1.0 / (b[i] - a[i])
     
     return f
 
 
 def cdf(x, params ):
-    x, a, b, n = _ppp_(x, a, b)
     '''
     uniform.cdf
 
@@ -81,9 +83,13 @@ def cdf(x, params ):
     '''
     a, b = params
     
-    x, a, b, n = _ppp_(x, a, b)
+    x, a, b, n, N = _ppp_(x, a, b)
     
-    F = np.clip((x - a) / (b - a), 0, 1)
+    F = np.zeros((n,N))
+
+    for i in range(n): 
+        mask = (x >= a[i]) & (x <= b[i])
+        F[i,mask] = (x[mask] - a[i]) / (b[i] - a[i])
     
     return F
 
@@ -102,7 +108,7 @@ def inv(F, a, b):
         x = ndarray
             Quantile values corresponding to probabilities F
     '''
-    _, a, b, n = _ppp_(0, a, b)
+    _, a, b, n, _ = _ppp_(0, a, b)
 
     F = np.asarray(F, dtype=float)
     
@@ -136,7 +142,7 @@ def rnd(a, b, N, R=None, seed=None ):
     # Determine number of random variables
     # Validate that all parameter arrays have the same length
 
-    _, a, b, n = _ppp_(0, a, b)
+    _, a, b, n, _ = _ppp_(0, a, b)
 
     # Generate correlated [0,1]
     _, _, U = correlated_rvs( R, n, N, seed )

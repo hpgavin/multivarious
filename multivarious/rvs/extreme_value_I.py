@@ -25,8 +25,8 @@ def _ppp_(x, meanX, covnX):
     x = np.atleast_1d(x).astype(float)
 
 
-    meanX = np.atleast_2d(meanX).reshape(-1,1).astype(float)
-    covnX = np.atleast_2d(covnX).reshape(-1,1).astype(float)
+    meanX = np.atleast_1d(meanX).reshape(-1,1).astype(float)
+    covnX = np.atleast_1d(covnX).reshape(-1,1).astype(float)
     n = len(meanX)   
         
     # Validate parameter dimensions 

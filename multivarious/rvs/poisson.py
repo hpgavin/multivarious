@@ -66,7 +66,7 @@ def pmf(k, t, T):
 
 #   p = (r ** n) / factorial(n) * np.exp(-r) # more round-off error
 
-    p = exp( k * log(r) - r - gammaln(k+1) ) # less round-off error
+    p = np.exp( k * np.log(r) - r - gammaln(k+1) ) # less round-off error
 
     return p
 

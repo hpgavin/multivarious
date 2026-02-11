@@ -27,8 +27,8 @@ def _ppp_(x, mednX, covnX):
     # Python does not implicitly handle scalars as arrays. 
     x = np.atleast_1d(x).astype(float)
 
-    mednX = np.atleast_2d(mednX).reshape(-1,1).astype(float)
-    covnX = np.atleast_2d(covnX).reshape(-1,1).astype(float)
+    mednX = np.atleast_1d(mednX).reshape(-1,1).astype(float)
+    covnX = np.atleast_1d(covnX).reshape(-1,1).astype(float)
     n = len(mednX)   
         
     # Validate parameter dimensions 

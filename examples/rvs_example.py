@@ -3,9 +3,12 @@
 import numpy as np
 import matplotlib.pyplot as plt
 
-from multivarious.rvs import *           # import all the distributions
+from multivarious.rvs import *  # import all the rvs distributions
 
 from multivarious.utl import format_plot
+
+format_plot( font_size=16, line_width=2, marker_size=4 )
+plt.ion() # interactive plot mode: on
 
 # --- Parameters ---
 n = 3       # number of variables
@@ -32,11 +35,14 @@ m = meanX
 s = stdvX
 T = meanX
 t = 1
-mb = 10 # bernoulli trials 
-pb = [ 0.3, 0.4, 0.7 ] # bernoulli probabilities 
+mb = [ 10,   5,  12 ]   # Bernoulli attempts (integers)
+pb = [  0.3, 0.4, 0.7 ] # Bernoulli probabilities 
+nb = np.arange(np.max(mb)+1) # Bernoulli successes (integers) 
 
 print("meanX:\n", meanX)
 print("stdvX:\n", stdvX)
+
+x = np.linspace(0.1*np.min(meanX), 3*np.max(meanX), 100 )
 
 # Correlation matrix R
 R = np.array([[1,   -0.5, -0.8],
@@ -45,25 +51,79 @@ R = np.array([[1,   -0.5, -0.8],
 
 print("Correlation matrix R:\n", R)
 
-# --- Generate sample of correlated random variables ---
+# --- PDFs ---
 
-#X = beta.rnd( a, b, q, p, N, R )
+#fx = beta.pdf( x, a, b, q, p )
+#pn = binomial.pmf( nb, mb, pb )
+#fx = chi2.pdf( x, k )
+#fx = exponential.pdf( x, meanX )
+#fx = extreme_value_I.pdf( x, meanX, covnX )
+#fx = extreme_value_II.pdf( x, m, s, k )
+#fx = gamma.pdf( x, meanX, covnX )
+#fx = gev.pdf( x, m, s, k )
+#fx = laplace.pdf( x, meanX, stdvX )
+#fx = lognormal.pdf( x, mednX, covnX )
+#fx = normal.pdf( x, meanX, stdvX )
+#pn = poisson.pmf(nb, t, T ) 
+#fx = quadratic.pdf( x, a, b ) 
+#fx = rayleigh.pdf( x, meanX )
+#fx = students_t.pdf( x, k )
+#fx = triangular.pdf( x, a, b, c )
+fx = uniform.pdf( x, a, b )
+
+
+plt.plot(x,fx.T) 
+plt.xlabel(r'$x$') 
+plt.ylabel(r'PDF $f_X(x)$') 
+plt.tight_layout()
+
+"""
+plt.plot(nb,pn.T) # binomial and poisson
+plt.xlabel(r'$n$') # binomial and poisson
+plt.ylabel(r'PMF $p_N(n)$') # binomial and poisson
+plt.tight_layout()
+"""
+
+"""
+# --- CDFs ---
+
+Fx = beta.cdf( x, x, a, b, q, p )
+FX = binomial.cdf( nb, mb, pb )
+Fx = chi2.cdf( x, k )
+Fx = exponential.cdf( x, meanX )
+Fx = extreme_value_I.cdf( x, meanX, covnX )
+Fx = extreme_value_II.cdf( x, m, s, k )
+Fx = gamma.cdf( x, meanX, covnX )
+Fx = gev.cdf( x, m, s, k )  
+Fx = laplace.cdf( x, meanX, stdvX )
+Fx = lognormal.cdf( x, mednX, covnX )
+Fx = normal.cdf( x, meanX, stdvX )
+Fx = poisson.cdf(t, T ) 
+Fx = quadratic.cdf( x, a, b ) 
+Fx = rayleigh.cdf( x, meanX )
+Fx = students_t.cdf( x, k )
+Fx = triangular.cdf( x, a, b, c )
+Fx = uniform.cdf( x, a, b )
+
+# --- Samples of correlated random variables ---
+
+X = beta.rnd( a, b, q, p, N, R )
 X = binomial.rnd( mb, pb, N, R )
-#X = chi2.rnd( k, N, R )
-#X = exponential.rnd( meanX, N, R )
-#X = extreme_value_I.rnd( meanX, covnX, N, R )
-#X = extreme_value_II.rnd( m, s, k, N, R )
-#X = gamma.rnd( meanX, covnX, N, R )
-#X = gev.rnd( m, s, k, N, R )  # ??
-#X = laplace.rnd( meanX, stdvX, N, R )
-#X = lognormal.rnd( mednX, covnX, N, R )
-#X = normal.rnd( meanX, stdvX, N, R )
-#X = poisson.rnd(t, T, N, R ) # !!
-#X = quadratic.rnd( a, b, N, R ) 
-#X = rayleigh.rnd( meanX, N, R )
-#X = students_t.rnd( k, N, R )
-#X = triangular.rnd( a, b, c, N, R )
-#X = uniform.rnd( a, b, N, R )
+X = chi2.rnd( k, N, R )
+X = exponential.rnd( meanX, N, R )
+X = extreme_value_I.rnd( meanX, covnX, N, R )
+X = extreme_value_II.rnd( m, s, k, N, R )
+X = gamma.rnd( meanX, covnX, N, R )
+X = gev.rnd( m, s, k, N, R )  # ??
+X = laplace.rnd( meanX, stdvX, N, R )
+X = lognormal.rnd( mednX, covnX, N, R )
+X = normal.rnd( meanX, stdvX, N, R )
+X = poisson.rnd(t, T, N, R ) 
+X = quadratic.rnd( a, b, N, R ) 
+X = rayleigh.rnd( meanX, N, R )
+X = students_t.rnd( k, N, R )
+X = triangular.rnd( a, b, c, N, R )
+X = uniform.rnd( a, b, N, R )
 
 #X = np.log10(X)  # for lognormal, chi2 rv's 
 
@@ -93,9 +153,6 @@ print("Estimated correlation of Z:\n", np.corrcoef(Z))
 #print("Estimated correlation log10(X):\n", np.corrcoef(log10X))
 
 # --- Plots ---
-
-format_plot( font_size=16, line_width=2, marker_size=4 )
-plt.ion() # interactive plot mode: on
 
 # Figure 1: histogram of correlated random variables
 plt.figure(1, figsize=(8, 6))
@@ -135,6 +192,7 @@ for ii in range(n):
         if ii == n-1:
             plt.xlabel(rf'$Z_{jj+1}$')
 plt.tight_layout()
+"""
 
 """
 # Figure 4: histogram of log-transformed log-normal correlated random variables

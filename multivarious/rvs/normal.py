@@ -20,10 +20,10 @@ def _ppp_(x, meanX, sdvnX):
 
     # Convert inputs to arrays
     # Python does not implicitly handle scalars as arrays. 
-    x = np.atleast_1d(x).astype(float)
+    x = np.atleast_1d(x).reshape(1,-1).astype(float)
 
-    meanX = np.atleast_2d(meanX).reshape(-1,1).astype(float)
-    sdvnX = np.atleast_2d(sdvnX).reshape(-1,1).astype(float)
+    meanX = np.atleast_1d(meanX).reshape(-1,1).astype(float)
+    sdvnX = np.atleast_1d(sdvnX).reshape(-1,1).astype(float)
     n = len(meanX)   
         
     # Validate parameter dimensions 
@@ -60,7 +60,7 @@ def pdf(x, meanX=0.0, sdvnX=1.0):
     https://en.wikipedia.org/wiki/Normal_distribution
     '''
  
-    x, meanX, covnX = _ppp_(x, meanX, covnX)
+    x, meanX, sdvnX, _ = _ppp_(x, meanX, sdvnX)
 
     z = (x - meanX) / sdvnX
 
@@ -94,7 +94,7 @@ def cdf(x, params ):
 
     meanX, sdvnX = params 
 
-    _, meanX, covnX = _ppp_(0, meanX, covnX)
+    _, meanX, sdvnX, _ = _ppp_(0, meanX, sdvnX)
 
     z = (x - meanX) / sdvnX
 
@@ -125,7 +125,7 @@ def inv(p, meanX=0.0, sdvnX=1.0):
     https://en.wikipedia.org/wiki/Normal_distribution
     '''
 
-    x, meanX, covnX = _ppp_(x, meanX, covnX)
+    x, meanX, sdvnX, _ = _ppp_(x, meanX, sdvnX)
 
     # Clip probabilities to avoid erfinv(±1) = ±∞
     my_eps = 1e-12     # small, not zero

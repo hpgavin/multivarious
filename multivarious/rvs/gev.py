@@ -27,9 +27,9 @@ def _ppp_(x, m, s, k):
     # Python does not implicitly handle scalars as arrays. 
     x = np.atleast_1d(x).astype(float)
 
-    m = np.atleast_2d(m).reshape(-1,1).astype(float)
-    s = np.atleast_2d(s).reshape(-1,1).astype(float)
-    k = np.atleast_1d(k).astype(float)
+    m = np.atleast_1d(m).reshape(-1,1).astype(float)
+    s = np.atleast_1d(s).reshape(-1,1).astype(float)
+    k = np.atleast_1d(k).reshape(-1,1).astype(float)
     n = len(m)   
         
     # Validate parameter dimensions 
@@ -57,6 +57,7 @@ def pdf(x, m, s, k):
     z = (x - m) / s
     kzp1 = k * z + 1
     f = (1 / s) * np.exp(-kzp1**(-1 / k)) * kzp1**(-1 - 1 / k)
+
     f = np.where(kzp1 < 0, np.finfo(float).eps, f)
 
     return np.real(f)
