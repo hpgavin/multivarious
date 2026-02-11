@@ -10,7 +10,7 @@ from multivarious.utl import format_plot
 format_plot( font_size=16, line_width=2, marker_size=4 )
 plt.ion() # interactive plot mode: on
 
-# --- Parameters ---
+# --- dimensions ---
 n = 3       # number of variables
 N = 1050    # number of observations
 
