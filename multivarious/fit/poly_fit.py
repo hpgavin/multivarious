@@ -194,7 +194,7 @@ def _plot_results(x, y, x_fit, y_fit, B, c, Sy_fit, Vr,
     # Confidence intervals
     CI = np.array([0.90, 0.99])
     z = scipy_normal.ppf(1 - (1 - CI) / 2)
-    
+
     # Confidence bands for the model
     yps95 = y_fit + z[0] * Sy_fit
     yms95 = y_fit - z[0] * Sy_fit
@@ -218,7 +218,7 @@ def _plot_results(x, y, x_fit, y_fit, B, c, Sy_fit, Vr,
     })
     
     # Figure 1: Data, fit, and confidence intervals
-    fig = plt.figure(figNo, figsize=(14, 6))
+    fig = plt.figure(figNo, figsize=(12, 5))
     fig.clf()
     
     # Left subplot: Data and model with confidence intervals
@@ -231,7 +231,7 @@ def _plot_results(x, y, x_fit, y_fit, B, c, Sy_fit, Vr,
     ax1.plot(x_fit, y_fit, '-k', linewidth=2, label=r'model $\hat y(x)$')
     ax1.set_xlabel(r'$x$', fontsize=15)
     ax1.set_ylabel(r'data $y$   and   model $\hat y(x)$', fontsize=15)
-    ax1.legend(loc='best', fontsize=15)
+    ax1.legend(loc='best', fontsize=11)
     ax1.set_xlim([min(xp), max(xp)])
     y_range = max(y) - min(y)
     ax1.set_ylim([min(y) - 0.1*y_range, max(y) + 0.1*y_range])
@@ -253,7 +253,7 @@ def _plot_results(x, y, x_fit, y_fit, B, c, Sy_fit, Vr,
     ax2.text(tx, min(y) + positions[1]*ty_range, 
              f'cond # = {condNo:.1f}', fontsize=12)
     ax2.text(tx, min(y) + positions[2]*ty_range, 
-             rf'$\sigma_r$ = {np.sqrt(Vr):.3f}', fontsize=12)
+             rf'$\sigma_{{\hat r}}$ = {np.sqrt(Vr):.3f}', fontsize=12)
     ax2.text(tx, min(y) + positions[3]*ty_range, 
              f'AIC = {AIC:.1f}', fontsize=12)
     ax2.text(tx, min(y) + positions[4]*ty_range, 
@@ -268,22 +268,22 @@ def _plot_results(x, y, x_fit, y_fit, B, c, Sy_fit, Vr,
     plt.tight_layout()
     
     # Figure 2: Histogram of residuals
-    residuals = y - B @ c
+    residuals = B @ c - y
     nBars = max(10, round(Nd / 5))
     
-    fig2 = plt.figure(figNo + 1, figsize=(10, 6))
+    fig2 = plt.figure(figNo + 1, figsize=(8, 5))
     fig2.clf()
     
     counts, bins, _ = plt.hist(residuals, bins=nBars, 
                                 color='royalblue', 
                                 edgecolor='black', alpha=0.7)
-    plt.xlabel(r'Residuals, $\hat r = y - \hat y$', fontsize=15)
+    plt.xlabel(r'Residuals, $\hat r = y - \hat y(x)$', fontsize=15)
     plt.ylabel(r'Empirical PDF, $f_R(r)$', fontsize=15)
     plt.title('Distribution of Residuals', fontsize=15)
     plt.grid(True, alpha=0.3, axis='y')
     
     # Add normal distribution overlay
-    meanR, sdvnR = np.mean(residuals), np.std(residuals)
+    meanR, sdvnR = np.mean(residuals), np.sqrt(residuals@residuals/(Nd-Np-1))
     xmin, xmax = plt.xlim()
     x_normal = np.linspace(xmin, xmax, 100)
     p_normal = scipy_normal.pdf(x_normal, meanR, sdvnR)
@@ -297,5 +297,5 @@ def _plot_results(x, y, x_fit, y_fit, B, c, Sy_fit, Vr,
     plt.tight_layout()
     
     # Figure 3: ECDF of residuals with confidence intervals
-    plot_ECDF_ci(residuals, 95, figNo + 2)
+    plot_ECDF_ci(residuals, 95, figNo + 2, x_label= r'Residuals, $\hat r = y - \hat y(x)$')
 

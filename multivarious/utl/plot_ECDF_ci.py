@@ -108,7 +108,7 @@ def plot_ECDF_ci(data, confidence_level, fig_no, x_label='sorted sample values',
     format_plot(line_width = 2, font_size = fs, marker_size = 4)
 
     fig_cdf = plt.figure(fig_no) 
-    fig_cdf.set_size_inches(6, 4)  
+    fig_cdf.set_size_inches(8, 5)  
 
     
     plt.fill_between(x, lower_ci, upper_ci, 
@@ -126,8 +126,8 @@ def plot_ECDF_ci(data, confidence_level, fig_no, x_label='sorted sample values',
         plt.text(xp, 0.1, rf'$x_{{cov}}$ = {x_cov:.3f}')
 
     plt.title(f'Empirical CDF with {confidence_level}% confidence Intervals')
-    plt.xlabel(x_label)
-    plt.ylabel(r'Cumulative Distribution, $F_X(x)$')
+    plt.xlabel(x_label, fontsize=15)
+    plt.ylabel(r'Cumulative Distribution, $F_X(x)$', fontsize=15)
     plt.tight_layout()
     #plt.legend()
     #plt.legend(loc='lower right')
