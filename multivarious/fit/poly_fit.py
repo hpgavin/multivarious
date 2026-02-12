@@ -227,11 +227,11 @@ def _plot_results(x, y, x_fit, y_fit, B, c, Sy_fit, Vr,
              alpha=0.3, label=f'{int(CI[1]*100)}% c.i.')
     ax1.fill(xp, yp95, color=patchColor95, edgecolor=patchColor95, 
              alpha=0.5, label=f'{int(CI[0]*100)}% c.i.')
-    ax1.plot(x, y, 'ob', linewidth=3, markersize=6, label='data')
-    ax1.plot(x_fit, y_fit, '-k', linewidth=2, label='y_fit')
-    ax1.set_xlabel('x', fontsize=13)
-    ax1.set_ylabel('y', fontsize=13)
-    ax1.legend(loc='best', fontsize=11)
+    ax1.plot(x, y, 'ob', linewidth=3, markersize=6, label=r'data $y$')
+    ax1.plot(x_fit, y_fit, '-k', linewidth=2, label=r'model $\hat y(x)$')
+    ax1.set_xlabel(r'$x$', fontsize=15)
+    ax1.set_ylabel(r'data $y$   and   model $\hat y(x)$', fontsize=15)
+    ax1.legend(loc='best', fontsize=15)
     ax1.set_xlim([min(xp), max(xp)])
     y_range = max(y) - min(y)
     ax1.set_ylim([min(y) - 0.1*y_range, max(y) + 0.1*y_range])
@@ -241,7 +241,7 @@ def _plot_results(x, y, x_fit, y_fit, B, c, Sy_fit, Vr,
     # Right subplot: Data vs model (correlation plot)
     ax2 = plt.subplot(1, 2, 2)
     ax2.plot(y, y, '-k', linewidth=0.5, alpha=0.5)  # 1-to-1 line
-    ax2.plot(B @ c, y, 'ob', linewidth=3, markersize=6)
+    ax2.plot(y, B @ c, 'ob', linewidth=3, markersize=6)
     
     # Add statistics text
     tx = 0.90 * min(y) + 0.10 * max(y)
@@ -249,18 +249,18 @@ def _plot_results(x, y, x_fit, y_fit, B, c, Sy_fit, Vr,
     positions = [0.98, 0.90, 0.82, 0.74, 0.66]
     
     ax2.text(tx, min(y) + positions[0]*ty_range, 
-             f'cond # = {condNo:.1f}', fontsize=11)
+             rf'$n$ = {Np} coefficients', fontsize=12)
     ax2.text(tx, min(y) + positions[1]*ty_range, 
-             f'σ_r = {np.sqrt(Vr):.3f}', fontsize=11)
+             f'cond # = {condNo:.1f}', fontsize=12)
     ax2.text(tx, min(y) + positions[2]*ty_range, 
-             f'AIC = {AIC:.1f}', fontsize=11)
+             rf'$\sigma_r$ = {np.sqrt(Vr):.3f}', fontsize=12)
     ax2.text(tx, min(y) + positions[3]*ty_range, 
-             f'R² = {R2:.3f}', fontsize=11)
+             f'AIC = {AIC:.1f}', fontsize=12)
     ax2.text(tx, min(y) + positions[4]*ty_range, 
-             f'n = {Np}', fontsize=11)
+             rf'$R^2$ = {R2:.3f}', fontsize=12)
     
-    ax2.set_xlabel('y_fit', fontsize=13)
-    ax2.set_ylabel('y', fontsize=13)
+    ax2.set_xlabel(r'data   $y$', fontsize=15)
+    ax2.set_ylabel(r'model   $\hat y(x)$', fontsize=15)
     ax2.axis('tight')
     ax2.grid(True, alpha=0.3)
     ax2.set_title('Model vs Data (Correlation)', fontsize=14)
@@ -275,22 +275,23 @@ def _plot_results(x, y, x_fit, y_fit, B, c, Sy_fit, Vr,
     fig2.clf()
     
     counts, bins, _ = plt.hist(residuals, bins=nBars, 
-                                color=[0.3, 0.7, 0.9], 
+                                color='royalblue', 
                                 edgecolor='black', alpha=0.7)
-    plt.xlabel('Residuals, r = y - y_fit', fontsize=13)
-    plt.ylabel('Empirical PDF, f_R(r)', fontsize=13)
-    plt.title('Distribution of Residuals', fontsize=14)
+    plt.xlabel(r'Residuals, $\hat r = y - \hat y$', fontsize=15)
+    plt.ylabel(r'Empirical PDF, $f_R(r)$', fontsize=15)
+    plt.title('Distribution of Residuals', fontsize=15)
     plt.grid(True, alpha=0.3, axis='y')
     
     # Add normal distribution overlay
-    mu, std = np.mean(residuals), np.std(residuals)
+    meanR, sdvnR = np.mean(residuals), np.std(residuals)
     xmin, xmax = plt.xlim()
     x_normal = np.linspace(xmin, xmax, 100)
-    p_normal = scipy_normal.pdf(x_normal, mu, std)
+    p_normal = scipy_normal.pdf(x_normal, meanR, sdvnR)
     # Scale to match histogram
     p_normal_scaled = p_normal * len(residuals) * (bins[1] - bins[0])
-    plt.plot(x_normal, p_normal_scaled, 'r-', linewidth=2, 
-             label=f'Normal(μ={mu:.3f}, σ={std:.3f})')
+    plt.plot(x_normal, p_normal_scaled, '-', color='darkblue',linewidth=4) 
+#            label=f'Normal(μ={meanR:.3f}, σ={sdvnR:.3f})')
+    plt.text( sdvnR, np.max(p_normal_scaled), rf'$\sigma_{{\hat r}} = {sdvnR:.3f}$', fontsize=18)
     plt.legend(fontsize=11)
     
     plt.tight_layout()

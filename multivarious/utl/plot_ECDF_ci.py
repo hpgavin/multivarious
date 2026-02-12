@@ -112,17 +112,18 @@ def plot_ECDF_ci(data, confidence_level, fig_no, x_label='sorted sample values',
 
     
     plt.fill_between(x, lower_ci, upper_ci, 
-                     color=[0.5, 0.7, 0.9], alpha=0.5,
+                     color='royalblue', alpha=0.6,
                      label=f'{confidence_level}% confidence band')
 
-    plt.step(x, Fx, '-', color=[0.2, 0.4, 0.8], label='Empirical CDF')
+    plt.step(x, Fx, '-', color='darkblue', label='Empirical CDF')
 
     aa = 0.25
     xp = aa*x[0] + (1-aa)*x[-1]
     plt.text(xp, 0.4, rf'$x_{{avg}}$ = {x_avg:.3f}')
     plt.text(xp, 0.3, rf'$x_{{med}}$ = {x_med:.3f}')
     plt.text(xp, 0.2, rf'$x_{{sdv}}$ = {x_sdv:.3f}')
-    plt.text(xp, 0.1, rf'$x_{{cov}}$ = {x_cov:.3f}')
+    if x_cov < 10:
+        plt.text(xp, 0.1, rf'$x_{{cov}}$ = {x_cov:.3f}')
 
     plt.title(f'Empirical CDF with {confidence_level}% confidence Intervals')
     plt.xlabel(x_label)
@@ -132,15 +133,17 @@ def plot_ECDF_ci(data, confidence_level, fig_no, x_label='sorted sample values',
     #plt.legend(loc='lower right')
     plt.grid(True, alpha=0.3)
 
+    """
     # Empirical PDF - histogram ... with density=True
     fig_pdf = plt.figure(fig_no+1)
     fig_pdf.set_size_inches(6, 4)  
-    plt.hist(x.T, bins=30, density=True, alpha=0.7, color='blue', edgecolor='black')
+    plt.hist(x.T, bins=20, density=True, color='royalblue', alpha=0.7, edgecolor='black')
     plt.title(f'Histogram (scaled)')
     plt.grid(True, alpha=0.3)
     plt.ylabel(r'Probability Density, $f_X(x)$')
     plt.xlabel(x_label)
     plt.tight_layout()
+    """
     
     plt.show()
 
@@ -149,9 +152,9 @@ def plot_ECDF_ci(data, confidence_level, fig_no, x_label='sorted sample values',
         filename = f'plot_ECDF-{fig_no:04d}.pdf'
         fig_cdf.savefig(filename, bbox_inches='tight', dpi=300)
         print(f"    Saved: {filename}")
-        filename = f'plot_EPDF-{fig_no:04d}.pdf'
-        fig_pdf.savefig(filename, bbox_inches='tight', dpi=300)
-        print(f"    Saved: {filename}")
+#       filename = f'plot_EPDF-{fig_no:04d}.pdf'
+#       fig_pdf.savefig(filename, bbox_inches='tight', dpi=300)
+#       print(f"    Saved: {filename}")
 
     # plot other CI's 
     '''
@@ -164,7 +167,7 @@ def plot_ECDF_ci(data, confidence_level, fig_no, x_label='sorted sample values',
     '''
     # plot another CDF
     '''
-    plt.plot(x_theory, cdf_theory, 'r-', linewidth=2, 
+    plt.plot(x_theory, cdf_theory, '-', color='darkblue',linewidth=2, 
              label=f'Normal CDF (μ={mu:.3f}, σ={std:.3f})')
     plt.plot(x, x * 0 + 0.5, '--k', alpha=0.3, linewidth=1)
     '''
