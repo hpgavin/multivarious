@@ -1,38 +1,33 @@
 # The Levenberg-Marquardt algorithm for nonlinear least-squares curve fitting problems
 
-Implementatiom of the Levenberg-Marquardt algorithm for nonlinear curve fitting.  Source code with transparent structure for pedagogically-oriented applications.
-
-## Why This Implementation?
-
-This implementation fills a gap between production libraries (SciPy) and educational needs:
-
-### **Unique Features Not in SciPy**
+Implementatiom of the Levenberg-Marquardt algorithm for nonlinear curve fitting.  Source code with transparent structure for pedagogically-oriented applications.  This implementation offers resources to investigate and interpret how algorithmic options affect model statistics:
 
 1. **Confidence Intervals** - Chi-squared based uncertainty quantification for both coefficients and fitted curve
-2. **Three Update Strategies** - Compare Levenberg-Marquardt, Quadratic, and Nielsen λ adaptation
-3. **Iteration Visualization** - Watch the fit converge in real-time (set `print_level=3`)
-4. **Explicit Algorithm Structure** - See exactly how damping parameter λ adapts
-5. **Broyden Jacobian Updates** - Efficient rank-1 approximation when appropriate
-6. **Hybrid Jacobian Strategy** - Automatic switching between finite differences and Broyden updating based on convergence history
+2. **Iteration Visualization** - Watch the fit converge in real-time (set `print_level=3`)
+3. **Update Strategies Options** - Compare Levenberg-Marquardt, Quadratic, and Nielsen λ adaptation
+4. **Broyden Jacobian Updates** - Efficient rank-1 approximation when appropriate
+5. **Hybrid Jacobian Strategy** - Automatic switching between finite differences and Broyden updating based on convergence history
+6. **Explicit Algorithm Structure** - See exactly how damping parameter λ adapts
 
-### **Pedagogical Advantages**
+### **Pedagogical Features**
 
-- **Transparent Code**: No hidden abstractions - students see every algorithmic step
-- **Well-Documented**: Extensive comments explain the "why" not just the "what"  
-- **Multiple Examples**: Three problems of increasing difficulty demonstrate algorithm behavior
-- **Convergence Diagnostics**: Detailed iteration output shows λ adaptation in action
-- **Sensitivity Analysis**: Tools to explore initial guess dependence
+- **Transparent Code**: To reveal every algorithmic stepx without hidden abstractions.
+- **Convergence Diagnostics**: To show λ adaptation in action
+- **Examples**: To demonstrate algorithm behavior
+- **Sensitivity Analysis**: To explore initial guess dependence
+- **Documented**: To explain the purpose of the methods
 
 ### **Production Quality**
 
-- **Robust**: Handles ill-conditioned problems, bound constraints, uniform/non-uniform weights
-- **Efficient**: Broyden updates minimize function evaluations when far from minimum
-- **Complete Statistics**: Covariance, correlation, R², reduced χ² - everything you need
+- **Fit in multi-dimensional domains**: fit ($y = f(x_1, x_2, ... , x_n;c)$) 
+- **Robust**: To handle ill-conditioned problems, bound constraints, uniform/non-uniform weights
+- **Efficient**: Broyden updates to minimize function evaluations when far from minimum
+- **Complete Model Statistics**: To display covariance, correlation, R², reduced χ² 
 
 ## Files
 
 - **`lm.py`** - Core Levenberg-Marquardt algorithm (800 lines, heavily commented)
-- **`lm_examples.py`** - Three example problems with sensitivity analysis tools
+- **`lm_examples.py`** - Three example problems with sensitivity analysis tools in `multivarious/examples/lm_examples.py`
 
 ## Quick Start
 
@@ -126,10 +121,6 @@ Each example:
 | **Speed**                   | ⚠️ Good (pure Python)            | ✅ Excellent (compiled)      |
 | **Recommended use**         | **Learning, Teaching, Research** | **Production**              |
 
-
-
-
-
 | Feature                  | Your `lm.py` | SciPy        | statsmodels |
 | ------------------------ | ------------ | ------------ | ----------- |
 | **Parameters**           | ✅            | ✅            | ✅           |
@@ -144,8 +135,6 @@ Each example:
 | **Iteration plots**      | ✅ Auto       | ❌            | ❌           |
 | **Nonlinear models**     | ✅ Easy       | ✅ Easy       | ⚠️ Complex  |
 | **Educational clarity**  | ✅ Excellent  | ⚠️ Opaque    | ⚠️ Complex  |
-
-
 
 ### When to Use Each
 
@@ -166,19 +155,11 @@ Each example:
 
 ## Sensitivity Analysis
 
-Demonstrate how initial guess affects convergence:
+Run `multivarious/examples/lm_examples.py` to run 100 random initial guesses and visualize which ones converge to the global minimum vs. local minima.
 
-```python
-from lm_examples import sensitivity_to_initial_guess
+## The Levenberg-Marquadt Algorithm
 
-sensitivity_to_initial_guess(example_number=3, n_trials=100)
-```
-
-This runs 100 random initial guesses and visualizes which ones converge to the global minimum vs. local minima.
-
-## Understanding the Algorithm
-
-### The Damping Parameter λ
+### 1. The Damping Parameter λ
 
 The Levenberg-Marquardt algorithm **adapts** between two extremes:
 
@@ -202,7 +183,31 @@ You can **watch this happen** with `print_level=2`:
 >  4: 16 | chi_sq=1.025e+00 | lambda=1.5e-04   ← Near minimum, almost GN
 ```
 
-### Three Update Strategies
+### 2. Jacobian update
+
+**Hybrid approach for efficiency:**
+
+1. **Finite Differences** (expensive, accurate)
+   
+   - Every 2n iterations (n = number of coefficients)
+   - When χ² increases (bad step)
+   - Uses: 2n function evaluations (central differences) or n evaluations (one-sided differences)
+
+2. **Broyden Update** (cheap, approximate)
+   
+   - Between FD refreshes
+   - Rank-1 update: `J_new = J_old + correction`
+   - Uses: 0 function calls!
+
+**Why this matters:**
+
+- Far from minimum: Broyden approximation is good enough
+- Near minimum: Periodic FD refresh for accurate convergence
+- Saves ~50% of function evaluations!
+
+Set `delta_coeffs < 0` for one-sided differences (cheaper, less accurate).
+
+### 3. Damping parameter update
 
 | Strategy                         | When to Use                          | Lambda Update Rule        |
 | -------------------------------- | ------------------------------------ | ------------------------- |
@@ -221,33 +226,9 @@ for update_type in [1, 2, 3]:
     print(f"Type {update_type}: {result.func_calls} function calls")
 ```
 
-### Jacobian Computation Strategy
+## Algorithm Parameters
 
-**Hybrid approach for efficiency:**
-
-1. **Finite Differences** (expensive, accurate)
-   
-   - Every 2n iterations (n = number of coefficients)
-   - When χ² increases (bad step)
-   - Uses: 2n function evaluations (central differences) or n evaluations (one-sided differences)
-
-2. **Broyden Update** (cheap, approximate)
-   
-   - Between FD refreshes
-   - Rank-1 update: `J_new = J_old + correction`
-   - Uses: 0 function calls!
-
-**Why this matters:**
-
-- Far from minimum: Broyden approximation good enough
-- Near minimum: Periodic FD refresh for accurate convergence
-- Saves ~50% of function evaluations!
-
-Set `delta_coeffs < 0` for one-sided differences (cheaper, less accurate).
-
-## Algorithm Parameters (Advanced)
-
-### Convergence Tolerances
+### 1. Convergence Tolerances
 
 The algorithm stops when **any one** of these criteria is met:
 
@@ -267,7 +248,7 @@ result = levenberg_marquardt(
 - **Fast approximation**: Increase to 1e-2
 - **Poor initial guess**: Increase `max_iter` (default: 10n²)
 
-### Lambda Control
+### 2. The Damping Parameter (lambda)
 
 ```python
 result = levenberg_marquardt(
@@ -285,7 +266,7 @@ result = levenberg_marquardt(
 - **Good initial guess**: Decrease `lambda_init` to 1e-3
 - **Oscillating**: Decrease `lambda_up_factor` to 5
 
-### Jacobian Options
+### 3. Jacobian Options
 
 ```python
 delta_coeffs = np.array([0.01, 0.01, -0.01, 0])  # Per-coefficient control
@@ -302,9 +283,9 @@ result = levenberg_marquardt(
 - `< 0`: One-sided differences (faster, less accurate)
 - `= 0`: Hold coefficient fixed (useful for partial fits)
 
-### Practical Parameter Combinations
+### 4. Practical Parameter Combinations
 
-**Robust (recommended for teaching):**
+**Robust (recommended for getting started):**
 
 ```python
 opts = [2, 200, 1e-3, 1e-3, 1e-1, 1e-1, 1e-2, 11, 9, 1]
@@ -324,47 +305,42 @@ opts = [0, 50, 1e-2, 1e-2, 1e-1, 1e-1, 1e-3, 5, 5, 1]
 opts = [1, 500, 1e-6, 1e-6, 1e-2, 1e-2, 1e-2, 11, 9, 3]  # Nielsen update
 ```
 
-## For Exploration of Algorithmic Options
+### 5. To explore algorithmic options
 
-### Suggested Assignments
-
-**Assignment 1: Algorithm Behavior**
+**1: Explore Algorithm Behavior**
 
 ```python
 # Compare three update strategies
 for update_type in [1, 2, 3]:
     result = run_example(3, print_level=0)
-    # Students: Plot convergence rate, explain differences
+    # Plot convergence rate, explain differences
 ```
 
-**Assignment 2: Initial Guess Sensitivity**
+**2: Explore Initial Guess Sensitivity**
 
 ```python
 sensitivity_to_initial_guess(example_number=3, n_trials=50)
-# Students: Identify basins of attraction, explain failures
+# Identify basins of attraction, explain failures
 ```
 
-**Assignment 3: Jacobian Strategies**
+**3: Explore Jacobian Strategies**
 
 ```python
 # Central vs one-sided differences
 delta_central = 0.01
 delta_onesided = -0.01
-# Students: Compare accuracy vs computational cost
+# Compare accuracy vs computational cost
 ```
 
-**Assignment 4: Your Own Problem**
+**4: Assess Your Own Problem**
 
 ```python
-# Fit data from lab experiment, report:
-# - Fitted parameters with uncertainties
-# - Reduced χ² (is model adequate?)
-# - Residual analysis (are assumptions met?)
+# - Assess Fitted parameters via their uncertainties
+# - Assess the model adequacy via the reduced χ² 
+# - Assess model assumptions via residual analysis 
 ```
 
-### Learning Outcomes
-
-After using this implementation, students will understand:
+### Understand
 
 - Why optimization is iterative (not closed-form)
 - How trust regions adapt to problem geometry
@@ -373,29 +349,333 @@ After using this implementation, students will understand:
 - Statistical interpretation of fitted parameters
 - How to diagnose convergence issues
 
-## Integration with `multivarious` Package
+## The algorithm is dimension-agnostic
 
-This module is part of the **multivarious** educational signal processing and optimization package:
+This implementation of levenberg-marquard works for any number of independent variables by providing the independent variables are in a **2D array**:
+
+```python
+# 1 variable (just time t)
+t.shape = (100,)           # 1D array - special case
+
+# 2 variables (x(t), y(t)
+t.shape = (200, 2)         # 2D array
+
+# 5 variables ( p(t), q(t), r(t), s(t), u(t) )
+t.shape = (300, 5)         # 2D array
+```
+
+- Rows = number of observations 
+- Columns = number of independent variables
+- Always `t.ndim = 2` (except single-variable case)
+
+### 1. Function Evaluation
+
+```python
+# Algorithm just calls:
+y_hat = func(t, coeffs)
+
+# Your function extracts variables:
+def func_10d(t, coeffs):
+    p, q, r, s, u, v, w, x, y, z = [t[:, i] for i in range(10)]
+    # Build model from all variables
+    return model_expression
+```
+
+### 2. Jacobian Computation
+
+```python
+# Finite differences perturb COEFFICIENTS, not variables
+for i, coeff in enumerate(coeffs):
+    coeffs_perturbed[i] += delta
+    y_plus = func(t, coeffs_perturbed)   # t unchanged!
+    J[:, i] = (y_plus - y) / delta
+```
+
+**Key:** Jacobian perturbs *coefficients*, not *independent variables*. Works for any `t` shape!
+
+### 3. Residuals
+
+```python
+# Always produces 1D vector
+residuals = y_data - func(t, coeffs)
+# Shape: (n_points,) regardless of how many variables in t
+```
+
+### 4. Chi-Squared
+
+```python
+chi_sq = residuals.T @ (residuals * weight)
+# Scalar value, doesn't depend on t.shape
+```
+
+### 5. Dimension Validation
+
+```python
+# In lm.py, lines 221-228:
+if t.ndim == 1:
+    if len(t) != n_points:
+        raise ValueError(...)
+elif t.ndim == 2:
+    if t.shape[0] != n_points:  # ✓ Only checks number of points
+        raise ValueError(...)    # ✓ Doesn't care about t.shape[1]!
+else:
+    raise ValueError(...)
+```
+
+- ✓ Checks `t.shape[0]` matches data points
+- ✓ **Doesn't limit** `t.shape[1]` (number of variables)
+- ✓ Works for 2, 10, 1000 variables automatically!
+
+## Examples of fittig higher dimensions
+
+### 1. Fit models with 2 independent variables
+
+```python
+# Example 4: (x, y) → z
+n_points = 200
+x = np.random.rand(n_points)
+y = np.random.rand(n_points)
+t = np.column_stack([x, y])  # Shape: (200, 2)
+
+def func_2d(t, coeffs):
+    x, y = t[:, 0], t[:, 1]
+    return coeffs[0] * x**coeffs[1] + (1-coeffs[0]) * y**coeffs[1]
+
+result = levenberg_marquardt(func_2d, coeffs_init, t, z_data)
+```
+
+### 2. Fit models with 5 independent variables
+
+```python
+# (p, q, r, s, u) → z
+n_points = 300
+p = np.random.rand(n_points)
+q = np.random.rand(n_points)
+r = np.random.rand(n_points)
+s = np.random.rand(n_points)
+u = np.random.rand(n_points)
+t = np.column_stack([p, q, r, s, u])  # Shape: (300, 5)
+
+def func_5d(t, coeffs):
+    p, q, r, s, u = [t[:, i] for i in range(5)]
+    return (coeffs[0]*p**2 + coeffs[1]*q**2 + coeffs[2]*r + 
+            coeffs[3]*np.sin(s) + coeffs[4]*np.exp(u))
+
+result = levenberg_marquardt(func_5d, coeffs_init, t, z_data)
+```
+
+### 3. Fit models with 10 independent variables
+
+```python
+# (p, q, r, s, u, v, w, x, y, z) → output
+n_points = 1000
+n_vars = 10
+
+# Generate random data for all 10 variables
+vars_data = [np.random.rand(n_points) for _ in range(n_vars)]
+t = np.column_stack(vars_data)  # Shape: (1000, 10)
+
+def func_10d(t, coeffs):
+    # Extract all 10 variables
+    p, q, r, s, u, v, w, x, y, z = [t[:, i] for i in range(10)]
+
+    # Your complex model here
+    return (coeffs[0]*p + coeffs[1]*q**2 + coeffs[2]*np.sin(r) + 
+            coeffs[3]*s*u + coeffs[4]*np.exp(v) + ...)
+
+result = levenberg_marquardt(func_10d, coeffs_init, t, output_data)
+```
+
+### Visualization in higher dimensions
+
+As with any high-dimensional fitting problem, proper visualization
+is more difficult.   Here are some suggestions.  
+
+#### 1. In 2D or 3D
+
+```python
+ax = fig.add_subplot(111, projection='3d')
+ax.scatter(x, y, z_data)
+ax.scatter(x, y, z_fit)
+```
+
+#### 2. In higher dimensions
+
+**Option 1: Pairwise Residual Plots**
+
+```python
+# Plot residuals vs each variable separately
+fig, axes = plt.subplots(2, 3, figsize=(15, 10))
+for i, var_name in enumerate(['p', 'q', 'r', 's', 'u']):
+    axes.flat[i].scatter(t[:, i], residuals)
+    axes.flat[i].set_xlabel(var_name)
+    axes.flat[i].set_ylabel('Residuals')
+```
+
+**Option 2: Predicted vs Actual**
+
+```python
+# Single plot showing fit quality
+plt.scatter(y_data, y_fit)
+plt.plot([min, max], [min, max], 'r--', label='Perfect fit')
+plt.xlabel('Actual')
+plt.ylabel('Predicted')
+```
+
+**Option 3: Convergence History Only**
+
+```python
+# Focus on optimization progress, not spatial visualization
+plt.semilogy(cvg_history[:, 0], cvg_history[:, n_coeffs+1])
+plt.xlabel('Function Evaluations')
+plt.ylabel('χ²')
+```
+
+## Suggestions for High-Dimensional Fitting
+
+### 1. Vectorize Computations
+
+* Partially vectorized 
+  
+  ```python
+  def func_10d(t, coeffs):
+    result = np.zeros(len(t))
+    for i in range(10):
+        result += coeffs[i] * t[:, i]**2
+    return result
+  ```
+
+* Fully vectorized 
+  
+  ```python
+  def func_10d(t, coeffs):
+    return np.sum(coeffs * t**2, axis=1)
+  ```
+
+### 2. Scale Variables
+
+* Normalize independent variables to similar numerical ranges ~ [-1:1]
+  
+  ```python
+  t_scaled = (t - t.mean(axis=0)) / t.std(axis=0)
+  ```
+
+* Use scaled version in fitting
+  
+  ```python
+  result = levenberg_marquardt(func, coeffs_init, t_scaled, y_data)
+  ```
+
+### 3. Check for Multicollinearity
+
+* If variables are highly correlated, fitting can be unstable
+  
+  ```python
+  correlation_matrix = np.corrcoef(t.T)
+  print(correlation_matrix)
+  ```
+
+* Look for correlations > 0.9 between variables and consider removing redundant variables
+
+### 4. Regularization for Many Parameters
+
+* With more than around 20 model coefficients, consider:
+  - L1 regularization (LASSO) for sparse models
+  - L2 regularization (Ridge) for stability
+  - These aren't built into lm.py but can be added to chi_sq
+  - The multivarious package implements L1 regularization with a QP formulation
+
+## Testing Framework for fitting in higher dimensions
+
+```python
+def test_nd_fitting(n_vars=10, n_coeffs=10, n_points=500):
+    """
+    Generic test for n-dimensional fitting.
+    """
+    # Generate random data
+    t = np.random.rand(n_points, n_vars)
+    coeffs_true = np.random.randn(n_coeffs)
+
+    # Simple linear model for testing
+    def func(t_in, c):
+        # Use first n_coeffs variables
+        return np.sum(c[:, None] * t_in[:, :n_coeffs].T, axis=0)
+
+    # Generate noisy data
+    y_data = func(t, coeffs_true) + 0.1*np.random.randn(n_points)
+
+    # Fit
+    coeffs_init = np.ones(n_coeffs)
+    result = levenberg_marquardt(func, coeffs_init, t, y_data)
+
+    # Check convergence
+    error = np.linalg.norm(result.coefficients - coeffs_true)
+    print(f"{n_vars}D fitting: error = {error:.6f}")
+
+    return error < 1.0  # Success criterion
+
+# Test increasing dimensions
+for n in [2, 5, 10, 20, 50]:
+    success = test_nd_fitting(n_vars=n, n_coeffs=min(n, 10))
+    print(f"  {'✓' if success else '✗'} {n} variables")
+```
+
+## Summary
+
+| Dimensions   | Works? | Visualization               | Notes                   |
+| ------------ | ------ | --------------------------- | ----------------------- |
+| 1D (t → y)   | ✓      | Easy (2D plot)              | Standard case           |
+| 2D (x,y → z) | ✓      | Good (3D plot)              | Example 4               |
+| 3D-5D        | ✓      | Moderate (pairwise plots)   | Tested with 5D example  |
+| 6D-20D       | ✓      | Hard (residual plots)       | Algorithm works fine    |
+| 20D+         | ✓      | Very hard (statistics only) | Check multicollinearity |
+
+## Computational considerations
+
+### 1. Memory Usage
+
+* Storage requirements scale with:
+  
+  - n_points (number of data points)
+  - n_coeffs (number of parameters to fit)
+
+* NOT with n_vars (number of independent variables)!
+
+* Jacobian: (n_points, n_coeffs)
+
+* For n_points=1000, n_coeffs=10:
+
+* J.size = 10,000 floats ≈ 80 KB
+
+### 2. Speed
+
+* Bottleneck is function evaluation in Jacobian
+  - `n_vars` doesn't affect speed (assuming func is simple enough)
+* Each Jacobian computation requires:
+  - Central differences: 2*n_coeffs function calls
+  - One-sided: n_coeffs function calls
+* With 10 coefficients, central differences:
+  → 20 function evaluations per Jacobian update
+
+## Integration with the multivarious package
+
+This module is part of the **multivarious** package for signal processing, model fitting, linear time invariant systems, ordinary differential equations, optimization, and random variables :
 
 ```python
 # When installed via pip:
 from multivarious.lm import levenberg_marquardt
 ```
 
-All modules emphasize:
+modules emphasize:
 
-- Pedagogical clarity over performance
-- Complete algorithmic transparency
+- Clarity over performance
+- Algorithmic transparency
 - Comparison with production libraries
-- Real-world examples and validation
+- Examples and validation
 
-## Dependencies
-
-**Required:**
+## Standard Dependencies
 
 - NumPy ≥ 1.20
-
-**Optional (for examples and plotting):**
 
 - Matplotlib ≥ 3.5
 
@@ -431,13 +711,11 @@ Henri Gavin, Department of Civil & Environmental Engineering, Duke University
 
 **Part of the `multivarious` package:**
 
-- Tools for digital signal processing,  linear systems, optimization,ordinary differential equations, and random variables
+- Tools for digital signal processing, model fitting, linear time invariant systems, ordinary differential equations, optimization, and random variables 
 - Open source, MIT license
 - https://github.com/hpgavin/multivarious
 
 ## Citation
-
-If you use this in academic work:
 
 ```bibtex
 @software{lm_python_2024,

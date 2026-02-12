@@ -1,3 +1,4 @@
+#! /usr/bin/env -S python3 -i
 """
 Example Functions and Demonstrations for Levenberg-Marquardt
 
