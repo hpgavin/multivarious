@@ -241,42 +241,43 @@ def _plot_results(x, y, x_fit, y_fit, B, c, Sy_fit, Vr,
     # Right subplot: Data vs model (correlation plot)
     ax2 = plt.subplot(1, 2, 2)
     ax2.plot(y, y, '-k', linewidth=0.5, alpha=0.5)  # 1-to-1 line
-    ax2.plot(y, B @ c, 'ob', linewidth=3, markersize=6)
+    ax2.plot(B @ c, y, 'ob', linewidth=3, markersize=6)
     
     # Add statistics text
-    tx = 0.90 * min(y) + 0.10 * max(y)
+    tx = 0.95 * min(y) + 0.05 * max(y)
     ty_range = max(y) - min(y)
-    positions = [0.98, 0.90, 0.82, 0.74, 0.66]
+    positions = [0.98, 0.90, 0.82, 0.74, 0.66, 0.58]
     
     ax2.text(tx, min(y) + positions[0]*ty_range, 
-             rf'$n$ = {Np} coefficients', fontsize=12)
+             rf'$N$ = {Nd} data points', fontsize=12) 
     ax2.text(tx, min(y) + positions[1]*ty_range, 
-             f'cond # = {condNo:.1f}', fontsize=12)
+             rf'$n$ = {Np} coefficients', fontsize=12)
     ax2.text(tx, min(y) + positions[2]*ty_range, 
-             rf'$\sigma_{{\hat r}}$ = {np.sqrt(Vr):.3f}', fontsize=12)
+             f'cond # = {condNo:.1f}', fontsize=12)
     ax2.text(tx, min(y) + positions[3]*ty_range, 
-             f'AIC = {AIC:.1f}', fontsize=12)
+             rf'$\sigma_{{\hat r}}$ = {np.sqrt(Vr):.3f}', fontsize=12)
     ax2.text(tx, min(y) + positions[4]*ty_range, 
              rf'$R^2$ = {R2:.3f}', fontsize=12)
+    ax2.text(tx, min(y) + positions[5]*ty_range, 
+             f'AIC = {AIC:.1f}', fontsize=12)
     
-    ax2.set_xlabel(r'data   $y$', fontsize=15)
-    ax2.set_ylabel(r'model   $\hat y(x)$', fontsize=15)
+    ax2.set_xlabel(r'model   $\hat y(x)$', fontsize=15)
+    ax2.set_ylabel(r'data   $y$', fontsize=15)
     ax2.axis('tight')
     ax2.grid(True, alpha=0.3)
-    ax2.set_title('Model vs Data (Correlation)', fontsize=14)
+    ax2.set_title(r'Data $y$ vs Model $\hat y(x)$ (Correlation)', fontsize=14)
     
     plt.tight_layout()
     
     # Figure 2: Histogram of residuals
-    residuals = B @ c - y
-    nBars = max(10, round(Nd / 5))
+    residuals = y - B @ c
+    nBars = max(10, round(Nd / 10))
     
     fig2 = plt.figure(figNo + 1, figsize=(8, 5))
     fig2.clf()
     
     counts, bins, _ = plt.hist(residuals, bins=nBars, 
-                                color='royalblue', 
-                                edgecolor='black', alpha=0.7)
+            color='royalblue', edgecolor='black', alpha=0.7)
     plt.xlabel(r'Residuals, $\hat r = y - \hat y(x)$', fontsize=15)
     plt.ylabel(r'Empirical PDF, $f_R(r)$', fontsize=15)
     plt.title('Distribution of Residuals', fontsize=15)
@@ -290,9 +291,7 @@ def _plot_results(x, y, x_fit, y_fit, B, c, Sy_fit, Vr,
     # Scale to match histogram
     p_normal_scaled = p_normal * len(residuals) * (bins[1] - bins[0])
     plt.plot(x_normal, p_normal_scaled, '-', color='darkblue',linewidth=4) 
-#            label=f'Normal(μ={meanR:.3f}, σ={sdvnR:.3f})')
     plt.text( sdvnR, np.max(p_normal_scaled), rf'$\sigma_{{\hat r}} = {sdvnR:.3f}$', fontsize=18)
-    plt.legend(fontsize=11)
     
     plt.tight_layout()
     

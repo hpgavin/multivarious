@@ -19,9 +19,9 @@ print("="*70)
 # Generate test data
 # np.random.seed(42)  # use the same seed every time 
 # np.random.seed(datetime.now().timestamp())  # set the seed from datetime
-x_l = -1  # Lower end of the fit domain
-x_h =  1  # Upper end of the fit domain
-Nd  = 40  # Number of data points
+x_l =  -1  # Lower end of the fit domain
+x_h =   1  # Upper end of the fit domain
+Nd  =  40  # Number of data points
     
 x = np.linspace(x_l, x_h, Nd)  # the independent data points from x_l to x_h
     
@@ -72,5 +72,3 @@ else:
 plt.show()
     
 print("\n" + "="*70)
-print("poly_fit test completed successfully!")
-print("="*70)
