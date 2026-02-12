@@ -7,6 +7,7 @@ poly_fit_example.py - example for the use of poly_fit.py
 import numpy as np
 import matplotlib.pyplot as plt
 from multivarious.fit import poly_fit
+from datetime import datetime
 
 """
 Test poly_fit with example data
@@ -16,7 +17,8 @@ print("Testing poly_fit.py")
 print("="*70)
     
 # Generate test data
-np.random.seed(42)
+# np.random.seed(42)  # use the same seed every time 
+# np.random.seed(datetime.now().timestamp())  # set the seed from datetime
 x_l = -1  # Lower end of the fit domain
 x_h =  1  # Upper end of the fit domain
 Nd  = 40  # Number of data points
