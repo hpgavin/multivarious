@@ -35,7 +35,7 @@ Implementatiom of the Levenberg-Marquardt algorithm for nonlinear curve fitting.
 import numpy as np
 from lm import levenberg_marquardt
 
-# Define your model function
+# Define the model function
 def model(t, coeffs):
     return coeffs[0] * np.exp(-t / coeffs[1])
 
