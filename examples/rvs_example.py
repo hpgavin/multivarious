@@ -57,7 +57,7 @@ print("Correlation matrix R:\n", R)
 #  'exponential' 'extreme_value_I' 'extreme_value_II'
 #  'gamma' 'gev' 'laplace' 'lognormal' 'normal' 'poisson'
 #  'quadratic' 'rayleigh' 'students_t' 'triangular' 'uniform'
-distribution = 'triangular'
+distribution = 'lognormal'
 
 # --- PDFs , CDFs and Samples of correlated random variables ---
 
@@ -150,10 +150,10 @@ if distribution == 'triangular':
     X  = triangular.rnd( a, b, c, N, R )
 
 if distribution == 'uniform':
+    x  = np.linspace( np.min(a), np.max(b), 250 )
     fx = uniform.pdf( x, a, b )
     Fx = uniform.cdf( x, [ a, b ] )
     X = uniform.rnd( a, b, N, R )
-
 
 # log transform exponential-like distributions
 """

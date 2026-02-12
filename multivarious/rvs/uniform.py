@@ -90,7 +90,7 @@ def pdf(x, a, b):
     return f
 
 
-def cdf(x, a, b):
+def cdf(x, params):
     """
     uniform.cdf
 
@@ -116,6 +116,8 @@ def cdf(x, a, b):
     ---------
     https://en.wikipedia.org/wiki/Uniform_distribution_(continuous)
     """
+
+    a, b = params
     
     x, a, b, n, N = _ppp_(x, a, b)
     
