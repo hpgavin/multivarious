@@ -56,12 +56,12 @@ c2, x_fit2, y_fit2, Sc2, Sy_fit2, Rc2, R2_2, Vr2, AIC2, cond2 = \
 print("\n" + "="*70)
 print("Comparison of Models")
 print("="*70)
-print(f"{'Metric':<20} {'Model 1 (5 terms)':<20} {'Model 2 (4 terms)':<20}")
+print(f"{'Metric':<28} {'Model 1 (5 terms)':<20} {'Model 2 (4 terms)':<20}")
 print("-"*70)
-print(f"{'R²':<20} {R2_1:<20.4f} {R2_2:<20.4f}")
-print(f"{'AIC':<20} {AIC1:<20.2f} {AIC2:<20.2f}")
-print(f"{'Cond. Number':<20} {cond1:<20.1f} {cond2:<20.1f}")
-print(f"{'Residual Var':<20} {Vr1:<20.4f} {Vr2:<20.4f}")
+print(f"{'Cond. Number':<28} {cond1:<20.1f} {cond2:<20.1f}")
+print(f"{'Residual Standard Deviation':<28} {np.sqrt(Vr1):<20.4f} {np.sqrt(Vr2):<20.4f}")
+print(f"{'R²':<28} {R2_1:<20.4f} {R2_2:<20.4f}")
+print(f"{'AIC':<28} {AIC1:<20.2f} {AIC2:<20.2f}")
 print("="*70)
 
 if AIC2 < AIC1:

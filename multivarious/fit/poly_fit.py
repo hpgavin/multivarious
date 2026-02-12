@@ -244,9 +244,9 @@ def _plot_results(x, y, x_fit, y_fit, B, c, Sy_fit, Vr,
     ax2.plot(B @ c, y, 'ob', linewidth=3, markersize=6)
     
     # Add statistics text
-    tx = 0.95 * min(y) + 0.05 * max(y)
+    tx = min(y)
     ty_range = max(y) - min(y)
-    positions = [0.98, 0.90, 0.82, 0.74, 0.66, 0.58]
+    positions = [0.99, 0.91, 0.83, 0.75, 0.67, 0.59]
     
     ax2.text(tx, min(y) + positions[0]*ty_range, 
              rf'$N$ = {Nd} data points', fontsize=12) 
