@@ -115,7 +115,6 @@ def poly_fit(x, y, p, fig_no=0, Sy=None, rof=None, b=0.0):
     
     # x values for the fit
     x_fit = np.linspace(rof[0], rof[1], Nf)
-    
     # Inverse measurement error covariance matrix
     ISy = np.diag(1.0 / (Sy**2))
     
@@ -158,8 +157,7 @@ def poly_fit(x, y, p, fig_no=0, Sy=None, rof=None, b=0.0):
     Sy_fit = np.sqrt(np.diag(B_fit @ Vc @ B_fit.T))
     # R-squared (coefficient of determination)
     R2 = 1 - np.sum((y - B @ c)**2) / np.sum((y - np.mean(y))**2)
-    # Akaike Information Criterion
-
+    # Akaike and Bayesian Information Criteria
     AIC = np.log(2 * np.pi * Nd * Vr) + (B @ c - y).T @ invVy @ (B @ c - y) + 2 * Np
     BIC = np.log(2 * np.pi * Nd * Vr) + (B @ c - y).T @ invVy @ (B @ c - y) + Np* np.log(Nd)
     
