@@ -234,7 +234,7 @@ def _plot_results(x, y, x_fit, y_fit, B, c, Sy_fit, Vr,
     ax1.plot(x, y, 'ob', linewidth=3, markersize=6, label=r'data $y$')
     ax1.plot(x_fit, y_fit, '-k', linewidth=2, label=r'model $\hat y(x)$')
     ax1.set_xlabel(r'$x$', fontsize=15)
-    ax1.set_ylabel(r'data $y$   and   model $\hat y(x)$', fontsize=15)
+    ax1.set_ylabel(r'data $y$   and   model $\hat y(x; c^*)$', fontsize=15)
     ax1.legend(loc='best', fontsize=11)
     ax1.set_xlim([min(xp), max(xp)])
     y_range = max(y) - min(y)
@@ -259,7 +259,7 @@ def _plot_results(x, y, x_fit, y_fit, B, c, Sy_fit, Vr,
     ax2.text(tx, min(y) + positions[2]*ty_range, 
              f'cond # = {condNo:.1f}', fontsize=12)
     ax2.text(tx, min(y) + positions[3]*ty_range, 
-             rf'$\sigma_{{\hat r}}$ = {np.sqrt(Vr):.3f}', fontsize=12)
+             rf'$\sigma_{{r}}$ = {np.sqrt(Vr):.3f}', fontsize=12)
     ax2.text(tx, min(y) + positions[4]*ty_range, 
              rf'$R^2$ = {R2:.3f}', fontsize=12)
     ax2.text(tx, min(y) + positions[5]*ty_range, 
@@ -267,11 +267,11 @@ def _plot_results(x, y, x_fit, y_fit, B, c, Sy_fit, Vr,
     ax2.text(tx, min(y) + positions[6]*ty_range, 
              f'BIC = {BIC:.2f}', fontsize=12)
     
-    ax2.set_xlabel(r'model   $\hat y(x)$', fontsize=15)
+    ax2.set_xlabel(r'model   $\hat y(x; c^*)$', fontsize=15)
     ax2.set_ylabel(r'data   $y$', fontsize=15)
     ax2.axis('tight')
     ax2.grid(True, alpha=0.3)
-    ax2.set_title(r'Data $y$ vs Model $\hat y(x)$ (Correlation)', fontsize=14)
+    ax2.set_title(r'Data $y$ vs Model $\hat y(x; c^*)$ (Correlation)', fontsize=14)
 
     filename = f'poly_fit-{fig_no:04d}.pdf'
     fig_1.savefig(filename, bbox_inches='tight', dpi=300)
@@ -288,7 +288,7 @@ def _plot_results(x, y, x_fit, y_fit, B, c, Sy_fit, Vr,
     
     counts, bins, _ = plt.hist(residuals, bins=nBars, 
             color='royalblue', edgecolor='black', alpha=0.7)
-    plt.xlabel(r'Residuals, $\hat r = y - \hat y(x)$', fontsize=15)
+    plt.xlabel(r'Residuals, $r = y - \hat y(x; c^*)$', fontsize=15)
     plt.ylabel(r'Empirical PDF, $f_R(r)$', fontsize=15)
     plt.title('Distribution of Residuals', fontsize=15)
     plt.grid(True, alpha=0.3, axis='y')
@@ -301,7 +301,7 @@ def _plot_results(x, y, x_fit, y_fit, B, c, Sy_fit, Vr,
     # Scale to match histogram
     p_normal_scaled = p_normal * len(residuals) * (bins[1] - bins[0])
     plt.plot(x_normal, p_normal_scaled, '-', color='darkblue',linewidth=4) 
-    plt.text( sdvnR, np.max(p_normal_scaled), rf'$\sigma_{{\hat r}} = {sdvnR:.3f}$', fontsize=18)
+    plt.text( sdvnR, np.max(p_normal_scaled), rf'$\sigma_{{r}} = {sdvnR:.3f}$', fontsize=18)
     
     plt.tight_layout()
     
@@ -310,5 +310,5 @@ def _plot_results(x, y, x_fit, y_fit, B, c, Sy_fit, Vr,
     print(f"    Saved: {filename}")
     
     # Figure 3: ECDF of residuals with confidence intervals
-    plot_ECDF_ci(residuals, 95, fig_no + 2, x_label= r'Residuals, $\hat r = y - \hat y(x)$')
+    plot_ECDF_ci(residuals, 95, fig_no + 2, x_label= r'Residuals, $r = y - \hat y(x; c^*)$')
 
