@@ -67,6 +67,8 @@ def poly_fit(x, y, p, fig_no=0, Sy=None, rof=None, b=0.0):
         Unbiased variance of unweighted residuals
     AIC : float
         Akaike Information Criterion
+    BIC : float
+        Bayesian Information Criterion
     condNo : float
         Condition number of regularized system matrix
     
@@ -157,7 +159,9 @@ def poly_fit(x, y, p, fig_no=0, Sy=None, rof=None, b=0.0):
     # R-squared (coefficient of determination)
     R2 = 1 - np.sum((y - B @ c)**2) / np.sum((y - np.mean(y))**2)
     # Akaike Information Criterion
-    AIC = np.log(2 * np.pi * Np * Vr) + (B @ c - y).T @ invVy @ (B @ c - y) + 2 * Np
+
+    AIC = np.log(2 * np.pi * Nd * Vr) + (B @ c - y).T @ invVy @ (B @ c - y) + 2 * Np
+    BIC = np.log(2 * np.pi * Nd * Vr) + (B @ c - y).T @ invVy @ (B @ c - y) + Np* np.log(Nd)
     
     # Print results
     print('\n' + '='*70)
@@ -178,13 +182,13 @@ def poly_fit(x, y, p, fig_no=0, Sy=None, rof=None, b=0.0):
     # Plotting
     if fig_no > 0:
         _plot_results(x, y, x_fit, y_fit, B, c, Sy_fit, Vr, 
-                     condNo, R2, AIC, Nd, Np, fig_no)
+                     condNo, R2, AIC, BIC, Nd, Np, fig_no)
     
-    return c, x_fit, y_fit, Sc, Sy_fit, Rc, R2, Vr, AIC, condNo
+    return c, x_fit, y_fit, Sc, Sy_fit, Rc, R2, Vr, AIC, BIC, condNo
 
 
 def _plot_results(x, y, x_fit, y_fit, B, c, Sy_fit, Vr, 
-                  condNo, R2, AIC, Nd, Np, fig_no):
+                  condNo, R2, AIC, BIC, Nd, Np, fig_no):
     """
     Create visualization of polynomial fit results.
     
@@ -246,7 +250,7 @@ def _plot_results(x, y, x_fit, y_fit, B, c, Sy_fit, Vr,
     # Add statistics text
     tx = min(y)
     ty_range = max(y) - min(y)
-    positions = [0.99, 0.91, 0.83, 0.75, 0.67, 0.59]
+    positions = [0.99, 0.91, 0.83, 0.75, 0.67, 0.59, 0.51]
     
     ax2.text(tx, min(y) + positions[0]*ty_range, 
              rf'$N$ = {Nd} data points', fontsize=12) 
@@ -259,7 +263,9 @@ def _plot_results(x, y, x_fit, y_fit, B, c, Sy_fit, Vr,
     ax2.text(tx, min(y) + positions[4]*ty_range, 
              rf'$R^2$ = {R2:.3f}', fontsize=12)
     ax2.text(tx, min(y) + positions[5]*ty_range, 
-             f'AIC = {AIC:.1f}', fontsize=12)
+             f'AIC = {AIC:.2f}', fontsize=12)
+    ax2.text(tx, min(y) + positions[6]*ty_range, 
+             f'BIC = {BIC:.2f}', fontsize=12)
     
     ax2.set_xlabel(r'model   $\hat y(x)$', fontsize=15)
     ax2.set_ylabel(r'data   $y$', fontsize=15)
