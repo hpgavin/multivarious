@@ -20,7 +20,7 @@ from scipy.stats import norm as scipy_normal
 from multivarious.utl.plot_ECDF_ci import plot_ECDF_ci
 
 
-def poly_fit(x, y, p, figNo=0, Sy=None, rof=None, b=0.0):
+def poly_fit(x, y, p, fig_no=0, Sy=None, rof=None, b=0.0):
     """
     Fit a power-polynomial to data with comprehensive error analysis.
     
@@ -37,7 +37,7 @@ def poly_fit(x, y, p, figNo=0, Sy=None, rof=None, b=0.0):
         Measured vector of dependent variables
     p : array_like, shape (n,)
         Vector of real powers (x^p) for each polynomial term
-    figNo : int, optional
+    fig_no : int, optional
         Figure number for plotting. Use 0 to suppress plotting (default: 0)
     Sy : float or array_like, optional
         Measurement errors for each value of y. 
@@ -176,19 +176,19 @@ def poly_fit(x, y, p, figNo=0, Sy=None, rof=None, b=0.0):
     print('='*70 + '\n')
     
     # Plotting
-    if figNo > 0:
+    if fig_no > 0:
         _plot_results(x, y, x_fit, y_fit, B, c, Sy_fit, Vr, 
-                     condNo, R2, AIC, Nd, Np, figNo)
+                     condNo, R2, AIC, Nd, Np, fig_no)
     
     return c, x_fit, y_fit, Sc, Sy_fit, Rc, R2, Vr, AIC, condNo
 
 
 def _plot_results(x, y, x_fit, y_fit, B, c, Sy_fit, Vr, 
-                  condNo, R2, AIC, Nd, Np, figNo):
+                  condNo, R2, AIC, Nd, Np, fig_no):
     """
     Create visualization of polynomial fit results.
     
-    Internal function called by poly_fit when figNo > 0.
+    Internal function called by poly_fit when fig_no > 0.
     """
     
     # Confidence intervals
@@ -218,8 +218,8 @@ def _plot_results(x, y, x_fit, y_fit, B, c, Sy_fit, Vr,
     })
     
     # Figure 1: Data, fit, and confidence intervals
-    fig = plt.figure(figNo, figsize=(12, 5))
-    fig.clf()
+    fig_1 = plt.figure(fig_no, figsize=(12, 5))
+    fig_1.clf()
     
     # Left subplot: Data and model with confidence intervals
     ax1 = plt.subplot(1, 2, 1)
@@ -266,6 +266,10 @@ def _plot_results(x, y, x_fit, y_fit, B, c, Sy_fit, Vr,
     ax2.axis('tight')
     ax2.grid(True, alpha=0.3)
     ax2.set_title(r'Data $y$ vs Model $\hat y(x)$ (Correlation)', fontsize=14)
+
+    filename = f'poly_fit-{fig_no:04d}.pdf'
+    fig_1.savefig(filename, bbox_inches='tight', dpi=300)
+    print(f"    Saved: {filename}")
     
     plt.tight_layout()
     
@@ -273,8 +277,8 @@ def _plot_results(x, y, x_fit, y_fit, B, c, Sy_fit, Vr,
     residuals = y - B @ c
     nBars = max(10, round(Nd / 10))
     
-    fig2 = plt.figure(figNo + 1, figsize=(8, 5))
-    fig2.clf()
+    fig_2 = plt.figure(fig_no + 1, figsize=(8, 5))
+    fig_2.clf()
     
     counts, bins, _ = plt.hist(residuals, bins=nBars, 
             color='royalblue', edgecolor='black', alpha=0.7)
@@ -295,6 +299,10 @@ def _plot_results(x, y, x_fit, y_fit, B, c, Sy_fit, Vr,
     
     plt.tight_layout()
     
+    filename = f'poly_fit-{fig_no+1:04d}.pdf'
+    fig_2.savefig(filename, bbox_inches='tight', dpi=300)
+    print(f"    Saved: {filename}")
+    
     # Figure 3: ECDF of residuals with confidence intervals
-    plot_ECDF_ci(residuals, 95, figNo + 2, x_label= r'Residuals, $\hat r = y - \hat y(x)$')
+    plot_ECDF_ci(residuals, 95, fig_no + 2, x_label= r'Residuals, $\hat r = y - \hat y(x)$')
 

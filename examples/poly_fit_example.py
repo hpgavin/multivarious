@@ -7,7 +7,7 @@ poly_fit_example.py - example for the use of poly_fit.py
 import numpy as np
 import matplotlib.pyplot as plt
 from multivarious.fit import poly_fit
-from datetime import datetime
+import time
 
 """
 Test poly_fit with example data
@@ -17,8 +17,8 @@ print("Testing poly_fit.py")
 print("="*70)
     
 # Generate test data
-# np.random.seed(42)  # use the same seed every time 
-# np.random.seed(datetime.now().timestamp())  # set the seed from datetime
+rng = np.random.default_rng(42)                        #  the same seed each time 
+rng = np.random.default_rng((int)(time.time()*100000)) # different seed each time
 x_l =  -1  # Lower end of the fit domain
 x_h =   1  # Upper end of the fit domain
 Nd  =  40  # Number of data points
@@ -27,7 +27,7 @@ x = np.linspace(x_l, x_h, Nd)  # the independent data points from x_l to x_h
     
 measurement_error = 0.20   # the level simulated measurement error 
 # simulate the measured data including the measurement error 
-y = -np.cos(4*x) + 1.0 * x**3 * np.exp(-x/3) + measurement_error * np.random.randn(Nd)
+y = -np.cos(4*x) + x**3 - np.exp(-x/3) + measurement_error * rng.standard_normal(Nd)
     
 print(f"\nGenerated {Nd} data points")
 print(f"x range: [{x_l}, {x_h}]")
@@ -41,7 +41,7 @@ print("-"*70)
 p1 = np.array([0, 1, 2, 3, 4])   # the powers of the polynomial terms 
 # ... run poly_fit() to do the fit! ...
 c1, x_fit1, y_fit1, Sc1, Sy_fit1, Rc1, R2_1, Vr1, AIC1, cond1 = \
-        poly_fit(x, y, p1, figNo=10)
+        poly_fit(x, y, p1, fig_no=10)
     
 # Test 2: Reduced polynomial basis (no linear term)
 print("\n" + "-"*70)
@@ -50,7 +50,7 @@ print("-"*70)
     
 p2 = np.array([0, 2, 3, 4])
 c2, x_fit2, y_fit2, Sc2, Sy_fit2, Rc2, R2_2, Vr2, AIC2, cond2 = \
-        poly_fit(x, y, p2, figNo=20)
+        poly_fit(x, y, p2, fig_no=20)
     
 # Comparison
 print("\n" + "="*70)
