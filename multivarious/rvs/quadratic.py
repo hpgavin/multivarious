@@ -68,6 +68,9 @@ def pdf(x, a, b):
         f[i, x >= b[i]] = 0.0 # PDF = 0 for x >= b
         f[i, x <= a[i]] = 0.0 # PDF = 0 for x <= b
     
+    if n == 1:
+        f = f.flatten()
+
     return f
 
 
@@ -106,6 +109,9 @@ def cdf(x, params):
         F[i, x >= b[i]] = 1.0 # CDF = 1 for x >= b
         F[i, x <= a[i]] = 0.0 # CDF = 0 for x <= b
     
+    if n == 1:
+        F = F.flatten()
+
     return F
 
 
@@ -129,7 +135,7 @@ def inv(u, a, b):
             Quantile values corresponding to probabilities u
     """
 
-    _, a, b, _, _ = _ppp_(0, a, b)
+    _, a, b, n, _ = _ppp_(0, a, b)
 
     a = a[0] # scalar
     b = b[0] # scalar
@@ -159,8 +165,11 @@ def inv(u, a, b):
         
         x[j] = valid_roots[0]
     
+    if n == 1:
+        x = x.flatten()
+
     # Return scalar if input was scalar
-    return x[0] if np.isscalar(u) or len(x) == 1 else x
+#   return x[0] if np.isscalar(u) or len(x) == 1 else x
 
 
 def rnd(a, b, N, R=None, seed=None):

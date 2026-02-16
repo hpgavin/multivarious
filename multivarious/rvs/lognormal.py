@@ -95,6 +95,9 @@ def pdf(x, mednX, covnX):
     
     # Compute using Lognormal PDF formula
     f = (1.0 / (x * np.sqrt(2.0 * np.pi * VlnX))) * np.exp(-0.5 * (np.log(x / mednX))**2.0 / VlnX)
+ 
+    if n == 1:
+        f = f.flatten()
     
     return f
 
@@ -137,6 +140,9 @@ def cdf(x, params):
     
     # Lognormal CDF formula
     F = 0.5 * (1 + scipy_erf((np.log(x) - np.log(mednX)) / np.sqrt(2 * VlnX)))
+    
+    if n == 1:
+        F = F.flatten()
     
     return F
 
@@ -181,6 +187,9 @@ def inv(P, mednX, covnX):
     VlnX = np.log(1 + covnX**2)  # Variance of log(X)
     x = np.exp(np.log(mednX) + np.sqrt(2 * VlnX) * scipy_erfinv(2 * P - 1)) 
 
+    if n == 1:
+        x = x.flatten()
+    
     return x
 
 

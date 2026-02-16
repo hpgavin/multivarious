@@ -74,13 +74,13 @@ def pdf(t, k):
     power = -(k + 1) / 2
     f = (numerator / denominator) * (1 + (t**2) / k) ** power
 
+    if n == 1:
+        f = f.flatten()
+
     return f
 
 #   # Compute the PDF using the known closed-form
 #   f = (np.exp(-(k + 1) * np.log(1 + (t ** 2) / k) / 2)) / (np.sqrt(k) * beta_func(k / 2, 0.5))
-
-    return f
-
 
 def cdf(t, k):
     """
@@ -128,8 +128,10 @@ def cdf(t, k):
         mask = t < 0
         F[i,mask] =     0.5 * betainc(a, 0.5, x[mask])
 
-    return F
+    if n == 1:
+        F = F.flatten()
 
+    return F
 
 def inv(p, k):
     """
@@ -157,7 +159,7 @@ def inv(p, k):
     https://en.wikipedia.org/wiki/Student%27s_t-distribution
     """
     
-    _, k, _, _ = _ppp_(0, k)
+    _, k, _, n = _ppp_(0, k)
     
     p = np.asarray(p)
 
@@ -167,6 +169,9 @@ def inv(p, k):
     
     # Convert from beta quantile to t quantile
     x = np.sign(p - 0.5) * np.sqrt(k * (1 / z - 1))
+
+    if n == 1:
+        x = x.flatten()
 
     return x
 

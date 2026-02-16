@@ -79,6 +79,9 @@ def pdf(x, a, b, c):
         right = (c[i] <= x) & (x <= b[i])
         f[i,right] = 2 * (b[i] - x[right]) / ((b[i] - a[i]) * (b[i] - c[i]))
 
+    if n == 1:
+        f = f.flatten()
+
     return f  # Outside [a, b] => already zero
 
 
@@ -112,7 +115,7 @@ def cdf(x, params):
 
     x, a, b, c, n, N = _ppp_(x, a, b, c)
 
-    cdf = np.zeros((n,N))
+    F = np.zeros((n,N))
 
     for i in range(n): 
         left = (x <= a[i])
@@ -120,11 +123,14 @@ def cdf(x, params):
         mid2 = (c[i] <= x) & (x < b[i])
         right = (x >= b[i])
 
-        cdf[i,mid1] = ((x[mid1] - a[i]) ** 2) / ((b[i] - a[i]) * (c[i] - a[i]))
-        cdf[i,mid2] = 1 - ((b[i] - x[mid2]) ** 2) / ((b[i] - a[i]) * (b[i] - c[i]))
-        cdf[i,right] = 1.0
+        F[i,mid1] = ((x[mid1] - a[i]) ** 2) / ((b[i] - a[i]) * (c[i] - a[i]))
+        F[i,mid2] = 1 - ((b[i] - x[mid2]) ** 2) / ((b[i] - a[i]) * (b[i] - c[i]))
+        F[i,right] = 1.0
 
-    return cdf
+    if n == 1:
+        F = F.flatten()
+
+    return F
 
 
 def inv(p, a, b, c):
@@ -166,6 +172,9 @@ def inv(p, a, b, c):
     # Inverse CDF piecewise formula
     x[below] = a + np.sqrt(p[below] * (b - a) * (c - a))
     x[above] = b - np.sqrt((1 - p[above]) * (b - a) * (b - c))
+
+    if n == 1:
+        x = x.flatten()
 
     return x
 
@@ -223,4 +232,6 @@ def rnd(a, b, c, N, R=None, seed=None ):
     for i in range(n):
         X[i, :] = inv(U[i, :], a[i], b[i], c[i])
 
+    if n == 1:
+        X = X.flatten()
     return X

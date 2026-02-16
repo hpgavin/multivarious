@@ -69,6 +69,9 @@ def pdf(x, meanX):
     x, meanX, n = _ppp_(x, meanX)
 
     f = np.exp(-x / meanX) / meanX
+
+    if n == 1:
+        f = f.flatten()
     
     return f
 
@@ -102,6 +105,9 @@ def cdf(x, meanX):
 
     F = 1.0 - np.exp(-x / meanX)
 
+    if n == 1:
+        F = F.flatten()
+    
     return F
 
 
@@ -136,9 +142,12 @@ def inv(P, meanX):
     P = np.where(P < 0, 0.0, P)
     P = np.where(P > 1, 1.0, P)
 
-    X = -meanX * np.log(1 - P)
+    x = -meanX * np.log(1 - P)
     
-    return X
+    if n == 1:
+        x = x.flatten()
+    
+    return x
 
 
 def rnd(meanX, N, R=None, seed=None):

@@ -68,6 +68,9 @@ def pmf(k, t, T):
 
     p = np.exp( k * np.log(r) - r - gammaln(k+1) ) # less round-off error
 
+    if n == 1:
+        p = p.flatten()
+
     return p
 
 
@@ -114,6 +117,9 @@ def cdf(k, params ):
         F = F.flatten()     # Return 1D array for a single rv
     if len(k) == 1:
         F = F[0]            # Return scalar for a singe rv and a single k
+
+    if n == 1:
+        F = F.flatten()
  
     return F
 
@@ -188,6 +194,9 @@ def rnd(t, T, N, R=None, seed=None):
 
         if iteration >= 100:
             print(f"Warning: large iteration count at sample {j}")
+
+    if x == 1:
+        x = x.flatten()
     
     return X
 

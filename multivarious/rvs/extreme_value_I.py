@@ -94,11 +94,14 @@ def pdf(x, meanX, covnX):
     https://en.wikipedia.org/wiki/Gumbel_distribution
     """
 
-    x, _, _, loctn, scale, _ = _ppp_(x, meanX, covnX)
+    x, _, _, loctn, scale, n = _ppp_(x, meanX, covnX)
 
     z = (x - loctn) / scale
     exp_z = np.exp(-z)
     f = exp_z * np.exp(-exp_z) / scale
+
+    if n == 1:
+        f = f.flatten()
 
     return f
 
@@ -140,6 +143,9 @@ def cdf(x, params):
 
     F = np.exp(-np.exp(-z))
 
+    if n == 1:
+        F = F.flatten()
+
     return F
 
 
@@ -174,6 +180,9 @@ def inv(p, meanX, covnX):
     _, _, _, loctn, scale, _ = _ppp_(0, meanX, covnX)
 
     x = loctn - scale * np.log(-np.log(p))
+
+    if n == 1:
+        x = x.flatten()
 
     return x
 

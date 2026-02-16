@@ -95,6 +95,9 @@ def pdf(x, meanX, covnX):
 
     f = np.where(x <= 0, 1e-12, f)  # replace negative x with small value for stability
 
+    if n == 1:
+        f = f.flatten()
+
     return f
 
 
@@ -136,6 +139,9 @@ def cdf(x, params):
     F = gammainc(k, xp / theta)       # regularized lower incomplete gamma function
     F = np.where(x <= 0, 0.0, F)      # replace negative x with small value for stability
     
+    if n == 1:
+        F = F.flatten()
+
     return F
 
 
@@ -188,7 +194,12 @@ def inv(P, meanX, covnX):
             break
         x_old = x_new                       # update for next iteration
 
-    return x_new                            # return final quantiles
+    x = x_new                               # return final quantiles
+
+    if n == 1:
+        x = x.flatten() 
+
+    return x  
 
 
 def rnd(meanX, covnX, N, R=None, seed=None):

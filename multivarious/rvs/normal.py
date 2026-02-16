@@ -79,11 +79,14 @@ def pdf(x, meanX=0.0, sdvnX=1.0):
     https://en.wikipedia.org/wiki/Normal_distribution
     """
  
-    x, meanX, sdvnX, _ = _ppp_(x, meanX, sdvnX)
+    x, meanX, sdvnX, n = _ppp_(x, meanX, sdvnX)
 
     z = (x - meanX) / sdvnX
 
     f = 1.0 / np.sqrt(2 * np.pi*sdvnX**2) * np.exp(-(z**2.0) / 2.0)
+
+    if n == 1:
+        f = f.flatten()
 
     return f 
 
@@ -117,11 +120,14 @@ def cdf(x, params ):
 
     meanX, sdvnX = params
 
-    x, meanX, sdvnX, _ = _ppp_(x, meanX, sdvnX)
+    x, meanX, sdvnX, n = _ppp_(x, meanX, sdvnX)
 
     z = (x - meanX) / sdvnX
 
     F = (1.0 + scipy_erf(z / np.sqrt(2.0))) / 2.0
+
+    if n == 1:
+        F = F.flatten()
 
     return F
 
@@ -153,7 +159,7 @@ def inv(p, meanX=0.0, sdvnX=1.0):
     https://en.wikipedia.org/wiki/Normal_distribution
     """
 
-    _, meanX, sdvnX, _ = _ppp_(0, meanX, sdvnX)
+    _, meanX, sdvnX, n = _ppp_(0, meanX, sdvnX)
 
     p = np.asarray(p, dtype=float)
 
@@ -164,6 +170,9 @@ def inv(p, meanX=0.0, sdvnX=1.0):
     # Compute normal quantile using inverse CDF formula
     z = np.sqrt(2) * scipy_erfinv(2 * p - 1) 
     x = meanX + sdvnX * z
+
+    if x == 1:
+        x = x.flatten()
 
     return x
 

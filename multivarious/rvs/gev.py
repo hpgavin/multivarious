@@ -60,7 +60,12 @@ def pdf(x, m, s, k):
 
     f = np.where(kzp1 < 0, np.finfo(float).eps, f)
 
-    return np.real(f)
+    f = np.real(f)
+
+    if n == 1:
+        f = f.flatten()
+
+    return
 
 
 def cdf(x, params):
@@ -83,7 +88,12 @@ def cdf(x, params):
     F = np.exp(-kzp1**(-1 / k))
     F = np.where(kzp1 < 0, np.finfo(float).eps, F)
 
-    return np.real(F)
+    F = np.real(F)
+
+    if n == 1:
+        F = F.flatten()
+
+    return 
 
 
 def inv(p, m, s, k):
@@ -101,6 +111,9 @@ def inv(p, m, s, k):
     _, m, s, k, n = _ppp_(0, m, s, k) 
 
     x = m + (s / k) * ((-np.log(p))**(-k) - 1)
+
+    if x == 1:
+        x = x.flatten()
 
     return x
 

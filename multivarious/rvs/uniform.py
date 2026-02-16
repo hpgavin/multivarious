@@ -87,6 +87,9 @@ def pdf(x, a, b):
         mask = (x >= a[i]) & (x <= b[i])
         f[i,mask] = 1.0 / (b[i] - a[i])
     
+    if n == 1:
+        f = f.flatten()
+
     return f
 
 
@@ -129,6 +132,9 @@ def cdf(x, params):
         F[i,mask_in] = (x[mask_in] - a[i]) / (b[i] - a[i])
         F[i,mask_above] = 1.0
     
+    if n == 1:
+        F = F.flatten()
+
     return F
 
 
@@ -167,6 +173,9 @@ def inv(F, a, b):
     
     x = a + F * (b - a)
     
+    if n == 1:
+        x = x.flatten()
+
     return x
 
 

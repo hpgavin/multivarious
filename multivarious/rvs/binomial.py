@@ -80,6 +80,9 @@ def pmf(n, m, p):
         facts = factorial(m[i]) / (factorial(ni) * factorial(m[i]-ni))
         facts = facts.flatten()
         P[i,ni] = facts * ( p[i]**ni * (1-p[i])**(m[i]-ni) ).flatten()
+   
+    if nb == 1:
+         P = P.flatten();
 
     return P
 
@@ -114,7 +117,11 @@ def cdf(n, params):
     for i in range(nb): 
         F[i,:] = np.cumsum( P[i,:] )
 
-    return F if F.size > 1 else F[0]        # Return scalar if input was scalar
+#   if F.size > 1 else F[0]        # Return scalar if input was scalar
+    if nb == 1:
+         F = F.flatten();
+
+    return F 
 
 
 def rnd(m, p, N, R=None, seed=None):
@@ -163,5 +170,8 @@ def rnd(m, p, N, R=None, seed=None):
         for i in range(nb):
             if attempt <= m[i]:
                 X[i,:] += successes[i,:].astype(int)
+
+    if nb == 1:
+        X = X.flatten()
 
     return X
