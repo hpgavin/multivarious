@@ -63,8 +63,8 @@ def poly_fit(x, y, p, fig_no=0, Sy=None, rof=None, b=0.0):
         Parameter correlation matrix
     R2 : float
         R-squared error criterion
-    Vr : float
-        Unbiased variance of unweighted residuals
+    Sr : float
+        Standard error of unweighted residuals
     AIC : float
         Akaike Information Criterion
     BIC : float
@@ -151,8 +151,8 @@ def poly_fit(x, y, p, fig_no=0, Sy=None, rof=None, b=0.0):
         Vc = Vc @ (B.T @ ISy @ Vy @ ISy @ B) @ Vc
     # Standard errors of parameters
     Sc = np.sqrt(np.diag(Vc))
-    # Parameter cross-correlation matrix
-    Rc = Vc / np.outer(Sc, Sc)
+    # Parameter cross-correlation matrix 
+    Rc = np.round( Vc / np.outer(Sc, Sc) ) 
     # Standard error of the fit
     Sy_fit = np.sqrt(np.diag(B_fit @ Vc @ B_fit.T))
     # R-squared (coefficient of determination)
@@ -162,24 +162,23 @@ def poly_fit(x, y, p, fig_no=0, Sy=None, rof=None, b=0.0):
     BIC = np.log(2 * np.pi * Nd * Vr) + (B @ c - y).T @ invVy @ (B @ c - y) + Np* np.log(Nd)
     
     # Print results
-    print('\n' + '='*70)
+    print('\n' + '='*79)
     print('Polynomial Fit Results')
-    print('='*70)
-    print('     p         c            +/-   dc           (percent)')
+    print('='*79)
+    print('     p         c            +/-   dc           (percent)    correlation')
     print('-'*65)
     for i in range(Np):
         pct = 100 * Sc[i] / abs(c[i]) if c[i] != 0 else np.inf
+        rr_str = ' '.join(f'{x:5.2f}' for x in Rc[i])
         if p[i] == int(p[i]):
-            print(f'   c[{int(p[i]):2d}] =  {c[i]:11.3e}    +/- {Sc[i]:10.3e}    '
-                  f'({pct:7.2f} %)')
+            print(f'   c[{int(p[i]):2d}] =  {c[i]:11.3e}    +/- {Sc[i]:10.3e}     ({pct:7.2f} %)  {rr_str}')
         else:
-            print(f' {p[i]:8.2f} :  {c[i]:11.3e}     +/- {Sc[i]:10.3e}    '
-                  f'({pct:7.2f} %)')
-    print('='*70 + '\n')
+            print(f' {p[i]:8.2f} :  {c[i]:11.3e}     +/- {Sc[i]:10.3e}      ({pct:7.2f} %)   {rr:6.2f}'   )
+    print('='*79 + '\n')
     
     # Plotting
     if fig_no > 0:
-        _plot_results(x, y, x_fit, y_fit, B, c, Sy_fit, Vr, 
+        _plot_results(x, y, x_fit, y_fit, B, c, Sy_fit, np.sqrt(Vr), 
                      condNo, R2, AIC, BIC, Nd, Np, fig_no)
     
     return c, x_fit, y_fit, Sc, Sy_fit, Rc, R2, Vr, AIC, BIC, condNo
