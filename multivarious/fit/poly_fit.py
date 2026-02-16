@@ -152,7 +152,7 @@ def poly_fit(x, y, p, fig_no=0, Sy=None, rof=None, b=0.0):
     # Standard errors of parameters
     Sc = np.sqrt(np.diag(Vc))
     # Parameter cross-correlation matrix 
-    Rc = np.round( Vc / np.outer(Sc, Sc) ) 
+    Rc = Vc / np.outer(Sc, Sc) 
     # Standard error of the fit
     Sy_fit = np.sqrt(np.diag(B_fit @ Vc @ B_fit.T))
     # R-squared (coefficient of determination)
@@ -166,7 +166,7 @@ def poly_fit(x, y, p, fig_no=0, Sy=None, rof=None, b=0.0):
     print('Polynomial Fit Results')
     print('='*79)
     print('     p         c            +/-   dc           (percent)    correlation')
-    print('-'*65)
+    print('-'*79)
     for i in range(Np):
         pct = 100 * Sc[i] / abs(c[i]) if c[i] != 0 else np.inf
         rr_str = ' '.join(f'{x:5.2f}' for x in Rc[i])
@@ -178,7 +178,7 @@ def poly_fit(x, y, p, fig_no=0, Sy=None, rof=None, b=0.0):
     
     # Plotting
     if fig_no > 0:
-        _plot_results(x, y, x_fit, y_fit, B, c, Sy_fit, np.sqrt(Vr), 
+        _plot_results(x, y, x_fit, y_fit, B, c, Sy_fit, Vr, 
                      condNo, R2, AIC, BIC, Nd, Np, fig_no)
     
     return c, x_fit, y_fit, Sc, Sy_fit, Rc, R2, Vr, AIC, BIC, condNo
@@ -291,14 +291,14 @@ def _plot_results(x, y, x_fit, y_fit, B, c, Sy_fit, Vr,
     plt.grid(True, alpha=0.3, axis='y')
     
     # Add normal distribution overlay
-    meanR, sdvnR = np.mean(residuals), np.sqrt(residuals@residuals/(Nd-Np-1))
+    meanR = np.sum(residuals)/Np
     xmin, xmax = plt.xlim()
     x_normal = np.linspace(xmin, xmax, 100)
-    p_normal = scipy_normal.pdf(x_normal, meanR, sdvnR)
+    p_normal = scipy_normal.pdf(x_normal, meanR, np.sqrt(Vr))
     # Scale to match histogram
     p_normal_scaled = p_normal * len(residuals) * (bins[1] - bins[0])
     plt.plot(x_normal, p_normal_scaled, '-', color='darkblue',linewidth=4) 
-    plt.text( sdvnR, np.max(p_normal_scaled), rf'$\sigma_{{r}} = {sdvnR:.3f}$', fontsize=18)
+    plt.text( np.sqrt(Vr), np.max(p_normal_scaled), rf'$\sigma_{{r}} = {np.sqrt(Vr):.3f}$', fontsize=18)
     
     plt.tight_layout()
     
