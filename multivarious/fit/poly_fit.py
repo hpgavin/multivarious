@@ -136,7 +136,7 @@ def poly_fit(x, y, p, fig_no=0, Sy=None, rof=None, b=0.0):
     y_fit = B_fit @ c
     
     # Unbiased variance of unweighted residuals
-    Vr = np.sum((y - B @ c)**2) / (Nd - Np - 1)
+    Vr = np.sum((y - B @ c)**2) / (Nd-Np)
     
     # Measurement error covariance
     if compute_Vr:
