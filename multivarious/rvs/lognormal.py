@@ -147,14 +147,14 @@ def cdf(x, params):
     return F
 
 
-def inv(P, mednX, covnX):
+def inv(F, mednX, covnX):
     """
     lognormal.inv
  
     Computes the inverse CDF (quantile function) for lognormal distribution.
  
     INPUTS:
-        P : array_like
+        F : array_like
             Probability values (must be in (0,1))
         mednX : float or array_like, shape (n,)
             Median(s) of the lognormal distribution
@@ -163,11 +163,11 @@ def inv(P, mednX, covnX):
  
     OUTPUTS:
         x : ndarray
-            Quantile values such that P(X <= x) = P
+            Quantile values such that P(X <= x) = F
    
     Notes
     -----
-    x = exp(log(mednX) + √(2V) · erfinv(2P - 1))
+    x = exp(log(mednX) + √(2V) · erfinv(2F - 1))
     where V = log(1 + covnX²)
 
     Reference
@@ -177,15 +177,14 @@ def inv(P, mednX, covnX):
 
     _, mednX, covnX, n = _ppp_(0, mednX, covnX) 
 
-    P = np.asarray(P, dtype=float)
-    
-    # Clip probabilities to avoid erfinv(±1) = ±∞
-    my_eps = 1e-12  # small, not zero
-    P = np.clip(P, my_eps, 1.0 - my_eps)  # restrict P to (my_eps, 1-my_eps)
+    F = np.atleast_2d(F).astype(float)
+    F = np.clip(F, np.finfo(float).eps, 1 - np.finfo(float).eps)
+    N = F.shape[1]    
 
     # Compute lognormal quantile using inverse CDF formula
     VlnX = np.log(1 + covnX**2)  # Variance of log(X)
-    x = np.exp(np.log(mednX) + np.sqrt(2 * VlnX) * scipy_erfinv(2 * P - 1)) 
+
+    x = np.exp(np.log(mednX) + np.sqrt(2 * VlnX) * scipy_erfinv(2 * F - 1)) 
 
     if n == 1:
         x = x.flatten()
@@ -235,15 +234,9 @@ def rnd(mednX, covnX, N, R=None, seed=None):
     
     _, mednX, covnX, n = _ppp_(0, mednX, covnX) 
 
-    # Compute variance of log(X) for each variable
-    VlnX = np.log(1 + covnX**2)
-    
-    _, Y, _ = correlated_rvs(R, n, N, seed)
+    _, _, U = correlated_rvs(R, n, N, seed)
 
     # Transform to lognormal: x = exp(log(mednX) + Y * sqrt(VlnX))
-    X = np.exp(np.log(mednX) + Y * np.sqrt(VlnX))
+    X = inv( U, mednX, covnX )
     
-    if n == 1:
-        X = X.flatten()
-
     return X

@@ -86,7 +86,7 @@ def lm_func(t: np.ndarray, coeffs: np.ndarray, example_number: float = 1.0) -> n
     return y_hat
 
 
-def run_example(example_number: int = 1, print_level: int = 3) -> Tuple:
+def run_example(example_number: int = 1, print_level: int = 3): #  -> Tuple:
     """
     Run a complete Levenberg-Marquardt curve fitting example.
     

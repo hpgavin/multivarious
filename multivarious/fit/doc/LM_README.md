@@ -33,7 +33,7 @@ Implementatiom of the Levenberg-Marquardt algorithm for nonlinear curve fitting.
 
 ```python
 import numpy as np
-from lm import levenberg_marquardt
+from multivarious.fit.lm import levenberg_marquardt
 
 # Define the model function
 def model(t, coeffs):
@@ -663,7 +663,9 @@ This module is part of the **multivarious** package for signal processing, model
 
 ```python
 # When installed via pip:
-from multivarious.lm import levenberg_marquardt
+from multivarious.fit.lm import levenberg_marquardt, lm
+from multivarious.utl.plot_lm import plot_lm
+
 ```
 
 modules emphasize:

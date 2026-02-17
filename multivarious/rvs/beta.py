@@ -165,19 +165,21 @@ def inv(F, a, b, q, p):
     x : ndarray
         Quantile values corresponding to input probabilities F
     '''
+
     _, a, b, q, p, n, _ = _ppp_(0, a, b, q, p)
 
-    F = np.asarray(F, dtype=float)
-    
-    # Check that F values are valid probabilities
-    if np.any((F < 0) | (F > 1)):
-        raise ValueError('beta_inv: F must be between 0 and 1')
+    F = np.atleast_2d(F).astype(float)
+    F = np.clip(F, np.finfo(float).eps, 1 - np.finfo(float).eps)
+    N = F.shape[1]    
 
-    # Compute inverse of regularized incomplete beta function
-    z = betaincinv(q, p, F)
+    x = np.zeros((n,N)) 
 
-    # Rescale from [0, 1] to [a, b]
-    x = a + z * (b - a)
+    for i in range(n): 
+        # Compute inverse of regularized incomplete beta function
+        z = betaincinv(q[i], p[i], F[i,:])
+
+        # Rescale from [0, 1] to [a, b]
+        x[i,:] = a[i] + z * (b[i] - a[i])
 
     if n == 1:
         x = x.flatten()
@@ -230,17 +232,11 @@ def rnd(a, b, q, p, N, R=None, seed=None):
             R = np.array([[1.0, 0.7], [0.7, 1.0]])
             x = rnd(a, b, q, p, N=1000, R=R)
     '''
-    
+
     _, a, b, q, p, n, _ = _ppp_(0, a, b, q, p)
    
     _, _, U = correlated_rvs(R,n,N,seed)
 
-    # Transform each variable to its beta distribution via inverse CDF
-    X = np.zeros((n, N))
-    for i in range(n):
-        X[i, :] = inv(U[i, :], a[i], b[i], q[i], p[i])
-        
-    if n == 1:
-        X = X.flatten()
-
+    X = inv( U, a, b, q, p )
+       
     return X

@@ -138,7 +138,7 @@ def cdf(x, params):
     return F
 
 
-def inv(P, meanX, sdvnX):
+def inv(F, meanX, sdvnX):
     """
     laplace.inv
 
@@ -146,7 +146,7 @@ def inv(P, meanX, sdvnX):
     with mean (location) meanX and standard deviation (scale) sdvnX.
 
     INPUTS:
-        P : array_like
+        F : array_like
             Non-exceedance probabilities (must be in [0, 1])
         meanX : float or array_like, shape (n,)
             Mean(s) (location parameter)
@@ -155,31 +155,34 @@ def inv(P, meanX, sdvnX):
 
     OUTPUTS:
         x : ndarray
-            Quantile values corresponding to probabilities P
+            Quantile values corresponding to probabilities F
 
     Notes
     -----
-    x = μ + (σ/√2)·ln(2P) for P ≤ 0.5
-    x = μ - (σ/√2)·ln(2(1-P)) for P > 0.5
+    x = μ + (σ/√2)·ln(2F) for F ≤ 0.5
+    x = μ - (σ/√2)·ln(2(1-F)) for F > 0.5
 
     Reference
     ---------
     https://en.wikipedia.org/wiki/Laplace_distribution
     """
     
-    _, meanX, sdvnX, n, N = _ppp_(P, meanX, sdvnX)
+    _, meanX, sdvnX, n, N = _ppp_(F, meanX, sdvnX)
 
-    P = np.asarray(P, dtype=float)
+
+    F = np.atleast_2d(F).astype(float)
+    F = np.clip(F, np.finfo(float).eps, 1 - np.finfo(float).eps)
+    N = F.shape[1]    
 
     sr2 = np.sqrt(2)
 
     x = np.zeros((n,N))
   
-    mask = P <= 0.5 
     for i in range(n): 
-        x[i,mask] = meanX[i] + sdvnX[i] / sr2 * np.log(2 * P[mask]) 
+        mask = F[i,:] <= 0.5 
+        x[i,mask] = meanX[i] + sdvnX[i] / sr2 * np.log(2 * F[i,mask]) 
         mask = ~mask
-        x[i,mask] = meanX[i] - sdvnX[i] / sr2 * np.log(2 * (1 - P[mask]))
+        x[i,mask] = meanX[i] - sdvnX[i] / sr2 * np.log(2 * (1 - F[i,mask]))
 
 #   if x.size > 1 else x.item()
     if n == 1:
@@ -227,11 +230,6 @@ def rnd(meanX, sdvnX, N, R=None, seed=None):
 
     _, _, U = correlated_rvs(R, n, N, seed)
 
-    X = np.empty((n, N))
-    for i in range(n):
-        X[i,:] = inv(U[i,:], meanX[i], sdvnX[i])
-
-    if n == 1:
-        X = X.flatten()
+    X = inv(U, meanX, sdvnX)
 
     return X

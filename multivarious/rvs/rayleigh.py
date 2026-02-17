@@ -78,7 +78,7 @@ def pdf(x, meanX):
     # Apply the Rayleigh PDF formula
     f = (x / modeX**2) * np.exp(-0.5 * (x / modeX)**2)
 
-    if f == 1:
+    if n == 1:
         f = f.flatten()
 
     return f
@@ -120,7 +120,7 @@ def cdf(x, meanX):
     return F
 
 
-def inv(P, meanX):
+def inv(F, meanX):
     """
     rayleigh.inv
 
@@ -128,18 +128,18 @@ def inv(P, meanX):
     using the mean parameter meanX.
 
     INPUTS:
-        P : array_like
-            Non-exceedance probabilities (0 ≤ P ≤ 1)
+        F : array_like
+            Non-exceedance probabilities (0 ≤ F ≤ 1)
         meanX : float or array_like, shape (n,)
             Mean(s) of the Rayleigh distribution (must be > 0)
 
     OUTPUTS:
         x : ndarray
-            Quantile values corresponding to probabilities P
+            Quantile values corresponding to probabilities F
 
     Notes
     -----
-    x = σ√(-2 ln(1-P)) where σ = mean · √(2/π)
+    x = σ√(-2 ln(1-F)) where σ = mean · √(2/π)
 
     Reference
     ---------
@@ -148,14 +148,12 @@ def inv(P, meanX):
 
     _, meanX, modeX, n = _ppp_(0, meanX)
 
-    P = np.asarray(P, dtype=float).copy()
-
-    # Clamp values: ensure P stays in [0, 1] 
-    P[P <= 0] = 0.0
-    P[P >= 1] = 1.0
+    F = np.atleast_2d(F).astype(float)
+    F = np.clip(F, np.finfo(float).eps, 1 - np.finfo(float).eps)
+    N = F.shape[1]    
 
     # Compute the inverse CDF formula
-    x = modeX * np.sqrt(-2.0 * np.log(1 - P))
+    x = modeX * np.sqrt(-2.0 * np.log(1 - F))
 
     if n == 1:
         x = x.flatten()
@@ -201,9 +199,6 @@ def rnd(meanX, N, R=None, seed=None):
     _, _, U = correlated_rvs(R, n, N, seed)
 
     # Inverse transform sampling
-    X = modeX * np.sqrt(-2.0 * np.log(U))
-
-    if n == 1:
-        X = X.flatten()
+    X = inv(U, meanX) 
 
     return X

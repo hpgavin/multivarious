@@ -3,10 +3,10 @@
 
 import numpy as np
 from scipy.special import gamma as gamma_func
-from scipy.special import gammainc
+from scipy.special import gammainc, gammaln
 
+from multivarious.rvs import normal
 from multivarious.utl.correlated_rvs import correlated_rvs
-
 
 def _ppp_(x, meanX, covnX):
     """
@@ -46,13 +46,16 @@ def _ppp_(x, meanX, covnX):
     # Validate parameter dimensions 
     if not (len(meanX) == n and len(covnX) == n):
         raise ValueError(f"All parameter arrays must have the same length. "
-                        f"Got meanX:{len(meanX)}, covnX:{len(covnX)}")
+                         f"Got meanX:{len(meanX)}, covnX:{len(covnX)}")
+  
+    # clip negative values of x
+    x = np.clip(x,1e-8,1e8)
 
     # Validate parameter values 
-    if np.any(covnX < 0.5):
-        print(f'gamma: lower limit of coefficient of variation is 0.5')
-        print(f'gamma: covnX = {covnX.flatten()}')
-        covnX[covnX < 0.5] = 0.5
+#   if np.any(covnX < 0.5):
+#       print(f'gamma: lower limit of coefficient of variation is 0.5')
+#       print(f'gamma: covnX = {covnX.flatten()}')
+#       covnX[covnX < 0.5] = 0.5
 
     k = 1.0 / covnX**2              # shape parameter (alpha)
     theta = covnX**2 * meanX        # scale parameter (beta)
@@ -91,9 +94,12 @@ def pdf(x, meanX, covnX):
     
     x, meanX, covnX, k, theta, n = _ppp_(x, meanX, covnX)
 
-    f = theta**(-k) * x**(k - 1) * np.exp(-x / theta) / gamma_func(k)
+    # log transform for numerical stability ... 
+    log_pdf = -(k * np.log(theta)) + (k - 1) * np.log(x) - (x / theta) - gammaln(k)
 
-    f = np.where(x <= 0, 1e-12, f)  # replace negative x with small value for stability
+    f = np.exp(log_pdf)  # ... the exponentiate to get the pdf
+
+    f = np.where(x <= 0, 1e-6, f)  # replace negative x with small value for stability
 
     if n == 1:
         f = f.flatten()
@@ -173,28 +179,34 @@ def inv(P, meanX, covnX):
     https://en.wikipedia.org/wiki/Gamma_distribution
     """
     
-    _, meanX, covnX, _, _, _ = _ppp_(0, meanX, covnX)
+    _, meanX, covnX, _, _, n = _ppp_(0, meanX, covnX)
 
     P = np.asarray(P, dtype=float)  # ensure array type
 
     my_eps = 1e-12                   # numerical tolerance
-    max_iter = 100                   # max Newton-Raphson iterations
-    x_old = np.sqrt(my_eps) * np.ones_like(P)  # initialize guesses for x
+    max_iter = 200                   # max Newton-Raphson iterations
+    x_old = meanX + meanX*covnX*normal.inv(P) # normal approximation
+    idx = np.where(x_old < 0.01)
+    if np.any(idx):
+        x_old[idx] = 10*my_eps
 
     for iter in range(max_iter):
-        F_x = cdf(x_old, [meanX, covnX])    # evaluate current CDF
-        f_x = pdf(x_old, meanX, covnX)      # evaluate current PDF
-        h = (F_x - P) / f_x                 # Newton-Raphson step
+        Fx = cdf(x_old, [meanX, covnX])     # evaluate current CDF
+        fx = pdf(x_old, meanX, covnX)       # evaluate current PDF
+        h = (Fx - P) / (fx + 0*my_eps)        # regularized Newton-Raphson step
         x_new = x_old - h                   # update estimate
         idx = np.where(x_new <= my_eps)
         if np.any(idx):
             x_new[idx] = x_old[idx] / 10.0  # prevent values <= 0
+        x_new = np.clip( x_new, 1e-8, meanX*(1+10*covnX) )
         h = x_old - x_new                   # change in x
-        if np.max(np.abs(h)) < np.sqrt(my_eps):  # convergence check
+        if np.max(np.abs(h)) < 10*np.sqrt(my_eps):  # convergence check
             break
         x_old = x_new                       # update for next iteration
 
     x = x_new                               # return final quantiles
+
+    print('iter',iter)
 
     if n == 1:
         x = x.flatten() 
@@ -246,7 +258,7 @@ def rnd(meanX, covnX, N, R=None, seed=None):
     X = np.zeros((n, N))
     for i in range(n):
         X[i, :] = inv(U[i,:], meanX[i], covnX[i])
-    
+
     if n == 1:
         X = X.flatten()
 

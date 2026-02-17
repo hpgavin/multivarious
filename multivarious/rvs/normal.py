@@ -8,7 +8,7 @@ from scipy.special import erfinv as scipy_erfinv
 from multivarious.utl.correlated_rvs import correlated_rvs
 
 
-def _ppp_(x, meanX, sdvnX):
+def _ppp_(x, meanX=0.0, sdvnX=1.0):
     """
     Validate and preprocess input parameters for consistency and correctness.
 
@@ -91,7 +91,7 @@ def pdf(x, meanX=0.0, sdvnX=1.0):
     return f 
 
 
-def cdf(x, params ):
+def cdf(x, params=[0.0, 1.0]):
     """
     normal.cdf
 
@@ -132,14 +132,14 @@ def cdf(x, params ):
     return F
 
 
-def inv(p, meanX=0.0, sdvnX=1.0):
+def inv(F, meanX=0.0, sdvnX=1.0):
     """
     normal.inv
 
     Computes the inverse CDF (quantile function) of the normal distribution N(meanX, sdvnX²).
 
     INPUTS:
-        p : array_like
+        F : array_like
             Probability values (must be in [0, 1])
         meanX : float or array_like, shape (n,)
             Mean(s) of the distribution
@@ -148,11 +148,11 @@ def inv(p, meanX=0.0, sdvnX=1.0):
 
     OUTPUTS:
         x : ndarray
-            Quantile values corresponding to probabilities p
+            Quantile values corresponding to probabilities F
 
     Notes
     -----
-    x = μ + σ√2 · erfinv(2p - 1)
+    x = μ + σ√2 · erfinv(2F - 1)
 
     Reference
     ---------
@@ -161,17 +161,15 @@ def inv(p, meanX=0.0, sdvnX=1.0):
 
     _, meanX, sdvnX, n = _ppp_(0, meanX, sdvnX)
 
-    p = np.asarray(p, dtype=float)
-
-    # Clip probabilities to avoid erfinv(±1) = ±∞
-    my_eps = 1e-12     # small, not zero
-    p = np.clip(p, my_eps, 1.0 - my_eps)  # restrict p to (my_eps, 1-my_eps)
+    F = np.atleast_2d(F).astype(float)
+    F = np.clip(F, np.finfo(float).eps, 1 - np.finfo(float).eps)
+    N = F.shape[1]    
     
     # Compute normal quantile using inverse CDF formula
-    z = np.sqrt(2) * scipy_erfinv(2 * p - 1) 
+    z = np.sqrt(2) * scipy_erfinv(2 * F - 1) 
     x = meanX + sdvnX * z
 
-    if x == 1:
+    if n == 1:
         x = x.flatten()
 
     return x
@@ -216,11 +214,8 @@ def rnd(meanX=0.0, sdvnX=1.0, N=1, R=None, seed=None):
     _, meanX, sdvnX, n = _ppp_(0, meanX, sdvnX)
 
     # Correlated standard normal variables (n,N)
-    _, Y, _ = correlated_rvs(R, n, N, seed)
+    _, _, U = correlated_rvs(R, n, N, seed)
 
-    X = meanX + sdvnX*Y
-
-    if n == 1:
-        X = X.flatten()
+    X = inv(U, meanX, sdvnX)
 
     return X

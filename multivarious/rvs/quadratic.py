@@ -115,7 +115,7 @@ def cdf(x, params):
     return F
 
 
-def inv(u, a, b):
+def inv(F, a, b):
     """
     quadratic.inv
     
@@ -123,8 +123,8 @@ def inv(u, a, b):
     for given probability values.
     
     INPUTS:
-        u : array_like or float
-            Probability values (0 <= u <= 1)
+        F : array_like or float
+            Probability values (0 <= F <= 1)
         a : scalar float
             Lower bound (a < b)
         b : scalar float
@@ -132,44 +132,56 @@ def inv(u, a, b):
     
     Output:
         x : ndarray or float
-            Quantile values corresponding to probabilities u
+            Quantile values corresponding to probabilities F
     """
 
     _, a, b, n, _ = _ppp_(0, a, b)
 
-    a = a[0] # scalar
-    b = b[0] # scalar
+    F = np.atleast_2d(F).astype(float)
+    F = np.clip(F, np.finfo(float).eps, 1 - np.finfo(float).eps)
+    N = F.shape[1]    
 
-    u = np.atleast_1d(u)
-
-    x = np.zeros_like(u, dtype=float)
+    x = np.zeros((n,N))
     
-    for j in range(len(u)):
-        # Coefficients of cubic equation
-        coeffs = [
-            2,
-            -3 * (a + b),
-            6 * a * b,
-            a**3 - 3 * a**2 * b - u[j] * (a - b)**3
-        ]
+    for i in range(n):
+        ai = a[i].item()
+        bi = b[i].item()
+        for j in range(N):
+            # Coefficients of cubic equation
+            Fij = F[i,j].item()
+
+            if Fij < np.sqrt( np.finfo(float).eps ):
+                  x[i,j] = ai
+
+            elif Fij > 1 - np.sqrt( np.finfo(float).eps ):
+                  x[i,j] = bi
+
+            else: 
+                coeffs = [
+                    2,
+                    -3 * (ai + bi),
+                    6 * ai * bi,
+                    ai**3 - 3 * ai**2 * bi - Fij * (ai - bi)**3
+                ]
+
+                # Find roots
+                roots = np.roots(coeffs)
         
-        # Find roots
-        roots = np.roots(coeffs)
+                # Filter for real roots in valid domain
+                real_roots = roots[np.abs(roots.imag) < 1e-10].real
+                valid_roots = real_roots[(real_roots > ai) & (real_roots < bi)]
         
-        # Filter for real roots in valid domain
-        real_roots = roots[np.abs(roots.imag) < 1e-10].real
-        valid_roots = real_roots[(real_roots > a) & (real_roots < b)]
+                if len(valid_roots) != 1:
+                    raise ValueError(f"quadratic.inv() Expected 1 root in ({ai}, {bi}), found {len(valid_roots)}")
         
-        if len(valid_roots) != 1:
-            raise ValueError(f"Expected 1 root in ({a}, {b}), found {len(valid_roots)}")
-        
-        x[j] = valid_roots[0]
+                x[i,j] = valid_roots[0]
     
     if n == 1:
         x = x.flatten()
 
+    return x
     # Return scalar if input was scalar
-#   return x[0] if np.isscalar(u) or len(x) == 1 else x
+    #return x[0] if np.isscalar(u) or len(x) == 1 else x
 
 
 def rnd(a, b, N, R=None, seed=None):
@@ -197,11 +209,6 @@ def rnd(a, b, N, R=None, seed=None):
 
     _, _, U = correlated_rvs( R, n, N, seed )
 
-    X = np.zeros((n, N))
-    for i in range(n):
-        X[i, :] = inv(U[i,:], a[i], b[i])
-    
-    if n == 1: 
-        X = X.flatten()
+    X = inv(U, a, b)
 
     return X

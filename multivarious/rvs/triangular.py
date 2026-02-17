@@ -133,7 +133,7 @@ def cdf(x, params):
     return F
 
 
-def inv(p, a, b, c):
+def inv(F, a, b, c):
     '''
     triangular.inv
 
@@ -141,7 +141,7 @@ def inv(p, a, b, c):
     on [a, b] with mode c.
 
     INPUTS:
-        p : array_like
+        F : array_like
             Probability values (must be in [0, 1])
         a : float
             Lower bound
@@ -152,26 +152,30 @@ def inv(p, a, b, c):
 
     Output:
         x : ndarray
-            Quantile values corresponding to probabilities p
+            Quantile values corresponding to probabilities F
 
     Reference:
     http://en.wikipedia.org/wiki/Triangular_distribution
     '''
 
-    _, a, b, c, n, _ = _ppp_(0, a, b, c)
+    _, a, b, c, n, _ = _ppp_(F, a, b, c)
 
-    p = np.clip(p, np.finfo(float).eps, 1 - np.finfo(float).eps)
+    F = np.atleast_2d(F).astype(float)
+    F = np.clip(F, np.finfo(float).eps, 1 - np.finfo(float).eps)
+    N = F.shape[1]    
     
     Fc = (c - a) / (b - a)
-    x = np.empty_like(p, dtype=float)
-    
-    # Piecewise conditions
-    below = p < Fc
-    above = ~below
 
-    # Inverse CDF piecewise formula
-    x[below] = a + np.sqrt(p[below] * (b - a) * (c - a))
-    x[above] = b - np.sqrt((1 - p[above]) * (b - a) * (b - c))
+    x = np.zeros((n,N))
+
+    for i in range(n):
+        # Piecewise conditions
+        below = F[i,:] < Fc[i]
+        above = ~below
+
+        # Inverse CDF piecewise formula
+        x[i,below] = a[i] + np.sqrt(F[i,below] * (b[i] - a[i]) * (c[i] - a[i]))
+        x[i,above] = b[i] - np.sqrt((1 - F[i,above]) * (b[i] - a[i]) * (b[i] - c[i]))
 
     if n == 1:
         x = x.flatten()
@@ -207,31 +211,9 @@ def rnd(a, b, c, N, R=None, seed=None ):
 
     _, a, b, c, n, _ = _ppp_(0, a, b, c)
 
-    # Convert inputs to arrays
-    # Python does not implicitly handle scalars as arrays. 
-
-    # Determine number of random variables
-    n = len(a)
-
-    # Validate that all parameter arrays have the same length
-    if not (len(a) == n and len(b) == n and len(c) == n):
-        raise ValueError(f"All parameter arrays must have the same length. "
-                        f"Got a:{len(a)}, b:{len(b)}, c:{len(c)}")
-
-    if np.any(b <= a):
-        raise ValueError(" triangular.rnd: all b values must be greater than corresponding a values")
-    if np.any(c <= a):
-        raise ValueError(" triangular.rnd: all c values must be greater than corresponding a values")
-    if np.any(b <= c):
-        raise ValueError(" triangular.rnd: all b values must be greater than corresponding c values")
-
     _, _, U = correlated_rvs( R, n, N, seed )
 
     # Transform each variable to its triangular distribution via inverse CDF
-    X = np.zeros((n, N))
-    for i in range(n):
-        X[i, :] = inv(U[i, :], a[i], b[i], c[i])
+    X = inv( U, a, b, c )
 
-    if n == 1:
-        X = X.flatten()
     return X

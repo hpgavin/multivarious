@@ -149,7 +149,7 @@ def cdf(x, params):
     return F
 
 
-def inv(p, meanX, covnX):
+def inv(F, meanX, covnX):
     """
     extreme_value_I.inv
     
@@ -157,7 +157,7 @@ def inv(p, meanX, covnX):
     (Gumbel) distribution.
 
     INPUTS:
-        p : array_like
+        F : array_like
             Probability values (must be in (0, 1))
         meanX : float or array_like, shape (n,)
             Mean(s) of the distribution (must be > 0)
@@ -166,11 +166,11 @@ def inv(p, meanX, covnX):
 
     OUTPUTS:
         x : ndarray
-            Quantile values corresponding to probabilities p
+            Quantile values corresponding to probabilities F
 
     Notes
     -----
-    x = μ - σ ln(-ln(p))
+    x = μ - σ ln(-ln(F))
 
     Reference
     ---------
@@ -179,7 +179,7 @@ def inv(p, meanX, covnX):
 
     _, _, _, loctn, scale, _ = _ppp_(0, meanX, covnX)
 
-    x = loctn - scale * np.log(-np.log(p))
+    x = loctn - scale * np.log(-np.log(F))
 
     if n == 1:
         x = x.flatten()

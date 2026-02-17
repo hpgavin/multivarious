@@ -166,18 +166,16 @@ def inv(F, a, b):
     """
     _, a, b, n, _ = _ppp_(0, a, b)
 
-    F = np.asarray(F, dtype=float)
-    
-    if np.any((F < 0) | (F > 1)):
-        raise ValueError('uniform.inv: F must be between 0 and 1')
-    
+    F = np.atleast_2d(F).astype(float)
+    F = np.clip(F, np.finfo(float).eps, 1 - np.finfo(float).eps)
+    N = F.shape[1]    
+
     x = a + F * (b - a)
     
     if n == 1:
         x = x.flatten()
 
     return x
-
 
 def rnd(a, b, N, R=None, seed=None):
     """
@@ -224,9 +222,6 @@ def rnd(a, b, N, R=None, seed=None):
     _, _, U = correlated_rvs(R, n, N, seed)
 
     # Transform to [a, b]: x = a + U * (b - a)
-    X = a + U * (b - a)
+    X = inv(U, a, b )
 
-    if n == 1:
-       X = X.flatten()
-    
     return X

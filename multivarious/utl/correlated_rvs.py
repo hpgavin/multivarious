@@ -130,7 +130,7 @@ def nearcorr_shrink(C, tolrnc=1e-4):
     ...               [0.9, 1.0, 0.9],
     ...               [0.8, 0.9, 1.0]])
     >>> C_nnd, alpha = nearcorr_shrink(C)
-    >>> print(f"Shrinkage parameter: {alpha:.4f}")
+    >>> print(f"\nShrinkage parameter alpha: {alpha:.6f}  eigenvalue {eval0} in  {iter} iterations")
     >>> print(f"Minimum eigenvalue: {np.linalg.eigh(C_nnd)[0][0]:.2e}")
     """
  
@@ -163,14 +163,14 @@ def correlated_rvs(R, n, N=1, seed=None):
     """
     rng = np.random.default_rng(seed)
 
-    tolrnc = 1e-4  # eigenvalue tolerance
+    tolrnc = 0.05  # eigenvalue tolerance
     # If no correlation matrix provided, default to identity matrix
     # Identity matrix R = I means all variables are independent (correl'n = 0)
     if R is None:
         R = np.eye(n) # In
         eigval = np.ones(n)
         eigvec = np.eye(n)
-    else:
+    elif n > 1:
         R, alpha, iter, eval0 = nearcorr_shrink(R, tolrnc)
         print(f" correlated_rvs: Correlation matrix shrinkage ")
         print(f"          alpha: {alpha:.6f}, iter: {iter}, eval[0]: {eval0:.6f}")
@@ -186,7 +186,10 @@ def correlated_rvs(R, n, N=1, seed=None):
     Z = rng.standard_normal((n, N))
     
     # Apply correlation structure
-    Y = eigvec @ np.diag(np.sqrt(eigval)) @ Z
+    if n > 1: 
+        Y = eigvec @ np.diag(np.sqrt(eigval)) @ Z
+    else:
+        Y = Z
 
     # Transform to uniform [0,1] via standard normal CDF, preserving correlation
     # Standard normal CDF of Y are correlated uniformly distributed rv's in [0 1]
@@ -199,6 +202,9 @@ def correlated_rvs(R, n, N=1, seed=None):
 if __name__ == "__main__":
     print("Testing shrink_newton on a non-PD correlation matrix\n")
     
+    # seed = 42
+    rng = np.random.default_rng()
+
     # Example 1: Small matrix from Higham's papers
     C = np.array([[1.00, 0.90, 0.70],
                   [0.90, 1.00, 0.90],
@@ -211,9 +217,9 @@ if __name__ == "__main__":
     print(f"Minimum eigenvalue: {eigval_orig[0]:.6f} (negative = not PSD)")
     
     # Fix using shrinking
-    C_nnd, alpha = nearcorr_shrink(C)
+    C_nnd, alpha, iter, eval0 = nearcorr_shrink(C)
     
-    print(f"\nShrinkage parameter alpha: {alpha:.6f}")
+    print(f"\nShrinkage parameter alpha: {alpha:.6f}  eigenvalue {eval0} in  {iter} iterations")
     print(f"\nFixed matrix C_nnd = {alpha:.4f}*I + {1-alpha:.4f}*C:")
     print(C_nnd)
     
@@ -226,23 +232,26 @@ if __name__ == "__main__":
     # Example 2: Larger random matrix
     print("\n" + "="*60)
     
-    n = 25
+    n = 10
+    c = 1*n  # Columns of Z ... c > n : more positive definite correlation matx
+    q =  2   # larger q, less positive definite correlation matx
     print(f"Testing on a {n}x{n} matrix\n")
-    np.random.seed(42)
-    C2 = np.random.randn(n, n)
-    C2 = C2 @ C2.T # symmetric pos.def
-    C2 = C2 + 0.10*np.random.randn(n,n)
-    C2 = ( C2 + C2.T ) /2 # make symmetric
-    C2 = C2 / np.max(C2) # bounded to [-1,1]
+    Z = rng.standard_normal((n, c))
+
+    C2 = Z @ Z.T # symmetric pos.def
+    C2 = C2 + q*rng.standard_normal((n,n))  
+    C2 = ( C2 + C2.T ) / 2.0 # make symmetric, not necc pos.def
+    C2 = C2 / np.max(np.abs(C2)) # bounded to [-1,1]
     C2 = C2 / np.outer(np.sqrt(np.diag(C2)), np.sqrt(np.diag(C2)))  # Unit diag
+    C2 = C2 / np.max(np.abs(C2)) # re-check bounded to [-1,1]
     
     eigval_orig2 = np.linalg.eigh(C2)[0]
     print(f"Original minimum eigenvalue: {eigval_orig2[0]:.6f}")
     
-    C2_nnd, alpha = nearcorr_shrink(C2)
+    C2_nnd, alpha, iter, eval0 = nearcorr_shrink(C2)
     eigval_nnd2 = np.linalg.eigh(C2_nnd)[0]
     print(C2_nnd)
     
-    print(f"Shrinkage parameter: {alpha:.6f}")
+    print(f"\nShrinkage parameter alpha: {alpha:.6f}  eigenvalue {eval0} in  {iter} iterations")
     print(f"Fixed minimum eigenvalue: {eigval_nnd2[0]:.2e}")
     print(f"Frobenius norm of change: {np.linalg.norm(C2 - C2_nnd, 'fro'):.6f}")

@@ -153,7 +153,7 @@ A. Download or Update: Open any terminal (a VS Code Terminal or any terminal app
    git pull
    ```
 
-B.  (1.) `pip install` for VS Code and/or (2.) set the `PYTHONPATH` or (3.) do something scarry or (4.) use a venv
+B.  (1.) `pip install` for VS Code and/or (2.) set the `PYTHONPATH` or (3.) do something scarry or (4.) use a venv.   
   A chat on issues with Debian, python, pip, and PYTHONPATH is in multivarious/examples/doc/. 
 
   1. Within a VS Code Terminal,  (Terminal > New Terminal) 

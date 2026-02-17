@@ -133,7 +133,7 @@ def cdf(x, k):
     return F
 
 
-def inv(p, k):
+def inv(F, k):
     """
     chi2.inv
  
@@ -141,14 +141,14 @@ def inv(p, k):
     using the Wilson-Hilferty transformation.
  
     INPUTS:
-        p : array_like
+        F : array_like
             Non-exceedance probabilities (values between 0 and 1)
         k : float or array_like, shape (n,)
             Degrees of freedom (must be > 0)
  
     OUTPUTS:
         x : ndarray
-            Quantile values such that Prob[X ≤ x] = p
+            Quantile values such that Prob[X ≤ x] = F
 
     Notes
     -----
@@ -161,13 +161,22 @@ def inv(p, k):
 
     _, k, n, m, s, _ = _ppp_(0, k)
 
-    p = np.asarray(p, dtype=float)
+    F = np.atleast_2d(F).astype(float)
+    F = np.clip(F, np.finfo(float).eps, 1 - np.finfo(float).eps)
+    N = F.shape[1]    
+
+    x = np.zeros((n,N)) 
 
     # Inverse normal CDF
-    z = scipy_normal.ppf(p, m, s)
+    z = scipy_normal.ppf(F, m, s)
 
-    # Apply inverse transformation: x = k * z**3
-    x = k * z**3
+    print('F shape', F.shape)
+    print('x shape', x.shape)
+    print('z shape', z.shape)
+
+    # Inverse transformation
+    for i in range(n):
+        x[i, :] = k[i] * z[i, :] ** 3
 
     x [ x <= 0 ] = 1e-12
 
@@ -175,7 +184,6 @@ def inv(p, k):
         x = x.flatten()
 
     return x
-
 
 def rnd(k, N, R=None, seed=None):
     """
@@ -212,20 +220,9 @@ def rnd(k, N, R=None, seed=None):
 
     _, k, n, m, s, _ = _ppp_(0, k)
 
-    _, Y, U = correlated_rvs(R, n, N, seed)
+    _, _, U = correlated_rvs(R, n, N, seed)
    
     # Apply transformation
-    X = np.zeros((n, N))
-    for i in range(n):
-        X[i, :] = k[i] * (m[i] + s[i] * Y[i, :]) ** 3
-#       X[i, :] = inv(U[i,:], k[i])  
-
-    if n == 1:
-        X = X.flatten()
-
-    X [ X <= 0 ] = 1e-12
-
-    if n == 1:
-        X = X.flatten()
+    X = inv(U, k)  
 
     return X

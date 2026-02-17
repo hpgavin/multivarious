@@ -133,7 +133,7 @@ def cdf(t, k):
 
     return F
 
-def inv(p, k):
+def inv(F, k):
     """
     students_t.inv
 
@@ -141,14 +141,14 @@ def inv(p, k):
     with k degrees of freedom, using the inverse incomplete beta function.
 
     INPUTS:
-        p : array_like
+        F : array_like
             Probability values (must be in [0, 1])
         k : int or float or array_like, shape (n,)
             Degrees of freedom (must be > 0)
 
     OUTPUTS:
         x : ndarray
-            Quantile values corresponding to probabilities p
+            Quantile values corresponding to probabilities F
 
     Notes
     -----
@@ -159,16 +159,23 @@ def inv(p, k):
     https://en.wikipedia.org/wiki/Student%27s_t-distribution
     """
     
-    _, k, _, n = _ppp_(0, k)
-    
-    p = np.asarray(p)
+    _, k, n, _ = _ppp_(0, k)
+
+    F = np.atleast_2d(F).astype(float)
+    F = np.clip(F, np.finfo(float).eps, 1 - np.finfo(float).eps)
+    N = F.shape[1]    
+
+    print('F shape : ', F.shape )
 
     # Compute the inverse CDF using the relationship with the incomplete beta function
     # betaincinv(a, b, y) finds x such that betainc(a, b, x) = y
-    z = betaincinv(k / 2.0, 0.5, 2 * np.minimum(p, 1 - p))
+    z = betaincinv(k / 2.0, 0.5, 2 * np.minimum(F, 1 - F))
     
     # Convert from beta quantile to t quantile
-    x = np.sign(p - 0.5) * np.sqrt(k * (1 / z - 1))
+    x = np.sign(F - 0.5) * np.sqrt(k * (1 / z - 1))
+
+    print('x shape : ', x.shape )
+    print('n : ', n)
 
     if n == 1:
         x = x.flatten()
@@ -212,11 +219,6 @@ def rnd(k, N, R=None, seed=None):
 
     _, _, U = correlated_rvs(R, n, N, seed)
 
-    X = np.zeros((n,N))
-    for i in range(n):
-        X[i, :] = inv(U[i, :], k[i]) 
-
-    if n == 1:
-        X = X.flatten()
+    X = inv(U, k) 
 
     return X

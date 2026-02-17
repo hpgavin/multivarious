@@ -96,21 +96,28 @@ def cdf(x, params):
     return 
 
 
-def inv(p, m, s, k):
+def inv(F, m, s, k):
     '''
     gev.inv
 
     Compute the inverse CDF (quantile function) of the GEV distribution.
     INPUTS:
-        p     : scalar or array-like in (0,1)
-        param : list or array-like of [m, s, k]
+        F     : scalar or array-like in (0,1)
+        m, s, k : list or array-like parameters 
     OUTPUTS:
         x     : same shape as p, quantiles
     '''
 
     _, m, s, k, n = _ppp_(0, m, s, k) 
 
-    x = m + (s / k) * ((-np.log(p))**(-k) - 1)
+    F = np.atleast_2d(F).astype(float)
+    F = np.clip(F, np.finfo(float).eps, 1 - np.finfo(float).eps)
+    N = F.shape[1]    
+
+    x = np.zeros((n,N))
+
+    for i in range(n):
+        x[i,:] = m[i] + (s[i] / k[i]) * ((-np.log(F[i,:]))**(-k[i]) - 1)
 
     if x == 1:
         x = x.flatten()
@@ -138,10 +145,8 @@ def rnd(m, s, k, N, R=None, seed=None):
    
     _, _, U = correlated_rvs( R, n, N, seed )
 
-    # Apply transformation --- this is wrong ---
-    X = np.zeros((n, N))
-    for i in range(n):
-        X[i, :] = inv(U[i,:], m[i], s[i], k[i])
+    # Apply transformation 
+    X = inv(U, m, s, k)
 
     if n == 1:
         X = X.flatten()

@@ -126,14 +126,14 @@ def cdf(x, params ):
     return F
 
 
-def inv(P, m, s, k):
+def inv(F, m, s, k):
     '''
     extreme_value_II.inv
     
     Computes the inverse CDF (quantile function) of the Extreme Value Type II distribution.
     
-    INPUTS:
-        P : array_like
+    INFUTS:
+        F : array_like
             Probability values (must be in (0, 1))
         m : float
             Location parameter
@@ -144,19 +144,22 @@ def inv(P, m, s, k):
     
     OUTPUTS:
         x : ndarray
-            Quantile values corresponding to probabilities P
+            Quantile values corresponding to probabilities F
     '''
 
     _, m, s, k, n, _ = _ppp_(0, m, s, k)
 
-    P = np.asarray(P, dtype=float)
-    
-    # Clip probabilities to avoid log(0) or log(1)
-    eps = np.finfo(float).eps
-    P = np.clip(P, eps, 1 - eps)
-    
-    # Inverse CDF formula
-    x = m + s * (-np.log(P))**(-1 / k)
+
+    F = np.atleast_2d(F).astype(float)
+    F = np.clip(F, np.finfo(float).eps, 1 - np.finfo(float).eps)
+    N = F.shape[1]    
+
+    x = np.zeros((n,N))
+
+    # Inverse transform: x = m + s * (-log(u))^(-1/k)
+    # Transform each variable to its extreme type II  distribution value
+    for i in range(n):
+        x[i,:] = m[i] + s[i] * (-np.log(F[i,:]))**(-1 / k[i])
     
     if n == 1:
          x = x.flatten()
@@ -190,13 +193,6 @@ def rnd(m, s, k, N, R=None, seed=None):
 
     _, _, U = correlated_rvs(R, n, N, seed)
 
-    # Inverse transform: x = m + s * (-log(u))^(-1/k)
-    # Transform each variable to its extreme type II  distribution 
-    X = np.zeros((n, N))
-    for i in range(n):
-        X[i, :] = inv(U[i,:], m[i], s[i], k[i])
+    X = inv(U, m, s, k)
     
-    if n == 1:
-        X = X.flatten()
-
     return X
