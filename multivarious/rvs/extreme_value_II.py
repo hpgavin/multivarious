@@ -81,7 +81,7 @@ def pdf(x, m, s, k):
         z = (x[mask] - m[i]) / s[i]
         f[i,mask] = (k[i] / s[i]) * z**(-1 - k[i]) * np.exp(-z**(-k[i]))
     
-    if n == 1:
+    if n == 1 and f.shape[0] == 1:
          f = f.flatten()
     
     return f
@@ -120,7 +120,7 @@ def cdf(x, params ):
         z = (x[mask] - m[i]) / s[i]
         F[i,mask] = np.exp(-z**(-k[i]))
     
-    if n == 1:
+    if n == 1 and F.shape[0] == 1:
          F = F.flatten()
     
     return F
@@ -161,7 +161,7 @@ def inv(F, m, s, k):
     for i in range(n):
         x[i,:] = m[i] + s[i] * (-np.log(F[i,:]))**(-1 / k[i])
     
-    if n == 1:
+    if n == 1 and x.shape[0] == 1:
          x = x.flatten()
     
     return x

@@ -68,7 +68,7 @@ def pdf(x, a, b):
         f[i, x >= b[i]] = 0.0 # PDF = 0 for x >= b
         f[i, x <= a[i]] = 0.0 # PDF = 0 for x <= b
     
-    if n == 1:
+    if n == 1 and f.shape[0] == 1:
         f = f.flatten()
 
     return f
@@ -109,7 +109,7 @@ def cdf(x, params):
         F[i, x >= b[i]] = 1.0 # CDF = 1 for x >= b
         F[i, x <= a[i]] = 0.0 # CDF = 0 for x <= b
     
-    if n == 1:
+    if n == 1 and F.shape[0] == 1:
         F = F.flatten()
 
     return F
@@ -176,7 +176,7 @@ def inv(F, a, b):
         
                 x[i,j] = valid_roots[0]
     
-    if n == 1:
+    if n == 1 and x.shape[0] == 1:
         x = x.flatten()
 
     return x

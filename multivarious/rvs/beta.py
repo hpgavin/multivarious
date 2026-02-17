@@ -90,7 +90,7 @@ def pdf(x, a, b, q, p):
         denominator = beta_func(q[i], p[i]) * (b[i] - a[i])**(q[i] + p[i] - 1)
         f[i,mask] = numerator / denominator
 
-    if n == 1:
+    if n == 1 and x.shape[0] == 1:
         f = f.flatten()
 
     return f
@@ -137,7 +137,7 @@ def cdf(x, params ):
     for i in range(n):
        F[i,:] = betainc(q[i], p[i], z[i,:])
 
-    if n == 1:
+    if n == 1 and x.shape[0] == 1:
         F = F.flatten()
 
     return F
@@ -181,7 +181,7 @@ def inv(F, a, b, q, p):
         # Rescale from [0, 1] to [a, b]
         x[i,:] = a[i] + z * (b[i] - a[i])
 
-    if n == 1:
+    if n == 1 and F.shape[0] == 1:
         x = x.flatten()
 
     return x

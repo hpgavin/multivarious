@@ -101,7 +101,7 @@ def pdf(x, meanX, covnX):
 
     f = np.where(x <= 0, 1e-6, f)  # replace negative x with small value for stability
 
-    if n == 1:
+    if n == 1 and f.shape[0] == 1:
         f = f.flatten()
 
     return f
@@ -145,7 +145,7 @@ def cdf(x, params):
     F = gammainc(k, xp / theta)       # regularized lower incomplete gamma function
     F = np.where(x <= 0, 0.0, F)      # replace negative x with small value for stability
     
-    if n == 1:
+    if n == 1 and F.shape[0] == 1:
         F = F.flatten()
 
     return F
@@ -206,9 +206,7 @@ def inv(P, meanX, covnX):
 
     x = x_new                               # return final quantiles
 
-    print('iter',iter)
-
-    if n == 1:
+    if n == 1 and x.shape[0] == 1:
         x = x.flatten() 
 
     return x  

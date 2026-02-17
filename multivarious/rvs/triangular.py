@@ -79,7 +79,7 @@ def pdf(x, a, b, c):
         right = (c[i] <= x) & (x <= b[i])
         f[i,right] = 2 * (b[i] - x[right]) / ((b[i] - a[i]) * (b[i] - c[i]))
 
-    if n == 1:
+    if n == 1 and f.shape[0] == 1:
         f = f.flatten()
 
     return f  # Outside [a, b] => already zero
@@ -127,7 +127,7 @@ def cdf(x, params):
         F[i,mid2] = 1 - ((b[i] - x[mid2]) ** 2) / ((b[i] - a[i]) * (b[i] - c[i]))
         F[i,right] = 1.0
 
-    if n == 1:
+    if n == 1 and F.shape[0] == 1:
         F = F.flatten()
 
     return F
@@ -177,7 +177,7 @@ def inv(F, a, b, c):
         x[i,below] = a[i] + np.sqrt(F[i,below] * (b[i] - a[i]) * (c[i] - a[i]))
         x[i,above] = b[i] - np.sqrt((1 - F[i,above]) * (b[i] - a[i]) * (b[i] - c[i]))
 
-    if n == 1:
+    if n == 1 and x.shape[0] == 1:
         x = x.flatten()
 
     return x

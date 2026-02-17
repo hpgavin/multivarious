@@ -62,7 +62,7 @@ def pdf(x, m, s, k):
 
     f = np.real(f)
 
-    if n == 1:
+    if n == 1 and f.shape[0] == 1:
         f = f.flatten()
 
     return
@@ -90,7 +90,7 @@ def cdf(x, params):
 
     F = np.real(F)
 
-    if n == 1:
+    if n == 1 and F.shape[0] == 1:
         F = F.flatten()
 
     return 
@@ -119,7 +119,7 @@ def inv(F, m, s, k):
     for i in range(n):
         x[i,:] = m[i] + (s[i] / k[i]) * ((-np.log(F[i,:]))**(-k[i]) - 1)
 
-    if x == 1:
+    if n == 1 and x.shape[0] == 1:
         x = x.flatten()
 
     return x
@@ -147,8 +147,5 @@ def rnd(m, s, k, N, R=None, seed=None):
 
     # Apply transformation 
     X = inv(U, m, s, k)
-
-    if n == 1:
-        X = X.flatten()
 
     return X

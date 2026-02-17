@@ -85,7 +85,7 @@ def pdf(x, meanX=0.0, sdvnX=1.0):
 
     f = 1.0 / np.sqrt(2 * np.pi*sdvnX**2) * np.exp(-(z**2.0) / 2.0)
 
-    if n == 1:
+    if n == 1 and f.shape[0] == 1:
         f = f.flatten()
 
     return f 
@@ -120,13 +120,13 @@ def cdf(x, params=[0.0, 1.0]):
 
     meanX, sdvnX = params
 
-    x, meanX, sdvnX, n = _ppp_(x, meanX, sdvnX)
+    _, meanX, sdvnX, n = _ppp_(0, meanX, sdvnX)
 
     z = (x - meanX) / sdvnX
 
     F = (1.0 + scipy_erf(z / np.sqrt(2.0))) / 2.0
 
-    if n == 1:
+    if n == 1 and x.shape[0] == 1:
         F = F.flatten()
 
     return F
@@ -169,7 +169,7 @@ def inv(F, meanX=0.0, sdvnX=1.0):
     z = np.sqrt(2) * scipy_erfinv(2 * F - 1) 
     x = meanX + sdvnX * z
 
-    if n == 1:
+    if n == 1 and x.shape[0] == 1:
         x = x.flatten()
 
     return x

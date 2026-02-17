@@ -87,7 +87,7 @@ def pdf(x, k):
     # Approximate PDF using normal distribution
     f = scipy_normal.pdf(z, 0, 1) * (np.sqrt(2)*s)
 
-    if n == 1:
+    if n == 1 and f.shape[0] == 1:
         f = f.flatten()
 
     return f
@@ -127,7 +127,7 @@ def cdf(x, k):
     # Apply normal CDF using transformed variable
     F = scipy_normal.cdf(z, 0, 1)
 
-    if n == 1:
+    if n == 1 and F.shape[0] == 1:
         F = F.flatten()
 
     return F
@@ -180,7 +180,7 @@ def inv(F, k):
 
     x [ x <= 0 ] = 1e-12
 
-    if n == 1:
+    if n == 1 and x.shape[0] == 1:
         x = x.flatten()
 
     return x

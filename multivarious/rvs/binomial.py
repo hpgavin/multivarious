@@ -118,7 +118,7 @@ def cdf(n, params):
         F[i,:] = np.cumsum( P[i,:] )
 
 #   if F.size > 1 else F[0]        # Return scalar if input was scalar
-    if nb == 1:
+    if nb == 1 and F.shape[0] == 1:
          F = F.flatten();
 
     return F 
@@ -171,7 +171,7 @@ def rnd(m, p, N, R=None, seed=None):
             if attempt <= m[i]:
                 X[i,:] += successes[i,:].astype(int)
 
-    if nb == 1:
+    if n == 1 and X.shape[0] == 1:
         X = X.flatten()
 
     return X

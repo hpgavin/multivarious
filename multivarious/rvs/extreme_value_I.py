@@ -100,7 +100,7 @@ def pdf(x, meanX, covnX):
     exp_z = np.exp(-z)
     f = exp_z * np.exp(-exp_z) / scale
 
-    if n == 1:
+    if n == 1 and f.shape[0] == 1:
         f = f.flatten()
 
     return f
@@ -143,7 +143,7 @@ def cdf(x, params):
 
     F = np.exp(-np.exp(-z))
 
-    if n == 1:
+    if n == 1 and F.shape[0] == 1:
         F = F.flatten()
 
     return F
@@ -181,7 +181,7 @@ def inv(F, meanX, covnX):
 
     x = loctn - scale * np.log(-np.log(F))
 
-    if n == 1:
+    if n == 1 and x.shape[0] == 1:
         x = x.flatten()
 
     return x
@@ -229,7 +229,7 @@ def rnd(meanX, covnX, N, R=None, seed=None):
     # Apply transformation
     X = loctn - scale * np.log(-np.log(U))
 
-    if n == 1:
+    if n == 1 and X.shape[0] == 1:
         X = X.flatten()
 
     return X

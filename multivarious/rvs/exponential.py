@@ -70,7 +70,7 @@ def pdf(x, meanX):
 
     f = np.exp(-x / meanX) / meanX
 
-    if n == 1:
+    if n == 1 and f.shape[0] == 1:
         f = f.flatten()
     
     return f
@@ -105,7 +105,7 @@ def cdf(x, meanX):
 
     F = 1.0 - np.exp(-x / meanX)
 
-    if n == 1:
+    if n == 1 and F.shape[0] == 1:
         F = F.flatten()
     
     return F
@@ -144,7 +144,7 @@ def inv(P, meanX):
 
     x = -meanX * np.log(1 - P)
     
-    if n == 1:
+    if n == 1 and x.shape[0] == 1:
         x = x.flatten()
     
     return x

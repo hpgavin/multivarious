@@ -74,7 +74,7 @@ def pdf(t, k):
     power = -(k + 1) / 2
     f = (numerator / denominator) * (1 + (t**2) / k) ** power
 
-    if n == 1:
+    if n == 1 and f.shape[0] == 1:
         f = f.flatten()
 
     return f
@@ -128,7 +128,7 @@ def cdf(t, k):
         mask = t < 0
         F[i,mask] =     0.5 * betainc(a, 0.5, x[mask])
 
-    if n == 1:
+    if n == 1 and F.shape[0] == 1:
         F = F.flatten()
 
     return F
@@ -177,7 +177,7 @@ def inv(F, k):
     print('x shape : ', x.shape )
     print('n : ', n)
 
-    if n == 1:
+    if n == 1 and x.shape[0] == 1:
         x = x.flatten()
 
     return x

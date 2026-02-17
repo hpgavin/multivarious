@@ -78,7 +78,7 @@ def pdf(x, meanX):
     # Apply the Rayleigh PDF formula
     f = (x / modeX**2) * np.exp(-0.5 * (x / modeX)**2)
 
-    if n == 1:
+    if n == 1 and f.shape[0] == 1:
         f = f.flatten()
 
     return f
@@ -114,7 +114,7 @@ def cdf(x, meanX):
     # Apply the Rayleigh CDF formula
     F = 1.0 - np.exp(-0.5 * (x / modeX)**2)
 
-    if n == 1:
+    if n == 1 and F.shape[0] == 1:
         F = F.flatten()
 
     return F
@@ -155,7 +155,7 @@ def inv(F, meanX):
     # Compute the inverse CDF formula
     x = modeX * np.sqrt(-2.0 * np.log(1 - F))
 
-    if n == 1:
+    if n == 1 and x.shape[0] == 1:
         x = x.flatten()
 
     return x

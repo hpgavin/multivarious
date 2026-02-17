@@ -83,7 +83,7 @@ def pdf(x, meanX, sdvnX):
     sr2 = np.sqrt(2)
     f = (1 / (sr2 * sdvnX)) * np.exp(-sr2 * np.abs(x - meanX) / sdvnX)
 
-    if n == 1:
+    if n == 1 and f.shape[0] == 1:
         f = f.flatten()
     
     return f
@@ -132,7 +132,7 @@ def cdf(x, params):
         mask = ~mask
         F[i,mask] = 1.0 - 0.5 * np.exp(-sr2 * (x[mask] - meanX[i]) / sdvnX[i])
     
-    if n == 1:
+    if n == 1 and F.shape[0] == 1:
         F = F.flatten()
     
     return F
@@ -185,7 +185,7 @@ def inv(F, meanX, sdvnX):
         x[i,mask] = meanX[i] - sdvnX[i] / sr2 * np.log(2 * (1 - F[i,mask]))
 
 #   if x.size > 1 else x.item()
-    if n == 1:
+    if n == 1 and x.shape[0] == 1:
         x = x.flatten()
     
     return x
