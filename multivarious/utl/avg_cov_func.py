@@ -33,7 +33,7 @@ def avg_cov_func(func, u, s0, s1, options, consts=None, BOX=1):
         Average constraint vector
     u : np.ndarray
         Possibly bounded u (if BOX=1)
-    C_F : float
+    cov_F : float
         Coefficient of variation of F
     m : int
         Number of evaluations used
@@ -46,10 +46,10 @@ def avg_cov_func(func, u, s0, s1, options, consts=None, BOX=1):
     err_F   = options[8]
     Za2     = 1.645  # 90% confidence level
 
-    M_F = 0.0
-    ssq_F = 0.0
-    C_F = 0.0
-    max_F = 0.0
+    avg_F = 0.0    # mean of F
+    ssq_F = 0.0  # sum square values for F 
+    cov_F = 0.0    # coefficient of variation for F
+    max_F = 0.0  # maximum value of F
     avg_g = 0.0
     m = 0
 
@@ -63,26 +63,26 @@ def avg_cov_func(func, u, s0, s1, options, consts=None, BOX=1):
         F_A = f + penalty * np.sum(g * (g > tol_g))**q # augmented objective
 
         # Welford's recursive update of a mean and a standard deviation 
-        dF = F_A - M_F
-        M_F += dF / m                 # update the mean of F
-        ssq_F += dF * (F_A - M_F)     # update the sum of squares of F
+        dF = F_A - avg_F
+        avg_F += dF / m                 # update the mean of F
+        ssq_F += dF * (F_A - avg_F)     # update the sum of squares of F
         max_F = max(max_F, F_A)
         avg_g = avg_g + (g - avg_g) / m if m>1 else g      # update average constraint
 
         if m > 1:
-            C_F = np.sqrt(ssq_F / (m - 1)) / np.abs(M_F)  # update the c.o.v. of F
-            if m > 2 and m > (Za2 * C_F / err_F)**2:
+            cov_F = np.sqrt(ssq_F / (m - 1)) / np.abs(avg_F)  # update the c.o.v. of F
+            if m > 2 and m > (Za2 * cov_F / err_F)**2:
                 break
 
-    F_risk = M_F
+    F_risk = avg_F
     if m > 1:
 #       CHOOSE ONE OF THE FOLLOWING RISK-BASED PERFORMANCE MEASURES ...
-#       F_risk = M_F                          # average-of-N values
-#       F_risk = M_F * ( 1 + C_F/np.sqrt(m) ) # 84th percentile of the avg. of F
-        F_risk = M_F * ( 1 + C_F )            # 84th percentile of F
+#       F_risk = avg_F                          # average-of-N values
+#       F_risk = avg_F * ( 1 + cov_F/np.sqrt(m) ) # 84th percentile of the avg. of F
+        F_risk = avg_F * ( 1 + cov_F )            # 84th percentile of F
 #       F_risk = max_F;                       # largest-of-N values
 
-    return F_risk, avg_g, u, C_F, m
+    return F_risk, avg_g, u, cov_F, m
 
 """
 Welford, B. P. (1962).
