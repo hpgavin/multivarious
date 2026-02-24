@@ -1,11 +1,10 @@
 """
 plot_cvg_hst.py - Plot Optimization Convergence History
 
-Plot the convergence history for a solution computed by ORSopt, NMAopt, SQPopt
+Plot the convergence history for a solution computed by ors, nms, sqp 
 or similar optimization algorithms.
 
-Translation from MATLAB to Python by Claude, 2025-11-18
-Original by HP Gavin, Duke Univ., 2013-03-01, 2018-03-08, 2020-01-15
+HP Gavin, Duke Univ., 2013-03-01, 2018-03-08, 2020-01-15, 2025-11-18
 """
 
 import numpy as np
