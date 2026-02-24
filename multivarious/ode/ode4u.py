@@ -23,6 +23,7 @@ def ode4u(odefun, time, x0, u=None, c=None):
     """
 
 
+
     time   = np.asarray(time)
     x0     = np.asarray(x0).flatten()
     points = len(time) # the total number of time steps
@@ -33,17 +34,13 @@ def ode4u(odefun, time, x0, u=None, c=None):
     if u is None:
         u = np.zeros((1, points))
     else:
-        u = np.asarray(u)
+        u = np.atleast_2d(u).astype(float)
 
     # state derivitives and outputs at time[0]
     dxdt0, y0 = odefun(time[0], x0, u[:, 0], c)
 
     n = x0.size                 # number of states
     m = np.asarray(y0).size     # nuber of outputs
-
-    # verify inputs recieved are in 2D array shape
-    if u.ndim == 1:
-        u = u[np.newaxis, :]
 
     if u.shape[1] < points:
         pad_width = points - u.shape[1]
