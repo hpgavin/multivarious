@@ -98,6 +98,8 @@ def pdf(x, mednX, covnX):
  
     if n == 1 and f.shape[0] == 1:
         f = f.flatten()
+    if n == 1 and x.shape[0] == 1:
+        f = f[0]
     
     return f
 
@@ -143,6 +145,8 @@ def cdf(x, params):
     
     if n == 1 and F.shape[0] == 1:
         F = F.flatten()
+    if n == 1 and x.shape[0] == 1:
+        F = F[0]
     
     return F
 
@@ -188,6 +192,8 @@ def inv(F, mednX, covnX):
 
     if n == 1 and x.shape[0] == 1:
         x = x.flatten()
+    if n == 1 and F.shape[0] == 1:
+        x = x[0]
     
     return x
 
