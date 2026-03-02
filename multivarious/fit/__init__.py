@@ -17,7 +17,7 @@ module filename (case-sensitive). Re-export all of them here so users may call:
 from .L1_fit import L1_fit
 from .lm import lm
 from .lm import levenberg_marquardt
-from .mimo_rs import mimo_rs
+from .mimo_srs import mimo_srs
 from .poly_fit import poly_fit
 from .prony_fit import prony_fit
 
@@ -25,6 +25,7 @@ __all__ = [
     "L1_fit",
     "lm", 
     "levenberg_marquardt", 
+    "mimo_srs", 
     "poly_fit",
     "prony_fit", 
 ]

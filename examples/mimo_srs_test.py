@@ -2,15 +2,15 @@
 
 import numpy as np
 import matplotlib.pyplot as plt
-from multivarious.fit import mimo_rs
+from multivarious.fit import mimo_srs
 from multivarious.rvs import lognormal 
 
 
-def mimo_rs_test():
+def mimo_srs_test():
     '''
-    mimo_rs_test
+    mimo_srs_test
     
-    Test mimo_rs for fitting high dimensional multi-input, multi-output data
+    Test mimo_srs for fitting high dimensional multi-input, multi-output data
     
     ... Is this the fundamental problem statement of all data-science?
     '''
@@ -20,7 +20,7 @@ def mimo_rs_test():
     # "seed" rand() and randn() to generate a certain random sequence
     np.random.seed(30)
     
-    if data == 'SyntheticData':  # apply mimo_rs to synthetic data
+    if data == 'SyntheticData':  # apply mimo_srs to synthetic data
         
         nInp = 5      # number of input features
         nOut = 2      # number of output features
@@ -45,7 +45,7 @@ def mimo_rs_test():
         # presume that the output feature is a specific function of n variables ...
         yData, lgd, maxN, rmsN = test_function(xData, nOut, pNoise)
     
-    elif data == 'MeasuredData':  # apply mimo_rs from data loaded from a data file
+    elif data == 'MeasuredData':  # apply mimo_srs from data loaded from a data file
         
         # Update this path to your actual data file
         Data = np.loadtxt('/home/hpgavin/Research/Nepal-EEWS/m-files/data_20220606_csv.csv',
@@ -96,7 +96,7 @@ def mimo_rs_test():
         plt.draw()
         plt.pause(0.001)
     
-    # mimo_rs parameters
+    # mimo_srs parameters
     maxOrder = 5     # maximum polynomial order for the model
     pTrain = 80      # percentage of the data for training (remaining for testing)
     pCull = 80       # percentage of the model to be culled
@@ -108,7 +108,7 @@ def mimo_rs_test():
     scaling = 4      # log-transform, subtract mean and decorrelate
     
     order, coeff, meanX, meanY, trfrmX, trfrmY, testModelY, testX, testY = \
-        mimo_rs(xData, yData, maxOrder, pTrain, pCull, tol, scaling)
+        mimo_srs(xData, yData, maxOrder, pTrain, pCull, tol, scaling)
     
     if data == 'SyntheticData':
         print(f'\nSynthetic data statistics:')
@@ -143,7 +143,7 @@ def mimo_rs_test():
 def test_function(X, nOut, pNoise):
     '''
     [Y, lgd, maxN, rmsN] = test_function(X, nOut, pNoise)
-    generate synthetic data to test mimo_rs
+    generate synthetic data to test mimo_srs
     
     INPUT       DESCRIPTION                                           DIMENSION
     --------    ---------------------------------------------------   ---------
@@ -223,14 +223,14 @@ def test_function(X, nOut, pNoise):
 
 if __name__ == '__main__':
     '''
-    Run the mimo_rs test when this script is executed directly
+    Run the mimo_srs test when this script is executed directly
     '''
     print('=' * 70)
-    print('mimo_rs Test Function')
+    print('mimo_srs Test Function')
     print('Testing high-dimensional multi-input multi-output polynomial fitting')
     print('=' * 70)
     
-    results = mimo_rs_test()
+    results = mimo_srs_test()
     
     print('\n' + '=' * 70)
     print('Test completed successfully!')

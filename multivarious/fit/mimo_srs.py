@@ -1,11 +1,11 @@
 import numpy as np
 import matplotlib.pyplot as plt
 
-def mimo_rs(dataX, dataY, max_order=2, pTrain=70, scaling=1, L1_pnlty=1.0, basis_fctn='H', var_names=None ):
+def mimo_srs(dataX, dataY, max_order=2, pTrain=70, scaling=1, L1_pnlty=1.0, basis_fctn='H', var_names=None ):
     '''
-    [ ordr, coeff, meanX, meanY, invTX, TY, testModelY, testX, testY ] = mimo_rs( dataX, dataY, max_order, pTrain, scaling, L1_pntly, basis_fctn, var_names=None )
+    [ ordr, coeff, meanX, meanY, invTX, TY, testModelY, testX, testY ] = mimo_srs( dataX, dataY, max_order, pTrain, scaling, L1_pntly, basis_fctn, var_names=None )
     
-    mimo_rs: multi-input multi-output response surface 
+    mimo_srs: multi-input multi-output response surface 
     
     This program fits a polynomial to multidimensional data 
     by projecting the data onto a polynomial basis of oder up to 10 (or more)
@@ -13,7 +13,7 @@ def mimo_rs(dataX, dataY, max_order=2, pTrain=70, scaling=1, L1_pnlty=1.0, basis
     The polynomial basis may be Hermite, Legendre, or Power polynomials. 
     The model complexity is managed via L1 regularization. 
     
-     mimo_rs approximates data with a polynomial of arbitrary order,
+     mimo_srs approximates data with a polynomial of arbitrary order,
 
        y(X) = a + sum_i=1 ^n sum j=1^k_i b_ij X_i^j + 
                   sum q=1 ^m c_q prod i=1 ^n X_i^{p_iq}.
@@ -61,7 +61,7 @@ def mimo_rs(dataX, dataY, max_order=2, pTrain=70, scaling=1, L1_pnlty=1.0, basis
     Siu Chung Yau, Henri P. Gavin, January 2006, 2023
     '''
 
-    print('\n Multi-Input Multi-Output Response Surface (mimo_rs)\n')
+    print('\n Multi-Input Multi-Output Response Surface (mimo_srs)\n')
 
     # Handle default arguments and convert to appropriate types
     max_order = int(round(abs(max_order)))
@@ -78,11 +78,11 @@ def mimo_rs(dataX, dataY, max_order=2, pTrain=70, scaling=1, L1_pnlty=1.0, basis
          4: "log transform and decorrelation" }
    
     if not np.isfinite(dataX).all():
-        print(' mimo_rs: dataX has infinite or NaN values\n\n')
+        print(' mimo_srs: dataX has infinite or NaN values\n\n')
         exit(100)
 
     if not np.isfinite(dataY).all():
-        print(' mimo_rs: dataY has infinite or NaN values\n\n')
+        print(' mimo_srs: dataY has infinite or NaN values\n\n')
         exit(100)
 
     nInp, mDataX = dataX.shape   # number of columns in dataX is mData
@@ -349,7 +349,7 @@ def scale_data(Data, scaling):
 
     if scaling in [ 3 , 4 ]:  # log-transform
         if np.any(Data <= 0):
-            print('  mimo_rs: Data has negative values, can not log-transform\n\n')
+            print('  mimo_srs: Data has negative values, can not log-transform\n\n')
             exit(300)
         Data = np.log(Data);
 
@@ -357,7 +357,7 @@ def scale_data(Data, scaling):
     covData =  np.cov(Data, ddof=1) # data covariance
 
     if not np.isfinite(covData).all():
-        print('  mimo_rs: data covariance has infinite or NaN values \n\n')
+        print('  mimo_srs: data covariance has infinite or NaN values \n\n')
         exit(200)
 
     if scaling <= 0: # no scaling
