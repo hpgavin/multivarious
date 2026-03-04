@@ -1,6 +1,8 @@
+#! /usr/bin/env -S python3 -i
+
 import numpy as np
 
-def fsolve(fctn, x, c=None, delta=1e-3, tolerance=1e-9):
+def fsolve(fctn, x, c=None, delta=1e-3, tolerance=1e-6):
     """
     Solve a nonlinear system of equations f = fctn(x, c) using 
     the Newton-Raphson method.
@@ -27,56 +29,71 @@ def fsolve(fctn, x, c=None, delta=1e-3, tolerance=1e-9):
     Author: HP Gavin - 19 Apr 2010, 4 Jan 2011, 17 Apr 2017
     """
     
-    x = np.asarray(x)
+    x = np.asarray(x).astype(float)
     original_shape = x.shape
-    x = x.flatten()  # Work with 1D array internally
+    x = x.flatten()     # Work with 1D array internally
     
-    verbose = False      # show convergence information
-    MaxIter = 10        # maximum number of Newton-Raphson iterations
+    verbose = False     # show convergence information
+    max_iter = 2000     # maximum number of Newton-Raphson iterations
     nfeval = 1          # counter for function evaluations
     
-    n = len(x)  # number of independent variables
+    n = len(x)          # number of independent variables
     
     # Evaluate the function at initial x
     f, y = fctn(x.reshape(original_shape), c)
     f = np.asarray(f).flatten()
     norm_f = np.linalg.norm(f)  # Euclidean norm
     
-    m = len(f)  # number of equations
+    m = len(f)                  # number of equations
     
-    dfdx = np.zeros((m, n))  # Initialize Jacobian
-    cvg_hst = np.full((n + 5, MaxIter), np.nan)
-    
-    for iter in range(MaxIter):  # Newton-Raphson iterations
+    dfdx = np.zeros((m, n))     # Initialize Jacobian
+    cvg_hst = np.full((n + 5, max_iter), np.nan)
+
+    for iter in range(max_iter):  # Newton-Raphson iterations
         
-        # Compute the Jacobian numerically
+        # Compute the Jacobian numerically, column by column
         for j in range(n):
             xp = x.copy()
-            pxj = delta  # perturbation in x[j]
+            pxj = delta # * (abs(xp[j]) + 1e-2)
             xp[j] = xp[j] + pxj
-            
+
             fp, _ = fctn(xp.reshape(original_shape), c)
             fp = np.asarray(fp).flatten()
             
             dfdx[:, j] = (fp - f) / pxj  # df/dx[j]
         
+        # Slightly perturb a singular Jacobian matrix
+        cond_dfdx = np.linalg.cond(dfdx)
+        norm_dfdx = np.linalg.norm(dfdx)
+#       print('cond_dfdx = ', cond_dfdx)
+#       print('norm_dfdx = ', norm_dfdx)
+        if norm_dfdx < 1e-6 or cond_dfdx > 1e6: 
+            noise = 1e-5 * max(np.linalg.norm(dfdx), 1.0) * np.random.randn(*dfdx.shape)
+            dfdx = dfdx + noise
+
         # Newton-Raphson update direction
-        dx = -np.linalg.solve(dfdx, f)
+        dx = np.linalg.solve(dfdx, -f)
         
         # Evaluate at updated x
         f_new, y_new = fctn((x + dx).reshape(original_shape), c)
         f_new = np.asarray(f_new).flatten()
         norm_f_new = np.linalg.norm(f_new)
         
-        nfeval = nfeval + n + 1
+        nfeval += n + 1
         
         # Line search: reduce step size until improvement
-        while norm_f_new > norm_f:
+        max_line_iter = 10
+        line_iter = 0
+        while norm_f_new > norm_f and line_iter < max_line_iter:
             dx = dx / 2.0
             f_new, y_new = fctn((x + dx).reshape(original_shape), c)
             f_new = np.asarray(f_new).flatten()
             norm_f_new = np.linalg.norm(f_new)
-            nfeval = nfeval + 1
+            line_iter += 1
+            nfeval += 1
+
+        if line_iter == max_line_iter and norm_f_new > norm_f:
+            print(f" !! fsolve warning: line search failed to reduce residual in {line_iter} steps !!")
         
         # Update independent variables
         x = x + dx
@@ -92,19 +109,20 @@ def fsolve(fctn, x, c=None, delta=1e-3, tolerance=1e-9):
         norm_f = norm_f_new
         y = y_new
         
-        if verbose and iter > 0:
-            print(f'Iter {iter+1}: norm(f) = {norm_f:.6e}, norm(dx) = {np.linalg.norm(dx):.6e}')
+        if verbose: 
+            print(f'  iteration {iter+1:2d}: {line_iter:2d} steps,  norm(f) = {norm_f:.6e}, norm(dx) = {np.linalg.norm(dx):.6e}, x = {x} ')
         
         # Check for convergence
         if norm_f < tolerance:
+            if verbose: 
+                print(f' ** fsolve converged to tolerance {tolerance:.2e} in {iter} iterations ** ')
             break
     
     # Trim convergence history
     cvg_hst = cvg_hst[:, :iter + 1]
     
-    if iter == MaxIter - 1:
-        print(f' !! fsolve failed to converge to tolerance {tolerance:.2e} '
-              f'in MaxIter = {MaxIter} iterations!!')
+    if iter == max_iter - 1:
+        print(f' !! fsolve failed to converge to tolerance {tolerance:.2e} in {iter} iterations!!')
         print(f'norm_f = {norm_f:.6e}')
     
     # Reshape x back to original shape
@@ -131,10 +149,10 @@ if __name__ == "__main__":
         y = x  # additional output
         return f, y
     
-    # Initial guess
-    x0 = np.array([1.5, 1.5])
-    
-    # Solve
+#   x0 = np.array([1.4, 1.6]) # non-singular Jacobian
+    x0 = np.array([1.5, 1.5]) #     singular Jacobian
+
+    # Solve it!
     x_sol, y_sol, f_sol, cvg_hst, dfdx = fsolve(test_fctn, x0)
     
     print("\nSolution:")
@@ -145,5 +163,4 @@ if __name__ == "__main__":
     print(dfdx)
     print(f"\nConvergence history shape: {cvg_hst.shape}")
 
-
-# fsolve - HP Gavin - 19 Apr 2010, 4 Jan 2011, 17 Apr 2017
+# fsolve - HP Gavin - 19 Apr 2010, 4 Jan 2011, 17 Apr 2017, 3 Mar 2026
