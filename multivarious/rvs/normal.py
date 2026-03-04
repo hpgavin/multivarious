@@ -87,6 +87,8 @@ def pdf(x, meanX=0.0, sdvnX=1.0):
 
     if n == 1 and f.shape[0] == 1:
         f = f.flatten()
+    if n == 1 and x.shape[1] == 1:
+        f = f[0]
 
     return f 
 
@@ -120,7 +122,7 @@ def cdf(x, params=[0.0, 1.0]):
 
     meanX, sdvnX = params
 
-    _, meanX, sdvnX, n = _ppp_(0, meanX, sdvnX)
+    x, meanX, sdvnX, n = _ppp_(x, meanX, sdvnX)
 
     z = (x - meanX) / sdvnX
 
@@ -128,6 +130,8 @@ def cdf(x, params=[0.0, 1.0]):
 
     if n == 1 and x.shape[0] == 1:
         F = F.flatten()
+    if n == 1 and x.shape[1] == 1:
+        F = F[0]
 
     return F
 
@@ -171,6 +175,8 @@ def inv(F, meanX=0.0, sdvnX=1.0):
 
     if n == 1 and x.shape[0] == 1:
         x = x.flatten()
+    if n == 1 and F.shape[1] == 1:
+        x = x[0]
 
     return x
 

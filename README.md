@@ -11,7 +11,7 @@ Stay tuned and keep pulling!!!
 
 ## dsp . digitial signal processing
 
-To generate, transform, and plot multivariate discrete time sequences 
+To generate and transform multivariate discrete time sequences 
 
 | module              | description                                                                             |
 | ------------------- | --------------------------------------------------------------------------------------- |
@@ -29,21 +29,22 @@ To generate, transform, and plot multivariate discrete time sequences
 
 ## fit . fit mathematical models to data
 
+To fit linear and nonlinear multi-variate mathematical models to multi-dimensional data sets
+
 | module        | description                                                            |
 | ------------- | ---------------------------------------------------------------------- |
 | **L1_fit**    | linear least-squares curve fitting with l_1 regularization             |
 | **lm**        | Levenberg-Marquardt for nonlinear least squares curve-fitting problems |
-| **mimo_rs**   | multi-input multi-output response surface                              |
+| **mimo_srs**  | multi-input multi-output stochastic response surface                              |
 | **poly_fit**  | power polynomial curve fitting with arbitrary exponents                |
 | **prony_fit** | Prony function curve fitting with L1 regularization                    |
 
 ## lti . linear time invariant systems
 
-To analyze and transform linear time invariant systems
-defined by 
-linear differential equations, _d**x**_/_dt_ = _**A x**_(_t_) + _**B u**_(_t_)
-or linear difference equations,  _**x**_(_k_+1) = _**A x**_(_k_) + _**B u**_(_k_)
-and corresponding system outputs, _**y**_ = _**C x**_ + _**D u**_
+To analyze and transform linear time invariant systems defined by 
+linear differential equations, _d_**_x_**/_dt_ = **_A x_**(_t_) + **_B u_**(_t_)
+or linear difference equations,  **_x_**(_k_+1) = **_A x_**(_k_) + **_B u_**(_k_)
+and corresponding system outputs, **_y_** = **_C x_** + **_D u_**
 
 | module            | description                                                                |
 | ----------------- | -------------------------------------------------------------------------- |
@@ -68,8 +69,8 @@ and corresponding system outputs, _**y**_ = _**C x**_ + _**D u**_
 
 ## ode . ordinary differential equations
 
-To solve systems of ordinary differential equations _d**x**_/_dt_ = _f_(_t_,_**x**_,_**u**_,_c_) where 
-_t_ is time, _**x**_ is a state vector, _**u**_ is a time series of exogeneous inputs, and _c_ contains a set of system constants. 
+To solve systems of ordinary differential equations _d_**_x_**/_dt_ = _f_(_t_,**_x_**,**_u_**,_c_) where 
+_t_ is time, **_x_** is a state vector, **_u_** is a time series of exogeneous inputs, and _c_ contains a set of system constants. 
 
 | module       | description                                                                                         |
 | ------------ | --------------------------------------------------------------------------------------------------- |
@@ -81,10 +82,10 @@ _t_ is time, _**x**_ is a state vector, _**u**_ is a time series of exogeneous i
 ## opt . optimization
 
 To minimize a function of multiple variables subject to a set of inequality constraints:
-minimize _f_(_**v**_) such that _**g**_(_**v**_) < **0**,
-where _**v**_ is a vector of design variables,
-_f_(_**v**_) is a scalar-valued objective function, and
-_**g**_(_**v**_) is a vector of inequality constraints. 
+minimize _f_(**_v_**) such that **_g_**(**_v_**) < **0**, where
+**_v_** is a vector of design variables,
+_f_(**_v_**) is a scalar-valued objective function, and
+**_g_**(**_v_**) is a vector of inequality constraints. 
 
 | module     | description                                                           |
 | ---------- | --------------------------------------------------------------------- |
@@ -95,8 +96,7 @@ _**g**_(_**v**_) is a vector of inequality constraints.
 
 ## rvs . random variables
 
-To provide the probability density function, the cumulative distribution function, the inverse cumulative distribution function, and a random sample of various probabiity distributions.  
-Correlated random samples of multivariate lognormal and beta random variables as well.  
+To provide the probability density function, the cumulative distribution function, the inverse cumulative distribution function, and correlated random samples of various probabiity distributions.  
 methods: distribution.pdf(), distribution.cdf(), distribution.inv(), distribution.rnd()
 
 | module               | description                                                                                         |
@@ -120,6 +120,8 @@ methods: distribution.pdf(), distribution.cdf(), distribution.inv(), distributio
 | **uniform**          | [uniform](http://en.wikipedia.org/wiki/Uniform_distribution_(continuous))                           |
 
 ## utl . utility functions
+
+To set hyperparameters and plot results of multivarious computations. 
 
 | module               | description                                                                     |
 | -------------------- | ------------------------------------------------------------------------------- |
@@ -188,6 +190,5 @@ C. Verify that VS Code has access to the multivarious library.
    python
    >>> import multivarious
    ```
-
    If this message ... `ModuleNotFoundError: No module named 'multivarious'` ... does not appear, you have installed `multivarious` correctly.
 
