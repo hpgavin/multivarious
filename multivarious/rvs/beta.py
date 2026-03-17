@@ -42,11 +42,11 @@ def _ppp_(x, a, b, q, p ):
     
     # Validate parameter values 
     if np.any(b <= a):
-        raise ValueError("beta.rnd: all b values must be greater than corresponding a values")
+        raise ValueError("beta: all b values must be greater than corresponding a values")
     if np.any(q <= 0):
-        raise ValueError("beta.rnd: q must be positive")
+        raise ValueError("beta: q must be positive")
     if np.any(p <= 0):
-        raise ValueError("beta.rnd: p must be positive")
+        raise ValueError("beta: p must be positive")
 
     return x, a, b, q, p, n, N
 
