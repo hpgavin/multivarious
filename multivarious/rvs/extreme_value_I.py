@@ -137,7 +137,7 @@ def cdf(x, params):
     
     meanX, covnX = params
     
-    x, _, _, loctn, scale, _ = _ppp_(x, meanX, covnX)
+    x, _, _, loctn, scale, n = _ppp_(x, meanX, covnX)
 
     z = (x - loctn) / scale
 
