@@ -39,11 +39,9 @@ from scipy.linalg import cho_factor, cho_solve
 from scipy.optimize import minimize
 from scipy.linalg import qr
 
-from multivarious.opt.qp_solve import qp_solve
 from multivarious.utl.plot_opt_surface import plot_opt_surface
 from multivarious.utl.opt_options import opt_options
 from multivarious.utl.opt_report import opt_report
-
 
 
 def sqp(func, v_init, v_lb=None, v_ub=None, options_in=None, consts=1.0):
@@ -66,12 +64,6 @@ def sqp(func, v_init, v_lb=None, v_ub=None, options_in=None, consts=1.0):
         Lower/upper bounds (default: ±100*|v_init|)
     options_in : array-like, optional
         Optimization settings (see opt_options)
-        options[1] = 1  means display intermediate results
-        options[2] = tol_p  tolerance on convergence of variables 
-        options[3] = tol_f  tolerance on convergence of objective
-        options[4] = tol_g  tolerance on constraint functions
-        options[5]  = max_evals limit on number of function evaluations
-
     consts : any
         Constants passed to 'func`.
     
@@ -79,22 +71,16 @@ def sqp(func, v_init, v_lb=None, v_ub=None, options_in=None, consts=1.0):
     -------
     v_opt : ndarray
         Optimal design variables
-        a set of design variables at or near the optimal value
     f_opt : float
         Optimal value of objective function
-        the objective associated with the optimal design variables
     g_opt : ndarray
         Constraint values at optimum
-        the constraints associated with the optimal design variables 
     cvg_hst : np.ndarray (n+5, k)
         Convergence history: [v; f; max(g); func_count; cvg_v; cvg_f] per iteration
-        record of v, f, g, function_count, and convergence criteria
     lambda_opt : ndarray
         Lagrange multipliers
-        the set of Lagrange multipliers at the active constraints
     hess : ndarray (n, n)
         Final Hessian matrix approximation
-        the Hessian of the objective function at the optimal point
     """
     
     # Options and inputs 
@@ -292,8 +278,8 @@ def sqp(func, v_init, v_lb=None, v_ub=None, options_in=None, consts=1.0):
         
         # Solve QP subproblem for search direction 
         # min 0.5*SD'*HESS*SD + gradf'*SD  s.t.  gradg_augmented*SD <= -GT
-#       SD, lambda_qp, howqp = qp_scipy(HESS, gradf, gradg_augmented, -GT)
-        SD, lambda_qp, howqp = qp_solve(HESS, gradf, gradg_augmented, -GT)
+        SD, lambda_qp, howqp = mwQP(HESS, gradf, gradg_augmented, -GT, None, None, SDi) 
+#       SD, lambda_qp, howqp = scipy_qp(HESS, gradf, gradg_augmented, -GT)
         
         # Extract Lagrange multipliers for nonlinear constraints only
         LAMBDA = lambda_qp[:m]
@@ -467,7 +453,297 @@ def sqp(func, v_init, v_lb=None, v_ub=None, options_in=None, consts=1.0):
     return v_opt, f_opt, g_opt, cvg_hst, LAMBDA, HESS
 
 
-def qp_scipy(H, f, A, b):
+def mwQP(H, f, A, b, vlb=None, vub=None, x0=None, neqcstr=0, verbosity=-1):
+    """
+    Embedded Quadratic Programming solver using active-set method.
+    
+    Solves: min 0.5*x'*H*x + f'*x  subject to  A*x <= b
+    
+    This is MathWorks' QP solver - much more robust than scipy for
+    ill-conditioned problems.
+    
+    Parameters
+    ----------
+    H : ndarray, shape (n, n)
+        Hessian matrix
+    f : ndarray, shape (n,)
+        Linear term
+    A : ndarray, shape (m, n)
+        Inequality constraint matrix
+    b : ndarray, shape (m,)
+        Inequality constraint RHS
+    vlb, vub : ndarray, optional
+        Variable bounds (not used in this interface)
+    x0 : ndarray, shape (n,), optional
+        Initial guess (default: zeros)
+    neqcstr : int, optional
+        Number of equality constraints (first neqcstr rows of A)
+    verbosity : int, optional
+        Verbosity level
+    
+    Returns
+    -------
+    X : ndarray
+        Solution vector
+    lambda_qp : ndarray
+        Lagrange multipliers
+    how : str
+        Status message
+    """
+    
+    # Get dimensions
+    n = len(f)
+    f = np.asarray(f).flatten()
+    A = np.asarray(A)
+    b = np.asarray(b).flatten()
+    m = len(b)
+    
+    if x0 is None:
+        X = np.zeros(n)
+    else:
+        X = np.asarray(x0).flatten()
+    
+    # Normalize constraints
+    normA = np.sqrt(np.sum(A**2, axis=1))
+    normA[normA == 0] = 1.0
+    A = A / normA[:, np.newaxis]
+    b = b / normA
+    
+    normf = 1.0 + abs(f @ X)
+    
+    # Check if H is positive definite
+    errnorm = np.finfo(float).eps * 10
+    is_qp = True
+    
+    try:
+        np.linalg.cholesky(H + errnorm * np.eye(n))
+    except np.linalg.LinAlgError:
+        is_qp = False
+    
+    # Initialize active set
+    lambda_qp = np.zeros(m)
+    aix = np.zeros(m, dtype=bool)  # Active constraint indices
+    
+    # Equality constraints are always active
+    eqix = np.arange(neqcstr)
+    if neqcstr > 0:
+        aix[eqix] = True
+    
+    ACTSET = A[aix, :]
+    ACTIND = np.where(aix)[0]
+    ACTCNT = len(ACTIND)
+    
+    # QR factorization of active set
+    if ACTCNT > 0:
+        Q, R = qr(ACTSET.T)
+    else:
+        Q = np.eye(n)
+        R = np.zeros((0, 0))
+    
+    CIND = ACTCNT
+    simplex_iter = (ACTCNT == n - 1)
+    
+    # Main iteration loop
+    max_iter = 100 * n
+    for iter_count in range(max_iter):
+        
+        # Compute gradient
+        gf = H @ X + f
+        
+        # Compute null space
+        Z = Q[:, ACTCNT:]
+        
+        # Compute search direction
+        if is_qp and Z.shape[1] > 0:
+            Zgf = Z.T @ gf
+            if np.linalg.norm(Zgf) < 1e-15:
+                SD = np.zeros(n)
+            else:
+                try:
+                    SD = -Z @ np.linalg.solve(Z.T @ H @ Z, Zgf)
+                except np.linalg.LinAlgError:
+                    SD = -Z @ (Z.T @ gf)
+        else:
+            if not simplex_iter and Z.shape[1] > 0:
+                SD = -Z @ (Z.T @ gf)
+                gradsd = np.linalg.norm(SD)
+            else:
+                gradsd = Z.T @ gf if Z.shape[1] > 0 else 0
+                if gradsd > 0:
+                    SD = -Z.flatten() if Z.ndim > 1 else -Z
+                else:
+                    SD = Z.flatten() if Z.ndim > 1 else Z
+                gradsd = abs(gradsd)
+        
+        # Check for convergence
+        if np.linalg.norm(SD) < errnorm:
+            # Compute Lagrange multipliers
+            if ACTCNT > 0:
+                try:
+                    rlambda = -np.linalg.solve(R[:ACTCNT, :ACTCNT].T, Q[:, :ACTCNT].T @ gf)
+                except np.linalg.LinAlgError:
+                    rlambda = np.zeros(ACTCNT)
+                
+                actlambda = rlambda.copy()
+                actlambda[eqix] = np.abs(actlambda[eqix])
+                
+                indlam = np.where(actlambda < errnorm)[0]
+                
+                if len(indlam) == 0:
+                    lambda_qp[ACTIND] = normf * (rlambda / normA[ACTIND])
+                    how = 'ok'
+                    return X, lambda_qp, how
+                
+                # Remove constraint with most negative multiplier
+                CIND = indlam[np.argmin(actlambda[indlam])]
+                Q, R = qrdelete(Q, R, CIND)
+                oldind = ACTIND[CIND]
+                ACTIND = np.delete(ACTIND, CIND)
+                ACTCNT -= 1
+                aix[oldind] = False
+                ACTSET = A[aix, :]
+                simplex_iter = False
+                continue
+            else:
+                how = 'ok'
+                return X, lambda_qp, how
+        
+        # Find step length
+        cstr = A @ X - b
+        indix = np.where(~aix)[0]
+        
+        if len(indix) > 0:
+            dist = (cstr[indix] / (A[indix, :] @ SD + errnorm))
+            dist[dist < 0] = np.inf
+            
+            if len(dist) > 0:
+                STEPMIN = np.min(dist)
+                ind_step = indix[np.argmin(dist)]
+            else:
+                STEPMIN = np.inf
+                ind_step = None
+        else:
+            STEPMIN = np.inf
+            ind_step = None
+        
+        # Take step
+        if STEPMIN < 1:
+            X = X + STEPMIN * SD
+            # Add blocking constraint to active set
+            if ind_step is not None:
+                aix[ind_step] = True
+                ACTIND = np.append(ACTIND, ind_step)
+                ACTCNT += 1
+                Q, R = qr_insert(Q, R, ACTCNT, A[ind_step, :])
+                ACTSET = A[aix, :]
+                if ACTCNT == n - 1:
+                    simplex_iter = True
+        else:
+            X = X + SD
+        
+        # Check for unbounded
+        if not np.isfinite(STEPMIN) and np.linalg.norm(SD) > errnorm:
+            how = 'unbounded'
+            if verbosity > -1:
+                print('Warning: Unbounded solution')
+            return X, lambda_qp, how
+    
+    how = 'maxiter'
+    return X, lambda_qp, how
+
+
+def qr_insert(Q, R, j, x):
+    """
+    Insert a column in the QR factorization.
+    
+    If [Q,R] = qr(A) is the original QR factorization, this function
+    updates Q and R to be the factorization after inserting column x
+    before A(:,j).
+    """
+    m, n = R.shape if R.size > 0 else (Q.shape[0], 0)
+    
+    if n == 0:
+        return qr(x.reshape(-1, 1))
+    
+    # Make room and insert
+    R_new = np.zeros((m, n + 1))
+    R_new[:, :j] = R[:, :j]
+    R_new[:, j+1:] = R[:, j:]
+    R_new[:, j] = Q.T @ x
+    R = R_new
+    n = n + 1
+    
+    # Zero out subdiagonal elements using Givens rotations
+    for k in range(min(m-1, j-1), j-1, -1):
+        # Givens rotation
+        a = R[k, j]
+        b = R[k+1, j]
+        r = np.sqrt(a**2 + b**2)
+        
+        if r < np.finfo(float).eps:
+            continue
+        
+        c = a / r
+        s = -b / r
+        
+        R[k, j] = r
+        R[k+1, j] = 0
+        
+        if k < n - 1:
+            temp = R[k, k+1:n].copy()
+            R[k, k+1:n] = c * temp - s * R[k+1, k+1:n]
+            R[k+1, k+1:n] = s * temp + c * R[k+1, k+1:n]
+        
+        temp = Q[:, k].copy()
+        Q[:, k] = c * temp - s * Q[:, k+1]
+        Q[:, k+1] = s * temp + c * Q[:, k+1]
+    
+    return Q, R
+
+
+def qrdelete(Q, R, j):
+    """
+    Delete a column from the QR factorization.
+    
+    If [Q,R] = qr(A) is the original QR factorization, this function
+    updates Q and R to be the factorization after removing A(:,j).
+    """
+    # Remove j-th column
+    R = np.delete(R, j, axis=1)
+    m, n = R.shape if R.size > 0 else (Q.shape[0], 0)
+    
+    if n == 0:
+        return Q, R
+    
+    # Use Givens rotations to restore upper triangular form
+    for k in range(j, min(n, m-1)):
+        # Givens rotation
+        a = R[k, k]
+        b = R[k+1, k]
+        r = np.sqrt(a**2 + b**2)
+        
+        if r < np.finfo(float).eps:
+            continue
+        
+        c = a / r
+        s = -b / r
+        
+        R[k, k] = r
+        R[k+1, k] = 0
+        
+        if k < n - 1:
+            temp = R[k, k+1:n].copy()
+            R[k, k+1:n] = c * temp - s * R[k+1, k+1:n]
+            R[k+1, k+1:n] = s * temp + c * R[k+1, k+1:n]
+        
+        temp = Q[:, k].copy()
+        Q[:, k] = c * temp - s * Q[:, k+1]
+        Q[:, k+1] = s * temp + c * Q[:, k+1]
+    
+    return Q, R
+
+
+def scipy_qp(H, f, A, b):
     '''
     Solve QP subproblem using scipy.optimize.minimize
 
@@ -580,3 +856,48 @@ def qp_scipy(H, f, A, b):
         how = 'error: ' + str(e)[:20]
         return x, lambda_vals, how
 
+
+"""
+def quadprog_qp(H, f, A, b):
+    '''
+    Solve QP using quadprog: min 0.5*x'*H*x + f'*x  s.t.  A*x <= b
+    
+    quadprog solves: min 0.5*x'*G*x - a'*x  s.t.  C'*x >= b
+    
+    Conversion:
+    G = H
+    a = -f
+    C' = -A' ? C = -A.T
+    b_qp = -b
+
+    sudo pipx install quadprog --include-deps
+    '''
+    try:
+        G = H
+        a = -f
+        C = -A.T
+        b_qp = -b
+        
+        # solve_qp returns (solution, f_value, xu, iterations, lagrangian, iact)
+        result = solve_qp(G, a, C, b_qp, meq=0)
+        
+        x = result[0]           # solution
+        lagrangian = result[4]  # Lagrange multipliers
+        
+        how = 'ok'
+        return x, lagrangian, how
+        
+    except ValueError as e:
+        n = H.shape[0]
+        x = np.zeros(n)
+        lambda_vals = np.zeros(len(b))
+        
+        if 'infeasible' in str(e).lower():
+            how = 'infeasible'
+        elif 'unbounded' in str(e).lower():
+            how = 'unbounded'
+        else:
+            how = 'ill-posed'
+        
+        return x, lambda_vals, how
+"""

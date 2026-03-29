@@ -87,12 +87,13 @@ minimize _f_(**_v_**) such that **_g_**(**_v_**) < **0**, where
 _f_(**_v_**) is a scalar-valued objective function, and
 **_g_**(**_v_**) is a vector of inequality constraints. 
 
-| module     | description                                                           |
-| ---------- | --------------------------------------------------------------------- |
-| **fsolve** | solve a system of nonlinear algebraic equations                       |
-| **nms**    | Nelder Mead Simplex              |
-| **ors**    | Optimized Random Search          |
-| **sqp**    | Sequential Quadratic Programming |
+| module       | description                                                       |
+| ------------ | ----------------------------------------------------------------- |
+| **fsolve**   | solve a system of nonlinear algebraic equations                   |
+| **qp_solve** | solve min_*x* (1/2) *x' H x + f' x*   subject to:  *Ax <= b*     | 
+| **nms**      | Nelder Mead Simplex              |
+| **ors**      | Optimized Random Search          |
+| **sqp**      | Sequential Quadratic Programming |
 
 ## rvs . random variables
 

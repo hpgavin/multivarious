@@ -18,10 +18,16 @@ from .fsolve import fsolve
 from .nms import nms
 from .ors import ors
 from .sqp import sqp
+from .qp_solve import plane_rot
+from .qp_solve import qr_insert
+from .qp_solve import qr_delete
+from .qp_solve import qp_solve
+
 
 __all__ = [
     "fsolve",
     "nms",
     "ors",
     "sqp",
+    "qp_solve", 
 ]
