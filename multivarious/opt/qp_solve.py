@@ -1,3 +1,5 @@
+# Quadratic Programming via an active set formulation
+
 import numpy as np
 import scipy.linalg
 
@@ -60,6 +62,7 @@ def qr_insert(Q, R, j, x):
         
     return Q, R
 
+
 def qr_delete(Q, R, j):
     """
     Removes the j-th column from the QR factorization.
@@ -79,6 +82,7 @@ def qr_delete(Q, R, j):
         Q[:, p] = Q[:, p] @ G.T
         
     return Q, R
+
 
 def qp_solve(H, f, A, B, x_lb=None, x_ub=None, X=None, neqcstr=None, verbosity=None, negdef=0, normalize=1):
     """
@@ -118,15 +122,20 @@ def qp_solve(H, f, A, B, x_lb=None, x_ub=None, X=None, neqcstr=None, verbosity=N
         nvars = len(f)
     else:
         ncstr, nvars = A.shape
-    
+
     nvars = len(f) # In case A is empty
-    
+
     if X.size == 0:
         X = np.zeros(nvars)
-    
-    f = f.flatten()
-    if B is not None:
-        B = B.flatten()
+
+    # Work on local copies so the caller's arrays are never mutated.
+    # In MATLAB all arguments are passed by value; numpy arrays are by reference.
+    # Row-normalisation (below) modifies A in-place, which would corrupt the
+    # caller's constraint matrix across repeated calls (e.g. from an SQP loop).
+    f = f.flatten()                                 # flatten already copies
+    B = B.flatten() if B is not None else B         # flatten already copies
+    if A is not None and A.size > 0:
+        A = np.array(A, dtype=float)                # explicit copy of A
 
     simplex_iter = 0
     if H is None or H.size == 0 or np.linalg.norm(H, np.inf) == 0:
@@ -348,7 +357,7 @@ def qp_solve(H, f, A, B, x_lb=None, x_ub=None, X=None, neqcstr=None, verbosity=N
                         if len(ACTIND) > CIND:
                             ACTIND.pop(CIND)
                     
-                    # rlambda = -R\(Q'*(H*X+f))
+                    # R @ rlambda = - Q.T @ (H @ X + f) 
                     rhs = -(Q.T @ (H @ X + f))[:ACTCNT]
                     rlambda = scipy.linalg.solve_triangular(R[:ACTCNT, :ACTCNT], rhs, lower=False)
                     actlambda = rlambda.copy()
@@ -459,9 +468,13 @@ def qp_solve(H, f, A, B, x_lb=None, x_ub=None, X=None, neqcstr=None, verbosity=N
             CIND = ACTCNT
             oldind = 0 
         else:
-            # rlambda = -R\(Q'*gf)
-            rhs = -(Q.T @ gf)[:ACTCNT]
-            rlambda = scipy.linalg.solve_triangular(R[:ACTCNT, :ACTCNT], rhs, lower=False)
+            # R @ rlambda = -(Q.T @ gf)
+            # Use R.shape[1] (not ACTCNT) because qr_insert may have grown R
+            # beyond ACTCNT when a blocking constraint was just added in simplex mode.
+            # MATLAB avoids this by using the full R in R\(Q'*gf) with no slicing.
+            ncols = R.shape[1]
+            rhs = -(Q.T @ gf)[:ncols]
+            rlambda = scipy.linalg.solve_triangular(R[:ncols, :ncols], rhs, lower=False)
             
             if np.any(np.isinf(rlambda)):
                 if verbosity > -1:
@@ -527,8 +540,9 @@ def qp_solve(H, f, A, B, x_lb=None, x_ub=None, X=None, neqcstr=None, verbosity=N
                 # Check whether any constraints can be deleted from active set.
                 # rlambda = -ACTSET'\gf;
                 if not oldind:
-                    rhs = -(Q.T @ gf)[:ACTCNT]
-                    rlambda = scipy.linalg.solve_triangular(R[:ACTCNT, :ACTCNT], rhs, lower=False)
+                    ncols = R.shape[1]
+                    rhs = -(Q.T @ gf)[:ncols]
+                    rlambda = scipy.linalg.solve_triangular(R[:ncols, :ncols], rhs, lower=False)
                 
                 actlambda = rlambda.copy()
                 if neqcstr > 0:

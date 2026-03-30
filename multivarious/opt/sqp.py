@@ -160,6 +160,7 @@ def sqp(func, v_init, v_lb=None, v_ub=None, options_in=None, consts=1.0):
     LAMBDA = np.zeros(m)  # Lagrange multipliers
     HESS = np.eye(n)      # Hessian approximation
     PENALTY = np.ones(m)  # Penalty factors
+    SDi = np.zeros(n)     # initial search direction
 
     cvg_hst = np.full((n + 5, max_evals), np.nan)
 
@@ -286,14 +287,15 @@ def sqp(func, v_init, v_lb=None, v_ub=None, options_in=None, consts=1.0):
 
         # Set up QP subproblem
         # Append box constraints to nonlinear constraints
-        SDi = np.zeros(n)
         GT = np.concatenate([g, -u + u_lb, u - u_ub])
         gradg_augmented = np.vstack([gradg, -np.eye(n), np.eye(n)])
         
         # Solve QP subproblem for search direction 
-        # min 0.5*SD'*HESS*SD + gradf'*SD  s.t.  gradg_augmented*SD <= -GT
+        # min 0.5*SD'*HESS*SD + gradf'*SD  s.t. gradg_augmented*SD <= -GT
 #       SD, lambda_qp, howqp = qp_scipy(HESS, gradf, gradg_augmented, -GT)
-        SD, lambda_qp, howqp = qp_solve(HESS, gradf, gradg_augmented, -GT)
+        SD, lambda_qp, howqp = qp_solve(HESS, gradf, gradg_augmented, -GT) 
+        # Use SD as the initial guess for the next call to qp_solve
+#       SDi = SD.copy() 
         
         # Extract Lagrange multipliers for nonlinear constraints only
         LAMBDA = lambda_qp[:m]
@@ -318,6 +320,7 @@ def sqp(func, v_init, v_lb=None, v_ub=None, options_in=None, consts=1.0):
         if not infeas and f < 0:
             GOAL_2 = GOAL_2 + f - 1.0
         
+        # Initialize the costs to be greater than the goals
         COST_1 = GOAL_1 + 1.0
         COST_2 = GOAL_2 + 1.0
         
@@ -379,29 +382,6 @@ def sqp(func, v_init, v_lb=None, v_ub=None, options_in=None, consts=1.0):
         cvg_hst[:, iteration] = np.concatenate([ s0+s1*u,
             [f, g_max, function_evals, cvg_v, cvg_f] ])
 
-        # Display progress 
-        if msg > 1:
-            elapsed = time.time() - start_time
-            secs_left = int((max_evals - function_evals) * elapsed / function_evals)
-            eta = (datetime.now() + timedelta(seconds=secs_left)).strftime('%H:%M:%S')
-            # print('\033[H\033[J', end='')  # clear screen
-            print("\n *********************** SQP ****************************")
-            print(f" iteration                = {iteration:5d}   "
-                  f"{'*** feasible ***' if g_max <= tol_g and np.all(u >= -1) and np.all(u <= 1) else '!!! infeasible !!!'}")
-            print(f" function evaluations     = {function_evals:5d} of {max_evals:5d}"
-                  f" ({100.0*function_evals/max_evals:4.1f}%)")
-            print(f" e.t.a.                   = {eta} ")
-            if n < 15:
-                print(f" variables                = " + " ".join(f"{v:11.3e}" for v in (u-s0)/s1))  
-            print(f" objective                = {f:11.3e}")
-            print(f" max constraint           = {g_max:11.3e}  ({idx_max_g+1})")
-            print(f" Step Size                = {StepLength:11.3e}")
-            print(f" BFGS method              : {how}")
-            print(f" QP method                : {howqp}")
-            print(f" objective convergence    = {cvg_f:11.4e}   tol_f = {tol_f:8.6f}")
-            print(f" variable  convergence    = {cvg_v:11.4e}   tol_v = {tol_v:8.6f}")
-            print(" *********************** SQP ****************************\n")
-        
         # Plot current point
         if msg > 2:
             ii = int(options[10])
@@ -431,6 +411,29 @@ def sqp(func, v_init, v_lb=None, v_ub=None, options_in=None, consts=1.0):
         if converged:
             end_iterations = True
 
+        # Display progress 
+        if msg > 1 or converged:
+            elapsed = time.time() - start_time
+            secs_left = int((max_evals - function_evals) * elapsed / function_evals)
+            eta = (datetime.now() + timedelta(seconds=secs_left)).strftime('%H:%M:%S')
+            # print('\033[H\033[J', end='')  # clear screen
+            print("\n *********************** SQP ****************************")
+            print(f" iteration                = {iteration:5d}   "
+                  f"{'*** feasible ***' if g_max <= tol_g and np.all(u >= -1) and np.all(u <= 1) else '!!! infeasible !!!'}")
+            print(f" function evaluations     = {function_evals:5d} of {max_evals:5d}"
+                  f" ({100.0*function_evals/max_evals:4.1f}%)")
+            print(f" e.t.a.                   = {eta} ")
+            if n < 15:
+                print(f" variables                = " + " ".join(f"{v:11.3e}" for v in (u-s0)/s1))  
+            print(f" objective                = {f:11.3e}")
+            print(f" max constraint           = {g_max:11.3e}  ({idx_max_g+1})")
+            print(f" Step Size                = {StepLength:11.3e}")
+            print(f" BFGS method              : {how}")
+            print(f" QP method                : {howqp}")
+            print(f" objective convergence    = {cvg_f:11.4e}   tol_f = {tol_f:8.6f}")
+            print(f" variable  convergence    = {cvg_v:11.4e}   tol_v = {tol_v:8.6f}")
+            print(" *********************** SQP ****************************\n")
+        
     # ============================ end main loop ============================
 
     # If better feasible solution was found during search, use it
@@ -462,7 +465,7 @@ def sqp(func, v_init, v_lb=None, v_ub=None, options_in=None, consts=1.0):
         plt.plot( v_opt[ii], v_opt[jj], f_opt, '-or', markersize=14 )
    
     # Trim history
-    cvg_hst = cvg_hst[:, :iteration]
+    cvg_hst = cvg_hst[:, :iteration+1]
     
     return v_opt, f_opt, g_opt, cvg_hst, LAMBDA, HESS
 
