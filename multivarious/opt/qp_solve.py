@@ -217,8 +217,9 @@ def qp_solve(H, f, A, B, x_lb=None, x_ub=None, X=None, neqcstr=None, verbosity=N
             if err > 1e-8:
                 how = 'infeasible quadratic program' 
                 if verbosity > -1:
-                    print('Warning: The equality constraints are overly stringent;')
-                    print('         there is no feasible solution.') 
+                    print('qp_solve() warning:') 
+                    print(' ... The equality constraints are overly stringent;')
+                    print('     there is no feasible solution.') 
             
             # actlambda = -R\(Q'*(H*X+f))
             # Solve R[0:neqcstr, 0:neqcstr] * x = -(Q.T @ (H@X + f))[0:neqcstr]
@@ -234,9 +235,10 @@ def qp_solve(H, f, A, B, x_lb=None, x_ub=None, X=None, neqcstr=None, verbosity=N
             if np.max(A @ X - B) > 1e-8:
                 how = 'infeasible quadratic program'
                 if verbosity > -1:
-                    print('Warning: The constraints or bounds are overly stringent;')
-                    print('         there is no feasible solution.') 
-                    print('         Equality constraints have been met.')
+                    print('qp_solve() warning:')
+                    print(' ... The constraints or bounds are overly stringent;')
+                    print('     there is no feasible solution.') 
+                    print('     Equality constraints have been met.')
             return X, lambda_vec, how
         
         # Check whether in Phase 1 of feasibility point finding. 
@@ -273,8 +275,9 @@ def qp_solve(H, f, A, B, x_lb=None, x_ub=None, X=None, neqcstr=None, verbosity=N
             if XS[nvars] > 1e-8: 
                 how = 'infeasible quadratic program'
                 if verbosity > -1:
-                    print('Warning: The constraints are overly stringent;')
-                    print('         there is no feasible solution.')
+                    print('qp_solve{) warning:')
+                    print(' ... The constraints are overly stringent;')
+                    print('     there is no feasible solution.')
             else:
                 how = 'overly constrained quadratic program'
             lambda_vec = normf * (lambdas[:ncstr] / normA)
@@ -402,12 +405,14 @@ def qp_solve(H, f, A, B, x_lb=None, x_ub=None, X=None, neqcstr=None, verbosity=N
                 
                 if verbosity > -1:
                     if np.linalg.norm(SD) > errnorm:
-                        print('Warning: The solution is unbounded and at infinity;')
-                        print('         the constraints are not restrictive enough.') 
+                        print('qp_solve() warning:')
+                        print(' ... The solution is unbounded and at infinity;')
+                        print('     the constraints are not restrictive enough.') 
                     else:
-                        print('Warning: The search direction is close to zero; the problem is ill posed.')
-                        print('         The gradient of the objective function may be zero')
-                        print('         or the problem may be badly conditioned.')
+                        print('qp_solve() warning:')
+                        print(' ... The search direction is close to zero; the problem is ill posed.')
+                        print('     The gradient of the objective function may be zero')
+                        print('     or the problem may be badly conditioned.')
                 return X, lambda_vec, how
             else: 
                 X = X + STEPMIN * SD
@@ -425,8 +430,9 @@ def qp_solve(H, f, A, B, x_lb=None, x_ub=None, X=None, neqcstr=None, verbosity=N
         if np.max(cstr) > 1e5 * errnorm:
             if np.max(cstr) > np.linalg.norm(X) * errnorm:
                 if verbosity > -1:
-                    print('Warning: The problem is badly conditioned;')
-                    print('         the solution is not reliable') 
+                    print('qp_solve() warning:')
+                    printf(' ... The problem is badly conditioned;')
+                    print('      the solution is not reliable') 
                     verbosity = -1
                 how = 'unreliable quadratic program' 
                 X = X - STEPMIN * SD
@@ -518,7 +524,8 @@ def qp_solve(H, f, A, B, x_lb=None, x_ub=None, X=None, neqcstr=None, verbosity=N
             elif Zgf.size == 0:
                 if verbosity > -1:
                     # Only happens in -ve semi-definite problems
-                    print('Warning: QP problem is -ve semi-definite.')
+                    print('qp_solve() warning:')
+                    print(' ... QP problem is -ve semi-definite.')
                 SD = np.zeros(nvars)
             else:
                 try:
