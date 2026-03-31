@@ -41,7 +41,7 @@ def eqgm_1d(PGA=3.5, fg=1.5, zg=0.9, aa=4.0, ta=2.0, t=None, fig_no=0, seed=None
     ta : float, optional
         Envelope decay time constant (s), default: 2.0
     t : ndarray, optional
-        Time vector (s), default: np.arange(1, 3001) * 0.01
+        Time vector (s), default: np.arange(3000) * 0.01
     fig_no : int, optional
         Figure number for plotting (0 = no plots), default: 0
     seed : int, optional
@@ -114,7 +114,7 @@ def eqgm_1d(PGA=3.5, fg=1.5, zg=0.9, aa=4.0, ta=2.0, t=None, fig_no=0, seed=None
     ... )
     >>> 
     >>> # Example 2: Near-field pulse-like ground motion
-    >>> t = np.arange(1, 5001) * 0.01  # 50 seconds
+    >>> t = np.arange(5000) * 0.01  # 50 seconds
     >>> accel, veloc, displ, _, _, _, _ = eqgm_1d(
     ...     PGA=4.7, fg=0.5, zg=1.8, aa=1.0, ta=2.0, t=t, fig_no=2
     ... )
@@ -143,7 +143,7 @@ def eqgm_1d(PGA=3.5, fg=1.5, zg=0.9, aa=4.0, ta=2.0, t=None, fig_no=0, seed=None
     
     # Default time vector
     if t is None:
-        t = np.arange(0, 3001) * 0.01  # 30 seconds, dt=0.01
+        t = np.arange(3000) * 0.01  # 30 seconds, dt=0.01
     
     t = np.asarray(t).flatten()
     dt = t[1] - t[0]  # Time step
@@ -373,7 +373,7 @@ if __name__ == '__main__':
     print("\nTest 2: Near-Field Pulse Ground Motion (ATC-63-NFP)")
     print("-" * 70)
     
-    t_long = np.arange(1, 5001) * 0.01  # 50 seconds
+    t_long = np.arange(5000) * 0.01  # 50 seconds
     
     accel2, veloc2, displ2, _, _, _, _ = eqgm_1d(
         PGA=4.7, fg=0.5, zg=1.8, aa=1.0, ta=2.0,
