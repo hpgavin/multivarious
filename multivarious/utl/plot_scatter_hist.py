@@ -2,9 +2,18 @@
 
 import numpy as np
 import matplotlib.pyplot as plt
+from scipy.stats import norm
 
-from multivarious.rvs import normal
-from multivarious.utl import format_plot
+try:
+    from multivarious.utl import format_plot
+except ImportError:
+    def format_plot(**kwargs):
+        plt.rcParams.update({
+            'lines.linewidth':  kwargs.get('line_width',  1.5),
+            'font.size':        kwargs.get('font_size',   10),
+            'lines.markersize': kwargs.get('marker_size', 4),
+        })
+
 
 # Light background tints for each block type in the upper triangle
 _BLOCK_TINT = {
@@ -19,6 +28,7 @@ _BLOCK_COLOR = {
     'XY': 'darkcyan',
     'YY': 'darkgreen',
 }
+
 
 def corr_ci(r, N, ci=0.95):
     '''
@@ -44,7 +54,7 @@ def corr_ci(r, N, ci=0.95):
     hi          upper CI bound, clamped to [-1, 1]                     scalar
     '''
     alpha  = 1.0 - ci
-    z_crit = normal.inv(1.0 - alpha / 2.0)       # positive critical value z_{1-alpha/2}
+    z_crit = norm.ppf(1.0 - alpha / 2.0)
     z_r    = np.arctanh(np.clip(r, -0.9999999, 0.9999999))
     se     = 1.0 / np.sqrt(N - 3)
     lo     = np.tanh(z_r - z_crit * se)
@@ -62,10 +72,14 @@ def _block_type(iRow, iCol, nInp):
         return 'XY'
 
 
-def plot_scatter_hist(dataX, dataY, fig_no=100, var_names=None,
+def plot_scatter_hist(dataX, dataY=None, fig_no=100, var_names=None,
                  n_bins=20, font_size=10, ci=0.95):
     '''
-    Scatter plot matrix for two sets of variables X and Y.
+    Scatter plot matrix for one or two sets of variables.
+
+    Either dataX or dataY may be None; the function then operates on the
+    single dataset provided, using XX (navy) or YY (darkgreen) styling
+    respectively.  When both are provided the full XY block layout is shown.
 
     Layout:
       diagonal    -- histogram of each variable
@@ -82,11 +96,13 @@ def plot_scatter_hist(dataX, dataY, fig_no=100, var_names=None,
 
     INPUTS      DESCRIPTION                                           DIMENSION
     --------    ---------------------------------------------------   ---------
-    dataX       matrix of input  data, one variable per row            nInp x m
-    dataY       matrix of output data, one variable per row            nOut x m
+    dataX       matrix of input  data, one variable per row,           nInp x m
+                or None
+    dataY       matrix of output data, one variable per row,           nOut x m
+                or None  (default = None)
     fig_no       figure number for plotting (default = 100)             1 x 1
-    var_names   optional dict with keys 'X' and 'Y' containing lists
-                of variable name strings for axis labels               dict
+    var_names   optional dict with keys 'X' and/or 'Y' containing
+                lists of variable name strings for axis labels         dict
     n_bins      number of histogram bins (default = 20)                1 x 1
     font_size   base font size for format_plot (default = 10)          1 x 1
     ci          confidence level for Fisher CI (default = 0.95)        1 x 1
@@ -95,20 +111,41 @@ def plot_scatter_hist(dataX, dataY, fig_no=100, var_names=None,
     --------    ---------------------------------------------------   ---------
     fig         matplotlib Figure object
     '''
-    nInp, m = dataX.shape
-    nOut, _ = dataY.shape
-    nTotal  = nInp + nOut
+
+    # ------------------------------------------------------------------ #
+    # Resolve None arguments: unify into a single stacked data array and  #
+    # record nInp so _block_type() can assign XX / XY / YY correctly.     #
+    # ------------------------------------------------------------------ #
+    if dataX is None and dataY is None:
+        raise ValueError("At least one of dataX or dataY must be provided.")
+
+    if dataX is None:
+        # Only Y data supplied — treat as XX-style with YY coloring
+        data  = dataY
+        nInp  = 0
+        nOut  = dataY.shape[0]
+    elif dataY is None:
+        # Only X data supplied — pure XX block
+        data  = dataX
+        nInp  = dataX.shape[0]
+        nOut  = 0
+    else:
+        data  = np.vstack([dataX, dataY])
+        nInp  = dataX.shape[0]
+        nOut  = dataY.shape[0]
+
+    nTotal, m = data.shape
 
     # Variable names
-    if var_names is None:
-        xNames = [rf"$x_{{{i+1}}}$" for i in range(nInp)]
-        yNames = [rf"$y_{{{i+1}}}$" for i in range(nOut)]
+    vn     = var_names or {}
+    if dataX is not None:
+        xNames = vn.get('X', [rf"$x_{{{i+1}}}$" for i in range(nInp)])
     else:
-        xNames = var_names.get('X', [rf"$x_{{{i+1}}}$" for i in range(nInp)])
-        yNames = var_names.get('Y', [rf"$y_{{{i+1}}}$" for i in range(nOut)])
-
-    # Stack data and names for unified indexing
-    data  = np.vstack([dataX, dataY])           # nTotal x m
+        xNames = []
+    if dataY is not None:
+        yNames = vn.get('Y', [rf"$y_{{{i+1}}}$" for i in range(nOut)])
+    else:
+        yNames = []
     names = xNames + yNames
 
     ci_pct = int(round(ci * 100))
@@ -138,7 +175,7 @@ def plot_scatter_hist(dataX, dataY, fig_no=100, var_names=None,
                         alpha=0.7, edgecolor='black')
 
             elif iRow < iCol:
-                # Upper triangle: Fisher CI displayed as three lines
+                # Upper triangle: Fisher CI as three lines
                 r      = float(np.corrcoef(xData, yData)[0, 1])
                 lo, hi = corr_ci(r, m, ci=ci)
 
@@ -151,7 +188,7 @@ def plot_scatter_hist(dataX, dataY, fig_no=100, var_names=None,
                 ax.text(0.5, 0.50,
                         rf"$< \rho={r:+.3f}\ <$",
                         ha='center', va='center',
-                        fontsize=font_size+2,
+                        fontsize=font_size + 2,
                         color='black',
                         transform=ax.transAxes)
                 ax.text(0.5, 0.28,
@@ -195,18 +232,19 @@ def plot_scatter_hist(dataX, dataY, fig_no=100, var_names=None,
 
 def main():
     '''
-    Test with 3 inputs and 2 outputs, correlated via a linear map plus noise.
+    Test all three calling modes:
+      1. Both dataX and dataY provided  (full XY layout)
+      2. dataY = None                   (XX-only, navy)
+      3. dataX = None                   (YY-only, darkgreen)
     '''
-    rng  = np.random.default_rng(42)
-    m    = 400
+    rng = np.random.default_rng(42)
+    m   = 400
 
-    # Input covariance via Cholesky
     L = np.array([[1.00, 0.00, 0.00],
                   [0.70, 0.71, 0.00],
                   [0.30, 0.50, 0.81]])
     dataX = L @ rng.standard_normal((3, m))
 
-    # Outputs: linear combinations of inputs plus noise
     A     = np.array([[0.8, -0.4,  0.2],
                       [0.1,  0.6, -0.7]])
     dataY = A @ dataX + 0.5 * rng.standard_normal((2, m))
@@ -216,10 +254,16 @@ def main():
         'Y': [rf"$y_{{{i+1}}}$" for i in range(2)],
     }
 
-    fig = plot_scatter_hist(dataX, dataY, fig_no=1,
-                       var_names=var_names, font_size=10, ci=0.95)
+    print("Figure 1: both dataX and dataY")
+    scatter_data(dataX, dataY,  fig_no=1, var_names=var_names, ci=0.95)
 
-    input("  Press Enter to Exit ... ")
+    print("Figure 2: dataY = None  (X only)")
+    scatter_data(dataX, None,   fig_no=2, var_names=var_names, ci=0.95)
+
+    print("Figure 3: dataX = None  (Y only)")
+    scatter_data(None,  dataY,  fig_no=3, var_names=var_names, ci=0.95)
+
+    input("  Press Enter to Exit ...")
 
 
 if __name__ == '__main__':
