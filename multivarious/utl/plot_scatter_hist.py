@@ -2,18 +2,23 @@
 
 import numpy as np
 import matplotlib.pyplot as plt
-from scipy.stats import norm
 
-try:
-    from multivarious.utl import format_plot
-except ImportError:
-    def format_plot(**kwargs):
-        plt.rcParams.update({
-            'lines.linewidth':  kwargs.get('line_width',  1.5),
-            'font.size':        kwargs.get('font_size',   10),
-            'lines.markersize': kwargs.get('marker_size', 4),
-        })
+from multivarious.rvs import normal
+from multivarious.utl import format_plot
 
+# Light background tints for each block type in the upper triangle
+_BLOCK_TINT = {
+    'XX': '#eaecf8',   # light navy
+    'XY': '#e0f4f4',   # light darkcyan
+    'YY': '#e8f5e9',   # light darkgreen
+}
+
+# Scatter/histogram colors per block type
+_BLOCK_COLOR = {
+    'XX': 'navy',
+    'XY': 'darkcyan',
+    'YY': 'darkgreen',
+}
 
 def corr_ci(r, N, ci=0.95):
     '''
@@ -39,7 +44,7 @@ def corr_ci(r, N, ci=0.95):
     hi          upper CI bound, clamped to [-1, 1]                     scalar
     '''
     alpha  = 1.0 - ci
-    z_crit = norm.ppf(1.0 - alpha / 2.0)       # positive critical value z_{1-alpha/2}
+    z_crit = normal.inv(1.0 - alpha / 2.0)       # positive critical value z_{1-alpha/2}
     z_r    = np.arctanh(np.clip(r, -0.9999999, 0.9999999))
     se     = 1.0 / np.sqrt(N - 3)
     lo     = np.tanh(z_r - z_crit * se)
@@ -47,20 +52,42 @@ def corr_ci(r, N, ci=0.95):
     return float(np.clip(lo, -1.0, 1.0)), float(np.clip(hi, -1.0, 1.0))
 
 
-def plot_scatter_hist(data, n_bins=20, figNo=100, var_names=None,
-                      font_size=10, ci=0.95):
+def _block_type(iRow, iCol, nInp):
+    '''Return block type string for a given (iRow, iCol) cell.'''
+    if iRow < nInp and iCol < nInp:
+        return 'XX'
+    elif iRow >= nInp and iCol >= nInp:
+        return 'YY'
+    else:
+        return 'XY'
+
+
+def plot_scatter_hist(dataX, dataY, figNo=100, var_names=None,
+                 n_bins=20, font_size=10, ci=0.95):
     '''
-    Scatter plot matrix: histograms on the diagonal, scatter plots on the
-    lower triangle, and Pearson correlation coefficients with Fisher
-    confidence intervals on the upper triangle.
+    Scatter plot matrix for two sets of variables X and Y.
+
+    Layout:
+      diagonal    -- histogram of each variable
+      lower tri   -- scatter plot of each pair
+      upper tri   -- Pearson rho with Fisher CI displayed as three lines:
+                       upper CI bound  (larger font, black)
+                       < rho = value < (smaller font, black)
+                       lower CI bound  (larger font, black)
+
+    Color scheme:
+      XX (input  vs input)  -- navy
+      YY (output vs output) -- darkgreen
+      XY (input  vs output) -- darkcyan
 
     INPUTS      DESCRIPTION                                           DIMENSION
     --------    ---------------------------------------------------   ---------
-    data        matrix of data, one variable per row                   n x N
-    n_bins      number of bins in the histogram                        1 x 1
+    dataX       matrix of input  data, one variable per row            nInp x m
+    dataY       matrix of output data, one variable per row            nOut x m
     figNo       figure number for plotting (default = 100)             1 x 1
-    var_names   optional dict with key 'X' containing a list of
-                variable name strings for axis labels                  dict
+    var_names   optional dict with keys 'X' and 'Y' containing lists
+                of variable name strings for axis labels               dict
+    n_bins      number of histogram bins (default = 20)                1 x 1
     font_size   base font size for format_plot (default = 10)          1 x 1
     ci          confidence level for Fisher CI (default = 0.95)        1 x 1
 
@@ -68,59 +95,73 @@ def plot_scatter_hist(data, n_bins=20, figNo=100, var_names=None,
     --------    ---------------------------------------------------   ---------
     fig         matplotlib Figure object
     '''
-    n, N = data.shape
+    nInp, m = dataX.shape
+    nOut, _ = dataY.shape
+    nTotal  = nInp + nOut
 
+    # Variable names
     if var_names is None:
-        Names = [rf"$x_{{{i+1}}}$" for i in range(n)]
+        xNames = [rf"$x_{{{i+1}}}$" for i in range(nInp)]
+        yNames = [rf"$y_{{{i+1}}}$" for i in range(nOut)]
     else:
-        Names = var_names.get('X', [rf"$x_{{{i+1}}}$" for i in range(n)])
+        xNames = var_names.get('X', [rf"$x_{{{i+1}}}$" for i in range(nInp)])
+        yNames = var_names.get('Y', [rf"$y_{{{i+1}}}$" for i in range(nOut)])
 
-    corr   = np.corrcoef(data)           # n x n
+    # Stack data and names for unified indexing
+    data  = np.vstack([dataX, dataY])           # nTotal x m
+    names = xNames + yNames
+
     ci_pct = int(round(ci * 100))
 
     format_plot(line_width=1.5, font_size=font_size, marker_size=4)
 
     plt.ion()
-    fig = plt.figure(figNo, figsize=(2*n, 2*n))
+    fig = plt.figure(figNo, figsize=(2*nTotal, 2*nTotal))
     plt.clf()
 
     plotIndex = 1
 
-    for iRow in range(n):
-        for iCol in range(n):
+    for iRow in range(nTotal):
+        for iCol in range(nTotal):
 
+            ax     = plt.subplot(nTotal, nTotal, plotIndex)
+            btype  = _block_type(iRow, iCol, nInp)
+            color  = _BLOCK_COLOR[btype]
             xData  = data[iCol, :]
             yData  = data[iRow, :]
-            xLabel = Names[iCol]
-            yLabel = Names[iRow]
-
-            ax = plt.subplot(n, n, plotIndex)
+            xLabel = names[iCol]
+            yLabel = names[iRow]
 
             if iRow == iCol:
                 # Diagonal: histogram
-                ax.hist(xData, bins=n_bins, color='darkblue',
+                ax.hist(xData, bins=n_bins, color=color,
                         alpha=0.7, edgecolor='black')
 
             elif iRow < iCol:
-                # Upper triangle: rho and Fisher CI
-                r         = corr[iRow, iCol]
-                lo, hi    = corr_ci(r, N, ci=ci)
-                txt_color = 'darkred' if abs(r) > 0.5 else 'black'
+                # Upper triangle: Fisher CI displayed as three lines
+                r      = float(np.corrcoef(xData, yData)[0, 1])
+                lo, hi = corr_ci(r, m, ci=ci)
 
-                ax.text(0.5, 0.62,
-                        rf"$\rho={r:+.3f}$",
+                ax.text(0.5, 0.72,
+                        rf"${hi:+.3f}$",
                         ha='center', va='center',
-                        fontsize=font_size + 2,
-                        color=txt_color,
+                        fontsize=font_size + 3,
+                        color='black',
                         transform=ax.transAxes)
-                ax.text(0.5, 0.35,
-                        rf"$[{lo:+.3f},\ {hi:+.3f}]_{{{ci_pct}\%}}$",
+                ax.text(0.5, 0.50,
+                        rf"$< \rho={r:+.3f}\ <$",
                         ha='center', va='center',
-                        fontsize=font_size - 1,
-                        color='dimgray',
+                        fontsize=font_size+2,
+                        color='black',
+                        transform=ax.transAxes)
+                ax.text(0.5, 0.28,
+                        rf"${lo:+.3f}$",
+                        ha='center', va='center',
+                        fontsize=font_size + 3,
+                        color='black',
                         transform=ax.transAxes)
 
-                ax.set_facecolor('#f5f5f5')
+                ax.set_facecolor(_BLOCK_TINT[btype])
                 for spine in ax.spines.values():
                     spine.set_visible(False)
                 ax.set_xticks([])
@@ -128,11 +169,11 @@ def plot_scatter_hist(data, n_bins=20, figNo=100, var_names=None,
 
             else:
                 # Lower triangle: scatter plot
-                ax.plot(xData, yData, 'o', color='darkblue',
+                ax.plot(xData, yData, 'o', color=color,
                         markersize=2, alpha=0.5)
 
             # Edge labels only
-            if iRow == n - 1:
+            if iRow == nTotal - 1:
                 ax.set_xlabel(xLabel, fontsize=font_size + 4)
                 plt.setp(ax.get_xticklabels(), rotation=90)
             else:
@@ -154,37 +195,31 @@ def plot_scatter_hist(data, n_bins=20, figNo=100, var_names=None,
 
 def main():
     '''
-    Test with 4 correlated Gaussian variables.
-    Prints the Fisher CI for each pair and displays the scatter plot matrix.
+    Test with 3 inputs and 2 outputs, correlated via a linear map plus noise.
     '''
-    rng = np.random.default_rng(42)
-    N   = 500
+    rng  = np.random.default_rng(42)
+    m    = 400
 
-    # Cholesky factor giving controlled correlations:
-    #   x1-x2: rho ~ +0.85   x3-x4: rho ~ -0.50   others: weak
-    L = np.array([[1.00,  0.00,  0.00,  0.00],
-                  [0.85,  0.53,  0.00,  0.00],
-                  [0.20,  0.10,  0.97,  0.00],
-                  [0.10, -0.50,  0.20,  0.84]])
+    # Input covariance via Cholesky
+    L = np.array([[1.00, 0.00, 0.00],
+                  [0.70, 0.71, 0.00],
+                  [0.30, 0.50, 0.81]])
+    dataX = L @ rng.standard_normal((3, m))
 
-    data      = L @ rng.standard_normal((4, N))
-    var_names = {'X': [rf"$x_{{{i+1}}}$" for i in range(4)]}
+    # Outputs: linear combinations of inputs plus noise
+    A     = np.array([[0.8, -0.4,  0.2],
+                      [0.1,  0.6, -0.7]])
+    dataY = A @ dataX + 0.5 * rng.standard_normal((2, m))
 
-    corr = np.corrcoef(data)
-    print(f"\nFisher 95% CIs   (N = {N})")
-    print("-" * 52)
-    for i in range(4):
-        for j in range(i+1, 4):
-            r = corr[i, j]
-            lo, hi = corr_ci(r, N, ci=0.95)
-            print(f"  r(x{i+1},x{j+1}) = {r:+.4f}   "
-                  f"95% CI: [{lo:+.4f}, {hi:+.4f}]   width = {hi-lo:.4f}")
-    print()
+    var_names = {
+        'X': [rf"$x_{{{i+1}}}$" for i in range(3)],
+        'Y': [rf"$y_{{{i+1}}}$" for i in range(2)],
+    }
 
-    fig = plot_scatter_hist(data, n_bins=25, figNo=1,
-                            var_names=var_names, font_size=10, ci=0.95)
+    fig = plot_scatter_hist(dataX, dataY, figNo=1,
+                       var_names=var_names, font_size=10, ci=0.95)
 
-    input("   Press Enter to exit ...  ")
+    input("  Press Enter to Exit ... ")
 
 
 if __name__ == '__main__':
