@@ -62,7 +62,7 @@ def _block_type(iRow, iCol, nInp):
         return 'XY'
 
 
-def plot_scatter_hist(dataX, dataY, figNo=100, var_names=None,
+def plot_scatter_hist(dataX, dataY, fig_no=100, var_names=None,
                  n_bins=20, font_size=10, ci=0.95):
     '''
     Scatter plot matrix for two sets of variables X and Y.
@@ -84,7 +84,7 @@ def plot_scatter_hist(dataX, dataY, figNo=100, var_names=None,
     --------    ---------------------------------------------------   ---------
     dataX       matrix of input  data, one variable per row            nInp x m
     dataY       matrix of output data, one variable per row            nOut x m
-    figNo       figure number for plotting (default = 100)             1 x 1
+    fig_no       figure number for plotting (default = 100)             1 x 1
     var_names   optional dict with keys 'X' and 'Y' containing lists
                 of variable name strings for axis labels               dict
     n_bins      number of histogram bins (default = 20)                1 x 1
@@ -116,7 +116,7 @@ def plot_scatter_hist(dataX, dataY, figNo=100, var_names=None,
     format_plot(line_width=1.5, font_size=font_size, marker_size=4)
 
     plt.ion()
-    fig = plt.figure(figNo, figsize=(2*nTotal, 2*nTotal))
+    fig = plt.figure(fig_no, figsize=(2*nTotal, 2*nTotal))
     plt.clf()
 
     plotIndex = 1
@@ -216,7 +216,7 @@ def main():
         'Y': [rf"$y_{{{i+1}}}$" for i in range(2)],
     }
 
-    fig = plot_scatter_hist(dataX, dataY, figNo=1,
+    fig = plot_scatter_hist(dataX, dataY, fig_no=1,
                        var_names=var_names, font_size=10, ci=0.95)
 
     input("  Press Enter to Exit ... ")
