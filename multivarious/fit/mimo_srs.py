@@ -295,6 +295,7 @@ def scatter_data(dataX, dataY, figNo=100, var_names=None):
             # Add labels only on edges
             if iRow == nTotalVars - 1:
                 ax.set_xlabel(xLabel, fontsize=16) #, fontweight='bold')
+                plt.setp(ax.get_xticklabels(), rotation=90)
             else:
                 ax.set_xticklabels([])
             

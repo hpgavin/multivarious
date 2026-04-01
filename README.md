@@ -131,12 +131,14 @@ To set hyperparameters and plot results of multivarious computations.
 | **format_bank**      | format a numerical string                                                       |
 | **format_plot**      | set the font size, line width, and marker size                                  |
 | **opt_options**      | adjust algorithmic options for ors, nms, and sqp                                |
-| **plot_CDF_ci**      | plot the cumulative distribution function from data and its confidence interval |
-| **plot_ensemble**    | plot three sets of corresponding ensemble time series                           |
-| **plot_cvg_hist**    | plot the convergence history from ors, nms and sqp                              |
+| **plot_EPDF_stairs**  | probability density from data as stairs |
+| **plot_ECDF_ci**     | cumulative distribution function from data and its confidence interval |
+| **plot_scatter_corr**  | scatter plot with correlation coefficient in the title |
+| **plot_ensemble**    | three sets of corresponding ensemble time series                           |
+| **plot_cvg_hist**    | convergence history from ors, nms and sqp                              |
 | **plot_lm**          | plot the converence history and fit statistics from an lm analysis              |
-| **plot_opt_surface** | plot the objective function landscape in any selected 2D slice                  |
-| **plot_spectra**     | plot three sets of corresponding ensemble spectra or transfer functions         |
+| **plot_opt_surface** | objective function landscape in any selected 2D slice                  |
+| **plot_spectra**     | three sets of corresponding ensemble spectra or transfer functions         |
 
 # installation
 

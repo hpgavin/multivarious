@@ -1,7 +1,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
 from scipy.special import betaincinv
-from scipy.stats import norm
+from multivarious.rvs import normal
 from multivarious.utl import format_plot
 
 def plot_ECDF_ci(data, confidence_level, fig_no, x_label='sorted sample values',save_plots=True ):
@@ -18,12 +18,10 @@ def plot_ECDF_ci(data, confidence_level, fig_no, x_label='sorted sample values',
         Figure number
     x_label : string
         label for the x axis
-    pdf_too : boolean
-        True: make two subplots, histogram and ECDF , False: CDF only (default)
     save_plots : boolean
         True: save plots to file (default) , False: don't
 
-    Parameters
+    Returns
     ----------
     x : array_like
         orderd values of x
@@ -38,6 +36,7 @@ def plot_ECDF_ci(data, confidence_level, fig_no, x_label='sorted sample values',
     
     x = np.asarray(data).flatten()
 
+    # ----- Sample statistics -------------------------------------------------
     N = len(x)                                 # number of values in the sample
     x = np.sort(x)                             # sort the sample
     x_avg = np.sum(x) / N                      # average of the sample
@@ -45,12 +44,7 @@ def plot_ECDF_ci(data, confidence_level, fig_no, x_label='sorted sample values',
     x_sdv = np.sqrt((x-x_avg)@(x-x_avg)/(N-1)) # stndrd dev of the sample
     x_cov = abs(x_sdv / x_avg)                 # coefficient of variation
 
-    plt.ion() # interactive plotting mode: on
-
-    # Empirical PDF - histogram 
-    #fx,xx = np.histogram(x, bins=nBins, density=True)  # EPDF
-
-    # Empirical CDF - Gumbel p.47 "contrary to what one might expect"
+    # ----- Empirical CDF - Gumbel p.47 "contrary to what one might expect"
     Fx = np.arange(1, N + 1) / ( N + 1 )    # ECDF Gumbel (1958)
 
     # Confidence intervals on the ECDF (Fx)
@@ -79,13 +73,13 @@ def plot_ECDF_ci(data, confidence_level, fig_no, x_label='sorted sample values',
     # --- pointwise, approximate: using Gumble (p.47) and normal distribution
     '''
     sFx = np.sqrt(Fx*(1-Fx)/(N+2))             # standard error of Fx Gumbel p.47
-    z   = norm.ppf(P) 
+    z   = normal.inv(P) 
     epsilon = z*sFx
     upper_ci_A = np.minimum(Fx + epsilon, 1.0 - 0.001 / N)
     lower_ci_A = np.maximum(Fx - epsilon, 0.0 + 0.001 / N)
     '''
     
-    # --- pointwise, exact: Beta-based empirical CDF bands
+    # --- pointwise, exact: Beta-based empirical CDF bands 
     #'''
     q = np.arange(1,N+1)
     p = N+1-q
@@ -93,7 +87,7 @@ def plot_ECDF_ci(data, confidence_level, fig_no, x_label='sorted sample values',
     lower_ci_B = betaincinv(q, p, 1-P)  # lower quantile, near one  ( ci < 1 )
     #'''
 
-    # select which confidence interval to plot
+    # --- select which confidence interval to plot 
     lower_ci = lower_ci_B
     upper_ci = upper_ci_B
 
@@ -101,16 +95,16 @@ def plot_ECDF_ci(data, confidence_level, fig_no, x_label='sorted sample values',
     #mu, std = np.mean(data), np.std(data)
     #x_theory = np.linspace(min(x), max(x), 200)
     #z_theory = (x_theory - mu) / std
-    #cdf_theory = norm.cdf(z_theory)  
+    #cdf_theory = normal.cdf(z_theory)  
     
-    # Plotting ---------------------------------------------------
+    # ----- Plotting ----------------------------------------------------------
+    plt.ion() # interactive plotting mode: on
     fs = 14
     format_plot(line_width = 2, font_size = fs, marker_size = 4)
 
     fig_cdf = plt.figure(fig_no) 
     fig_cdf.set_size_inches(8, 5)  
 
-    
     plt.fill_between(x, lower_ci, upper_ci, 
                      color='royalblue', alpha=0.6,
                      label=f'{confidence_level}% confidence band')
@@ -133,18 +127,6 @@ def plot_ECDF_ci(data, confidence_level, fig_no, x_label='sorted sample values',
     #plt.legend(loc='lower right')
     plt.grid(True, alpha=0.3)
 
-    """
-    # Empirical PDF - histogram ... with density=True
-    fig_pdf = plt.figure(fig_no+1)
-    fig_pdf.set_size_inches(6, 4)  
-    plt.hist(x.T, bins=20, density=True, color='royalblue', alpha=0.7, edgecolor='black')
-    plt.title(f'Histogram (scaled)')
-    plt.grid(True, alpha=0.3)
-    plt.ylabel(r'Probability Density, $f_X(x)$')
-    plt.xlabel(x_label)
-    plt.tight_layout()
-    """
-    
     plt.show()
 
     # Save plots 
@@ -152,9 +134,6 @@ def plot_ECDF_ci(data, confidence_level, fig_no, x_label='sorted sample values',
         filename = f'plot_ECDF-{fig_no:04d}.pdf'
         fig_cdf.savefig(filename, bbox_inches='tight', dpi=300)
         print(f"    Saved: {filename}")
-#       filename = f'plot_EPDF-{fig_no:04d}.pdf'
-#       fig_pdf.savefig(filename, bbox_inches='tight', dpi=300)
-#       print(f"    Saved: {filename}")
 
     # plot other CI's 
     '''
