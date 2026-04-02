@@ -12,7 +12,7 @@ def opt_report(v_init, v_opt, f_opt, g_opt, v_lb, v_ub, tol_v, tol_f, tol_g, lam
 
     Returns
     -------
-       (nothing)
+       None
     '''
 
     n = len(v_opt)
@@ -29,7 +29,9 @@ def opt_report(v_init, v_opt, f_opt, g_opt, v_lb, v_ub, tol_v, tol_f, tol_g, lam
             print(' * Woo-Hoo! Converged solution is feasible!')
         else:
             print(' * Boo-Hoo! Converged solution is NOT feasible!')
-            print(' *   ... Increase opts[5] (penalty) and try, try again ...')
+            print(' *   ... Decrease tol_v (opts[1]) or tol_f (opts[2])')
+            print(' *    or Increase tol_g (opts[3]) ')
+            print(' *    or Increase  penalty (opts[5]) and try, try again ...')
     else:
         print('\n * Boo-Hoo! Solution NOT converged!')
 
@@ -86,3 +88,4 @@ def opt_report(v_init, v_opt, f_opt, g_opt, v_lb, v_ub, tol_v, tol_f, tol_g, lam
     elapsed_str = str(timedelta(seconds=int(elapsed)))
     print(f' * Completion  : {completion_time} ({elapsed_str}) ({dur:.2f} s)\n')
 
+    return None

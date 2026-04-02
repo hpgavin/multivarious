@@ -22,14 +22,14 @@ def opt_options(options_in=None):
 
     # Default parameters (same order and values as MATLAB)
     default_options = np.array([
-        1,       # [0]  message level flag
-        1e-3,    # [1]  tolerance on parameters
-        1e-3,    # [2]  tolerance on cost
-        0e-4,    # [3]  tolerance on constraints
-        1000,    # [4]  max number of function evaluations
-        10,      # [5]  penalty on constraint violations
+        1,       # [0]  msg message level flag
+        1e-3,    # [1]  tol_v    tolerance on design variables 
+        1e-3,    # [2]  tol_f    tolerance on design objective
+        0e-4,    # [3]  tol_g    tolerance on constraints
+        1000,    # [4]  maxEval  max number of function evaluations
+        10,      # [5]  penalty  on constraint violations
         1,       # [6]  exponent on constraint violations
-        1,       # [7]  number of function evaluations in average
+        1,       # [7]  mAvg     number of function evaluations in average
         0.1,     # [8]  desired coefficient of variation on mean estimate
         0,       # [9]  stop when feasible
         0,       # [10] index for plotting surface
