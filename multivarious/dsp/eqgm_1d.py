@@ -11,11 +11,10 @@ Original by H.P. Gavin, Duke University, 2007-2020
 """
 
 import numpy as np
+import time
 import matplotlib.pyplot as plt
 from scipy.linalg import solve_continuous_lyapunov
 from multivarious.lti.lsym import lsym
-from multivarious.lti.dlsym import dlsym
-from multivarious.dsp.butter_synth_ss import butter_synth_ss
 from multivarious.dsp.accel2displ import accel2displ
 from multivarious.dsp.taper import taper 
 
@@ -137,9 +136,10 @@ def eqgm_1d(PGA=3.5, fg=1.5, zg=0.9, aa=4.0, ta=2.0, t=None, fig_no=0, seed=None
     [2] H.P. Gavin, "Earthquake Ground Motion Simulation", Duke University
     """
     
-    # Set random seed if provided
-    if seed is not None:
-        np.random.seed(seed)
+    # if a random seed is not provided, generate a random random seed
+    if seed is None:
+        seed = int(time.time() * 1e4) % 100000  # seconds-based seed
+    rng = np.random.default_rng(seed)
     
     # Default time vector
     if t is None:
@@ -151,7 +151,7 @@ def eqgm_1d(PGA=3.5, fg=1.5, zg=0.9, aa=4.0, ta=2.0, t=None, fig_no=0, seed=None
     
     # Envelope parameters
     t0 = 2.0  # Initial time of no motion (s)
-    T = t0 + 5.74 * aa**0.42 * ta  # Total duration
+    T = t0 + 5.74 * ta * aa**0.42  # Total duration
     
     # Check if time series is long enough
     if np.max(t) < T and fig_no > 0:
@@ -187,16 +187,16 @@ def eqgm_1d(PGA=3.5, fg=1.5, zg=0.9, aa=4.0, ta=2.0, t=None, fig_no=0, seed=None
     
     # Regression coefficients
     c = np.array([
-        2.0327e+00,
-        2.2535e-01,
-        1.9215e-02,
-        2.7183e-01,
-        2.3593e-02,
-       -3.1858e-02,
-       -4.4708e-03,
-       -2.4680e-02,
-       -6.3575e-04,
-       -2.8971e-01
+         2.0327e+00,
+         2.2535e-01,
+         1.9215e-02,
+         2.7183e-01,
+         2.3593e-02,
+        -3.1858e-02,
+        -4.4708e-03,
+        -2.4680e-02,
+        -6.3575e-04,
+        -2.8971e-01
     ])
     
     # Design matrix for P2R prediction
@@ -219,6 +219,7 @@ def eqgm_1d(PGA=3.5, fg=1.5, zg=0.9, aa=4.0, ta=2.0, t=None, fig_no=0, seed=None
                    [a_bar]])
     Cg = np.array([[0.0, 2*wg*zg]])
     
+    """
     # Verify RMS acceleration using Lyapunov equation
     # A*Σ + Σ*A' + B*B' = 0
     Sigma = solve_continuous_lyapunov( Ag , -Bg @ Bg.T )
@@ -227,29 +228,15 @@ def eqgm_1d(PGA=3.5, fg=1.5, zg=0.9, aa=4.0, ta=2.0, t=None, fig_no=0, seed=None
     if fig_no > 0:
         print(f'Target RMS accel: {RMSa:.4f} m/s²')
         print(f'Computed RMS accel: {RMSa_check:.4f} m/s²')
-    
+    """
+
     # ========== Generate White Noise ==========
     # Unit Gaussian white noise has PSD = 1.0 and variance = 1/dt
     
-    u = np.random.randn(P) / np.sqrt(dt)
+    u = rng.standard_normal(P) / np.sqrt(dt)
     
-    # Taper the start and end of noise
-    nR = int(np.round(2 / dt))
-    ramp = 0.5 * (1 - np.cos(np.pi * np.arange(1, nR+1) / nR))
-    u[:nR] = ramp * u[:nR]
-    u[-nR:] = ramp[::-1] * u[-nR:]
-    
-    # ========== Band-Limited White Noise (0-25 Hz) ==========
-    # Use 9th-order Butterworth low-pass filter
-    
-    A_filt, B_filt, C_filt, D_filt, _ = butter_synth_ss(
-        N=9, fc=25.0, fs=1/dt, filter_type='low'
-    )
-    
-    # Forward-backward filtering for zero phase distortion
-    u = dlsym(A_filt, B_filt, C_filt, D_filt, u[np.newaxis, :], t).flatten()
-    u = dlsym(A_filt, B_filt, C_filt, D_filt, u[::-1][np.newaxis, :], t).flatten()
-    u = u[::-1]
+    # Taper the start and end of the unit noise
+    u = taper(u, Ni=Pt, Nf=Pt, window='planck')[0]
     
     # ========== Apply Envelope ==========
     u = envlp * u
@@ -259,18 +246,22 @@ def eqgm_1d(PGA=3.5, fg=1.5, zg=0.9, aa=4.0, ta=2.0, t=None, fig_no=0, seed=None
     
     # ========== Remove Bias and Drift ==========
     # Find time when acceleration drops below 98% of peak
-    t0_drift = 1.2 * np.max(np.where(np.abs(accel) / np.max(np.abs(accel)) > 0.98)[1]) * dt
-    ta_drift = 0.3
+#   t0_drift = 1.2 * np.max(np.where(np.abs(accel) / np.max(np.abs(accel)) > 0.98)[1]) * dt
+#   ta_drift = 0.3
     
-    accel, veloc, displ  = accel2displ(accel, t, method='SRA', aa=0.5*dt, 
-                               t0=t0_drift, tt=ta_drift)
+    accel, veloc, displ  = accel2displ(accel, t, method='SRA', aa=0.3*dt) 
+#                              t0=t0_drift, tt=ta_drift)
     
     # Compute peak values
     Amax = np.max(np.abs(accel))
     Vmax = np.max(np.abs(veloc))
     Dmax = np.max(np.abs(displ))
     
-    scale = 1.0  # Placeholder for optional scaling
+    scale = PGA/Amax  # scale to specified PGA
+
+    accel *= scale
+    veloc *= scale
+    displ *= scale
     
     # ========== Plotting ==========
     if fig_no > 0:

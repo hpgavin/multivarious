@@ -43,11 +43,13 @@ def accel2displ(accel, t, method='SRA', aa=None, t0=None, tt=None):
     
     # Set defaults
     if aa is None:
-        aa = 0.5 * dt
+        aa = 1.0 * dt
     if t0 is None:
         t0 = T / 2
     if tt is None:
         tt = T / 20
+
+    aa = min( aa, 0.9 )  # forgetting factor must be 0 < aa < 1
     
     # Make a copy to avoid modifying input
     accel = accel.copy()

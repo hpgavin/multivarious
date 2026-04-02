@@ -145,7 +145,10 @@ def nearcorr_shrink(C, tolrnc=1e-4):
         raise ValueError(": Correlation matrix values must be in [-1,1]")
 
     In = np.eye(n)
-    
+
+    if np.max(np.abs(C-In)) < 1e-6:
+        return In, 0, 0, 1
+         
     # Find optimal shrinking parameter
     alpha, iter, eval0 = shrink_newton(C, In, tolrnc)
     
@@ -163,6 +166,9 @@ def correlated_rvs(R, n, N=1, seed=None):
     """
     rng = np.random.default_rng(seed)
 
+    # Generate independent standard normal samples: Z ~ N(0, I)
+    Z = rng.standard_normal((n, N))
+    
     tolrnc = 0.05  # eigenvalue tolerance
     # If no correlation matrix provided, default to identity matrix
     # Identity matrix R = I means all variables are independent (correl'n = 0)
@@ -172,8 +178,9 @@ def correlated_rvs(R, n, N=1, seed=None):
         eigvec = np.eye(n)
     elif n > 1:
         R, alpha, iter, eval0 = nearcorr_shrink(R, tolrnc)
-        print(f" correlated_rvs: Correlation matrix shrinkage ")
-        print(f"          alpha: {alpha:.6f}, iter: {iter}, eval[0]: {eval0:.6f}")
+        if alpha > 0:
+            print(f" correlated_rvs: Correlation matrix shrinkage ")
+            print(f"          alpha: {alpha:.6f}, iter: {iter}, eval[0]: {eval0:.6f}")
         # Eigenvalue decomposition of correlation matrix: R = V @ Λ @ V^T
         #   eigvec (V): matrix of eigenvectors (n×n)
         #   eigval (Λ): array of eigenvalues (length n)
@@ -182,9 +189,6 @@ def correlated_rvs(R, n, N=1, seed=None):
         if np.any(eigval < -2*tolrnc):
             raise ValueError(f" correlated_rvs: R must be positive definite, eigval0 = {eigval[0]:10.2e}, iter = {iter}")
         
-    # Generate independent standard normal samples: Z ~ N(0, I)
-    Z = rng.standard_normal((n, N))
-    
     # Apply correlation structure
     if n > 1: 
         Y = eigvec @ np.diag(np.sqrt(eigval)) @ Z

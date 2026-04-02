@@ -62,8 +62,8 @@ def _block_type(iRow, iCol, nInp):
         return 'XY'
 
 
-def plot_scatter_hist(dataX, dataY, figNo=100, var_names=None,
-                 n_bins=20, font_size=10, ci=0.95):
+def plot_scatter_hist(dataX, dataY, fig_no=100, var_names=None,
+                 n_bins=20, font_size=15, ci=0.95):
     '''
     Scatter plot matrix for two sets of variables X and Y.
 
@@ -84,7 +84,7 @@ def plot_scatter_hist(dataX, dataY, figNo=100, var_names=None,
     --------    ---------------------------------------------------   ---------
     dataX       matrix of input  data, one variable per row            nInp x m
     dataY       matrix of output data, one variable per row            nOut x m
-    figNo       figure number for plotting (default = 100)             1 x 1
+    fig_no      figure number for plotting (default = 100)             1 x 1
     var_names   optional dict with keys 'X' and 'Y' containing lists
                 of variable name strings for axis labels               dict
     n_bins      number of histogram bins (default = 20)                1 x 1
@@ -113,10 +113,8 @@ def plot_scatter_hist(dataX, dataY, figNo=100, var_names=None,
 
     ci_pct = int(round(ci * 100))
 
-    format_plot(line_width=1.5, font_size=font_size, marker_size=4)
-
     plt.ion()
-    fig = plt.figure(figNo, figsize=(2*nTotal, 2*nTotal))
+    fig = plt.figure(fig_no, figsize=(3*nTotal, 3*nTotal))
     plt.clf()
 
     plotIndex = 1
@@ -146,7 +144,7 @@ def plot_scatter_hist(dataX, dataY, figNo=100, var_names=None,
                         rf"${hi:+.3f}$",
                         ha='center', va='center',
                         fontsize=font_size + 3,
-                        color='black',
+                        color='black', 
                         transform=ax.transAxes)
                 ax.text(0.5, 0.50,
                         rf"$< \rho={r:+.3f}\ <$",
@@ -158,7 +156,7 @@ def plot_scatter_hist(dataX, dataY, figNo=100, var_names=None,
                         rf"${lo:+.3f}$",
                         ha='center', va='center',
                         fontsize=font_size + 3,
-                        color='black',
+                        color='black', 
                         transform=ax.transAxes)
 
                 ax.set_facecolor(_BLOCK_TINT[btype])
@@ -184,10 +182,10 @@ def plot_scatter_hist(dataX, dataY, figNo=100, var_names=None,
             else:
                 ax.set_yticklabels([])
 
-            ax.tick_params(labelsize=6)
+            ax.tick_params(labelsize=font_size + 1)
             plotIndex += 1
 
-    plt.tight_layout()
+    plt.tight_layout(pad=0.3)
     plt.show(block=False)
 
     return fig
@@ -216,8 +214,8 @@ def main():
         'Y': [rf"$y_{{{i+1}}}$" for i in range(2)],
     }
 
-    fig = plot_scatter_hist(dataX, dataY, figNo=1,
-                       var_names=var_names, font_size=10, ci=0.95)
+    fig = plot_scatter_hist(dataX, dataY, fig_no=1,
+                       var_names=var_names, font_size=15, ci=0.95)
 
     input("  Press Enter to Exit ... ")
 
