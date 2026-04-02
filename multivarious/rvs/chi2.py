@@ -170,10 +170,6 @@ def inv(F, k):
     # Inverse normal CDF
     z = scipy_normal.ppf(F, m, s)
 
-    print('F shape', F.shape)
-    print('x shape', x.shape)
-    print('z shape', z.shape)
-
     # Inverse transformation
     for i in range(n):
         x[i, :] = k[i] * z[i, :] ** 3

@@ -166,17 +166,12 @@ def inv(F, k):
     F = np.clip(F, np.finfo(float).eps, 1 - np.finfo(float).eps)
     N = F.shape[1]    
 
-    print('F shape : ', F.shape )
-
     # Compute the inverse CDF using the relationship with the incomplete beta function
     # betaincinv(a, b, y) finds x such that betainc(a, b, x) = y
     z = betaincinv(k / 2.0, 0.5, 2 * np.minimum(F, 1 - F))
     
     # Convert from beta quantile to t quantile
     x = np.sign(F - 0.5) * np.sqrt(k * (1 / z - 1))
-
-    print('x shape : ', x.shape )
-    print('n : ', n)
 
     if n == 1 and x.shape[0] == 1:
         x = x.flatten()
