@@ -73,7 +73,7 @@ def _block_type(iRow, iCol, nInp):
 
 
 def plot_scatter_hist(dataX, dataY=None, fig_no=100, var_names=None,
-                 n_bins=20, font_size=10, ci=0.95):
+                 n_bins=20, font_size=15, ci=0.95):
     '''
     Scatter plot matrix for one or two sets of variables.
 
@@ -151,7 +151,7 @@ def plot_scatter_hist(dataX, dataY=None, fig_no=100, var_names=None,
     ci_pct = int(round(ci * 100))
 
     plt.ion()
-    fig = plt.figure(fig_no, figsize=(2*nTotal, 2*nTotal))
+    fig = plt.figure(fig_no, figsize=(2.5*nTotal + 0.0, 2.5*nTotal + 0.0))
     plt.clf()
 
     plotIndex = 1
@@ -167,32 +167,30 @@ def plot_scatter_hist(dataX, dataY=None, fig_no=100, var_names=None,
             xLabel = names[iCol]
             yLabel = names[iRow]
 
-            if iRow == iCol:
-                # Diagonal: histogram
+            if iRow == iCol:  # Diagonal: histogram
                 ax.hist(xData, bins=n_bins, color=color,
                         alpha=0.7, edgecolor='black')
 
-            elif iRow < iCol:
-                # Upper triangle: Fisher CI as three lines
+            elif iRow < iCol:  # Upper triangle: Fisher CI as three lines
                 r      = float(np.corrcoef(xData, yData)[0, 1])
                 lo, hi = corr_ci(r, m, ci=ci)
 
                 ax.text(0.5, 0.72,
                         rf"${hi:+.3f}$",
                         ha='center', va='center',
-                        fontsize=font_size + 3,
+                        fontsize=font_size + 2,
                         color='black', 
                         transform=ax.transAxes)
                 ax.text(0.5, 0.50,
                         rf"$< \rho={r:+.3f}\ <$",
                         ha='center', va='center',
-                        fontsize=font_size + 2,
+                        fontsize=font_size + 1,
                         color='black',
                         transform=ax.transAxes)
                 ax.text(0.5, 0.28,
                         rf"${lo:+.3f}$",
                         ha='center', va='center',
-                        fontsize=font_size + 3,
+                        fontsize=font_size + 2,
                         color='black', 
                         transform=ax.transAxes)
 
@@ -202,15 +200,13 @@ def plot_scatter_hist(dataX, dataY=None, fig_no=100, var_names=None,
                 ax.set_xticks([])
                 ax.set_yticks([])
 
-            else:
-                # Lower triangle: scatter plot
+            else:  # Lower triangle: scatter plot
                 ax.plot(xData, yData, 'o', color=color,
                         markersize=2, alpha=0.5)
 
-            # Edge labels only
-            if iRow == nTotal - 1:
+            if iRow == nTotal - 1:  # Edge labels only
                 ax.set_xlabel(xLabel, fontsize=font_size + 4)
-                plt.setp(ax.get_xticklabels(), rotation=90)
+                plt.setp(ax.get_xticklabels(), rotation=0)
             else:
                 ax.set_xticklabels([])
 
@@ -222,7 +218,10 @@ def plot_scatter_hist(dataX, dataY=None, fig_no=100, var_names=None,
             ax.tick_params(labelsize=font_size + 1)
             plotIndex += 1
 
-    plt.tight_layout(pad=0.3)
+    i_pad = max(0.1, 0.5 - 0.30*nTotal)  # padding between subplots
+    plt.tight_layout(pad=1.5, h_pad=i_pad, w_pad=i_pad     )
+
+    plt.tight_layout(pad=max(0.0,1-0.4*nTotal))
     plt.show(block=False)
 
     return fig
@@ -256,10 +255,10 @@ def main():
                        var_names=var_names, font_size=15, ci=0.95)
 
     print("Figure 2: dataY = None  (X only)")
-    scatter_data(dataX, None,   fig_no=2, var_names=var_names, ci=0.95)
+    plot_scatter_hist(dataX, None,   fig_no=2, var_names=var_names, font_size=15, ci=0.95)
 
     print("Figure 3: dataX = None  (Y only)")
-    scatter_data(None,  dataY,  fig_no=3, var_names=var_names, ci=0.95)
+    plot_scatter_hist(None,  dataY,  fig_no=3, var_names=var_names, font_size=15, ci=0.95)
 
     input("  Press Enter to Exit ...")
 
