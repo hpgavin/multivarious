@@ -133,6 +133,7 @@ def cdf(t, k):
 
     return F
 
+
 def inv(F, k):
     """
     students_t.inv

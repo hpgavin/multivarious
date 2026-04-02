@@ -185,6 +185,7 @@ def inv(F, k):
 
     return x
 
+
 def rnd(k, N, R=None, seed=None):
     """
     chi2.rnd

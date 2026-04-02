@@ -177,6 +177,7 @@ def inv(F, a, b):
 
     return x
 
+
 def rnd(a, b, N, R=None, seed=None):
     """
     uniform.rnd

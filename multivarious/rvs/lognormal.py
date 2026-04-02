@@ -192,7 +192,7 @@ def inv(F, mednX, covnX):
 
     if n == 1 and x.shape[0] == 1:
         x = x.flatten()
-    if n == 1 and F.shape[0] == 1:
+    if n == 1 and F.shape[1] == 1:
         x = x[0]
     
     return x
@@ -242,7 +242,9 @@ def rnd(mednX, covnX, N, R=None, seed=None):
 
     _, _, U = correlated_rvs(R, n, N, seed)
 
+    print('U' , U.shape )
     # Transform to lognormal: x = exp(log(mednX) + Y * sqrt(VlnX))
     X = inv( U, mednX, covnX )
+    print('X' , X.shape )
     
     return X
