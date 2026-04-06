@@ -32,9 +32,9 @@ def opt_example_analysis( v, cts ):
     v1 = v[0]                   # description of design variable "v1", units
     v2 = v[1]                   # description of design variable "v2", units
 
-    a = cts.a                     # description of constant a, units
-    b = cts.b                     # description of constant b, units
-    c = cts.c                     # description of constant c, units
+    a = cts.a                   # description of constant a, units
+    b = cts.b                   # description of constant b, units
+    c = cts.c                   # description of constant c, units
 
     # the design objective 
     f = ( v1 - c[1] )**2 + ( v2 - c[2] )**2 + c[0]*np.random.randn(1)
