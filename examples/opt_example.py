@@ -3,9 +3,7 @@
 import numpy as np
 from types import SimpleNamespace
 
-from multivarious.opt import ors
-from multivarious.opt import nms
-from multivarious.opt import sqp
+from multivarious.opt import ors, nms, sqp
 from multivarious.utl import plot_cvg_hst, format_plot
 
 # Define the optimization problem. =========================================
