@@ -9,7 +9,7 @@ from multivarious.opt import sqp
 from multivarious.utl import plot_cvg_hst
 
 # Define the optimization problem. ===============================
-def LP_analysis( v , C ):
+def LP_analysis( v , cts ):
     '''
     [ f , g ] = LP_analysis( v , constants )
     analyze a trial solution v to any linear programming problem,
@@ -18,10 +18,10 @@ def LP_analysis( v , C ):
 
     Parameters
     ----------
-    v : array-like (n,)
-        design variables 
-    C : any
-        a SimpleNamespace containing [ A, b, c ]
+    v   : array-like (n,)
+          design variables 
+    cts : any
+          a SimpleNamespace containing [ A, b, c ]
 
     Returns
     -------
@@ -31,9 +31,9 @@ def LP_analysis( v , C ):
         the design constraints 
     '''
 
-    A = C.A             # constraint coefficient matrix (dimension m by n)
-    b = C.b             # constraint vector (dimension m by 1)
-    c = C.c             # cost coefficient vector (dimension n by 1)
+    A = cts.A             # constraint coefficient matrix (dimension m by n)
+    b = cts.b             # constraint vector (dimension m by 1)
+    c = cts.c             # cost coefficient vector (dimension n by 1)
 
     f = c @ v           # the cost function
 
@@ -45,17 +45,17 @@ def LP_analysis( v , C ):
 
 # Constants used within the optimization analysis ... 
 
-C = SimpleNamespace()
+cts = SimpleNamespace()
 
-C.A = np.array([ [ 2, 1, 1, 3 ] , 
+cts.A = np.array([ [ 2, 1, 1, 3 ] , 
                  [ 1, 3, 2, 1 ] , 
                  [ 1, 1, 4, 2 ] ]) 
 
-C.b =  np.array([ 10, 15, 20 ]) 
+cts.b =  np.array([ 10, 15, 20 ]) 
 
-C.c = -np.array([ 3, 5, 2, 4 ])       # minimize f(v) = c@v
+cts.c = -np.array([ 3, 5, 2, 4 ])       # minimize f(v) = c@v
 
-(m,n) = C.A.shape
+(m,n) = cts.A.shape
 
 v_init = np.ones(n) 
 v_lb   = np.zeros(n)
@@ -67,7 +67,7 @@ v_ub   = 10*np.ones(n)
 opts = [ 1 ,   1e-2 ,   1e-2 ,   1e-3 ,    50*n**3 ,  0.5 ,  0.5 ,   1 ,  0.05 ]
 
 # Solve the optimization problem using one of ... ors , nms , sqp 
-v_opt, f_opt, g_opt, cvg_hst, _,_ = sqp(LP_analysis, v_init, v_lb, v_ub, opts, C)
+v_opt, f_opt, g_opt, cvg_hst, _,_ = sqp(LP_analysis, v_init, v_lb, v_ub, opts, cts)
 
 # plot the convergence history
 plot_cvg_hst( cvg_hst , v_opt , opts )

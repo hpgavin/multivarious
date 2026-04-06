@@ -9,17 +9,17 @@ from multivarious.opt import sqp
 from multivarious.utl import plot_cvg_hst, format_plot
 
 # Define the optimization problem. =========================================
-def opt_example_analysis( v, C ):
+def opt_example_analysis( v, cts ):
     """
     Relate the design objective, f, and the design constraints, g, to 
-    the design variables, v, and constants, C. 
+    the design variables, v, and constants, cts. 
 
     Parameters
     ----------
-    v : array-like (n,)
-        design varialbes (in original units, not scaled) 
-    C : any
-        collection of constants needed for the analysis 
+    v   : array-like (n,)
+          design varialbes (in original units, not scaled) 
+    cts : any
+          collection of constants needed for the analysis 
 
     Returns
     -------
@@ -32,9 +32,9 @@ def opt_example_analysis( v, C ):
     v1 = v[0]                   # description of design variable "v1", units
     v2 = v[1]                   # description of design variable "v2", units
 
-    a = C.a                     # description of constant a, units
-    b = C.b                     # description of constant b, units
-    c = C.c                     # description of constant c, units
+    a = cts.a                     # description of constant a, units
+    b = cts.b                     # description of constant b, units
+    c = cts.c                     # description of constant c, units
 
     # the design objective 
     f = ( v1 - c[1] )**2 + ( v2 - c[2] )**2 + c[0]*np.random.randn(1)
@@ -50,12 +50,12 @@ def opt_example_analysis( v, C ):
 # Set-up and Solve the optimization problem. ===============================
 
 # Constants used within the optimization analysis ... 
-C = SimpleNamespace() # items in C can be lists, nparrays, text ... anything
+cts = SimpleNamespace() # items in cts can be lists, nparrays, text ... anything
 
 # Constants used in the design objective and the design constraint functions
-C.a = [ -0.4,  0.2,  0.5,  1.4,  1.4 ]
-C.b = [  1.0, -0.5,  0.5, -1.4, -1.4 ]
-C.c = [  0.0,  0.8,  0.2 ]
+cts.a = [ -0.4,  0.2,  0.5,  1.4,  1.4 ]
+cts.b = [  1.0, -0.5,  0.5, -1.4, -1.4 ]
+cts.c = [  0.0,  0.8,  0.2 ]
 
 v_lb = np.array([ 0.0,  0.0])       # lower bound on the design variables 
 v_ub = np.array([ 1.0,  1.0])       # upper bound on the design variables 
@@ -71,7 +71,7 @@ v_init = np.array([ 0.8 , 0.8 ])                   # a specific initial guess
 opts = [ 3,   2e-2,   2e-2,   1e-3,    50*n**3,  0.7,  0.5,   1,  0.05 ]
 
 # Solve the optimization problem using one of ... ors , nms , sqp 
-v_opt, f_opt, g_opt, cvg_hst, _,_ = sqp( opt_example_analysis, v_init, v_lb, v_ub, opts, C )
+v_opt, f_opt, g_opt, cvg_hst, _,_ = sqp( opt_example_analysis, v_init, v_lb, v_ub, opts, cts )
 
 # plot the convergence history
 format_plot(font_size=15, line_width=3, marker_size=7)
