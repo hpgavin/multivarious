@@ -17,6 +17,7 @@ module filename (case-sensitive). Re-export all of them here so users may call:
 from .avg_cov_func import avg_cov_func
 from .box_constraint import box_constraint
 from .correlated_rvs import correlated_rvs
+from .correlation_analysis import correlation_analysis
 from .format_bank import format_bank
 from .format_plot import format_plot
 from .opt_options import opt_options
@@ -34,6 +35,7 @@ from .L1_plots import L1_plots
 __all__ = [ "avg_cov_func", 
             "box_constraint", 
             "correlated_rvs",
+            "correlation_analysis",
             "format_bank", 
             "format_plot", 
             "opt_options", 
