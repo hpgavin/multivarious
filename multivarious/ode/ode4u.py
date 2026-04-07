@@ -75,7 +75,7 @@ def ode4u(odefun, time, x0, u=None, c=None):
 
         # save states (solution), state derivitives, and outputs
         x[:, p+1]     = x0    # state  solution
-        x_dot[:, p+1] = dxdt1 #  rate  solution
+        x_dot[:, p+1] = dxdt0 #  rate  solution
         y[:, p+1]     = y0    # output solution
 
         # safety - incase NaN or Inf
