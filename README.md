@@ -126,7 +126,6 @@ To set hyperparameters and plot results of multivarious computations.
 
 | module                | description                                                                    |
 | --------------------- | ------------------------------------------------------------------------------ |
-| **L1_plots**          | plot results from L1_fit                                                       |
 | **avg_cov_func**      | estimate the value of an uncertain computation to desired precision            |
 | **box_constraint**    | find *a>0* and *b>0* s.t. max(*u* +/- *(a,b)r*) < 1 and min(*u* +/- *(a,b) r*) > -1 |
 | **correlation_analysis** | correlation analysis for the safety analysis of a design optimization       |
@@ -142,6 +141,9 @@ To set hyperparameters and plot results of multivarious computations.
 | **plot_lm**           | plot the converence history and fit statistics from an lm analysis              |
 | **plot_opt_surface**  | objective function landscape in any selected 2D slice                  |
 | **plot_spectra**      | three sets of corresponding ensemble spectra or transfer functions         |
+| **L1_plots**          | plot results from L1_fit                                                       |
+| **StableNamespace**   | A namespace object with a fixed set of mutable attributes. |
+
 
 # installation
 

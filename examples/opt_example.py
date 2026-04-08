@@ -1,10 +1,9 @@
 #! /usr/bin/env -S python3 -i 
 
 import numpy as np
-from types import SimpleNamespace
 
 from multivarious.opt import ors, nms, sqp
-from multivarious.utl import plot_cvg_hst, format_plot
+from multivarious.utl import StableNamespace, format_plot, plot_cvg_hst
 
 # Define the optimization problem. =========================================
 def opt_example_analysis( v, cts ):
@@ -47,13 +46,13 @@ def opt_example_analysis( v, cts ):
 
 # Set-up and Solve the optimization problem. ===============================
 
-# Constants used within the optimization analysis ... 
-cts = SimpleNamespace() # items in cts can be lists, nparrays, text ... anything
-
 # Constants used in the design objective and the design constraint functions
-cts.a = [ -0.4,  0.2,  0.5,  1.4,  1.4 ]
-cts.b = [  1.0, -0.5,  0.5, -1.4, -1.4 ]
-cts.c = [  0.0,  0.8,  0.2 ]
+# attributes of cts may be lists, nparrays, text ... anything
+cts = StableNamespace(
+    a = [ -0.4,  0.2,  0.5,  1.4,  1.4 ] , 
+    b = [  1.0, -0.5,  0.5, -1.4, -1.4 ] , 
+    c = [  0.0,  0.8,  0.2 ] , 
+)
 
 v_lb = np.array([ 0.0,  0.0])       # lower bound on the design variables 
 v_ub = np.array([ 1.0,  1.0])       # upper bound on the design variables 

@@ -30,6 +30,7 @@ from .plot_opt_surface import plot_opt_surface
 from .plot_scatter_hist import plot_scatter_hist
 from .plot_spectra import plot_spectra 
 from .L1_plots import L1_plots
+from .StableNamespace import StableNamespace
 
 
 __all__ = [ "avg_cov_func", 
@@ -48,5 +49,6 @@ __all__ = [ "avg_cov_func",
             "plot_spectra", 
             "plot_scatter_hist", 
             "L1_plots", 
+            "StableNamespace", 
           ]
 

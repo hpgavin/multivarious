@@ -1,12 +1,11 @@
 #! /usr/bin/env -S python3 -i
 
 import numpy as np
-from types import SimpleNamespace
 
 from multivarious.opt import ors
 from multivarious.opt import nms
 from multivarious.opt import sqp
-from multivarious.utl import plot_cvg_hst
+from multivarious.utl import StableNamespace, plot_cvg_hst
 
 # Define the optimization problem. ===============================
 def LP_analysis( v , cts ):
@@ -21,7 +20,7 @@ def LP_analysis( v , cts ):
     v   : array-like (n,)
           design variables 
     cts : any
-          a SimpleNamespace containing [ A, b, c ]
+          a StableNamespace containing [ A, b, c ]
 
     Returns
     -------
@@ -45,15 +44,15 @@ def LP_analysis( v , cts ):
 
 # Constants used within the optimization analysis ... 
 
-cts = SimpleNamespace()
+cts = StableNamespace(
+    A = np.array([ [ 2, 1, 1, 3 ] , 
+                   [ 1, 3, 2, 1 ] , 
+                   [ 1, 1, 4, 2 ] ])  ,
 
-cts.A = np.array([ [ 2, 1, 1, 3 ] , 
-                 [ 1, 3, 2, 1 ] , 
-                 [ 1, 1, 4, 2 ] ]) 
+    b =  np.array([ 10, 15, 20 ])  ,
 
-cts.b =  np.array([ 10, 15, 20 ]) 
-
-cts.c = -np.array([ 3, 5, 2, 4 ])       # minimize f(v) = c@v
+    c = -np.array([ 3, 5, 2, 4 ])  ,    # minimize f(v) = c@v
+)
 
 (m,n) = cts.A.shape
 
