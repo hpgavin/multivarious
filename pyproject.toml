@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "multivarious"
-version = "1.0.2"
+version = "1.0.3"
 description = """
 A Python package for various multivariable computations in digital signal processing, linear time-invariant systems, optimization, ordinary differential equations, and random variables.
 """
