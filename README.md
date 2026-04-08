@@ -127,22 +127,21 @@ To set hyperparameters and plot results of multivarious computations.
 | module                | description                                                                    |
 | --------------------- | ------------------------------------------------------------------------------ |
 | **avg_cov_func**      | estimate the value of an uncertain computation to desired precision            |
-| **box_constraint**    | find *a>0* and *b>0* s.t. max(*u* +/- *(a,b)r*) < 1 and min(*u* +/- *(a,b) r*) > -1 |
-| **correlation_analysis** | correlation analysis for the safety analysis of a design optimization       |
+| **box_constraint**    | find *a>0* and *b>0* s.t. max(*u* +/- *(a,b) r*) < 1 and min(*u* +/- *(a,b) r*) > -1 |
+| **correlation_analysis** | correlation analysis for the uncertainty quantification of a design optimization  |
 | **format_bank**       | format a numerical string                                                      |
 | **format_plot**       | set the font size, line width, and marker size                                 |
 | **opt_options**       | adjust algorithmic options for ors, nms, and sqp                               |
 | **opt_report**        | provide a summary report for ors, nms, sqp                                     |
-| **plot_EPDF_stairs**  | probability density from data as stairs |
 | **plot_ECDF_ci**      | cumulative distribution function from data and its confidence interval |
-| **plot_scatter_corr** | scatter plot with correlation coefficient in the title |
+| **plot_scatter_corr** | multivariate scatter plots with histograms and correlation confidence intervals |
 | **plot_ensemble**     | three sets of corresponding ensemble time series                           |
 | **plot_cvg_hist**     | convergence history from ors, nms and sqp                              |
-| **plot_lm**           | plot the converence history and fit statistics from an lm analysis              |
+| **plot_lm**           | converence history and fit statistics from an lm |
 | **plot_opt_surface**  | objective function landscape in any selected 2D slice                  |
 | **plot_spectra**      | three sets of corresponding ensemble spectra or transfer functions         |
-| **L1_plots**          | plot results from L1_fit                                                       |
-| **StableNamespace**   | A namespace object with a fixed set of mutable attributes. |
+| **L1_plots**          | results from L1_fit                                                       |
+| **StableNamespace**   | a namespace object with a fixed set of mutable attributes  |
 
 
 # installation
