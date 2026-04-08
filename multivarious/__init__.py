@@ -32,7 +32,7 @@ try:
    # When installed normally, this will return the package version from metadata
 except PackageNotFoundError:
     # Fallback for editable/dev installs or when metadata isn't available
-    __version__ = "1.0.1"
+    __version__ = "1.0.2"
 
 # Expose subpackages as attributes for method-style access:
 # (these imports are lightweight - they only bind the subpackage packages,
