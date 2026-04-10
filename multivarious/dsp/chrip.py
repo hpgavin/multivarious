@@ -20,7 +20,7 @@ from multivarious.dsp.cdiff import cdiff
 from multivarious.dsp.taper import taper
 
 
-def chrip(ao, af, fo, ff, t, p=2, n=1, phi=90, fig_no=0, units='m'):
+def chrip(ao, af, fo, ff, t, p=2, n=1, phi=90, fig_num=0, units='m'):
     """
     Generate chrip signal with variable amplitude and compute derivatives.
     
@@ -60,7 +60,7 @@ def chrip(ao, af, fo, ff, t, p=2, n=1, phi=90, fig_no=0, units='m'):
         - 90°: Start at zero crossing (rising) - RECOMMENDED
         - 180°: Start at minimum
         - 270°: Start at zero crossing (falling)
-    fig_no : int, optional
+    fig_num : int, optional
         Figure number for plotting (0 = no plot, default: 0)
     units : str, optional
         Units for plotting labels (default: 'm')
@@ -111,7 +111,7 @@ def chrip(ao, af, fo, ff, t, p=2, n=1, phi=90, fig_no=0, units='m'):
     ...     fo=0.5, ff=10,     # Frequency: 0.5 → 10 Hz
     ...     t=t, p=2, n=1,     # Quadratic freq, exponential amp
     ...     phi=90,            # Start at zero crossing
-    ...     fig_no=1,          # Plot results
+    ...     fig_num=1,          # Plot results
     ...     units='m'
     ... )
     >>> 
@@ -204,14 +204,14 @@ def chrip(ao, af, fo, ff, t, p=2, n=1, phi=90, fig_no=0, units='m'):
     print(f'     {cycles:.1f} cycles in {T:.2f} seconds with {nt} points')
     
     # Plot if requested
-    if fig_no > 0:
-        _plot_chrip(t, accel, veloc, displ, fig_no, units, 
+    if fig_num > 0:
+        _plot_chrip(t, accel, veloc, displ, fig_num, units, 
                     ao, af, fo, ff, p, n, phi, cycles)
     
     return accel, veloc, displ
 
 
-def _plot_chrip(t, accel, veloc, displ, fig_no, units, 
+def _plot_chrip(t, accel, veloc, displ, fig_num, units, 
                 ao, af, fo, ff, p, n, phi, cycles):
     """
     Internal function to plot chrip time histories.
@@ -219,7 +219,7 @@ def _plot_chrip(t, accel, veloc, displ, fig_no, units,
     Creates a 3-panel plot showing acceleration, velocity, and displacement.
     """
     
-    fig = plt.figure(fig_no, figsize=(12, 8))
+    fig = plt.figure(fig_num, figsize=(12, 8))
     fig.clear()
     
     # Acceleration
@@ -276,7 +276,7 @@ if __name__ == '__main__':
         p=2,                 # Quadratic frequency increase
         n=1,                 # Exponential amplitude decay
         phi=90,              # Start at zero crossing
-        fig_no=1,
+        fig_num=1,
         units='m'
     )
     
@@ -294,7 +294,7 @@ if __name__ == '__main__':
         t=t2,
         p=1,                 # Linear frequency increase
         phi=90,
-        fig_no=2,
+        fig_num=2,
         units='m'
     )
     
@@ -315,7 +315,7 @@ if __name__ == '__main__':
             t=t3,
             p=2,
             phi=phase,
-            fig_no=0  # No individual plots
+            fig_num=0  # No individual plots
         )
         
         # Plot comparison
@@ -356,7 +356,7 @@ if __name__ == '__main__':
         p=3,                 # Cubic frequency increase
         n=1.5,               # Faster amplitude decay
         phi=90,
-        fig_no=4,
+        fig_num=4,
         units='m'
     )
     print("  → More cycles at lower frequencies (good for long-period structures)")
@@ -375,7 +375,7 @@ if __name__ == '__main__':
         t=t5,
         p=2,
         phi=90,
-        fig_no=0
+        fig_num=0
     )
     
     # SciPy chirp

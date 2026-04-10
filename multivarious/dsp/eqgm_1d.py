@@ -19,7 +19,7 @@ from multivarious.dsp.accel2displ import accel2displ
 from multivarious.dsp.taper import taper 
 
 
-def eqgm_1d(PGA=3.5, fg=1.5, zg=0.9, aa=4.0, ta=2.0, t=None, fig_no=0, seed=None):
+def eqgm_1d(PGA=3.5, fg=1.5, zg=0.9, aa=4.0, ta=2.0, t=None, fig_num=0, seed=None):
     """
     Generate synthetic earthquake ground motion record.
     
@@ -41,7 +41,7 @@ def eqgm_1d(PGA=3.5, fg=1.5, zg=0.9, aa=4.0, ta=2.0, t=None, fig_no=0, seed=None
         Envelope decay time constant (s), default: 2.0
     t : ndarray, optional
         Time vector (s), default: np.arange(3000) * 0.01
-    fig_no : int, optional
+    fig_num : int, optional
         Figure number for plotting (0 = no plots), default: 0
     seed : int, optional
         Random seed for reproducibility, default: None (random)
@@ -109,18 +109,18 @@ def eqgm_1d(PGA=3.5, fg=1.5, zg=0.9, aa=4.0, ta=2.0, t=None, fig_no=0, seed=None
     >>> 
     >>> # Example 1: Far-field ground motion
     >>> accel, veloc, displ, scale, Ag, Bg, Cg = eqgm_1d(
-    ...     PGA=3.5, fg=1.5, zg=0.9, aa=4.0, ta=2.0, fig_no=1
+    ...     PGA=3.5, fg=1.5, zg=0.9, aa=4.0, ta=2.0, fig_num=1
     ... )
     >>> 
     >>> # Example 2: Near-field pulse-like ground motion
     >>> t = np.arange(5000) * 0.01  # 50 seconds
     >>> accel, veloc, displ, _, _, _, _ = eqgm_1d(
-    ...     PGA=4.7, fg=0.5, zg=1.8, aa=1.0, ta=2.0, t=t, fig_no=2
+    ...     PGA=4.7, fg=0.5, zg=1.8, aa=1.0, ta=2.0, t=t, fig_num=2
     ... )
     >>> 
     >>> # Example 3: Reproducible simulation with seed
     >>> accel, veloc, displ, _, _, _, _ = eqgm_1d(
-    ...     PGA=5.0, fg=1.3, zg=1.1, seed=42, fig_no=0
+    ...     PGA=5.0, fg=1.3, zg=1.1, seed=42, fig_num=0
     ... )
     
     See Also
@@ -154,7 +154,7 @@ def eqgm_1d(PGA=3.5, fg=1.5, zg=0.9, aa=4.0, ta=2.0, t=None, fig_no=0, seed=None
     T = t0 + 5.74 * ta * aa**0.42  # Total duration
     
     # Check if time series is long enough
-    if np.max(t) < T and fig_no > 0:
+    if np.max(t) < T and fig_num > 0:
         P_needed = int(np.floor(T / dt))
         print(f'eqgm_1d: time series may not be long enough, '
               f'T={T:.0f}, P_needed={P_needed}')
@@ -225,7 +225,7 @@ def eqgm_1d(PGA=3.5, fg=1.5, zg=0.9, aa=4.0, ta=2.0, t=None, fig_no=0, seed=None
     Sigma = solve_continuous_lyapunov( Ag , -Bg @ Bg.T )
     RMSa_check = np.sqrt(Cg @ Sigma @ Cg.T)[0, 0]
     
-    if fig_no > 0:
+    if fig_num > 0:
         print(f'Target RMS accel: {RMSa:.4f} m/s²')
         print(f'Computed RMS accel: {RMSa_check:.4f} m/s²')
     """
@@ -264,12 +264,12 @@ def eqgm_1d(PGA=3.5, fg=1.5, zg=0.9, aa=4.0, ta=2.0, t=None, fig_no=0, seed=None
     displ *= scale
     
     # ========== Plotting ==========
-    if fig_no > 0:
+    if fig_num > 0:
         T_plot = min(30, np.max(t))  # Maximum time to display
         idx_plot = t <= T_plot
         
         # Figure 1: Envelope visualization
-        plt.figure(fig_no + 1, figsize=(12, 6))
+        plt.figure(fig_num + 1, figsize=(12, 6))
         plt.clf()
         
         idx_max = np.argmax(np.abs(accel))
@@ -297,7 +297,7 @@ def eqgm_1d(PGA=3.5, fg=1.5, zg=0.9, aa=4.0, ta=2.0, t=None, fig_no=0, seed=None
         plt.tight_layout()
         
         # Figure 2: Three-panel plot
-        plt.figure(fig_no, figsize=(12, 10))
+        plt.figure(fig_num, figsize=(12, 10))
         plt.clf()
         
         plt.subplot(311)
@@ -357,7 +357,7 @@ if __name__ == '__main__':
     
     accel, veloc, displ, scale, Ag, Bg, Cg = eqgm_1d(
         PGA=3.5, fg=1.5, zg=0.9, aa=4.0, ta=2.0,
-        fig_no=1, seed=42
+        fig_num=1, seed=42
     )
     
     # Test 2: Near-field pulse (ATC-63-NFP)
@@ -368,7 +368,7 @@ if __name__ == '__main__':
     
     accel2, veloc2, displ2, _, _, _, _ = eqgm_1d(
         PGA=4.7, fg=0.5, zg=1.8, aa=1.0, ta=2.0,
-        t=t_long, fig_no=3, seed=123
+        t=t_long, fig_num=3, seed=123
     )
     
     plt.show()

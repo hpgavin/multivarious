@@ -9,7 +9,7 @@ Translation from MATLAB by Claude, 2025-10-24
 import numpy as np
 import matplotlib.pyplot as plt
 
-def L1_plots(B, c, y, cvg_hst, alfa, w, fig_no=1, save_plots=False):
+def L1_plots(B, c, y, cvg_hst, alfa, w, fig_num=1, save_plots=False):
     """
     Plot results from L1 regularization fit.
     
@@ -32,7 +32,7 @@ def L1_plots(B, c, y, cvg_hst, alfa, w, fig_no=1, save_plots=False):
         Final L1 regularization parameter
     w : float
         Weighting parameter used
-    fig_no : int, optional
+    fig_num : int, optional
         Starting figure number (default: 1)
     save_plots : boolean, optional (default: False)
         Save figures 
@@ -76,7 +76,7 @@ def L1_plots(B, c, y, cvg_hst, alfa, w, fig_no=1, save_plots=False):
     print("="*70 + "\n")
     
     # Figure 1: Coefficient Comparison
-    plt.figure(fig_no, figsize=(10, 6))
+    plt.figure(fig_num, figsize=(10, 6))
     plt.clf()
     
     indices = np.arange(1, n + 1)
@@ -91,7 +91,7 @@ def L1_plots(B, c, y, cvg_hst, alfa, w, fig_no=1, save_plots=False):
     plt.tight_layout()
     
     # Figure 2: Data Fit Comparison
-    plt.figure(fig_no + 1, figsize=(10, 6))
+    plt.figure(fig_num + 1, figsize=(10, 6))
     plt.clf()
     
     t = np.arange(1, m + 1)
@@ -106,7 +106,7 @@ def L1_plots(B, c, y, cvg_hst, alfa, w, fig_no=1, save_plots=False):
     plt.tight_layout()
     
     # Figure 3: Convergence History
-    plt.figure(fig_no + 2, figsize=(12, 10))
+    plt.figure(fig_num + 2, figsize=(12, 10))
     plt.clf()
     
     y_labels = ['$c$', '$p$', '$q$', '$\\mu$', '$\\nu$', '$\\alpha$ and $L_2$ error']
@@ -137,13 +137,13 @@ def L1_plots(B, c, y, cvg_hst, alfa, w, fig_no=1, save_plots=False):
      
     # Save figures
     if save_plots:
-        plt.figure(fig_no)
+        plt.figure(fig_num)
         plt.savefig('L1_coefficients.png', dpi=150, bbox_inches='tight')
     
-        plt.figure(fig_no+1)
+        plt.figure(fig_num+1)
         plt.savefig('L1_fit_comparison.png', dpi=150, bbox_inches='tight')
     
-        plt.figure(fig_no+2)
+        plt.figure(fig_num+2)
         plt.savefig('L1_convergence.png', dpi=150, bbox_inches='tight')
     
         print("\nPlots saved:")
@@ -183,7 +183,7 @@ if __name__ == '__main__':
     
     # Create plots
     format_plot(font_size=14, line_width=3)
-    L1_plots(B, c, y, cvg_hst, alfa_final, w, fig_no=10)
+    L1_plots(B, c, y, cvg_hst, alfa_final, w, fig_num=10)
    
     print("\n" + "=" * 70)
     print("L1_plots test completed successfully!")

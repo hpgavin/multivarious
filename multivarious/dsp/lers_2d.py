@@ -11,7 +11,7 @@ from multivarious.lti import lsym
 from multivarious.utl import format_plot
 
 
-def lers_2d(ax, ay, t, g, Tn, zz, method='SRSS', fig_no=0, save_plot='False'):
+def lers_2d(ax, ay, t, g, Tn, zz, method='SRSS', fig_num=0, save_plot='False'):
     """
     Compute linear elastic response spectrum for 2D ground motion.
     
@@ -36,7 +36,7 @@ def lers_2d(ax, ay, t, g, Tn, zz, method='SRSS', fig_no=0, save_plot='False'):
         Combination method: 'SRSS' (default) or 'GM'
         'SRSS' = Square Root of Sum of Squares of dx and dy
         'GM' = Geometric Mean of max|dx| and max|dy|
-    fig_no : int, optional
+    fig_num : int, optional
         Figure number for plotting. Default: 0 (no plotting)
     save_plot : boolean, optional
         save the plot
@@ -60,7 +60,7 @@ def lers_2d(ax, ay, t, g, Tn, zz, method='SRSS', fig_no=0, save_plot='False'):
     >>> Tn = np.array([0.01, 0.1, 0.2, 0.5, 1.0, 2.0, 5.0])
     >>> zz = 0.05  # 5% damping
     >>> g = 9.81   # m/s²
-    >>> PSA, SD = lers_2d(ax, ay, t, g, Tn, zz, method='SRSS', fig_no=3)
+    >>> PSA, SD = lers_2d(ax, ay, t, g, Tn, zz, method='SRSS', fig_num=3)
     """
     
     # Convert inputs to numpy arrays
@@ -122,13 +122,13 @@ def lers_2d(ax, ay, t, g, Tn, zz, method='SRSS', fig_no=0, save_plot='False'):
     PSA = SD * wn**2 / g
     
     # Plots
-    if fig_no > 0:
-        _plot_response_spectra(Tn, PSA, SD, g, fig_no, save_plot)
+    if fig_num > 0:
+        _plot_response_spectra(Tn, PSA, SD, g, fig_num, save_plot)
     
     return PSA, SD
 
 
-def _plot_response_spectra(Tn, PSA, SD, g, fig_no, save_plot):
+def _plot_response_spectra(Tn, PSA, SD, g, fig_num, save_plot):
     """
     Create response spectrum plots.
     
@@ -142,7 +142,7 @@ def _plot_response_spectra(Tn, PSA, SD, g, fig_no, save_plot):
         Spectral displacement
     g : float
         Gravitational acceleration
-    fig_no : int
+    fig_num : int
         Starting figure number
     """
     plt.ion()  # Interactive mode: on
@@ -150,7 +150,7 @@ def _plot_response_spectra(Tn, PSA, SD, g, fig_no, save_plot):
     format_plot(font_size=15, line_width=2, marker_size=7)
 
     # Figure 1: Response spectra SD vs Tn and PSA vs Tn
-    plt.figure(fig_no, figsize=(5,5))
+    plt.figure(fig_num, figsize=(5,5))
     plt.clf()
     plt.plot(Tn, PSA, '-o', label='PSA, g')
     plt.plot(Tn, SD, '-o', label='SD, m')
@@ -164,7 +164,7 @@ def _plot_response_spectra(Tn, PSA, SD, g, fig_no, save_plot):
     maxPSA = np.max(PSA)
     setTn = np.array([0.1, 0.2, 0.5, 1.0, 2.0, 3.0, 5.0, 10.0])
     
-    plt.figure(fig_no + 1, figsize=(5,5))
+    plt.figure(fig_num + 1, figsize=(5,5))
     plt.clf()
     
     # Draw constant period lines
@@ -190,6 +190,6 @@ def _plot_response_spectra(Tn, PSA, SD, g, fig_no, save_plot):
     plt.show()
 
     if save_plot: 
-        plt.savefig(f'lers-2d-{fig_no}.pdf', dpi=150)
+        plt.savefig(f'lers-2d-{fig_num}.pdf', dpi=150)
 
 # ------------------------------------------------------------- lers_2d.py

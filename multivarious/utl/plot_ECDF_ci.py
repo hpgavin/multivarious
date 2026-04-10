@@ -4,7 +4,7 @@ from scipy.special import betaincinv
 from multivarious.rvs import normal
 from multivarious.utl import format_plot
 
-def plot_ECDF_ci(data, confidence_level, fig_no, x_label='sorted sample values',save_plots=True ):
+def plot_ECDF_ci(data, confidence_level, fig_num, x_label='sorted sample values',save_plots=True ):
     """
     Plot empirical CDF of data with confidence intervals.
     
@@ -14,7 +14,7 @@ def plot_ECDF_ci(data, confidence_level, fig_no, x_label='sorted sample values',
         Data values
     confidence_level : float
         Confidence level (e.g., 95 for 95%)
-    fig_no : int
+    fig_num : int
         Figure number
     x_label : string
         label for the x axis
@@ -102,7 +102,7 @@ def plot_ECDF_ci(data, confidence_level, fig_no, x_label='sorted sample values',
     fs = 14
     format_plot(line_width = 2, font_size = fs, marker_size = 4)
 
-    fig_cdf = plt.figure(fig_no) 
+    fig_cdf = plt.figure(fig_num) 
     fig_cdf.set_size_inches(8, 5)  
 
     plt.fill_between(x, lower_ci, upper_ci, 
@@ -131,7 +131,7 @@ def plot_ECDF_ci(data, confidence_level, fig_no, x_label='sorted sample values',
 
     # Save plots 
     if save_plots:
-        filename = f'plot_ECDF-{fig_no:04d}.pdf'
+        filename = f'plot_ECDF-{fig_num:04d}.pdf'
         fig_cdf.savefig(filename, bbox_inches='tight', dpi=300)
         print(f"    Saved: {filename}")
 

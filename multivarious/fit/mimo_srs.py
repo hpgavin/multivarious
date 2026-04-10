@@ -101,7 +101,7 @@ def mimo_srs(dataX, dataY, max_order=2, pTrain=70, scaling=1, L1_pnlty=1.0, basi
     else:
         mData = min(mDataX,mDataY)
 
-    plot_scatter_hist(dataX, dataY, fig_no=100, var_names = var_names, ci=0.90 )
+    plot_scatter_hist(dataX, dataY, fig_num=100, var_names = var_names, ci=0.90 )
 
     # scale data matrices for X (explanatory) and Y (dependent) variables
     # separately since using the covariance between X and Y in the model
@@ -153,7 +153,7 @@ def mimo_srs(dataX, dataY, max_order=2, pTrain=70, scaling=1, L1_pnlty=1.0, basi
         xNames = [rf"$zX_{i+1}$" for i in range(nZx)]
         yNames = [rf"$zY_{i+1}$" for i in range(nZy)]
         z_names = { 'X': xNames  , 'Y': yNames }
-        plot_scatter_hist(Zx, Zy, fig_no=101, var_names = z_names, ci=0.90 )
+        plot_scatter_hist(Zx, Zy, fig_num=101, var_names = z_names, ci=0.90 )
 
     #import time as time
     #from datetime import datetime, timedelta
@@ -697,7 +697,7 @@ def fit_model(Zx, Zy, ordr, nTerm, mData, L1_pnlty, basis_fctn):
                 coeff[:,io], mu, nu, cvg_hst = L1_fit(B, Zy_col, L1_pnlty, w=0)
 
                 # Optional: plot L1 convergence
-                L1_plots(B, coeff[:,io], Zy_col, cvg_hst, L1_pnlty, 0, fig_no=700+10*io)
+                L1_plots(B, coeff[:,io], Zy_col, cvg_hst, L1_pnlty, 0, fig_num=700+10*io)
 
         except ImportError:
             print('WARNING: L1_fit not found, using OLS instead')

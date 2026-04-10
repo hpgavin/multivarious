@@ -242,6 +242,7 @@ def rnd(mednX, covnX, N, R=None, seed=None):
 
     _, _, U = correlated_rvs(R, n, N, seed)
 
+    
     # Transform to lognormal: x = exp(log(mednX) + Y * sqrt(VlnX))
     X = inv( U, mednX, covnX )
     

@@ -172,7 +172,7 @@ def correlated_rvs(R, n, N=1, seed=None):
     tolrnc = 0.05  # eigenvalue tolerance
     # If no correlation matrix provided, default to identity matrix
     # Identity matrix R = I means all variables are independent (correl'n = 0)
-    if R is None:
+    if R is None or n == 1:
         R = np.eye(n) # In
         eigval = np.ones(n)
         eigvec = np.eye(n)

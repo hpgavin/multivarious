@@ -39,10 +39,11 @@ def _ppp_(x, meanX, covnX):
     # Python does not implicitly handle scalars as arrays. 
     x = np.atleast_1d(x).astype(float)
 
+
     meanX = np.atleast_1d(meanX).reshape(-1,1).astype(float)
     covnX = np.atleast_1d(covnX).reshape(-1,1).astype(float)
-    n = len(meanX)   
-        
+    n = len(meanX)
+       
     # Validate parameter dimensions 
     if not (len(meanX) == n and len(covnX) == n):
         raise ValueError(f"All parameter arrays must have the same length. "
@@ -248,6 +249,15 @@ def rnd(meanX, covnX, N, R=None, seed=None):
     """
 
     _, meanX, covnX, _, _, n = _ppp_(0, meanX, covnX)
+
+    if len(meanX) == N:
+        X = np.zeros(N)
+        rng = np.random.default_rng(seed)  
+        for i in range(N): 
+            X[i] = rng.gamma(shape = meanX[i] * covnX[i]**2, 
+                             scale = 1.0/covnX[i]**2, 
+                             size = 1)
+        return X
 
     # Correlated uniform random variables 
     _, _, U = correlated_rvs(R, n, N, seed)
