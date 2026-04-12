@@ -161,33 +161,41 @@ A. Download or Update: Open any terminal (a VS Code Terminal or any terminal app
    cd ~/Desktop/Code/multivarious 
    git pull
    ```
-
-B.  (1.) `pip install` for VS Code and/or (2.) set the `PYTHONPATH` or (3.) do something scarry or (4.) use a venv.   
-  A chat on issues with Debian, python, pip, and PYTHONPATH is in multivarious/examples/doc/. 
-
-  1. Within a VS Code Terminal,  (Terminal > New Terminal) 
-
-   ``` bash
-   cd ~/Desktop/Code/multivarious  
-   pip install .  
+   If (2.) fails it may be because you edited a file within multivarious.   In that case, close any window where the prompt is within the multivarious directory tree (and/or close VS Code), and
+    ``` bash
+   cd ~/Desktop/Code
+   rm -rf multivarious
+   git clone https://github.com/hpgavin/multivarious
    ```
 
-  This will create directories `build/` and `multivarious.egg-info/.` You may delete the `build/` directory.  Keep the `multivarious.egg-info/` directory.  If `pip install` indicates the error: `error: externally-managed-environment` then set the `PYTHONPATH` (option (2.) below)
+B.  (1.) install using `pip` in VS Code and/or (2.) set the `PYTHONPATH` or (3.) do something scarry or (4.) use a venv.   
+  A chat on issues with Debian, python, pip, and PYTHONPATH is in multivarious/examples/doc/. 
 
-  2. (If you have completed (1.) above and are using Python only within VS Code, then this step is optional.)
-     Open one of the following links and follow the instructions.  
+  1. Use [pip](https://pip.pypa.io/en/stable/topics/local-project-installs/) to install multivarious from within a VS Code Terminal,  (Terminal > New Terminal) 
+
+   ``` bash
+   cd ~/Desktop/Code/
+   python -m pip install ./multivarious  # macOS
+   C:> py -m pip install ./multivarious  # win11
+   ```
+
+  This will create directories `build/` and `multivarious.egg-info/.` You may delete the `build/` directory.  Keep the `multivarious.egg-info/` directory.  If `pip install` indicates: `error: externally-managed-environment` then set the `PYTHONPATH` (option (2.) below)
+
+  2. (If you have completed (1.) above and are using Python only within VS Code, then (2.) is optional.)
+     Open one of the following links and follow the instructions to set your `PYTHONPATH`.  
    * [Windows-shell.txt](https://people.duke.edu/~hpgavin/Windows-shell.txt)  
    * [macOS-shell.txt](https://people.duke.edu/~hpgavin/macOS-shell.txt)   
    * [linux-shell.txt](https://people.duke.edu/~hpgavin/linux-shell.txt)
 
-  3. If both (1.) and (2.) fail, please know that you can confidently install multivarious by doing this scarry thing
+  3. If (1.) and (2.) both fail, please know that installing multivarious by doing the following scarry thing won't hurt anything 
 
    ``` bash
-   cd ~/Desktop/Code/multivarious 
-   pip install --break-system-packages . 
+   cd ~/Desktop/Code/
+   python -m pip install --break-system-packages ./multivarious # macOS
+   C:> py -m pip install --break-system-packages ./multivarious # win11
    ```
 
-  4. Use a venv 
+  4. Use a [venv](https://packaging.python.org/en/latest/guides/installing-using-pip-and-virtual-environments/)
 
 C. Verify that VS Code has access to the multivarious library. 
   
