@@ -168,8 +168,7 @@ A. Download or Update: Open any terminal (a VS Code Terminal or any terminal app
    git clone https://github.com/hpgavin/multivarious
    ```
 
-B.  (1.) install using `pip` in VS Code and/or (2.) set the `PYTHONPATH` or (3.) do something scarry or (4.) use a venv.   
-  A chat on issues with Debian, python, pip, and PYTHONPATH is in multivarious/examples/doc/. 
+B.  (1.) install using `pip` in VS Code and/or (2.) set the `PYTHONPATH` or (3.) do something scarry or (4.) use a venv.  A chat on issues with Debian, python, pip, and PYTHONPATH is in multivarious/examples/doc/. 
 
   1. Use [pip](https://pip.pypa.io/en/stable/topics/local-project-installs/) to install multivarious from within a VS Code Terminal,  (Terminal > New Terminal) 
 
