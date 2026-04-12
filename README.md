@@ -186,7 +186,7 @@ B.  (1.) install using `pip` in VS Code and/or (2.) set the `PYTHONPATH` or (3.)
    * [macOS-shell.txt](https://people.duke.edu/~hpgavin/macOS-shell.txt)   
    * [linux-shell.txt](https://people.duke.edu/~hpgavin/linux-shell.txt)
 
-  3. If (1.) and (2.) both fail, please know that installing multivarious by doing the following scarry thing won't hurt anything 
+  3. If (1.) and (2.) both fail, please know that installing multivarious by doing the following scarry thing won't hurt anything. 
 
    ``` bash
    cd ~/Desktop/Code/
