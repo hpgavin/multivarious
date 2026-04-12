@@ -162,7 +162,7 @@ A. Download or Update: Open any terminal (a VS Code Terminal or any terminal app
    git pull
    ```
    If (2.) fails it may be because you edited a file within multivarious.   In that case, close any window where the prompt is within the multivarious directory tree (and/or close VS Code), and
-    ``` bash
+   ``` bash
    cd ~/Desktop/Code
    rm -rf multivarious
    git clone https://github.com/hpgavin/multivarious
