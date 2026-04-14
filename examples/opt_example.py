@@ -65,10 +65,10 @@ v_init = np.array([ 0.8 , 0.8 ])                   # a specific initial guess
 # optimization options ...
 #        0     1       2       3        4         5     6     7    8
 #       msg   tol_v   tol_f   tol_g  max_evals  pnlty expn  m_max cov_F
-opts = [ 3,   2e-2,   2e-2,   1e-3,    50*n**3,  0.7,  0.5,   1,  0.05 ]
+opts = [ 3,   5e-2,   5e-2,   1e-3,    50*n**3,  0.7,  0.5,   1,  0.05 ]
 
 # Solve the optimization problem using one of ... ors , nms , sqp 
-v_opt, f_opt, g_opt, cvg_hst, _,_ = sqp( opt_example_analysis, v_init, v_lb, v_ub, opts, cts )
+v_opt, f_opt, g_opt, cvg_hst, _,_ = nms( opt_example_analysis, v_init, v_lb, v_ub, opts, cts )
 
 # plot the convergence history
 format_plot(font_size=15, line_width=3, marker_size=7)

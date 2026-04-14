@@ -90,7 +90,9 @@ def ors(func, v_init, v_lb=None, v_ub=None, options=None, consts=None):
     # algorithm hyper-parameters
     BOX = 1             # use box constraints
     step_stdev = 0.200  # standard deviation of random step
-    nu = 2.5            # exponent for reducing step_stdev
+    sc = 0.10           # factor for curvature-based step size
+    sf = 0.05           # small forgetting factor
+    # nu = 2.5          # exponent for reducing step_stdev
     regularization = 1e-6 * np.eye(3) # regularization for matrix inversion
     
     # handle missing arguments
@@ -272,13 +274,19 @@ def ors(func, v_init, v_lb=None, v_ub=None, options=None, consts=None):
             step_stdev *= 0.8
             step_txt = '             contraction'
 
+
+        # Curvature-based adjustment (periodically or as smoothing)
+        if c[2] is not None and c[2] > 0:
+            sigma_curv = sc / np.sqrt(c[2] + 0.01)
+            step_stdev = sf * step_stdev + (1 - sf) * sigma_curv
+
         '''
         # scripted update to the step size (alternative to adaptive update)
         # if the solution improved, reduce the scope of the search 
         if i_min > 0:
             step_stdev = step_stdev * (1 - function_evals / max_evals) ** nu
         '''
-        step_stdev = min(max(step_stdev,2*tol_v),0.2) # bound the step size
+        step_stdev = min(max(step_stdev,1*tol_v),0.2) # bound the step size
 
         # update the best point out of the four trials
         if i_min == 1:
