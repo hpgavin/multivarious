@@ -2,7 +2,7 @@
 
 import numpy as np
 import matplotlib.pyplot as plt
-
+from rich.traceback import install; install()
 from multivarious.rvs import *  # import all the rvs distributions
 from multivarious.utl import format_plot
 

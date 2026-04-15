@@ -1,7 +1,7 @@
 #! /usr/bin/env -S python3 -i 
 
 import numpy as np
-
+from rich.traceback import install; install()
 from multivarious.opt import ors, nms, sqp
 from multivarious.utl import StableNamespace, format_plot, plot_cvg_hst
 

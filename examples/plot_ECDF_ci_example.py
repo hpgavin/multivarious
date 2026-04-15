@@ -7,6 +7,8 @@ a demonstration of plot_ECDF_ci
 """
 
 import numpy as np
+from rich.traceback import install; install()
+
 from multivarious.utl import plot_ECDF_ci
 
 N = 40 # x is a sample of 3N observations 

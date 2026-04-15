@@ -4,6 +4,7 @@
 #  (2) multivarious can be imported 
 
 import os, sys
+from rich.traceback import install; install()
 
 print("hello")
 print("verifying that PYTHONPATH has been set ... ")

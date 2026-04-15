@@ -11,7 +11,7 @@ Translated to Python: 2025
 
 import numpy as np
 import matplotlib.pyplot as plt
-
+from rich.traceback import install; install()
 from multivarious.rvs import lognormal
 from multivarious.rvs import normal
 from multivarious.rvs import rayleigh

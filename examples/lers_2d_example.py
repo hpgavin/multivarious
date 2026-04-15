@@ -5,9 +5,9 @@ Demonstration of linear elastic response spectrum calculation.
 This script demonstrates the use of lers_2d() to compute response spectra
 for earthquake ground motion records.
 """
-
 import numpy as np
 import matplotlib.pyplot as plt
+from rich.traceback import install; install()
 from multivarious.dsp import lers_2d
 from multivarious.dsp import eqgm_1d
 from multivarious.utl import format_plot

@@ -24,6 +24,7 @@ This script demonstrates:
 
 import numpy as np
 import matplotlib.pyplot as plt
+from rich.traceback import install; install()
 from multivarious.fit import mimo_srs
 
 def example_1_simple_polynomial():

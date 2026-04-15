@@ -12,9 +12,9 @@ Example Functions:
 3. Mixed exponential-sinusoidal (difficult) - needs good initial guess
 4. Two-dimensional fitting (medium difficulty) - multiple independent variables
 """
-
 import numpy as np
 import matplotlib.pyplot as plt
+from rich.traceback import install; install()
 from mpl_toolkits.mplot3d import Axes3D  # For 3D plotting in Example 4
 from typing import Tuple, List
 from multivarious.fit.lm import levenberg_marquardt, lm

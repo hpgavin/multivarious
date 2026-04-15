@@ -1,7 +1,7 @@
 #! /usr/bin/env -S python3 -i
 
 import numpy as np
-
+from rich.traceback import install; install()
 from multivarious.opt import ors
 from multivarious.opt import nms
 from multivarious.opt import sqp

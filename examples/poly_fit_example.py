@@ -3,9 +3,9 @@
 poly_fit_example.py - example for the use of poly_fit.py
 2025-12-02
 """
-
 import numpy as np
 import matplotlib.pyplot as plt
+from rich.traceback import install; install()
 from multivarious.fit import poly_fit
 import time
 
