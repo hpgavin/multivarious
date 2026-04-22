@@ -27,7 +27,7 @@ from .plot_cvg_hst import plot_cvg_hst
 from .plot_ensemble import plot_ensemble
 from .plot_lm import plot_lm
 from .plot_opt_surface import plot_opt_surface
-from .plot_scatter_hist import plot_scatter_hist
+from .plot_scatter_dist import plot_scatter_dist
 from .plot_spectra import plot_spectra 
 from .L1_plots import L1_plots
 from .StableNamespace import StableNamespace
@@ -47,7 +47,7 @@ __all__ = [ "avg_cov_func",
             "plot_lm", 
             "plot_opt_surface", 
             "plot_spectra", 
-            "plot_scatter_hist", 
+            "plot_scatter_dist", 
             "L1_plots", 
             "StableNamespace", 
           ]
