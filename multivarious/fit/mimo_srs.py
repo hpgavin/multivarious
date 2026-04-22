@@ -1,6 +1,6 @@
 import numpy as np
 import matplotlib.pyplot as plt
-from multivarious.utl import plot_scatter_hist
+from multivarious.utl import plot_scatter_dist
 
 def mimo_srs(dataX, dataY, max_order=2, pTrain=70, scaling=1, L1_pnlty=1.0, basis_fctn='H', var_names=None ):
     '''
@@ -101,7 +101,7 @@ def mimo_srs(dataX, dataY, max_order=2, pTrain=70, scaling=1, L1_pnlty=1.0, basi
     else:
         mData = min(mDataX,mDataY)
 
-    plot_scatter_hist(dataX, dataY, fig_num=100, var_names = var_names, ci=0.90 )
+    plot_scatter_dist(dataX, dataY, fig_num=100, var_names = var_names, ci=0.90 )
 
     # scale data matrices for X (explanatory) and Y (dependent) variables
     # separately since using the covariance between X and Y in the model
@@ -153,7 +153,7 @@ def mimo_srs(dataX, dataY, max_order=2, pTrain=70, scaling=1, L1_pnlty=1.0, basi
         xNames = [rf"$zX_{i+1}$" for i in range(nZx)]
         yNames = [rf"$zY_{i+1}$" for i in range(nZy)]
         z_names = { 'X': xNames  , 'Y': yNames }
-        plot_scatter_hist(Zx, Zy, fig_num=101, var_names = z_names, ci=0.90 )
+        plot_scatter_dist(Zx, Zy, fig_num=101, var_names = z_names, ci=0.90 )
 
     #import time as time
     #from datetime import datetime, timedelta
