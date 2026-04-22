@@ -22,7 +22,7 @@ _BLOCK_TINT = {
     'YY': '#e8f5e9',   # light darkgreen
 }
 
-# Scatter/histogram colors per block type
+# Scatter / distribution colors per block type
 _BLOCK_COLOR = {
     'XX': 'navy',
     'XY': 'darkcyan',
@@ -82,7 +82,7 @@ def plot_scatter_dist(dataX, dataY=None, fig_num=100, var_names=None,
     respectively.  When both are provided the full XY block layout is shown.
 
     Layout:
-      diagonal    -- histogram of each variable
+      diagonal    -- distribution of each variable
       lower tri   -- scatter plot of each pair
       upper tri   -- Pearson rho with Fisher CI displayed as three lines:
                        upper CI bound  (larger font, black)
@@ -167,9 +167,13 @@ def plot_scatter_dist(dataX, dataY=None, fig_num=100, var_names=None,
             xLabel = names[iCol]
             yLabel = names[iRow]
 
-            if iRow == iCol:  # Diagonal: histogram
-                ax.hist(xData, bins=n_bins, color=color,
+            if iRow == iCol:  # Diagonal: distributions
+                if n_bins > 0:  # histogram
+                    ax.hist(xData, bins=n_bins, color=color,
                         alpha=0.7, edgecolor='black')
+                else:  # empirical CDF
+                     N = len(xData)
+                     ax.step( np.sort(xData), np.arange(1,N+1)/(N+1), '-', color=color, alpha = 0.7)
 
             elif iRow < iCol:  # Upper triangle: Fisher CI as three lines
                 r      = float(np.corrcoef(xData, yData)[0, 1])
@@ -251,8 +255,8 @@ def main():
         'Y': [rf"$y_{{{i+1}}}$" for i in range(2)],
     }
 
-    fig = plot_scatter_dist(dataX, dataY, fig_num=1,
-                       var_names=var_names, font_size=15, ci=0.95)
+    fig = plot_scatter_dist(dataX, dataY, fig_num=1, 
+                       var_names=var_names, n_bins = 0, font_size=15, ci=0.95)
 
     print("Figure 2: dataY = None  (X only)")
     plot_scatter_dist(dataX, None,   fig_num=2, var_names=var_names, font_size=15, ci=0.95)
