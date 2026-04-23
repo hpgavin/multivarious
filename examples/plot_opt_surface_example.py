@@ -53,25 +53,25 @@ v_init = np.array([0.0, 0.0, 0.0])  # Initial point
 v_lb = np.array([-2.0, -2.0, -2.0])  # Lower bounds
 v_ub = np.array([2.0, 2.0, 2.0])     # Upper bounds
 
-# Set up options array
-options = np.zeros(14)
-options[0] = 3        # Surface plot flag
-options[3] = 0.0      # Constraint tolerance
-options[5] = 0.0      # Penalty (no penalty needed - no constraints)
-options[6] = 2.0      # Penalty exponent
-options[10] = 0       # Plot v_0 (1st variable, 0-indexed)
-options[11] = 1       # Plot v_1 (2nd variable, 0-indexed)
-options[12] = 30      # Number of points in v_0 direction
-options[13] = 30      # Number of points in v_1 direction
+# Set up hyp array of optimization hyperparameters
+hyp = np.zeros(14)
+hyp[0] = 3        # Surface plot flag
+hyp[3] = 0.0      # Constraint tolerance
+hyp[5] = 0.0      # Penalty (no penalty needed - no constraints)
+hyp[6] = 2.0      # Penalty exponent
+hyp[10] = 0       # Plot v_0 (1st variable, 0-indexed)
+hyp[11] = 1       # Plot v_1 (2nd variable, 0-indexed)
+hyp[12] = 30      # Number of points in v_0 direction
+hyp[13] = 30      # Number of points in v_1 direction
 
 # Create the surface plot
 print("Creating 3D surface plot of Rosenbrock function...")
 print(f"Initial point: x = {v_init}")
-print(f"Plotting x[{int(options[10])}] vs x[{int(options[11])}]")
-print(f"Grid size: {int(options[12])} x {int(options[13])}")
+print(f"Plotting x[{int(hyp[10])}] vs x[{int(hyp[11])}]")
+print(f"Grid size: {int(hyp[12])} x {int(hyp[13])}")
 
 fmin, fmax, ax = plot_opt_surface(test_func, v_init, v_lb, v_ub, 
-options, consts=None, fig_no=100)
+hyp, consts=None, fig_no=100)
 
 print(f"\nSurface z-axis range: [{fmin:.4f}, {fmax:.4f}]")
 

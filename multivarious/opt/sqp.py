@@ -41,12 +41,12 @@ from scipy.linalg import qr
 
 from multivarious.opt.qp_solve import qp_solve
 from multivarious.utl.plot_opt_surface import plot_opt_surface
-from multivarious.utl.opt_options import opt_options
+from multivarious.utl.opt_hyp import opt_hyp
 from multivarious.utl.opt_report import opt_report
 
 
 
-def sqp(func, v_init, v_lb=None, v_ub=None, options_in=None, consts=1.0):
+def sqp(func, v_init, v_lb=None, v_ub=None, hyp_in=None, consts=1.0):
     """
     Sequential Quadratic Programming
     for nonlinear optimization with inequality constraints.
@@ -64,13 +64,13 @@ def sqp(func, v_init, v_lb=None, v_ub=None, options_in=None, consts=1.0):
         Initial guess for design variable values
     v_lb, v_ub : ndarray, shape (n,), optional
         Lower/upper bounds (default: ±100*|v_init|)
-    options_in : array-like, optional
-        Optimization settings (see opt_options)
-        options[1] = 1  means display intermediate results
-        options[2] = tol_p  tolerance on convergence of variables 
-        options[3] = tol_f  tolerance on convergence of objective
-        options[4] = tol_g  tolerance on constraint functions
-        options[5]  = max_evals limit on number of function evaluations
+    hyp_in : array-like, optional
+        Optimization settings (see opt_hyp)
+        hyp[1] = 1  means display intermediate results
+        hyp[2] = tol_p  tolerance on convergence of variables 
+        hyp[3] = tol_f  tolerance on convergence of objective
+        hyp[4] = tol_g  tolerance on constraint functions
+        hyp[5]  = max_evals limit on number of function evaluations
 
     consts : any
         Constants passed to 'func`.
@@ -115,17 +115,17 @@ def sqp(func, v_init, v_lb=None, v_ub=None, options_in=None, consts=1.0):
     v0 = np.clip(v_init, 0.9*v_lb, 0.9*v_ub)
     
     # Options
-    options = opt_options(options_in)
-    options    = opt_options(options_in)
-    msg        = int(options[0])    # display level
-    tol_v      = float(options[1])  # design var convergence tol
-    tol_f      = float(options[2])  # objective convergence tol
-    tol_g      = float(options[3])  # constraint tol
-    max_evals  = int(options[4])    # budget
-    options[5] = -1                 # no penalty factor involved in SQP
-    find_feas  = int(options[9])    # stop once a feasible solution is found
-    del_min    = float(options[16]) # min parameter change for finite diff
-    del_max    = float(options[17]) # max parameter change for finite diff
+    hyp = opt_hyp(hyp_in)
+    hyp    = opt_hyp(hyp_in)
+    msg        = int(hyp[0])    # display level
+    tol_v      = float(hyp[1])  # design var convergence tol
+    tol_f      = float(hyp[2])  # objective convergence tol
+    tol_g      = float(hyp[3])  # constraint tol
+    max_evals  = int(hyp[4])    # budget
+    hyp[5] = -1                 # no penalty factor involved in SQP
+    find_feas  = int(hyp[9])    # stop once a feasible solution is found
+    del_min    = float(hyp[16]) # min parameter change for finite diff
+    del_max    = float(hyp[17]) # max parameter change for finite diff
 
     # Scale design variables from v_lb < v < v_ub to -1 < u < +1
     s0 = (v_lb + v_ub) / 2.0
@@ -148,7 +148,7 @@ def sqp(func, v_init, v_lb=None, v_ub=None, options_in=None, consts=1.0):
     m = len(g0)  # number of constraints
 
     if msg > 2:
-        f_min, f_max, ax = plot_opt_surface(func, v_init, v_lb, v_ub, options, consts, 1003)
+        f_min, f_max, ax = plot_opt_surface(func, v_init, v_lb, v_ub, hyp, consts, 1003)
 
     # Initialize gradient and Hessian storage
     OLDU = u0.copy()
@@ -384,8 +384,8 @@ def sqp(func, v_init, v_lb=None, v_ub=None, options_in=None, consts=1.0):
 
         # Plot current point
         if msg > 2:
-            ii = int(options[10])
-            jj = int(options[11])
+            ii = int(hyp[10])
+            jj = int(hyp[11])
             v_plot = s0 + s1*u
             ax.plot([v_plot[ii]], [v_plot[jj]], f ,
                    'ro', alpha=1.0, markersize=8, linewidth=4,
@@ -460,8 +460,8 @@ def sqp(func, v_init, v_lb=None, v_ub=None, options_in=None, consts=1.0):
 
     if msg > 2:
         plt.figure(1003)
-        ii = int(options[10])
-        jj = int(options[11])
+        ii = int(hyp[10])
+        jj = int(hyp[11])
         plt.plot( v_opt[ii], v_opt[jj], f_opt, '-or', markersize=14 )
    
     # Trim history
@@ -543,7 +543,7 @@ def qp_scipy(H, f, A, b):
             method='SLSQP',
             jac=grad_objective_reg,
             constraints=constraints,
-            options={'maxiter': 200, 'ftol': 1e-9, 'disp': False}
+            hyp={'maxiter': 200, 'ftol': 1e-9, 'disp': False}
         )
 
         if result.success:

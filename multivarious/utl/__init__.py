@@ -20,7 +20,7 @@ from .correlated_rvs import correlated_rvs
 from .correlation_analysis import correlation_analysis
 from .format_bank import format_bank
 from .format_plot import format_plot
-from .opt_options import opt_options
+from .opt_hyp import opt_hyp
 from .opt_report import opt_report
 from .plot_ECDF_ci import plot_ECDF_ci
 from .plot_cvg_hst import plot_cvg_hst
@@ -32,14 +32,13 @@ from .plot_spectra import plot_spectra
 from .L1_plots import L1_plots
 from .StableNamespace import StableNamespace
 
-
 __all__ = [ "avg_cov_func", 
             "box_constraint", 
             "correlated_rvs",
             "correlation_analysis",
             "format_bank", 
             "format_plot", 
-            "opt_options", 
+            "opt_hyp", 
             "opt_report", 
             "plot_ECDF_ci", 
             "plot_cvg_hst", 

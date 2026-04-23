@@ -60,13 +60,13 @@ v_init = np.ones(n)
 v_lb   = np.zeros(n)
 v_ub   = 10*np.ones(n)
 
-# optimization options ...
-#        0      1        2        3         4          5      6      7     8
-#       msg    tol_v    tol_f    tol_g    max_evals  pnlty  expn  m_max  cov_F
-opts = [ 1 ,   1e-2 ,   1e-2 ,   1e-3 ,    50*n**3 ,  0.5 ,  0.5 ,   1 ,  0.05 ]
+# optimization hyperparameters ...
+#       0      1        2        3         4          5      6      7     8
+#      msg    tol_v    tol_f    tol_g    max_evals  pnlty  expn  m_max  cov_F
+hyp = [ 1 ,   1e-2 ,   1e-2 ,   1e-3 ,    50*n**3 ,  0.5 ,  0.5 ,   1 ,  0.05 ]
 
 # Solve the optimization problem using one of ... ors , nms , sqp 
-v_opt, f_opt, g_opt, cvg_hst, _,_ = sqp(LP_analysis, v_init, v_lb, v_ub, opts, cts)
+v_opt, f_opt, g_opt, cvg_hst, _,_ = sqp(LP_analysis, v_init, v_lb, v_ub, hyp, cts)
 
 # plot the convergence history
-plot_cvg_hst( cvg_hst , v_opt , opts )
+plot_cvg_hst( cvg_hst , v_opt , hyp)

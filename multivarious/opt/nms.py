@@ -2,7 +2,7 @@
 nms.py
 -----------------------------------------------------------------------------
 Nelder-Mead Algorithm for Nonlinear Optimization
-Depends on: opt_options(), avg_cov_func(), plot_opt_surface()
+Depends on: opt_hyp(), avg_cov_func(), plot_opt_surface()
 -----------------------------------------------------------------------------
 
 Nonlinear optimization with inequality constraints via the Nelder-Mead Simplex
@@ -38,10 +38,10 @@ from datetime import datetime, timedelta
 
 from multivarious.utl.avg_cov_func import avg_cov_func
 from multivarious.utl.plot_opt_surface import plot_opt_surface
-from multivarious.utl.opt_options import opt_options
+from multivarious.utl.opt_hyp import opt_hyp
 from multivarious.utl.opt_report import opt_report
 
-def nms(func, v_init, v_lb=None, v_ub=None, options_in=None, consts=1.0):
+def nms(func, v_init, v_lb=None, v_ub=None, hyp_in=None, consts=1.0):
     """
     Nelder-Mead Algorithm for nonlinear optimization with inequality constraints
 
@@ -65,8 +65,8 @@ def nms(func, v_init, v_lb=None, v_ub=None, options_in=None, consts=1.0):
         Initial guess.
     v_lb, v_ub : array-like (n,), optional
         Lower/upper bounds on v. If omitted, wide bounds are used (1e2*|v_init|).
-    options_in : array-like, optional
-        See opt_options() for the 19 parameters 
+    hyp_in : array-like, optional
+        See opt_hyp() for the 19 parameters 
     consts : any
         Passed through to `func`.
 
@@ -111,7 +111,7 @@ def nms(func, v_init, v_lb=None, v_ub=None, options_in=None, consts=1.0):
 
     BOX = 1 # enforce bounds inside avg_cov_func
 
-    # ----- options & inputs -----
+    # ----- hyp & inputs -----
 
     if v_lb is None or v_ub is None:
         v_lb = -1.0e2 * np.abs(v_init)
@@ -127,13 +127,13 @@ def nms(func, v_init, v_lb=None, v_ub=None, options_in=None, consts=1.0):
     if np.any(v_ub <= v_lb):
         raise ValueError("v_ub must be greater than v_lb for all parameters")
 
-    options   = opt_options(options_in)
-    msg       = int(options[0])   # display level
-    tol_v     = float(options[1]) # design var convergence tol
-    tol_f     = float(options[2]) # objective convergence tol
-    tol_g     = float(options[3]) # constraint tol
-    max_evals = int(options[4])   # budget
-    find_feas = bool(options[9])  # stop once feasible
+    hyp   = opt_hyp(hyp_in)
+    msg       = int(hyp[0])   # display level
+    tol_v     = float(hyp[1]) # design var convergence tol
+    tol_f     = float(hyp[2]) # objective convergence tol
+    tol_g     = float(hyp[3]) # constraint tol
+    max_evals = int(hyp[4])   # budget
+    find_feas = bool(hyp[9])  # stop once feasible
 
     optimize_contraction = False  # Option to optimize contraction step
 
@@ -150,14 +150,14 @@ def nms(func, v_init, v_lb=None, v_ub=None, options_in=None, consts=1.0):
     cvg_hst = np.full((n + 5, max(1, max_evals)), np.nan)
 
     # ----- analyze the initial guess -----
-    f0, g0, u0, cJ, nAvg = avg_cov_func(func, u0, s0, s1, options, consts, BOX)
+    f0, g0, u0, cJ, nAvg = avg_cov_func(func, u0, s0, s1, hyp, consts, BOX)
     function_evals += nAvg
     g0 = np.atleast_1d(g0).astype(float).flatten()
     m = g0.size  # number of constraints
 
     if msg > 2:
         f_min, f_max, ax = plot_opt_surface(func, v_init, v_lb, v_ub, 
-                                            options, consts, 1003)
+                                            hyp, consts, 1003)
 
     start_time = time.time()
 
@@ -186,7 +186,7 @@ def nms(func, v_init, v_lb=None, v_ub=None, options_in=None, consts=1.0):
         delta_u[i] = aa
         u = u0 + delta_u
 
-        fz, gz, u, cu, nAvg = avg_cov_func(func, u, s0, s1, options, consts, BOX)
+        fz, gz, u, cu, nAvg = avg_cov_func(func, u, s0, s1, hyp, consts, BOX)
         j = i + 1
         simplex[:, j] = u
         f_all[j] = fz
@@ -250,7 +250,7 @@ def nms(func, v_init, v_lb=None, v_ub=None, options_in=None, consts=1.0):
 
         # ----- REFLECT ----u
         ur = uo + a_reflect * (uo - simplex[:, n])
-        fr, gr, ur, cj, nAvg = avg_cov_func(func, ur, s0, s1, options, consts, BOX)
+        fr, gr, ur, cj, nAvg = avg_cov_func(func, ur, s0, s1, hyp, consts, BOX)
         function_evals += nAvg
 
         if f_all[0] <= fr < f_all[n - 1]:  # fr between best and second-worst
@@ -261,7 +261,7 @@ def nms(func, v_init, v_lb=None, v_ub=None, options_in=None, consts=1.0):
         # ----- EXTEND -----
         if not accept_point and fr < f_all[0]:  # fr better than best
             ue = uo + a_extend * (ur - uo)
-            fe, ge, ue, cj, nAvg = avg_cov_func(func, ue, s0, s1, options, consts, BOX)
+            fe, ge, ue, cj, nAvg = avg_cov_func(func, ue, s0, s1, hyp, consts, BOX)
             function_evals += nAvg
 
             if fe < fr:
@@ -277,10 +277,10 @@ def nms(func, v_init, v_lb=None, v_ub=None, options_in=None, consts=1.0):
             uci = uo - a_contract * (ur - uo)  # inside contraction
             uco = uo + a_contract * (ur - uo)  # outside contraction
 
-            fci, gci, uci, ci, nAvg = avg_cov_func(func, uci, s0, s1, options, consts, BOX)
+            fci, gci, uci, ci, nAvg = avg_cov_func(func, uci, s0, s1, hyp, consts, BOX)
             function_evals += nAvg
 
-            fco, gco, uco, co, nAvg = avg_cov_func(func, uco, s0, s1, options, consts, BOX)
+            fco, gco, uco, co, nAvg = avg_cov_func(func, uco, s0, s1, hyp, consts, BOX)
             function_evals += nAvg
 
             # Optional: optimize contraction step
@@ -298,7 +298,7 @@ def nms(func, v_init, v_lb=None, v_ub=None, options_in=None, consts=1.0):
                 if abs(du) < d[3] and a_coef[2] > 0:
                     uc_opt = uo + du * (ur - uo) / d[3]
                     fc_opt, gc_opt, uc_opt, cj, nAvg = avg_cov_func(func, uc_opt, s0, s1,
-                                                                      options, consts, BOX)
+                                                                      hyp, consts, BOX)
                     function_evals += nAvg
 
                     if fc_opt < min(fci, fco) and fc_opt < f_all[n - 1]:
@@ -329,7 +329,7 @@ def nms(func, v_init, v_lb=None, v_ub=None, options_in=None, consts=1.0):
             u0 = simplex[:, 0]
             for i in range(1, n + 1):
                 uk = u0 + a_shrink * (simplex[:, i] - u0)
-                fk, gk, uk, cj, nAvg = avg_cov_func(func, uk, s0, s1, options, consts, BOX)
+                fk, gk, uk, cj, nAvg = avg_cov_func(func, uk, s0, s1, hyp, consts, BOX)
                 simplex[:, i] = uk
                 f_all[i] = fk
                 g_all[:, i] = gk
@@ -350,7 +350,7 @@ def nms(func, v_init, v_lb=None, v_ub=None, options_in=None, consts=1.0):
         elongated_idx = np.where(lo / np.max(lo) < (a_expand - 1))[0]
         for j in elongated_idx:
             uz = vo[:, j] + a_expand * (simplex[:, j] - vo[:, j])
-            fz, gz, uz, cj, nAvg = avg_cov_func(func, uz, s0, s1, options, consts, BOX)
+            fz, gz, uz, cj, nAvg = avg_cov_func(func, uz, s0, s1, hyp, consts, BOX)
             simplex[:, j] = uz
             f_all[j] = fz
             g_all[:, j] = gz
@@ -420,8 +420,8 @@ def nms(func, v_init, v_lb=None, v_ub=None, options_in=None, consts=1.0):
 
         # ----- Plot simplex on surface -----
         if msg > 2:
-            ii = int(options[10])
-            jj = int(options[11])
+            ii = int(hyp[10])
+            jj = int(hyp[11])
             simplex_plot = s0[:, np.newaxis] + s1[:, np.newaxis] * simplex
 
             # Plot simplex as connected triangles (for n=2, plots all 3 vertices)
@@ -458,8 +458,8 @@ def nms(func, v_init, v_lb=None, v_ub=None, options_in=None, consts=1.0):
     # plot the converged point
     if msg > 2:
         plt.figure(1003)
-        ii = int(options[10])
-        jj = int(options[11])
+        ii = int(hyp[10])
+        jj = int(hyp[11])
         plt.plot( v_opt[ii], v_opt[jj], f_opt, '-or', markersize=14 )
 
     # final report

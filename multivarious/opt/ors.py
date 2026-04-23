@@ -2,7 +2,7 @@
 ors.py 
 -----------------------------------------------------------------------------
 Optimized Step Size Randomized Search Algorithm for Nonlinear Optimization
-Depends on: opt_options(), avg_cov_func(), plot_opt_surface()
+Depends on: opt_hyp(), avg_cov_func(), plot_opt_surface()
 -----------------------------------------------------------------------------
 
 Nonlinear optimization with inequality constraints using Random Search
@@ -37,10 +37,10 @@ from numpy.linalg import solve
 from multivarious.utl.avg_cov_func import avg_cov_func
 from multivarious.utl.box_constraint import box_constraint
 from multivarious.utl.plot_opt_surface import plot_opt_surface  
-from multivarious.utl.opt_options import opt_options
+from multivarious.utl.opt_hyp import opt_hyp
 from multivarious.utl.opt_report import opt_report 
 
-def ors(func, v_init, v_lb=None, v_ub=None, options=None, consts=None):
+def ors(func, v_init, v_lb=None, v_ub=None, hyp=None, consts=None):
     """
     Optimized Random Search with inequality constraints.
     
@@ -55,19 +55,19 @@ def ors(func, v_init, v_lb=None, v_ub=None, options=None, consts=None):
         Lower bounds on design variables (default: -100*|v_init|)
     v_ub : ndarray, shape (n,), optional
         Upper bounds on design variables (default: +100*|v_init|)
-    options : ndarray or list, optional
-        Optimization settings (see opt_options.py for details):
-        options[0] = message level (0=quiet, 1+=verbose)
-        options[1] = tol_v - tolerance on design variables
-        options[2] = tol_f - tolerance on objective function
-        options[3] = tol_g - tolerance on constraints
-        options[4] = max_evals - max function evaluations
-        options[5] = penalty - penalty on constraint violations
-        options[6] = q - exponent on constraint violations
-        options[7] = m_max - num. function evals in mean estimate
-        options[8] = err_F - desired coefficient of variation on mean
-        options[9] = find_feas - stop when solution is feasible (1) or not (0)
-        options[10:13] = surface plotting parameters
+    hyp : ndarray or list, optional
+        Optimization settings (see opt_hyp.py for details):
+        hyp[0] = message level (0=quiet, 1+=verbose)
+        hyp[1] = tol_v - tolerance on design variables
+        hyp[2] = tol_f - tolerance on objective function
+        hyp[3] = tol_g - tolerance on constraints
+        hyp[4] = max_evals - max function evaluations
+        hyp[5] = penalty - penalty on constraint violations
+        hyp[6] = q - exponent on constraint violations
+        hyp[7] = m_max - num. function evals in mean estimate
+        hyp[8] = err_F - desired coefficient of variation on mean
+        hyp[9] = find_feas - stop when solution is feasible (1) or not (0)
+        hyp[10:13] = surface plotting parameters
     consts : optional
         Additional constants passed to func(v, consts)
     
@@ -107,23 +107,23 @@ def ors(func, v_init, v_lb=None, v_ub=None, options=None, consts=None):
     v_lb = np.asarray(v_lb, dtype=float).flatten()
     v_ub = np.asarray(v_ub, dtype=float).flatten()
     
-    if options is None:
-        options = opt_options()
+    if hyp is None:
+        hyp = opt_hyp()
     else:
-        options = opt_options(options)
+        hyp = opt_hyp(hyp)
     
     if consts is None:
         consts = 1.0
     
-    # extract options
-    msg   = int(options[0])
-    tol_v = options[1]
-    tol_f = options[2]
-    tol_g = options[3]
-    max_evals = int(options[4])
-    penalty = options[5]
-    q = options[6]
-    find_feas = int(options[9])
+    # extract hyp
+    msg   = int(hyp[0])
+    tol_v = hyp[1]
+    tol_f = hyp[2]
+    tol_g = hyp[3]
+    max_evals = int(hyp[4])
+    penalty = hyp[5]
+    q = hyp[6]
+    find_feas = int(hyp[9])
     
     # check that uounds are valid
     if np.any(v_ub < v_lb):
@@ -146,7 +146,7 @@ def ors(func, v_init, v_lb=None, v_ub=None, options=None, consts=None):
     
     # analyze the initial guess
     u0 = u_init.copy() # use .copy() to keep changes in u0 from changing u_init
-    f0, g0, u0, c0, nAvg = avg_cov_func(func, u0, s0, s1, options, consts, BOX)
+    f0, g0, u0, c0, nAvg = avg_cov_func(func, u0, s0, s1, hyp, consts, BOX)
     function_evals += nAvg
     
     # check dimensions
@@ -168,7 +168,7 @@ def ors(func, v_init, v_lb=None, v_ub=None, options=None, consts=None):
     # plot objective surface
     if msg > 2:
         f_min, f_max, ax = plot_opt_surface(
-            func, v_init, v_lb, v_ub, options, consts, 1003)
+            func, v_init, v_lb, v_ub, hyp, consts, 1003)
      
     # initialize optimal values
     f_opt = f[0]
@@ -199,7 +199,7 @@ def ors(func, v_init, v_lb=None, v_ub=None, options=None, consts=None):
         u1 = u0 + aa * r
         d1 = norm(u1 - u0) 
         
-        f[1], g1, u1, c1, nAvg = avg_cov_func(func, u1, s0, s1, options, consts, BOX)
+        f[1], g1, u1, c1, nAvg = avg_cov_func(func, u1, s0, s1, hyp, consts, BOX)
         function_evals += nAvg
         
         # is f[1] downhill from f[0]?
@@ -213,7 +213,7 @@ def ors(func, v_init, v_lb=None, v_ub=None, options=None, consts=None):
             u2 = u0 + bb * 2*d1*r1 * downhill
         d2 = norm(u2 - u0) * downhill 
 
-        f[2], g2, u2, c2, nAvg = avg_cov_func(func, u2, s0, s1, options, consts, BOX)
+        f[2], g2, u2, c2, nAvg = avg_cov_func(func, u2, s0, s1, hyp, consts, BOX)
         function_evals += nAvg
         
         # 3rd perturbation : try quadratic update if curvature is positive
@@ -237,7 +237,7 @@ def ors(func, v_init, v_lb=None, v_ub=None, options=None, consts=None):
             else:
                 u3 = u0 + bb * d3*r1 * downhill
             
-            f[3], g3, u3, c3, nAvg = avg_cov_func(func, u3, s0, s1, options, consts, BOX)
+            f[3], g3, u3, c3, nAvg = avg_cov_func(func, u3, s0, s1, hyp, consts, BOX)
             function_evals += nAvg
 
         # save function values and variable values in their original units 
@@ -354,8 +354,8 @@ def ors(func, v_init, v_lb=None, v_ub=None, options=None, consts=None):
             if msg > 2:
            
                 plt.figure(1003)
-                ii = int(options[10])
-                jj = int(options[11])
+                ii = int(hyp[10])
+                jj = int(hyp[11])
             
                 if downhill > 0:
                     plt.plot([ v0[ii], v1[ii], v2[ii] ], 
@@ -394,8 +394,8 @@ def ors(func, v_init, v_lb=None, v_ub=None, options=None, consts=None):
     # plot the converged point
     if msg > 2:
         plt.figure(1003)
-        ii = int(options[10])
-        jj = int(options[11])
+        ii = int(hyp[10])
+        jj = int(hyp[11])
         plt.plot( v_opt[ii], v_opt[jj], f_opt, '-or', markersize=14 )
         plt.draw()
         plt.pause(0.10)

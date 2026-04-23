@@ -131,7 +131,7 @@ To set hyperparameters and plot results of multivarious computations.
 | **correlation_analysis** | correlation analysis for the uncertainty quantification of a design optimization  |
 | **format_bank**       | format a numerical string                                                      |
 | **format_plot**       | set the font size, line width, and marker size                                 |
-| **opt_options**       | adjust algorithmic options for ors, nms, and sqp                               |
+| **opt_hyp**           | adjust algorithmic hyperparameters for ors, nms, and sqp                       |
 | **opt_report**        | provide a summary report for ors, nms, sqp                                     |
 | **plot_ECDF_ci**      | cumulative distribution function from data and its confidence interval |
 | **plot_scatter_dist** | multivariate scatter plots with distributions and correlation confidence intervals |

@@ -161,9 +161,9 @@ def run_example(example_number: int = 1, print_level: int = 3): #  -> Tuple:
     print(f"LEVENBERG-MARQUARDT EXAMPLE {example_number}")
     print("="*80)
     
-    # Algorithm options
+    # Algorithm hyper parameters 
     # [prnt, MaxEvals, eps1, eps2, eps3, eps4, lam0, lamUP, lamDN, UpdateType]
-    opts = np.array([print_level, 100, 1e-3, 1e-3, 1e-1, 1e-1, 1e-2, 11, 9, 1])
+    hyp = np.array([print_level, 100, 1e-3, 1e-3, 1e-1, 1e-1, 1e-2, 11, 9, 1])
 
     # ========================================================================
     # Print true and initial guess of coefficient values 
@@ -179,7 +179,7 @@ def run_example(example_number: int = 1, print_level: int = 3): #  -> Tuple:
     # Run optimization
     result = lm( lm_func,  
             coeffs_init, t, y_dat, weight, -0.01,
-            coeffs_lb, coeffs_ub, (example_number,), opts  # Pass example_number here
+            coeffs_lb, coeffs_ub, (example_number,), hyp # Pass example_number here
     )
 
     coeffs_fit, chi_sq, sigma_coeffs, sigma_y, corr, R_sq, cvg_history, func_calls, message, aic, bic  = result
@@ -251,8 +251,8 @@ def sensitivity_to_initial_guess(example_number: int = 3, n_trials: int = 100) -
     coeffs_lb = -2 * np.abs(coeffs_true)
     coeffs_ub = 2 * np.abs(coeffs_true)
     
-    # Options (silent mode)
-    opts = np.array([0, 800, 1e-3, 1e-3, 1e-3, 1e-2, 1e-2, 11, 9, 1])
+    # Hyperparameters (silent mode)
+    hyp = np.array([0, 800, 1e-3, 1e-3, 1e-3, 1e-2, 1e-2, 11, 9, 1])
     
     # Run all trials
     for i in range(n_trials):
@@ -262,7 +262,7 @@ def sensitivity_to_initial_guess(example_number: int = 3, n_trials: int = 100) -
         result = lm(
             lambda t_in, c: lm_func(t_in, c, example_number),
             coeffs_init_all[:, i], t, y_dat, weight, -1e-5,
-            coeffs_lb, coeffs_ub, (), opts
+            coeffs_lb, coeffs_ub, (), hyp  
         )
         
         coeffs_fit_all[:, i] = result[0]
