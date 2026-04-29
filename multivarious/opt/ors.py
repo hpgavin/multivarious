@@ -138,11 +138,14 @@ def ors(func, v_init, v_lb=None, v_ub=None, hyp=None, consts=None):
     
     # initialize
     function_evals = iteration = 0
+    delta_u = np.zeros(n)  
+    r_ff = 0.8  # forgetting factor for search direction > 0.5
     cvg_f = 1.0
     cvg_hst = np.full((n + 5, max_evals), np.nan)
     f = np.zeros(4)
 
     """
+    # ref. Hazen (2006)
     zn = np.zeros(n)
     cov_r = 0.04*np.eye(n) # initial perturbation covariance matrix (identity)
     path_r = np.zeros(n)   # evolution path for covariance matrix adaptation
@@ -188,6 +191,7 @@ def ors(func, v_init, v_lb=None, v_ub=None, hyp=None, consts=None):
      
     # initialize optimal values
     f_opt = f[0]
+    r_opt = np.zeros(n)  # search direction
     u_opt = u0.copy() # use .copy() to keep changes in u0 from changing u_opt
     g_opt = g0.copy() # use .copy() to keep changes in g0 from changing g_opt
     v_opt = s0 + s1*u_opt # scale (u) back to original units (v)
@@ -207,11 +211,11 @@ def ors(func, v_init, v_lb=None, v_ub=None, hyp=None, consts=None):
     while function_evals < max_evals:
         
         # step_stdev = np.sqrt(np.diag(cov_r))
-        # R = np.diag(1/step_stdev) * cov_r * np.diag(1/step_stdev) # correlation
+        # R = np.diag(1/step_stdev) * cov_r * np.diag(1/step_stdev)# correlation
         # r = normal.rnd(zn, step_stdev, 1, R )
 
         # a random search perturbation with standard deviation 'step_stdev'
-        r = step_stdev * np.random.randn(n)
+        r = (1 - r_ff) * r_opt  +  r_ff * step_stdev * np.random.randn(n)
         r1 = r / norm(r) # unit vector along r
         
         # 1st perturbation: +1*r : "random single step"
@@ -321,6 +325,7 @@ def ors(func, v_init, v_lb=None, v_ub=None, hyp=None, consts=None):
             delta_u = np.zeros(n)
 
         """
+        # ref. Hazen (2006)
         # Update the covariance matrix (rank-1 update)
         if norm(delta_u) > 0:
             path_r = (1 - cov_lr) * path_r + np.sqrt(cov_lr * (2 - cov_lr)) * (delta_u / step_stdev)
@@ -341,6 +346,7 @@ def ors(func, v_init, v_lb=None, v_ub=None, hyp=None, consts=None):
         if f[0] < f_opt:
             # use .copy() to keep changes to u0 from changing u_opt!
             u_opt = u0.copy()
+            r_opt = delta_u
             f_opt = f[0].copy() # .copy() not needed since f_opt is immutable
             g_opt = g0.copy()
             v_opt = s0 + s1*u_opt # scale (u) back to original units (v)
@@ -389,7 +395,6 @@ def ors(func, v_init, v_lb=None, v_ub=None, hyp=None, consts=None):
         
             # plot on surface for this iteration
             if msg > 2:
-           
                 plt.figure(1003)
                 ii = int(hyp[10])
                 jj = int(hyp[11])
