@@ -397,16 +397,19 @@ def sqp(func, v_init, v_lb=None, v_ub=None, hyp_in=None, consts=1.0):
         cvg_f = abs(absSL * np.dot(gradf, SD) / (f + 1e-9))
         cvg_v = np.max(np.abs(absSL * SD / ( s0+s1+u + 1e-9 )))
 
-        feasible = converged = stalled = False # convergence criteria
+        feasible = converged = stalled = hasty = False # convergence criteria
 
-        if (g_max < tol_g and howqp != 'infeasible'):
+        if (g_max < tol_g and howqp != 'infeasible'):   # :)
             feasible = True
 
-        if feasible and find_feas:
+        if feasible and find_feas:                      # :)
             converged = True
     
-        if (cvg_v < tol_v and cvg_f < tol_f):
+        if (cvg_v < tol_v and cvg_f < tol_f):           # :)
             converged = True
+
+        if iteration < 5:                               # :(
+            hasty = True
 
         if converged:
             end_iterations = True
@@ -456,7 +459,7 @@ def sqp(func, v_init, v_lb=None, v_ub=None, hyp_in=None, consts=1.0):
     if msg:
         opt_report(v_init, v_opt, f_opt, g_opt, v_lb, v_ub, tol_v, tol_f, tol_g,
                    lambda_qp, start_time, function_evals, max_evals,
-                   find_feas, feasible, converged, stalled )
+                   find_feas, feasible, converged, stalled, hasty )
 
     if msg > 2:
         plt.figure(1003)

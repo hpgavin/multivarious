@@ -245,5 +245,8 @@ def rnd(mednX, covnX, N, R=None, seed=None):
     
     # Transform to lognormal: x = exp(log(mednX) + Y * sqrt(VlnX))
     X = inv( U, mednX, covnX )
-    
+
+    if N == 1:
+        X = X.flatten()
+
     return X

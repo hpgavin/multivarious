@@ -194,5 +194,8 @@ def rnd(m, s, k, N, R=None, seed=None):
     _, _, U = correlated_rvs(R, n, N, seed)
 
     X = inv(U, m, s, k)
-    
+
+    if N == 1:
+        X = X.flatten()
+
     return X

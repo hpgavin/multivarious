@@ -189,7 +189,7 @@ def rnd(meanX, N, R=None, seed=None):
     # Inverse transform: x = -meanX * log(U)
     X = -meanX * np.log(U)
 
-    if n == 1:
+    if n == 1 or N == 1:
         X = X.flatten()
 
     return X

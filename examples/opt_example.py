@@ -41,7 +41,7 @@ def opt_example_analysis( v, cts ):
        b[0] + b[3]*( v1 - b[1] )**2 + b[4]*( v2 - b[2] )**2    # "g2"
     ])
 
-    return f, g       
+    return f[0], g       
 
 def opt_example_analysis_HW01P10( v, cts ):
     """
@@ -114,7 +114,7 @@ hyp = [ 3,   2e-2,   2e-2,  1e-3,   50*n**3,  0.7,   0.5,   1,    0.05 ]
 
 # Solve the optimization problem using one of ... ors , nms , sqp 
 # in opt_example_analysis select the "open constraint" or "gauntlet constraint"
-v_opt, f_opt, g_opt, cvg_hst, _,_ = nms( fctn, v_init, v_lb, v_ub, hyp, cts )
+v_opt, f_opt, g_opt, cvg_hst, _,_ = ors( fctn, v_init, v_lb, v_ub, hyp, cts )
 
 # plot the convergence history
 format_plot(font_size=15, line_width=3, marker_size=7)

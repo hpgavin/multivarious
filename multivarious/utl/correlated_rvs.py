@@ -177,6 +177,7 @@ def correlated_rvs(R, n, N=1, seed=None):
         eigval = np.ones(n)
         eigvec = np.eye(n)
     elif n > 1:
+        np.fill_diagonal(R, 1.0) # ensure diagonal is excatly 1.0 
         R, alpha, iter, eval0 = nearcorr_shrink(R, tolrnc)
         if alpha > 0:
             print(f" correlated_rvs: Correlation matrix shrinkage ")

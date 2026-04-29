@@ -201,4 +201,7 @@ def rnd(meanX, N, R=None, seed=None):
     # Inverse transform sampling
     X = inv(U, meanX) 
 
+    if N == 1:
+        X = X.flatten()
+
     return X

@@ -216,4 +216,7 @@ def rnd(a, b, c, N, R=None, seed=None ):
     # Transform each variable to its triangular distribution via inverse CDF
     X = inv( U, a, b, c )
 
+    if N == 1:
+        X = X.flatten()
+
     return X

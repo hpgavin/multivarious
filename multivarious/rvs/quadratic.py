@@ -211,4 +211,7 @@ def rnd(a, b, N, R=None, seed=None):
 
     X = inv(U, a, b)
 
+    if N == 1:
+        X = X.flatten()
+
     return X

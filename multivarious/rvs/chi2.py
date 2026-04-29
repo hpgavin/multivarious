@@ -222,4 +222,7 @@ def rnd(k, N, R=None, seed=None):
     # Apply transformation
     X = inv(U, k)  
 
+    if N == 1:
+        X = X.flatten()
+
     return X

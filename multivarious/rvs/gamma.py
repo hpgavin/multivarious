@@ -267,7 +267,7 @@ def rnd(meanX, covnX, N, R=None, seed=None):
     for i in range(n):
         X[i, :] = inv(U[i,:], meanX[i], covnX[i])
 
-    if n == 1:
+    if n == 1 or N == 1:
         X = X.flatten()
 
     return X

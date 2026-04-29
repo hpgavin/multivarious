@@ -225,4 +225,7 @@ def rnd(a, b, N, R=None, seed=None):
     # Transform to [a, b]: x = a + U * (b - a)
     X = inv(U, a, b )
 
+    if N == 1:
+        X = X.flatten()
+
     return X

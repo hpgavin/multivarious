@@ -239,4 +239,7 @@ def rnd(a, b, q, p, N, R=None, seed=None):
 
     X = inv( U, a, b, q, p )
        
+    if N == 1:
+        X = X.flatten()
+
     return X

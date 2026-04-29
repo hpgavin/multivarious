@@ -3,7 +3,7 @@ import time
 from datetime import datetime, timedelta
 
 
-def opt_report(v_init, v_opt, f_opt, g_opt, v_lb, v_ub, tol_v, tol_f, tol_g, lambda_qp, start_time, function_evals, max_evals, find_feas, feasible, converged, stalled ):
+def opt_report(v_init, v_opt, f_opt, g_opt, v_lb, v_ub, tol_v, tol_f, tol_g, lambda_qp, start_time, function_evals, max_evals, find_feas, feasible, converged, stalled, hasty ):
     '''
     print a final report of the result of optimization from ors, nms, sqp
 
@@ -29,22 +29,35 @@ def opt_report(v_init, v_opt, f_opt, g_opt, v_lb, v_ub, tol_v, tol_f, tol_g, lam
             print(' * Woo-Hoo! Converged solution is feasible!')
         else:
             print(' * Boo-Hoo! Converged solution is NOT feasible!')
-            print(' *   ... Decrease tol_v (opts[1]) or tol_f (opts[2])')
-            print(' *    or Increase tol_g (opts[3]) ')
-            print(' *    or Increase  penalty (opts[5]) and try, try again ...')
+            print(' *   ... Decrease tol_v (hyp[1]) or tol_f (hyp[2])')
+            print(' *    or Increase tol_g (hyp[3]) ')
+            print(' *    or Increase  penalty (hyp[5]) and try, try again ...')
     else:
         print('\n * Boo-Hoo! Solution NOT converged!')
 
     if stalled:
         print(f' * Hmmm ... no improvement in the last {0.2*max_evals:.0f} function evaluations')
-        print(' *      ... Increase tol_v (opts[1]), tol_f (opts[2]) or max_evals (opts[4]) ...')
+        print(' *      ... Increase tol_v (hyp[1]), tol_f (hyp[2]) or max_evals (hyp[4]) ...')
         print(' *      ... and try try again.')
-    
+
+    if hasty:
+        print(f' * Hmmm ...  convergence in less than five iterations')
+        print(' *      ... you can probably do better ...')
+        print(' *      ... Decrease tol_v (hyp[1]), tol_f (hyp[2]) ...')
+        print(' *      ... and try try again.')
+ 
+
+    # check if the enough function evaluations were completed  
+    if function_evals < 2*n*n:
+        print(f" * Enough! max evaluations ({max_evals}) exceeded.")
+        print(" *   ... Increase tol_v (hyp[1]) or tol_f (hyp[2]) "
+                  "or max_evals (hyp[4]) and try again")
+   
     # check if the maximum function evaluation limit was exceeded
     if function_evals >= max_evals:
         print(f" * Enough! max evaluations ({max_evals}) exceeded.")
-        print(" *   ... Increase tol_v (opts[1]) or tol_f (opts[2]) "
-                  "or max_evals (opts[4]) and try again")
+        print(" *   ... Increase tol_v (hyp[1]) or tol_f (hyp[2]) "
+                  "or max_evals (hyp[4]) and try again")
 
     dur = time.time() - start_time
     print(" * ----------------------------------------------------------------------------")

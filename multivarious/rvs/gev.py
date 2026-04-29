@@ -148,4 +148,7 @@ def rnd(m, s, k, N, R=None, seed=None):
     # Apply transformation 
     X = inv(U, m, s, k)
 
+    if N == 1:
+        X = X.flatten()
+
     return X

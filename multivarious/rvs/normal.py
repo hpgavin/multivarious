@@ -224,4 +224,7 @@ def rnd(meanX=0.0, sdvnX=1.0, N=1, R=None, seed=None):
 
     X = inv(U, meanX, sdvnX)
 
+    if N == 1:
+        X = X.flatten()
+
     return X

@@ -232,4 +232,8 @@ def rnd(meanX, covnX, N, R=None, seed=None):
     if n == 1 and X.shape[0] == 1:
         X = X.flatten()
 
+    if N == 1:
+        X = X.flatten()
+
+
     return X

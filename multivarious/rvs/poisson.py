@@ -194,7 +194,10 @@ def rnd(t, T, N, R=None, seed=None):
             print(f"Warning: large iteration count at sample {j}")
 
     if n == 1 and x.shape[0] == 1:
-        x = x.flatten()
-    
+        X = X.flatten()
+
+    if N == 1:
+        X = X.flatten()
+
     return X
 

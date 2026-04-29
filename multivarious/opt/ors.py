@@ -19,6 +19,11 @@ Computer Methods in Applied Mechanics & Eng'g, Vol 19, 99-106, 1979
 
 S.Rao, Optimization Theory and Applications, 2nd ed, John Wiley, 1984
 
+Hansen, N. (2006). The CMA Evolution Strategy: A Tutorial. arXiv:1604.00772.
+
+Hansen, N., & Ostermeier, A. (2001). 
+Completely Derandomized Self-Adaptation in Evolution Strategies. Evolutionary Computation.
+
 H.P. Gavin, Civil & Environmental Eng'g, Duke Univ.
 Translation from MATLAB to Python, 2025-11-24
 
@@ -39,6 +44,7 @@ from multivarious.utl.box_constraint import box_constraint
 from multivarious.utl.plot_opt_surface import plot_opt_surface  
 from multivarious.utl.opt_hyp import opt_hyp
 from multivarious.utl.opt_report import opt_report 
+from multivarious.rvs import normal
 
 def ors(func, v_init, v_lb=None, v_ub=None, hyp=None, consts=None):
     """
@@ -135,8 +141,18 @@ def ors(func, v_init, v_lb=None, v_ub=None, hyp=None, consts=None):
     cvg_f = 1.0
     cvg_hst = np.full((n + 5, max_evals), np.nan)
     f = np.zeros(4)
-    
-    feasible = converged = stalled = False # convergence criteria
+
+    """
+    zn = np.zeros(n)
+    cov_r = 0.04*np.eye(n) # initial perturbation covariance matrix (identity)
+    path_r = np.zeros(n)   # evolution path for covariance matrix adaptation
+    path_sigma = 0         # evolution path for step size adaptation
+    cov_lr  = 2 / (n + 2)  # learning rate for covariance matrix
+    path_lr = (n + 2) / (3 * n)  # learning rate for step size
+    d_sigma = 1 + 2 * max(0, np.sqrt((n + 1) / (n + 5)))  # damping factor for step size
+    """
+        
+    feasible = converged = stalled = hasty = False  # convergence criteria
 
     # scale v from bounds [v_lb, v_ub] to u in bounds [-1, +1]
     s0 = (v_lb + v_ub) / 2.0  # average of v_lb and v_ub
@@ -179,7 +195,7 @@ def ors(func, v_init, v_lb=None, v_ub=None, hyp=None, consts=None):
     # save the initial guess to the convergence history
     cvg_hst[:, iteration] = np.concatenate([
         s0 + s1*u_opt, [f_opt], [np.max(g_opt)], 
-        [function_evals], [step_stdev], [1.0]
+        [function_evals], [np.linalg.norm(step_stdev)], [1.0]
     ])
     
     if msg:
@@ -190,6 +206,10 @@ def ors(func, v_init, v_lb=None, v_ub=None, hyp=None, consts=None):
     # ========== main optimization loop ==========
     while function_evals < max_evals:
         
+        # step_stdev = np.sqrt(np.diag(cov_r))
+        # R = np.diag(1/step_stdev) * cov_r * np.diag(1/step_stdev) # correlation
+        # r = normal.rnd(zn, step_stdev, 1, R )
+
         # a random search perturbation with standard deviation 'step_stdev'
         r = step_stdev * np.random.randn(n)
         r1 = r / norm(r) # unit vector along r
@@ -274,8 +294,7 @@ def ors(func, v_init, v_lb=None, v_ub=None, hyp=None, consts=None):
             step_stdev *= 0.8
             step_txt = '             contraction'
 
-
-        # Curvature-based adjustment (periodically or as smoothing)
+        # Curvature-based adjustment for the step standard deviation
         if c[2] is not None and c[2] > 0:
             sigma_curv = sc / np.sqrt(c[2] + 0.01)
             step_stdev = sf * step_stdev + (1 - sf) * sigma_curv
@@ -286,16 +305,34 @@ def ors(func, v_init, v_lb=None, v_ub=None, hyp=None, consts=None):
         if i_min > 0:
             step_stdev = step_stdev * (1 - function_evals / max_evals) ** nu
         '''
-        step_stdev = min(max(step_stdev,1*tol_v),0.2) # bound the step size
 
         # update the best point out of the four trials
         if i_min == 1:
+            delta_u = u1 - u0
             u0, g0, c0 = u1, g1, c1
         elif i_min == 2:
+            delta_u = u2 - u0
             u0, g0, c0 = u2, g2, c2
         elif i_min == 3:
+            delta_u = u3 - u0
             u0, g0, c0 = u3, g3, c3
             quad_update = True
+        else:
+            delta_u = np.zeros(n)
+
+        """
+        # Update the covariance matrix (rank-1 update)
+        if norm(delta_u) > 0:
+            path_r = (1 - cov_lr) * path_r + np.sqrt(cov_lr * (2 - cov_lr)) * (delta_u / step_stdev)
+            cov_r = (1 - cov_lr) * cov_r + cov_lr * np.outer(path_r, path_r)
+
+        # Update the step size (cumulative step-size adaptation)
+        if i_min != 0:  # if the step was successful
+            path_sigma = (1 - path_lr) * path_sigma + np.sqrt(path_lr * (2 - path_lr)) * (delta_u / step_stdev)
+            step_stdev = step_stdev * np.exp(path_lr / d_sigma * (norm(path_sigma) / np.sqrt(n) - 1))
+        """
+
+        step_stdev = min(max(step_stdev,1*tol_v),0.2) # bound the step size
         
         u0 = np.clip(u0, -1.0, +1.0)  # keep u0 within bounds, just to be sure
         f[0] = f[i_min]
@@ -345,7 +382,7 @@ def ors(func, v_init, v_lb=None, v_ub=None, hyp=None, consts=None):
                 print(f' variable  convergence   = {cvg_v:11.4e}    tol_v = {tol_v:8.6f}')
                 print(f' objective convergence   = {cvg_f:11.4e}    tol_f = {tol_f:8.6f}')
                 print(f' c.o.v. of F_A           = {c0:11.3e}')
-                print(f' step std.dev            = {step_stdev:7.3f}{step_txt}')
+                print(f' step std.dev            = {np.linalg.norm(step_stdev):7.3f}{step_txt}')
                 print(' +-+-+-+-+-+-+-+-+-+-+- ORS -+-+-+-+-+-+-+-+-+-+-+-+-+')
                 if quad_update:
                     print(' successful quadratic update')
@@ -383,11 +420,13 @@ def ors(func, v_init, v_lb=None, v_ub=None, hyp=None, consts=None):
         if function_evals - last_update > 0.20*max_evals:         # :(
             stalled = True   
 
-        if stalled or (step_stdev <= 2*tol_v and (feasible or converged)):
+        if stalled or (np.linalg.norm(step_stdev) <= 2*tol_v and (feasible or converged)):
             break 
 
     # ========== main optimization loop ==========
 
+    if iteration < 5:                                             # :( 
+        hasty = True
     # trim the convergence history
     cvg_hst = cvg_hst[:, 0:iteration+1]
 
@@ -406,7 +445,7 @@ def ors(func, v_init, v_lb=None, v_ub=None, hyp=None, consts=None):
         opt_report(v_init, v_opt, f_opt, g_opt, v_lb, v_ub,
                    tol_v, tol_f, tol_g,
                    lambda_qp, start_time, function_evals, max_evals, 
-                   find_feas, feasible, converged, stalled )
+                   find_feas, feasible, converged, stalled, hasty )
 
     return v_opt, f_opt, g_opt, cvg_hst, iteration, function_evals
 

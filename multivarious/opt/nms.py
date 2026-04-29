@@ -137,7 +137,7 @@ def nms(func, v_init, v_lb=None, v_ub=None, hyp_in=None, consts=1.0):
 
     optimize_contraction = False  # Option to optimize contraction step
 
-    feasible = converged = stalled = False # convergence criteria
+    feasible = converged = stalled = hasty = False # convergence criteria
 
     # ----- scale variables linearly to [-1, +1]  -----
     s0 = (v_lb + v_ub) / 2.0  # average of v_lb and v_ub 
@@ -447,10 +447,14 @@ def nms(func, v_init, v_lb=None, v_ub=None, hyp_in=None, consts=1.0):
         # check for stalled computations
         if function_evals - last_update > 0.2*max_evals:          # :(
             stalled = True   
+            print('iteration', iteration) 
         if feasible or converged or stalled:
             break 
 
     # ========== end main loop ==========
+
+    if iteration < 5:                                             # :(
+        hasty = True
 
     # trim the convergence history
     cvg_hst = cvg_hst[:, :iteration+1]
@@ -467,7 +471,7 @@ def nms(func, v_init, v_lb=None, v_ub=None, hyp_in=None, consts=1.0):
         lambda_qp = None
         opt_report(v_init, v_opt, f_opt, g_opt, v_lb, v_ub, tol_v, tol_f, tol_g,
                    lambda_qp, start_time, function_evals, max_evals,
-                   find_feas, feasible, converged, stalled )
+                   find_feas, feasible, converged, stalled, hasty )
 
     return v_opt, f_opt, g_opt, cvg_hst, function_evals, iteration
 
