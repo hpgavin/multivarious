@@ -97,7 +97,8 @@ def ors(func, v_init, v_lb=None, v_ub=None, hyp=None, consts=None):
     BOX = 1             # use box constraints
     step_stdev = 0.200  # standard deviation of random step
     sc = 0.10           # factor for curvature-based step size
-    sf = 0.05           # small forgetting factor
+    rf = 0.80           # forgetting factor for r (search direction) > 0.5
+    sf = 0.95           # forgetting factor for step_stdev           > 0.5
     # nu = 2.5          # exponent for reducing step_stdev
     regularization = 1e-6 * np.eye(3) # regularization for matrix inversion
     
@@ -139,7 +140,6 @@ def ors(func, v_init, v_lb=None, v_ub=None, hyp=None, consts=None):
     # initialize
     function_evals = iteration = 0
     delta_u = np.zeros(n)  
-    r_ff = 0.8  # forgetting factor for search direction > 0.5
     cvg_f = 1.0
     cvg_hst = np.full((n + 5, max_evals), np.nan)
     f = np.zeros(4)
@@ -176,8 +176,8 @@ def ors(func, v_init, v_lb=None, v_ub=None, hyp=None, consts=None):
     
     f[0] = f0 
     f[3] = f0
-    u3 = u0.copy() # use .copy() to keep changes in u3 from changing u0
-    g3 = g0.copy() # use .copy() to keep changes in g3 from changing g0
+    u3   = u0.copy() # use .copy() to keep changes in u3 from changing u0
+    g3   = g0.copy() # use .copy() to keep changes in g3 from changing g0
     
     m = len(g0)  # number of constraints
    
@@ -210,12 +210,13 @@ def ors(func, v_init, v_lb=None, v_ub=None, hyp=None, consts=None):
     # ========== main optimization loop ==========
     while function_evals < max_evals:
         
+        # ref. Hazen (2006)
         # step_stdev = np.sqrt(np.diag(cov_r))
         # R = np.diag(1/step_stdev) * cov_r * np.diag(1/step_stdev)# correlation
         # r = normal.rnd(zn, step_stdev, 1, R )
 
         # a random search perturbation with standard deviation 'step_stdev'
-        r = (1 - r_ff) * r_opt  +  r_ff * step_stdev * np.random.randn(n)
+        r = (1-rf) * r_opt  +  rf * step_stdev * np.random.randn(n)
         r1 = r / norm(r) # unit vector along r
         
         # 1st perturbation: +1*r : "random single step"
@@ -223,7 +224,7 @@ def ors(func, v_init, v_lb=None, v_ub=None, hyp=None, consts=None):
         u1 = u0 + aa * r
         d1 = norm(u1 - u0) 
         
-        f[1], g1, u1, c1, nAvg = avg_cov_func(func, u1, s0, s1, hyp, consts, BOX)
+        f[1], g1, u1, c1, nAvg = avg_cov_func(func, u1, s0,s1, hyp, consts, BOX)
         function_evals += nAvg
         
         # is f[1] downhill from f[0]?
@@ -237,7 +238,7 @@ def ors(func, v_init, v_lb=None, v_ub=None, hyp=None, consts=None):
             u2 = u0 + bb * 2*d1*r1 * downhill
         d2 = norm(u2 - u0) * downhill 
 
-        f[2], g2, u2, c2, nAvg = avg_cov_func(func, u2, s0, s1, hyp, consts, BOX)
+        f[2], g2, u2, c2, nAvg = avg_cov_func(func, u2, s0,s1, hyp, consts, BOX)
         function_evals += nAvg
         
         # 3rd perturbation : try quadratic update if curvature is positive
@@ -245,9 +246,9 @@ def ors(func, v_init, v_lb=None, v_ub=None, hyp=None, consts=None):
         
         # fit quadratic: f(d) = c[0] + c[1]*d + c[2]*d^2 
         D = np.array([
-            [1,  0,     0 ],
-            [1, d1, d1**2 ],
-            [1, d2, d2**2 ]
+            [ 1,  0,     0 ],
+            [ 1, d1, d1**2 ],
+            [ 1, d2, d2**2 ]
         ]) + regularization
         
         c = solve(D, f[0:3])
@@ -261,7 +262,7 @@ def ors(func, v_init, v_lb=None, v_ub=None, hyp=None, consts=None):
             else:
                 u3 = u0 + bb * d3*r1 * downhill
             
-            f[3], g3, u3, c3, nAvg = avg_cov_func(func, u3, s0, s1, hyp, consts, BOX)
+            f[3], g3, u3, c3, nAvg = avg_cov_func(func, u3, s0,s1, hyp, consts, BOX)
             function_evals += nAvg
 
         # save function values and variable values in their original units 
@@ -301,7 +302,7 @@ def ors(func, v_init, v_lb=None, v_ub=None, hyp=None, consts=None):
         # Curvature-based adjustment for the step standard deviation
         if c[2] is not None and c[2] > 0:
             sigma_curv = sc / np.sqrt(c[2] + 0.01)
-            step_stdev = sf * step_stdev + (1 - sf) * sigma_curv
+            step_stdev = (1-sf) * step_stdev  +  sf * sigma_curv
 
         '''
         # scripted update to the step size (alternative to adaptive update)
@@ -312,17 +313,12 @@ def ors(func, v_init, v_lb=None, v_ub=None, hyp=None, consts=None):
 
         # update the best point out of the four trials
         if i_min == 1:
-            delta_u = u1 - u0
-            u0, g0, c0 = u1, g1, c1
+            u0, g0, c0, delta_u = u1, g1, c1, u1-u0
         elif i_min == 2:
-            delta_u = u2 - u0
-            u0, g0, c0 = u2, g2, c2
+            u0, g0, c0, delta_u = u2, g2, c2, u2-u0
         elif i_min == 3:
-            delta_u = u3 - u0
-            u0, g0, c0 = u3, g3, c3
+            u0, g0, c0, delta_u = u3, g3, c3, u3-u0
             quad_update = True
-        else:
-            delta_u = np.zeros(n)
 
         """
         # ref. Hazen (2006)
@@ -337,7 +333,7 @@ def ors(func, v_init, v_lb=None, v_ub=None, hyp=None, consts=None):
             step_stdev = step_stdev * np.exp(path_lr / d_sigma * (norm(path_sigma) / np.sqrt(n) - 1))
         """
 
-        step_stdev = min(max(step_stdev,1*tol_v),0.2) # bound the step size
+        step_stdev = min(max(step_stdev,0.5*tol_v),0.2) # bound the step size
         
         u0 = np.clip(u0, -1.0, +1.0)  # keep u0 within bounds, just to be sure
         f[0] = f[i_min]
