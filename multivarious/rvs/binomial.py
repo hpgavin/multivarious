@@ -2,6 +2,7 @@ import numpy as np
 from scipy.special import factorial
 
 from multivarious.utl.correlated_rvs import correlated_rvs
+from scipy.special import comb  # For binomial coefficient
 
 
 def _ppp_(n, m, p):
@@ -42,47 +43,51 @@ def _ppp_(n, m, p):
     return n, m, p, nb, Nb
 
 
-def pmf(n, m, p):
-    '''
-    binomial.pmf
 
+def pmf(n, m, p):
+    """
     Computes the Probability Mass Function (PMF) of the Binomial distribution.
 
-    INPUTS:
-        n : number of successful outcomes (N,)
-        m : int scalar or array_like (n,)
-            number of attempts 
-        p : float scalar or array_like (n,)
-            event probabilities of a single attempt for each variable
+    Parameters:
+    -----------
+    n : int or array_like
+        Number of successful outcomes (can be scalar or array).
+    m : int or array_like
+        Number of attempts (must be >= n for each element).
+    p : float or array_like
+        Probability of success in a single attempt (must be in [0, 1]).
 
-    Output:
-        p : ndarray (n,N)
-            Probability of observing n events out of m attempts
+    Returns:
+    --------
+    P : ndarray
+        Probability of observing `n` successes in `m` attempts.
+        Shape matches the broadcasted shape of `n`, `m`, and `p`.
 
     Reference:
+    ----------
     https://en.wikipedia.org/wiki/Binomial_distribution
 
     Notes:
-    The Binomial distribution models the number of times an event occurs in a 
-    m attempts, with the probability of an occurance in one attempt = p
-        * Events occur independently
-        * The average rate of occurrence is constant (λ events per interval)
-        * Two events can't happen at the exact same instant (events are discrete)
-        * p = expected number of events in one attempt.
-    '''
+    ------
+    The Binomial distribution models the number of successes in `m` independent
+    trials, each with success probability `p`.
+    """
+    # Convert inputs to numpy arrays for vectorized operations
+    n = np.asarray(n)
+    m = np.asarray(m)
+    p = np.asarray(p)
 
-    n, m, p, nb, Nb =  _ppp_( n, m, p )
+    # Validate inputs
+    if np.any(p < 0) or np.any(p > 1):
+        raise ValueError("Probability `p` must be in the range [0, 1].")
+    if np.any(m < n):
+        raise ValueError("Number of attempts `m` must be >= number of successes `n`.")
 
-    P = np.zeros((nb,Nb))
+    # Compute the binomial coefficient: C(m, n) = m! / (n! * (m-n)!)
+    binomial_coeff = np.vectorize(comb)(m, n, exact=True)
 
-    for i in range(nb): 
-        ni = np.arange(m[i]) # can not have more successes than attempts!
-        facts = factorial(m[i]) / (factorial(ni) * factorial(m[i]-ni))
-        facts = facts.flatten()
-        P[i,ni] = facts * ( p[i]**ni * (1-p[i])**(m[i]-ni) ).flatten()
-   
-    if nb == 1:
-         P = P.flatten();
+    # Compute the PMF: P(n; m, p) = C(m, n) * p^n * (1-p)^(m-n)
+    P = binomial_coeff * (p ** n) * ((1 - p) ** (m - n))
 
     return P
 
