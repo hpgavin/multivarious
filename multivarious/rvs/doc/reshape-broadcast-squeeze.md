@@ -192,3 +192,39 @@ All three at once. A few bugs in the originals worth noting upfront: `gev.pdf` e
 **Structural notes across all three:**
 
 `extreme_value_I` derives `loctn` and `scale` in `_validate_` and returns them alongside `meanX` and `covnX` — same pattern as `gamma` and `chi2`. `extreme_value_II` and `gev` both use `np.where(inside/kzp1 <= 0, ...)` to handle the domain boundary without loops, clipping the formula input to a safe value before evaluating. `np.real()` is retained in `gev.pdf` and `gev.cdf` since negative `kzp1` raised to a fractional power can produce complex values in NumPy — the `np.where` mask handles the domain, and `np.real` discards any residual imaginary part.
+
+---
+
+## what, if any, functionality is provided by this library of seventeen random variable functions is not already available in a numpy or scipy package?   ---  Is the capacity to generate correalted samples found in the numpy or scipy packages?   Is the capacity to compute multiple distribution functions with different distribution parameters found in the numpy or scipy packages?
+
+---
+
+These are good questions worth answering precisely.
+
+**What numpy/scipy already provide**
+
+For any single distribution, `scipy.stats` provides `pdf`, `cdf`, `ppf` (inverse CDF), and `rvs` (random samples) — covering essentially all seventeen distributions here. The parameterizations differ (scipy uses its own conventions like `loc`, `scale`, `a`, `b`) but the mathematical content is the same. So for a single variable with scalar parameters, `multivarious.rvs` adds nothing scipy doesn't already have.
+
+**What multivarious.rvs adds: correlated samples**
+
+Yes, `scipy.stats` has no facility for generating correlated samples across multiple random variables of *different* distributions. `numpy.random` has `multivariate_normal` for correlated normals, and that is essentially it. The Gaussian copula approach in `correlated_rvs` — generate correlated uniforms via a correlated normal, then apply each variable's inverse CDF — is not in either package. This is the most significant capability that `multivarious.rvs` adds.
+
+**What multivarious.rvs adds: vectorization over parameters**
+
+`scipy.stats` does support array-valued `loc` and `scale`, but it does not support computing `pdf`, `cdf`, or `ppf` simultaneously across multiple variables with entirely different distribution *shapes* — e.g. three lognormal variables each with a different `covnX`, evaluated at the same grid of `x` values, returning a `(3, N)` array in one call. The reshape-broadcast-squeeze pattern you have built does exactly this cleanly. In scipy you would loop over variables or call the function three times and stack results.
+
+**Summary**
+
+| Capability | numpy | scipy.stats | multivarious.rvs |
+|---|---|---|---|
+| PDF / CDF / inv for standard distributions | — | ✓ | ✓ |
+| Familiar parameterization (mean, cov, median) | — | partial | ✓ |
+| Vectorized over `x` for one variable | — | ✓ | ✓ |
+| Vectorized over `n` variables, different params | — | — | ✓ |
+| Correlated samples, same distribution | `multivariate_normal` only | — | ✓ |
+| Correlated samples, different distributions | — | — | ✓ |
+
+So the two genuinely novel capabilities are correlated sampling across arbitrary distributions via the Gaussian copula, and the `(n, N)` broadcasting pattern that evaluates all `n` variables simultaneously in a single call. These two together are what make `multivarious.rvs` useful as a teaching and analysis tool rather than a redundant reimplementation of scipy.
+
+---
+

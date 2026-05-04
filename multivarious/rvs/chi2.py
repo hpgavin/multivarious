@@ -65,7 +65,7 @@ def pdf(x, k):
     ---------
     https://en.wikipedia.org/wiki/Chi-squared_distribution#Asymptotic_properties
     """
-    k, m, s = _validate_(                               # (n, 1)
+    k, m, s = _validate_( k )                           # (n, 1)
     x = np.asarray(x, dtype=float).reshape( 1, -1)      # (1, N)
     x = np.where(x <= 0, np.finfo(float).eps, x)        # guard against x <= 0
 
@@ -153,7 +153,8 @@ def inv(F, k):
     https://en.wikipedia.org/wiki/Chi-squared_distribution#Asymptotic_properties
     """
     k, m, s = _validate_(k)                           # (n, 1)
-    F = np.asarray(F, dtype=float).reshape( 1, -1)    # (1, N)
+    if F.ndim <= 1:
+        F = F.reshape(1, -1)   # (1, N) - shared F grid for all n variables
     F = np.clip(F, np.finfo(float).eps, 1.0 - np.finfo(float).eps)
 
     # scipy_normal.ppf broadcasts (n,1) m, s against (1,N) F → (n,N)

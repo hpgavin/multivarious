@@ -153,7 +153,8 @@ def inv(F, mednX, covnX):
     https://en.wikipedia.org/wiki/Log-normal_distribution
     """
     mednX, covnX = _validate_(mednX, covnX)          # (n, 1)
-    F = np.asarray(F, dtype=float).reshape( 1, -1)   # (1, N)
+    if F.ndim <= 1:
+        F = F.reshape(1, -1)   # (1, N) - shared F grid for all n variables
     F = np.clip(F, np.finfo(float).eps, 1.0 - np.finfo(float).eps)
 
     VlnX = np.log(1.0 + covnX**2)                    # (n, 1) variance of log(X)

@@ -134,24 +134,24 @@ def cdf(x, params):
     return np.squeeze(F, axis=squeeze_axes)
 
 
-def inv(P, meanX, covnX):
+def inv(F, meanX, covnX):
     """
     gamma.inv
 
     Computes the inverse CDF (quantile function) of the gamma distribution.
 
     INPUTS
-        P     : float or array_like, shape (N,)   probability values in [0, 1]
+        F     : float or array_like, shape (N,)   probability values in [0, 1]
         meanX : float or array_like, shape (n,)   mean(s),                > 0
         covnX : float or array_like, shape (n,)   coefficient(s) of variation, > 0
 
-    OUTPUTS
+    OUTFUTS
         x : ndarray, shape (n, N)   quantile values; singleton axes are squeezed
 
     Notes
     -----
-    Solves gammainc(k, x/theta) = P exactly via:
-        x = theta * gammaincinv(k, P)
+    Solves gammainc(k, x/theta) = F exactly via:
+        x = theta * gammaincinv(k, F)
     where gammaincinv is the inverse of the regularized lower incomplete gamma
     function (scipy.special.gammaincinv).
 
@@ -162,17 +162,18 @@ def inv(P, meanX, covnX):
     https://en.wikipedia.org/wiki/Gamma_distribution
     """
     meanX, covnX, k, theta = _validate_(meanX, covnX)       # (n, 1)
-    P = np.asarray(P, dtype=float).reshape( 1, -1)         # (1, N)
-    P = np.clip(P, np.finfo(float).eps, 1.0 - np.finfo(float).eps)
+    if F.ndim <= 1:
+        F = F.reshape(1, -1)   # (1, N) - shared F grid for all n variables
+    F = np.clip(F, np.finfo(float).eps, 1.0 - np.finfo(float).eps)
 
-    # gammaincinv broadcasts (n,1) k against (1,N) P → (n,N)
-    x = theta * gammaincinv(k, P)                           # (n, N)
+    # gammaincinv broadcasts (n,1) k against (1,N) F → (n,N)
+    x = theta * gammaincinv(k, F)                           # (n, N)
 
     # Find singleton axes corresponding to scalar or length-1 inputs.
     # enumerate() creates pairs of (index, value)
-    # for each element in the list [meanX, P].
+    # for each element in the list [meanX, F].
     # The index i is included in squeeze_axes if v.size == 1 for that element.
-    squeeze_axes = tuple(i for i, v in enumerate([meanX, P]) if v.size == 1)
+    squeeze_axes = tuple(i for i, v in enumerate([meanX, F]) if v.size == 1)
 
     return np.squeeze(x, axis=squeeze_axes)
 

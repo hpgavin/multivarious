@@ -135,7 +135,8 @@ def inv(F, meanX):
     https://en.wikipedia.org/wiki/Rayleigh_distribution
     """
     meanX, modeX = _validate_(meanX)                        # (n, 1)
-    F = np.asarray(F, dtype=float).reshape( 1, -1)        # (1, N)
+    if F.ndim <= 1:
+        F = F.reshape(1, -1)   # (1, N) - shared F grid for all n variables
     F = np.clip(F, 0.0, 1.0 - np.finfo(float).eps)       # guard against log(0)
 
     x = modeX * np.sqrt(-2.0 * np.log(1.0 - F))           # (n, N)

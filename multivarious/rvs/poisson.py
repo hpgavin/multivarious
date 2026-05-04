@@ -64,7 +64,7 @@ def pmf(k, t, T):
     """
     t, T = _validate_(t, T)                                 # (n, 1)
     k = np.asarray(np.round(k), dtype=int).reshape( 1, -1)  # (1, N_k)
-    k = np.where(k < 0, 0, k                         # clip negative counts to 0
+    k = np.where(k < 0, 0, k )                       # clip negative counts to 0
 
     r = t / T                                        # (n, 1) Poisson rate
 
@@ -107,11 +107,12 @@ def cdf(k, params):
     https://en.wikipedia.org/wiki/Incomplete_gamma_function#Regularized_gamma_functions_and_Poisson_random_variables
     """
     t, T = params
-    t, T = _validate_(t, T)                                  # (n, 1)
-    k = np.asarray(np.round(k), dtype=int).reshape( 1, -1)   # (1, N_k)
-    k = np.where(k < 0, 0, k)                                # clip negative counts to 0
+    t, T = _validate_(t, T)    # (n, 1)
+    if k.ndim <= 1:
+        k = k.reshape(1, -1)   # (1, N) - shared F grid for all n variables
+    k = np.where(k < 0, 0, k)  # clip negative counts to 0
 
-    r = t / T                                                # (n, 1) Poisson rate
+    r = t / T                  # (n, 1) Poisson rate
 
     # gammaincc broadcasts (1,N_k) k+1 against (n,1) r → (n, N_k)
     F = gammaincc(k + 1, r)                                   # (n, N_k)

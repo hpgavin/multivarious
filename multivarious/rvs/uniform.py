@@ -134,7 +134,8 @@ def inv(F, a, b):
     https://en.wikipedia.org/wiki/Uniform_distribution_(continuous)
     """
     a, b = _validate_(a, b)                           # (n, 1)
-    F = np.asarray(F, dtype=float).reshape( 1, -1)   # (1, N)
+    if F.ndim <= 1:
+        F = F.reshape(1, -1)   # (1, N) - shared F grid for all n variables
     F = np.clip(F, np.finfo(float).eps, 1.0 - np.finfo(float).eps)
 
     x = a + F * (b - a)                              # (n, N)

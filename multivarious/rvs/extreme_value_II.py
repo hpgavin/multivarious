@@ -151,7 +151,8 @@ def inv(F, m, s, k):
     https://en.wikipedia.org/wiki/Fr%C3%A9chet_distribution
     """
     m, s, k = _validate_(m, s, k)                            # (n, 1)
-    F = np.asarray(F, dtype=float).reshape( 1, -1)          # (1, N)
+    if F.ndim <= 1:
+        F = F.reshape(1, -1)   # (1, N) - shared F grid for all n variables
     F = np.clip(F, np.finfo(float).eps, 1.0 - np.finfo(float).eps)
 
     x = m + s * (-np.log(F))**(-1.0 / k)                    # (n, N)

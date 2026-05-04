@@ -171,7 +171,8 @@ def inv(F, a, b, q, p):
     https://en.wikipedia.org/wiki/Beta_distribution
     """
     a, b, q, p = _validate_(a, b, q, p)                      # (n, 1)
-    F = np.asarray(F, dtype=float).reshape( 1, -1)          # (1, N)
+    if F.ndim <= 1:
+        F = F.reshape(1, -1)   # (1, N) - shared F grid for all n variables
     F = np.clip(F, np.finfo(float).eps, 1.0 - np.finfo(float).eps)
 
     # betaincinv broadcasts (n,1) q,p against (1,N) F → (n,N)

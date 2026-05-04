@@ -104,14 +104,14 @@ def cdf(x, meanX):
     return np.squeeze(F, axis=squeeze_axes)
 
 
-def inv(P, meanX):
+def inv(F, meanX):
     """
     exponential.inv
 
     Computes the inverse CDF (quantile function) of the exponential distribution.
 
     INPUTS
-        P     : float or array_like, shape (N,)   probability values in [0, 1]
+        F     : float or array_like, shape (N,)   probability values in [0, 1]
         meanX : float or array_like, shape (n,)   mean(s), must be > 0
 
     OUTPUTS
@@ -119,23 +119,25 @@ def inv(P, meanX):
 
     Notes
     -----
-    x = -meanX * log(1 - P)
+    x = -meanX * log(1 - F)
 
     Reference
     ---------
     https://en.wikipedia.org/wiki/Exponential_distribution
     """
     meanX = _validate_(meanX)                             # (n, 1)
-    P = np.asarray(P, dtype=float).reshape( 1, -1)        # (1, N)
-    P = np.clip(P, 0.0, 1.0 - np.finfo(float).eps)        # guard against log(0)
+    if F.ndim <= 1:
+        F = F.reshape(1, -1)   # (1, N) - shared F grid for all n variables
 
-    x = -meanX * np.log(1.0 - P)                          # (n, N)
+    F = np.clip(F, 0.0, 1.0 - np.finfo(float).eps)        # guard against log(0)
+
+    x = -meanX * np.log(1.0 - F)                          # (n, N)
 
     # Find singleton axes corresponding to scalar or length-1 inputs.
     # enumerate() creates pairs of (index, value)
-    # for each element in the list [meanX, P].
+    # for each element in the list [meanX, F].
     # The index i is included in squeeze_axes if v.size == 1 for that element.
-    squeeze_axes = tuple(i for i, v in enumerate([meanX, P]) if v.size == 1)
+    squeeze_axes = tuple(i for i, v in enumerate([meanX, F]) if v.size == 1)
 
     return np.squeeze(x, axis=squeeze_axes)
 

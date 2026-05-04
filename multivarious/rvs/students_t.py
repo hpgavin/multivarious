@@ -3,7 +3,7 @@
 # github.com/hpgavin/multivarious ... rvs/students_t
 
 import numpy as np
-from scipy.special import betainc, betaincinv, gamma, 
+from scipy.special import betainc, betaincinv, gamma 
 
 from multivarious.utl.correlated_rvs import correlated_rvs
 
@@ -141,7 +141,8 @@ def inv(F, k):
     https://en.wikipedia.org/wiki/Student%27s_t-distribution
     """
     k = _validate_(k)                                           # (n, 1)
-    F = np.asarray(F, dtype=float).reshape( 1, -1)              # (1, N)
+    if F.ndim <= 1:
+        F = F.reshape(1, -1)   # (1, N) - shared F grid for all n variables
     F = np.clip(F, np.finfo(float).eps, 1.0 - np.finfo(float).eps)
 
     # betaincinv broadcasts (n,1) k/2 against (1,N) F → (n,N)

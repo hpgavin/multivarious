@@ -148,6 +148,8 @@ def inv(F, a, b):
 
     # Accept F as 1D (N,) or 2D (n, N); atleast_2d broadcasts (1, N) over n
     F = np.atleast_2d(np.asarray(F, dtype=float))
+    if F.ndim <= 1:
+        F = F.reshape(1, -1)   # (1, N) - shared F grid for all n variables
     F = np.clip(F, np.finfo(float).eps, 1.0 - np.finfo(float).eps)
     N = F.shape[1]
 

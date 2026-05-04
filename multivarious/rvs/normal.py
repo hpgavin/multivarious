@@ -137,12 +137,14 @@ def inv(F, meanX=0.0, sdvnX=1.0):
     ---------
     https://en.wikipedia.org/wiki/Normal_distribution
     """
-    meanX, sdvnX = _validate_(meanX, sdvnX)                 # (n, 1)
-    F = np.asarray(F, dtype=float).reshape( 1, -1)         # (1, N)
+    meanX, sdvnX = _validate_(meanX, sdvnX)         # (n, 1)
+    F = np.asarray(F, dtype=float)
+    if F.ndim <= 1:
+        F = F.reshape(1, -1)   # (1, N) - shared F grid for all n variables
     F = np.clip(F, np.finfo(float).eps, 1.0 - np.finfo(float).eps)
 
-    z = np.sqrt(2.0) * scipy_erfinv(2.0 * F - 1.0)         # (n, N) standard normal quantile
-    x = meanX + sdvnX * z                                   # (n, N)
+    z = np.sqrt(2.0) * scipy_erfinv(2.0 * F - 1.0)  # (n, N) standard normal quantile
+    x = meanX + sdvnX * z                           # (n, N)
 
     # Find singleton axes corresponding to scalar or length-1 inputs.
     # enumerate() creates pairs of (index, value)

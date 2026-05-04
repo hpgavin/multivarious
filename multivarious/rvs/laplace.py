@@ -141,7 +141,8 @@ def inv(F, meanX, sdvnX):
     https://en.wikipedia.org/wiki/Laplace_distribution
     """
     meanX, sdvnX = _validate_(meanX, sdvnX)                  # (n, 1)
-    F = np.asarray(F, dtype=float).reshape( 1, -1)          # (1, N)
+    if F.ndim <= 1:
+        F = F.reshape(1, -1)   # (1, N) - shared F grid for all n variables
     F = np.clip(F, np.finfo(float).eps, 1.0 - np.finfo(float).eps)
 
     sr2 = np.sqrt(2.0)
