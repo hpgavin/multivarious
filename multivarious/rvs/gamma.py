@@ -1,273 +1,229 @@
+#! /usr/bin/env -S python3 -i
 ## gamma distribution
 # github.com/hpgavin/multivarious ... rvs/gamma
 
 import numpy as np
-from scipy.special import gamma as gamma_func
-from scipy.special import gammainc, gammaln
+from scipy.special import gammaln, gammainc, gammaincinv
 
-from multivarious.rvs import normal
 from multivarious.utl.correlated_rvs import correlated_rvs
 
-def _ppp_(x, meanX, covnX):
+
+def _validate_(meanX, covnX):
     """
-    Validate and preprocess input parameters for consistency and correctness.
+    Validate and preprocess gamma distribution parameters.
 
-    INPUTS:
-        x : array_like
-            Evaluation points
-        meanX : float or array_like
-            Mean(s) of the distribution (must be > 0)
-        covnX : float or array_like
-            Coefficient(s) of variation (must be ≥ 0.5)
+    Converts meanX and covnX to (n, 1) column arrays for broadcasting against
+    a (1, N) row array of evaluation points, producing (n, N) output.
+    Derives the shape parameter k and scale parameter theta from meanX and covnX.
 
-    OUTPUTS:
-        x : ndarray
-            Evaluation points as array
-        meanX : ndarray
-            Means as column array
-        covnX : ndarray
-            Coefficients of variation as column array
-        k : ndarray
-            Shape parameters (alpha)
-        theta : ndarray
-            Scale parameters (beta)
-        n : int
-            Number of random variables
-    """ 
+    INPUTS
+        meanX : float or array_like   mean(s) of the distribution,            must be > 0
+        covnX : float or array_like   coefficient(s) of variation (std/mean), must be > 0
 
-    # Convert inputs to arrays
-    # Python does not implicitly handle scalars as arrays. 
-    x = np.atleast_1d(x).astype(float)
+    OUTPUTS
+        meanX : ndarray, shape (n, 1)
+        covnX : ndarray, shape (n, 1)
+        k     : ndarray, shape (n, 1)   shape parameter alpha = 1 / covnX^2
+        theta : ndarray, shape (n, 1)   scale parameter beta  = covnX^2 * meanX
+    """
+    meanX = np.asarray(meanX, dtype=float).reshape(-1, 1)  # (n, 1)
+    covnX = np.asarray(covnX, dtype=float).reshape(-1, 1)  # (n, 1)
 
+    if meanX.shape != covnX.shape:
+        raise ValueError(f"gamma: meanX and covnX must have the same length. "
+                         f"Got meanX:{meanX.size}, covnX:{covnX.size}")
+    if np.any(meanX <= 0):
+        raise ValueError("gamma: meanX must be > 0")
+    if np.any(covnX <= 0):
+        raise ValueError("gamma: covnX must be > 0")
 
-    meanX = np.atleast_1d(meanX).reshape(-1,1).astype(float)
-    covnX = np.atleast_1d(covnX).reshape(-1,1).astype(float)
-    n = len(meanX)
-       
-    # Validate parameter dimensions 
-    if not (len(meanX) == n and len(covnX) == n):
-        raise ValueError(f"All parameter arrays must have the same length. "
-                         f"Got meanX:{len(meanX)}, covnX:{len(covnX)}")
-  
-    # clip negative values of x
-    x = np.clip(x,1e-8,1e8)
+    k     = 1.0 / covnX**2       # (n, 1) shape parameter alpha
+    theta = covnX**2 * meanX     # (n, 1) scale parameter beta
 
-    # Validate parameter values 
-#   if np.any(covnX < 0.5):
-#       print(f'gamma: lower limit of coefficient of variation is 0.5')
-#       print(f'gamma: covnX = {covnX.flatten()}')
-#       covnX[covnX < 0.5] = 0.5
-
-    k = 1.0 / covnX**2              # shape parameter (alpha)
-    theta = covnX**2 * meanX        # scale parameter (beta)
-
-    return x, meanX, covnX, k, theta, n
+    return meanX, covnX, k, theta
 
 
 def pdf(x, meanX, covnX):
     """
     gamma.pdf
 
-    Computes the PDF of the Gamma distribution using its mean and
-    coefficient of variation.
+    Computes the PDF of the gamma distribution parameterized by its mean
+    and coefficient of variation.
 
-    INPUTS:
-        x : array_like
-            Evaluation points
-        meanX : float or array_like, shape (n,)
-            Mean(s) of the distribution
-        covnX : float or array_like, shape (n,)
-            Coefficient(s) of variation (stddev/mean), must be ≥ 0.5
+    INPUTS
+        x     : float or array_like, shape (N,)   evaluation points (x > 0)
+        meanX : float or array_like, shape (n,)   mean(s),                > 0
+        covnX : float or array_like, shape (n,)   coefficient(s) of variation, > 0
 
-    OUTPUTS:
-        f : ndarray, shape (n, N)
-            PDF values evaluated at each point in x for each of n random variables
+    OUTPUTS
+        f : ndarray, shape (n, N)   PDF values; singleton axes are squeezed
 
     Notes
     -----
-    f(x) = (1/Γ(k)θ^k) x^(k-1) exp(-x/θ)
-    where k = 1/covnX² and θ = covnX²·meanX
+    f(x) = x^(k-1) * exp(-x/theta) / (Gamma(k) * theta^k)
+    where k = 1/covnX^2 and theta = covnX^2 * meanX.
+
+    Computed in log space for numerical stability, then exponentiated.
+    Values x <= 0 are replaced by eps before evaluation.
 
     Reference
     ---------
     https://en.wikipedia.org/wiki/Gamma_distribution
     """
-    
-    x, meanX, covnX, k, theta, n = _ppp_(x, meanX, covnX)
+    meanX, covnX, k, theta = _validate_(meanX, covnX)       # (n, 1)
+    x = np.asarray(x, dtype=float).reshape( 1, -1)         # (1, N)
+    x = np.where(x <= 0, np.finfo(float).eps, x)           # guard against x <= 0
 
-    # log transform for numerical stability ... 
-    log_pdf = -(k * np.log(theta)) + (k - 1) * np.log(x) - (x / theta) - gammaln(k)
+    # Log-space computation for numerical stability, then exponentiate
+    log_f = (k - 1) * np.log(x) - x / theta \
+            - k * np.log(theta) - gammaln(k)                # (n, N)
+    f = np.exp(log_f)                                        # (n, N)
 
-    f = np.exp(log_pdf)  # ... the exponentiate to get the pdf
+    # Find singleton axes corresponding to scalar or length-1 inputs.
+    # enumerate() creates pairs of (index, value)
+    # for each element in the list [meanX, x].
+    # The index i is included in squeeze_axes if v.size == 1 for that element.
+    squeeze_axes = tuple(i for i, v in enumerate([meanX, x]) if v.size == 1)
 
-    f = np.where(x <= 0, 1e-6, f)  # replace negative x with small value for stability
-
-    if n == 1 and f.shape[0] == 1:
-        f = f.flatten()
-
-    return f
+    return np.squeeze(f, axis=squeeze_axes)
 
 
 def cdf(x, params):
     """
     gamma.cdf
 
-    Computes the CDF of the Gamma distribution in terms of its mean and
-    coefficient of variation.
+    Computes the CDF of the gamma distribution parameterized by its mean
+    and coefficient of variation.
 
-    INPUTS:
-        x : array_like
-            Evaluation points
-        params : array_like [meanX, covnX]
-            meanX : float or array_like
-                Mean(s) of X
-            covnX : float or array_like
-                Coefficient(s) of variation (stddev/mean)
+    INPUTS
+        x      : float or array_like, shape (N,)   evaluation points (x > 0)
+        params : tuple (meanX, covnX)
+            meanX : float or array_like, shape (n,)   mean(s),                > 0
+            covnX : float or array_like, shape (n,)   coefficient(s) of variation, > 0
 
-    OUTPUTS:
-        F : ndarray, shape (n, N)
-            CDF values evaluated at each point in x for each of n random variables
+    OUTPUTS
+        F : ndarray, shape (n, N)   CDF values; singleton axes are squeezed
 
     Notes
     -----
-    F(x) = γ(k, x/θ) / Γ(k) where γ is the lower incomplete gamma function
+    F(x) = gammainc(k, x/theta)
+    where gammainc is the regularized lower incomplete gamma function,
+    k = 1/covnX^2, and theta = covnX^2 * meanX.
+
+    gammainc supports NumPy broadcasting, so no loop over n is needed.
+    Values x <= 0 return F = 0.
 
     Reference
     ---------
     https://en.wikipedia.org/wiki/Gamma_distribution
     """
-    
     meanX, covnX = params
+    meanX, covnX, k, theta = _validate_(meanX, covnX)       # (n, 1)
+    x = np.asarray(x, dtype=float).reshape( 1, -1)         # (1, N)
 
-    x, meanX, covnX, k, theta, n = _ppp_(x, meanX, covnX)
+    # gammainc broadcasts (n,1) k against (n,N) x/theta → (n,N)
+    xp = np.where(x <= 0, np.finfo(float).eps, x)          # guard against x <= 0
+    F  = np.where(x <= 0, 0.0, gammainc(k, xp / theta))    # (n, N)
 
-    xp = np.copy(x)                   # copy x to avoid modifying input
-    xp = np.where(x <= 0, 1e-12, xp)  # replace negative x with small value for stability
-    F = gammainc(k, xp / theta)       # regularized lower incomplete gamma function
-    F = np.where(x <= 0, 0.0, F)      # replace negative x with small value for stability
-    
-    if n == 1 and F.shape[0] == 1:
-        F = F.flatten()
+    # Find singleton axes corresponding to scalar or length-1 inputs.
+    # enumerate() creates pairs of (index, value)
+    # for each element in the list [meanX, x].
+    # The index i is included in squeeze_axes if v.size == 1 for that element.
+    squeeze_axes = tuple(i for i, v in enumerate([meanX, x]) if v.size == 1)
 
-    return F
+    return np.squeeze(F, axis=squeeze_axes)
 
 
 def inv(P, meanX, covnX):
     """
     gamma.inv
 
-    Computes the inverse CDF (quantile function) of the Gamma distribution
-    defined by mean meanX and coefficient of variation covnX, for given probabilities P.
+    Computes the inverse CDF (quantile function) of the gamma distribution.
 
-    INPUTS:
-        P : array_like
-            Non-exceedance probabilities (values between 0 and 1)
-        meanX : float or array_like, shape (n,)
-            Mean(s) of the Gamma distribution
-        covnX : float or array_like, shape (n,)
-            Coefficient(s) of variation (must be ≥ 0.5)
+    INPUTS
+        P     : float or array_like, shape (N,)   probability values in [0, 1]
+        meanX : float or array_like, shape (n,)   mean(s),                > 0
+        covnX : float or array_like, shape (n,)   coefficient(s) of variation, > 0
 
-    OUTPUTS:
-        x : ndarray
-            Quantile values such that Prob[X ≤ x] = P
+    OUTPUTS
+        x : ndarray, shape (n, N)   quantile values; singleton axes are squeezed
 
     Notes
     -----
-    Uses Newton-Raphson iteration to solve F(x) = P
+    Solves gammainc(k, x/theta) = P exactly via:
+        x = theta * gammaincinv(k, P)
+    where gammaincinv is the inverse of the regularized lower incomplete gamma
+    function (scipy.special.gammaincinv).
+
+    gammaincinv supports NumPy broadcasting, so no iterative solver is needed.
 
     Reference
     ---------
     https://en.wikipedia.org/wiki/Gamma_distribution
     """
-    
-    _, meanX, covnX, _, _, n = _ppp_(0, meanX, covnX)
+    meanX, covnX, k, theta = _validate_(meanX, covnX)       # (n, 1)
+    P = np.asarray(P, dtype=float).reshape( 1, -1)         # (1, N)
+    P = np.clip(P, np.finfo(float).eps, 1.0 - np.finfo(float).eps)
 
-    P = np.asarray(P, dtype=float)  # ensure array type
+    # gammaincinv broadcasts (n,1) k against (1,N) P → (n,N)
+    x = theta * gammaincinv(k, P)                           # (n, N)
 
-    my_eps = 1e-12                   # numerical tolerance
-    max_iter = 200                   # max Newton-Raphson iterations
-    x_old = meanX + meanX*covnX*normal.inv(P) # normal approximation
-    idx = np.where(x_old < 0.01)
-    if np.any(idx):
-        x_old[idx] = 10*my_eps
+    # Find singleton axes corresponding to scalar or length-1 inputs.
+    # enumerate() creates pairs of (index, value)
+    # for each element in the list [meanX, P].
+    # The index i is included in squeeze_axes if v.size == 1 for that element.
+    squeeze_axes = tuple(i for i, v in enumerate([meanX, P]) if v.size == 1)
 
-    for iter in range(max_iter):
-        Fx = cdf(x_old, [meanX, covnX])     # evaluate current CDF
-        fx = pdf(x_old, meanX, covnX)       # evaluate current PDF
-        h = (Fx - P) / (fx + 0*my_eps)        # regularized Newton-Raphson step
-        x_new = x_old - h                   # update estimate
-        idx = np.where(x_new <= my_eps)
-        if np.any(idx):
-            x_new[idx] = x_old[idx] / 10.0  # prevent values <= 0
-        x_new = np.clip( x_new, 1e-8, meanX*(1+10*covnX) )
-        h = x_old - x_new                   # change in x
-        if np.max(np.abs(h)) < 10*np.sqrt(my_eps):  # convergence check
-            break
-        x_old = x_new                       # update for next iteration
-
-    x = x_new                               # return final quantiles
-
-    if n == 1 and x.shape[0] == 1:
-        x = x.flatten() 
-
-    return x  
+    return np.squeeze(x, axis=squeeze_axes)
 
 
 def rnd(meanX, covnX, N, R=None, seed=None):
     """
     gamma.rnd
 
-    Generates random samples from the Gamma distribution with mean meanX and
-    coefficient of variation covnX.
+    Generate random samples from the gamma distribution.
 
-    INPUTS:
-        meanX : float or array_like, shape (n,)
-            Mean(s) of the distribution
-        covnX : float or array_like, shape (n,)
-            Coefficient(s) of variation (stddev/mean)
-        N : int
-            Number of observations per random variable
-        R : ndarray, shape (n, n), optional
-            Correlation matrix for generating correlated samples.
-            If None, generates uncorrelated samples.
-        seed : int, optional
-            Random seed for reproducibility
+    INPUTS
+        meanX : float or array_like, shape (n,)   mean(s),                > 0
+        covnX : float or array_like, shape (n,)   coefficient(s) of variation, > 0
+        N     : int                                number of samples per variable
+        R     : ndarray, shape (n, n), optional    correlation matrix;
+                if None, generates uncorrelated samples
+        seed  : int or None                        random seed for reproducibility
 
-    OUTPUTS:
-        X : ndarray, shape (n, N) or shape (N,) if n=1
-            Random samples drawn from the Gamma distribution.
-            Each row corresponds to one random variable.
-            Each column corresponds to one sample.
+    OUTPUTS
+        X : ndarray, shape (n, N)   gamma random samples;
+            each row is one random variable, each column one sample;
+            singleton axes are squeezed
 
     Notes
     -----
-    Uses inverse transform method with correlated uniform variates.
+    Uses the inverse transform method with correlated uniform variates.
+    The inverse transform is inlined rather than calling inv(), because U is
+    already (n, N) from correlated_rvs, while inv() expects P as (1, N).
+
+    gammaincinv broadcasts (n,1) k against (n,N) U → (n,N), so no loop
+    over n is needed.
 
     Reference
     ---------
     https://en.wikipedia.org/wiki/Gamma_distribution
     """
+    if N is None or N < 1:
+        raise ValueError("gamma.rnd: N must be greater than zero")
 
-    _, meanX, covnX, _, _, n = _ppp_(0, meanX, covnX)
+    meanX, covnX, k, theta = _validate_(meanX, covnX)       # (n, 1)
+    n = meanX.size
 
-    if len(meanX) == N:
-        X = np.zeros(N)
-        rng = np.random.default_rng(seed)  
-        for i in range(N): 
-            X[i] = rng.gamma(shape = meanX[i] * covnX[i]**2, 
-                             scale = 1.0/covnX[i]**2, 
-                             size = 1)
-        return X
-
-    # Correlated uniform random variables 
+    # Generate n correlated uniform [0, 1] variates, shape (n, N)
     _, _, U = correlated_rvs(R, n, N, seed)
 
-    # Transform each variable to its gamma distribution 
-    X = np.zeros((n, N))
-    for i in range(n):
-        X[i, :] = inv(U[i,:], meanX[i], covnX[i])
+    # Inline the inverse transform rather than calling inv(), because U is
+    # already (n, N) from correlated_rvs, while inv() expects P as (1, N).
+    # gammaincinv broadcasts (n,1) k against (n,N) U → (n,N)
+    X = theta * gammaincinv(k, U)                           # (n, N)
 
-    if n == 1 or N == 1:
-        X = X.flatten()
+    # Squeeze singleton axes from the (n, N) output
+    squeeze_axes = tuple(np.where(np.asarray([n, N]) == 1)[0])
 
-    return X
+    return np.squeeze(X, axis=squeeze_axes)

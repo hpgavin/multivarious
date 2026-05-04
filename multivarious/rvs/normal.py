@@ -1,230 +1,201 @@
+#! /usr/bin/env -S python3 -i
 ## normal distribution
 # github.com/hpgavin/multivarious ... rvs/normal
 
 import numpy as np
-from scipy.special import erf as scipy_erf
+from scipy.special import erf    as scipy_erf
 from scipy.special import erfinv as scipy_erfinv
 
 from multivarious.utl.correlated_rvs import correlated_rvs
 
 
-def _ppp_(x, meanX=0.0, sdvnX=1.0):
+def _validate_(meanX, sdvnX):
     """
-    Validate and preprocess input parameters for consistency and correctness.
+    Validate and preprocess normal distribution parameters.
 
-    INPUTS:
-        x : array_like
-            Evaluation points
-        meanX : float or array_like
-            Mean(s) of the distribution
-        sdvnX : float or array_like
-            Standard deviation(s) of the distribution (must be > 0)
+    Converts meanX and sdvnX to (n, 1) column arrays for broadcasting
+    against a (1, N) row array of evaluation points, producing (n, N) output.
 
-    OUTPUTS:
-        x : ndarray
-            Evaluation points as row array
-        meanX : ndarray
-            Means as column array
-        sdvnX : ndarray
-            Standard deviations as column array
-        n : int
-            Number of random variables
-    """ 
+    INPUTS
+        meanX : float or array_like   mean(s) of the distribution
+        sdvnX : float or array_like   standard deviation(s), must be > 0
 
-    # Convert inputs to arrays
-    # Python does not implicitly handle scalars as arrays. 
-    x = np.atleast_1d(x).reshape(1,-1).astype(float)
+    OUTPUTS
+        meanX : ndarray, shape (n, 1)
+        sdvnX : ndarray, shape (n, 1)
+    """
+    meanX = np.asarray(meanX, dtype=float).reshape(-1, 1)  # (n, 1)
+    sdvnX = np.asarray(sdvnX, dtype=float).reshape(-1, 1)  # (n, 1)
 
-    meanX = np.atleast_1d(meanX).reshape(-1,1).astype(float)
-    sdvnX = np.atleast_1d(sdvnX).reshape(-1,1).astype(float)
-    n = len(meanX)   
-        
-    # Validate parameter dimensions 
-    if not (len(meanX) == n and len(sdvnX) == n):
-        raise ValueError(f"All parameter arrays must have the same length. "
-                        f"Got meanX:{len(meanX)}, sdvnX:{len(sdvnX)}") 
-
-    # Validate parameter values 
+    if meanX.shape != sdvnX.shape:
+        raise ValueError(f"normal: meanX and sdvnX must have the same length. "
+                         f"Got meanX:{meanX.size}, sdvnX:{sdvnX.size}")
     if np.any(sdvnX <= 0):
         raise ValueError("normal: sdvnX must be > 0")
 
-    return x, meanX, sdvnX, n
+    return meanX, sdvnX
 
 
 def pdf(x, meanX=0.0, sdvnX=1.0):
     """
     normal.pdf
 
-    Computes the PDF of the normal distribution N(meanX, sdvnX²).
+    Computes the PDF of the normal distribution N(meanX, sdvnX^2).
 
-    INPUTS:
-        x : array_like
-            Evaluation points
-        meanX : float or array_like, shape (n,)
-            Mean(s) of the distribution
-        sdvnX : float or array_like, shape (n,)
-            Standard deviation(s) of the distribution (must be > 0)
+    INPUTS
+        x     : float or array_like, shape (N,)   evaluation points
+        meanX : float or array_like, shape (n,)   mean(s)
+        sdvnX : float or array_like, shape (n,)   standard deviation(s), > 0
 
-    OUTPUTS:
-        f : ndarray, shape (n, N)
-            PDF values at each point in x for each of n random variables
+    OUTPUTS
+        f : ndarray, shape (n, N)   PDF values; singleton axes are squeezed
 
     Notes
     -----
-    The normal (Gaussian) distribution with mean μ and standard deviation σ:
-    f(x) = (1/√(2πσ²)) exp(-(x-μ)²/(2σ²))
+    f(x) = (1 / sqrt(2 pi sigma^2)) * exp(-(x - mu)^2 / (2 sigma^2))
 
     Reference
     ---------
     https://en.wikipedia.org/wiki/Normal_distribution
     """
- 
-    x, meanX, sdvnX, n = _ppp_(x, meanX, sdvnX)
+    meanX, sdvnX = _validate_(meanX, sdvnX)                 # (n, 1)
+    x = np.asarray(x, dtype=float).reshape( 1, -1)         # (1, N)
 
-    z = (x - meanX) / sdvnX
+    z = (x - meanX) / sdvnX                                 # (n, N) standardized
 
-    f = 1.0 / np.sqrt(2 * np.pi*sdvnX**2) * np.exp(-(z**2.0) / 2.0)
+    f = np.exp(-0.5 * z**2) / (sdvnX * np.sqrt(2.0 * np.pi))  # (n, N)
 
-    if n == 1 and f.shape[0] == 1:
-        f = f.flatten()
-    if n == 1 and x.shape[1] == 1:
-        f = f[0]
+    # Find singleton axes corresponding to scalar or length-1 inputs.
+    # enumerate() creates pairs of (index, value)
+    # for each element in the list [meanX, x].
+    # The index i is included in squeeze_axes if v.size == 1 for that element.
+    squeeze_axes = tuple(i for i, v in enumerate([meanX, x]) if v.size == 1)
 
-    return f 
+    return np.squeeze(f, axis=squeeze_axes)
 
 
-def cdf(x, params=[0.0, 1.0]):
+def cdf(x, params=(0.0, 1.0)):
     """
     normal.cdf
 
-    Computes the CDF of the normal distribution N(meanX, sdvnX²).
+    Computes the CDF of the normal distribution N(meanX, sdvnX^2).
 
-    INPUTS:
-        x : array_like
-            Evaluation points
-        meanX : float or array_like, shape (n,)
-            Mean(s) of the distribution
-        sdvnX : float or array_like, shape (n,)
-            Standard deviation(s) of the distribution (must be > 0)
+    INPUTS
+        x      : float or array_like, shape (N,)   evaluation points
+        params : tuple (meanX, sdvnX)
+            meanX : float or array_like, shape (n,)   mean(s)
+            sdvnX : float or array_like, shape (n,)   standard deviation(s), > 0
 
-    OUTPUTS:
-        F : ndarray, shape (n, N)
-            CDF values at each point in x for each of n random variables
+    OUTPUTS
+        F : ndarray, shape (n, N)   CDF values; singleton axes are squeezed
 
     Notes
     -----
-    F(x) = (1 + erf((x-μ)/(σ√2)))/2
+    F(x) = (1 + erf((x - mu) / (sigma * sqrt(2)))) / 2
 
     Reference
     ---------
     https://en.wikipedia.org/wiki/Normal_distribution
     """
-
     meanX, sdvnX = params
+    meanX, sdvnX = _validate_(meanX, sdvnX)                 # (n, 1)
+    x = np.asarray(x, dtype=float).reshape( 1, -1)         # (1, N)
 
-    x, meanX, sdvnX, n = _ppp_(x, meanX, sdvnX)
+    z = (x - meanX) / sdvnX                                 # (n, N) standardized
 
-    z = (x - meanX) / sdvnX
+    F = (1.0 + scipy_erf(z / np.sqrt(2.0))) / 2.0          # (n, N)
 
-    F = (1.0 + scipy_erf(z / np.sqrt(2.0))) / 2.0
+    # Find singleton axes corresponding to scalar or length-1 inputs.
+    # enumerate() creates pairs of (index, value)
+    # for each element in the list [meanX, x].
+    # The index i is included in squeeze_axes if v.size == 1 for that element.
+    squeeze_axes = tuple(i for i, v in enumerate([meanX, x]) if v.size == 1)
 
-    if n == 1 and x.shape[0] == 1:
-        F = F.flatten()
-    if n == 1 and x.shape[1] == 1:
-        F = F[0]
-
-    return F
+    return np.squeeze(F, axis=squeeze_axes)
 
 
 def inv(F, meanX=0.0, sdvnX=1.0):
     """
     normal.inv
 
-    Computes the inverse CDF (quantile function) of the normal distribution N(meanX, sdvnX²).
+    Computes the inverse CDF (quantile function) of the normal distribution
+    N(meanX, sdvnX^2).
 
-    INPUTS:
-        F : array_like
-            Probability values (must be in [0, 1])
-        meanX : float or array_like, shape (n,)
-            Mean(s) of the distribution
-        sdvnX : float or array_like, shape (n,)
-            Standard deviation(s) of the distribution (must be > 0)
+    INPUTS
+        F     : float or array_like, shape (N,)   probability values in [0, 1]
+        meanX : float or array_like, shape (n,)   mean(s)
+        sdvnX : float or array_like, shape (n,)   standard deviation(s), > 0
 
-    OUTPUTS:
-        x : ndarray
-            Quantile values corresponding to probabilities F
+    OUTPUTS
+        x : ndarray, shape (n, N)   quantile values; singleton axes are squeezed
 
     Notes
     -----
-    x = μ + σ√2 · erfinv(2F - 1)
+    x = mu + sigma * sqrt(2) * erfinv(2F - 1)
 
     Reference
     ---------
     https://en.wikipedia.org/wiki/Normal_distribution
     """
+    meanX, sdvnX = _validate_(meanX, sdvnX)                 # (n, 1)
+    F = np.asarray(F, dtype=float).reshape( 1, -1)         # (1, N)
+    F = np.clip(F, np.finfo(float).eps, 1.0 - np.finfo(float).eps)
 
-    _, meanX, sdvnX, n = _ppp_(0, meanX, sdvnX)
+    z = np.sqrt(2.0) * scipy_erfinv(2.0 * F - 1.0)         # (n, N) standard normal quantile
+    x = meanX + sdvnX * z                                   # (n, N)
 
-    F = np.atleast_2d(F).astype(float)
-    F = np.clip(F, np.finfo(float).eps, 1 - np.finfo(float).eps)
-    N = F.shape[1]    
-    
-    # Compute normal quantile using inverse CDF formula
-    z = np.sqrt(2) * scipy_erfinv(2 * F - 1) 
-    x = meanX + sdvnX * z
+    # Find singleton axes corresponding to scalar or length-1 inputs.
+    # enumerate() creates pairs of (index, value)
+    # for each element in the list [meanX, F].
+    # The index i is included in squeeze_axes if v.size == 1 for that element.
+    squeeze_axes = tuple(i for i, v in enumerate([meanX, F]) if v.size == 1)
 
-    if n == 1 and x.shape[0] == 1:
-        x = x.flatten()
-    if n == 1 and F.shape[1] == 1:
-        x = x[0]
-
-    return x
+    return np.squeeze(x, axis=squeeze_axes)
 
 
 def rnd(meanX=0.0, sdvnX=1.0, N=1, R=None, seed=None):
     """
     normal.rnd
-    
-    Generates correlated random samples from the normal distribution N(meanX, sdvnX²).
 
-    INPUTS:
-        meanX : float or array_like, shape (n,)
-            Mean(s) of the distribution
-        sdvnX : float or array_like, shape (n,)
-            Standard deviation(s) of the distribution (must be > 0)
-        N : int
-            Number of observations per random variable
-        R : ndarray, shape (n, n), optional
-            Correlation matrix for generating correlated samples.
-            If None, generates uncorrelated samples.
-        seed : int, optional
-            Random seed for reproducibility
+    Generate correlated random samples from the normal distribution N(meanX, sdvnX^2).
 
-    OUTPUTS:
-        X : ndarray, shape (n, N) or shape (N,) if n=1
-            Array of normal random samples.
-            Each row corresponds to one random variable.
-            Each column corresponds to one sample.
+    INPUTS
+        meanX : float or array_like, shape (n,)   mean(s)
+        sdvnX : float or array_like, shape (n,)   standard deviation(s), > 0
+        N     : int                                number of samples per variable
+        R     : ndarray, shape (n, n), optional    correlation matrix;
+                if None, generates uncorrelated samples
+        seed  : int or None                        random seed for reproducibility
+
+    OUTPUTS
+        X : ndarray, shape (n, N)   normal random samples;
+            each row is one random variable, each column one sample;
+            singleton axes are squeezed
 
     Notes
     -----
-    Uses eigenvalue decomposition of correlation matrix to generate 
-    correlated standard normal variates, then transforms to desired
-    mean and standard deviation.
+    Uses inverse transform method with correlated uniform variates,
+    then transforms to the desired mean and standard deviation.
 
     Reference
     ---------
     https://en.wikipedia.org/wiki/Normal_distribution
     """
+    if N is None or N < 1:
+        raise ValueError("normal.rnd: N must be greater than zero")
 
-    _, meanX, sdvnX, n = _ppp_(0, meanX, sdvnX)
+    meanX, sdvnX = _validate_(meanX, sdvnX)                 # (n, 1)
+    n = meanX.size
 
-    # Correlated standard normal variables (n,N)
+    # Generate n correlated uniform [0, 1] variates, shape (n, N)
     _, _, U = correlated_rvs(R, n, N, seed)
 
-    X = inv(U, meanX, sdvnX)
+    # Inline the inverse transform rather than calling inv(), because U is
+    # already (n, N) from correlated_rvs, while inv() expects F as (1, N).
+    z = np.sqrt(2.0) * scipy_erfinv(2.0 * U - 1.0)         # (n, N) standard normal quantile
+    X = meanX + sdvnX * z                                   # (n, N)
 
-    if N == 1:
-        X = X.flatten()
+    # Squeeze singleton axes from the (n, N) output
+    squeeze_axes = tuple(np.where(np.asarray([n, N]) == 1)[0])
 
-    return X
+    return np.squeeze(X, axis=squeeze_axes)

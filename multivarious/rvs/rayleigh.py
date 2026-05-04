@@ -1,3 +1,4 @@
+#! /usr/bin/env -S python3 -i
 ## rayleigh distribution
 # github.com/hpgavin/multivarious ... rvs/rayleigh
 
@@ -6,202 +7,191 @@ import numpy as np
 from multivarious.utl.correlated_rvs import correlated_rvs
 
 
-def _ppp_(x, meanX):
+def _validate_(meanX):
     """
-    Validate and preprocess input parameters for consistency and correctness.
+    Validate and preprocess Rayleigh distribution parameters.
 
-    INPUTS:
-        x : array_like
-            Evaluation points
-        meanX : float or array_like
-            Mean(s) of the Rayleigh distribution (must be > 0)
+    Converts meanX to an (n, 1) column array for broadcasting against
+    a (1, N) row array of evaluation points, producing (n, N) output.
+    Derives the scale parameter modeX (sigma) from meanX.
 
-    OUTPUTS:
-        x : ndarray
-            Evaluation points as array
-        meanX : ndarray
-            Means as column array
-        modeX : ndarray
-            Mode parameters (σ) as column array
-        n : int
-            Number of random variables
-    """ 
+    INPUTS
+        meanX : float or array_like   mean(s) of the distribution, must be > 0
 
-    # Convert inputs to arrays
-    # Python does not implicitly handle scalars as arrays. 
-    x = np.atleast_1d(x).astype(float)
-    meanX = np.atleast_1d(meanX).reshape(-1,1).astype(float)
-    n = len(meanX)   
-        
-    # Validate parameter values 
+    OUTPUTS
+        meanX : ndarray, shape (n, 1)
+        modeX : ndarray, shape (n, 1)   scale parameter sigma = meanX * sqrt(2/pi)
+    """
+    meanX = np.asarray(meanX, dtype=float).reshape(-1, 1)  # (n, 1)
+
     if np.any(meanX <= 0):
         raise ValueError("rayleigh: all meanX values must be greater than zero")
 
-    # Replace non-positive values to prevent invalid evaluation
-    x[x <= 0] = np.sum(meanX)/(n*1e3)
+    # Convert mean to scale parameter sigma via the Rayleigh identity
+    modeX = meanX * np.sqrt(2.0 / np.pi)                   # (n, 1)
 
-    # Convert mean meanX to modeX using Rayleigh identity
-    modeX = meanX * np.sqrt(2 / np.pi)
-
-    return x, meanX, modeX, n
+    return meanX, modeX
 
 
 def pdf(x, meanX):
     """
     rayleigh.pdf
 
-    Computes the PDF of the Rayleigh distribution using the mean parameter meanX.
+    Computes the PDF of the Rayleigh distribution.
 
-    INPUTS:
-        x : array_like
-            Evaluation points (must be ≥ 0)
-        meanX : float or array_like, shape (n,)
-            Mean(s) of the Rayleigh distribution (must be > 0)
+    INPUTS
+        x     : float or array_like, shape (N,)   evaluation points (x >= 0)
+        meanX : float or array_like, shape (n,)   mean(s), must be > 0
 
-    OUTPUTS:
-        f : ndarray, shape (n, N)
-            PDF values at each point in x for each of n random variables
+    OUTPUTS
+        f : ndarray, shape (n, N)   PDF values; singleton axes are squeezed
 
     Notes
     -----
-    The Rayleigh distribution with scale parameter σ (mode) has:
-    f(x) = (x/σ²) exp(-x²/(2σ²)) for x ≥ 0
-    where σ = mean · √(2/π)
+    The Rayleigh distribution with scale parameter sigma (mode) has:
+        f(x) = (x / sigma^2) * exp(-x^2 / (2 sigma^2))   for x >= 0
+    where sigma = meanX * sqrt(2 / pi)
+
+    Values x <= 0 are replaced by eps to avoid division by zero.
 
     Reference
     ---------
     https://en.wikipedia.org/wiki/Rayleigh_distribution
     """
+    meanX, modeX = _validate_(meanX)                        # (n, 1)
+    x = np.asarray(x, dtype=float).reshape( 1, -1)        # (1, N)
+    x = np.where(x <= 0, np.finfo(float).eps, x)          # guard against x <= 0
 
-    x, meanX, modeX, n = _ppp_(x, meanX)
+    f = (x / modeX**2) * np.exp(-0.5 * (x / modeX)**2)   # (n, N)
 
-    # Apply the Rayleigh PDF formula
-    f = (x / modeX**2) * np.exp(-0.5 * (x / modeX)**2)
+    # Find singleton axes corresponding to scalar or length-1 inputs.
+    # enumerate() creates pairs of (index, value)
+    # for each element in the list [meanX, x].
+    # The index i is included in squeeze_axes if v.size == 1 for that element.
+    squeeze_axes = tuple(i for i, v in enumerate([meanX, x]) if v.size == 1)
 
-    if n == 1 and f.shape[0] == 1:
-        f = f.flatten()
-
-    return f
+    return np.squeeze(f, axis=squeeze_axes)
 
 
 def cdf(x, meanX):
     """
     rayleigh.cdf
-    
-    Computes the CDF of the Rayleigh distribution using the mean parameter meanX.
 
-    INPUTS:
-        x : array_like
-            Evaluation points (must be ≥ 0)
-        meanX : float or array_like, shape (n,)
-            Mean(s) of the Rayleigh distribution (must be > 0)
+    Computes the CDF of the Rayleigh distribution.
 
-    OUTPUTS:
-        F : ndarray, shape (n, N)
-            CDF values at each point in x for each of n random variables
+    INPUTS
+        x     : float or array_like, shape (N,)   evaluation points (x >= 0)
+        meanX : float or array_like, shape (n,)   mean(s), must be > 0
+
+    OUTPUTS
+        F : ndarray, shape (n, N)   CDF values; singleton axes are squeezed
 
     Notes
     -----
-    F(x) = 1 - exp(-x²/(2σ²)) for x ≥ 0
+    F(x) = 1 - exp(-x^2 / (2 sigma^2))   for x >= 0
+    where sigma = meanX * sqrt(2 / pi)
+
+    Values x <= 0 are replaced by eps to avoid undefined results.
 
     Reference
     ---------
     https://en.wikipedia.org/wiki/Rayleigh_distribution
     """
+    meanX, modeX = _validate_(meanX)                        # (n, 1)
+    x = np.asarray(x, dtype=float).reshape( 1, -1)        # (1, N)
+    x = np.where(x <= 0, np.finfo(float).eps, x)          # guard against x <= 0
 
-    x, meanX, modeX, n = _ppp_(x, meanX)
+    F = 1.0 - np.exp(-0.5 * (x / modeX)**2)               # (n, N)
 
-    # Apply the Rayleigh CDF formula
-    F = 1.0 - np.exp(-0.5 * (x / modeX)**2)
+    # Find singleton axes corresponding to scalar or length-1 inputs.
+    # enumerate() creates pairs of (index, value)
+    # for each element in the list [meanX, x].
+    # The index i is included in squeeze_axes if v.size == 1 for that element.
+    squeeze_axes = tuple(i for i, v in enumerate([meanX, x]) if v.size == 1)
 
-    if n == 1 and F.shape[0] == 1:
-        F = F.flatten()
-
-    return F
+    return np.squeeze(F, axis=squeeze_axes)
 
 
 def inv(F, meanX):
     """
     rayleigh.inv
 
-    Computes the inverse CDF (quantile function) of the Rayleigh distribution
-    using the mean parameter meanX.
+    Computes the inverse CDF (quantile function) of the Rayleigh distribution.
 
-    INPUTS:
-        F : array_like
-            Non-exceedance probabilities (0 ≤ F ≤ 1)
-        meanX : float or array_like, shape (n,)
-            Mean(s) of the Rayleigh distribution (must be > 0)
+    INPUTS
+        F     : float or array_like, shape (N,)   probability values in [0, 1]
+        meanX : float or array_like, shape (n,)   mean(s), must be > 0
 
-    OUTPUTS:
-        x : ndarray
-            Quantile values corresponding to probabilities F
+    OUTPUTS
+        x : ndarray, shape (n, N)   quantile values; singleton axes are squeezed
 
     Notes
     -----
-    x = σ√(-2 ln(1-F)) where σ = mean · √(2/π)
+    x = sigma * sqrt(-2 * log(1 - F))
+    where sigma = meanX * sqrt(2 / pi)
 
     Reference
     ---------
     https://en.wikipedia.org/wiki/Rayleigh_distribution
     """
+    meanX, modeX = _validate_(meanX)                        # (n, 1)
+    F = np.asarray(F, dtype=float).reshape( 1, -1)        # (1, N)
+    F = np.clip(F, 0.0, 1.0 - np.finfo(float).eps)       # guard against log(0)
 
-    _, meanX, modeX, n = _ppp_(0, meanX)
+    x = modeX * np.sqrt(-2.0 * np.log(1.0 - F))           # (n, N)
 
-    F = np.atleast_2d(F).astype(float)
-    F = np.clip(F, np.finfo(float).eps, 1 - np.finfo(float).eps)
-    N = F.shape[1]    
+    # Find singleton axes corresponding to scalar or length-1 inputs.
+    # enumerate() creates pairs of (index, value)
+    # for each element in the list [meanX, F].
+    # The index i is included in squeeze_axes if v.size == 1 for that element.
+    squeeze_axes = tuple(i for i, v in enumerate([meanX, F]) if v.size == 1)
 
-    # Compute the inverse CDF formula
-    x = modeX * np.sqrt(-2.0 * np.log(1 - F))
-
-    if n == 1 and x.shape[0] == 1:
-        x = x.flatten()
-
-    return x
+    return np.squeeze(x, axis=squeeze_axes)
 
 
 def rnd(meanX, N, R=None, seed=None):
     """
     rayleigh.rnd
 
-    Generates random samples from the Rayleigh distribution using the mean
-    parameter meanX.
+    Generate random samples from the Rayleigh distribution.
 
-    INPUTS:
-        meanX : float or array_like, shape (n,)
-            Mean(s) of the Rayleigh distribution (must be > 0)
-        N : int
-            Number of observations per random variable
-        R : ndarray, shape (n, n), optional
-            Correlation matrix for generating correlated samples.
-            If None, generates uncorrelated samples.
-        seed : int, optional
-            Random seed for reproducibility
+    INPUTS
+        meanX : float or array_like, shape (n,)   mean(s), must be > 0
+        N     : int                                number of samples per variable
+        R     : ndarray, shape (n, n), optional    correlation matrix;
+                if None, generates uncorrelated samples
+        seed  : int or None                        random seed for reproducibility
 
-    OUTPUTS:
-        X : ndarray, shape (n, N) or shape (N,) if n=1
-            Random samples drawn from the Rayleigh distribution.
-            Each row corresponds to one random variable.
-            Each column corresponds to one sample.
+    OUTPUTS
+        X : ndarray, shape (n, N)   Rayleigh random samples;
+            each row is one random variable, each column one sample;
+            singleton axes are squeezed
 
     Notes
     -----
-    Uses inverse transform method: x = σ√(-2 ln(u)) where u ~ Uniform(0,1)
+    Uses the inverse transform method: X = sigma * sqrt(-2 * log(U))
+    where U ~ Uniform(0, 1) and sigma = meanX * sqrt(2 / pi).
+    Since 1 - U ~ Uniform(0, 1) as well, log(U) and log(1-U) are
+    equivalent in distribution, so the simpler form log(U) is used directly.
 
     Reference
     ---------
     https://en.wikipedia.org/wiki/Rayleigh_distribution
     """
+    if N is None or N < 1:
+        raise ValueError("rayleigh.rnd: N must be greater than zero")
 
-    _, meanX, modeX, n = _ppp_(0, meanX)
+    meanX, modeX = _validate_(meanX)                       # (n, 1)
+    n = meanX.size
 
+    # Generate n correlated uniform [0, 1] variates, shape (n, N)
     _, _, U = correlated_rvs(R, n, N, seed)
 
-    # Inverse transform sampling
-    X = inv(U, meanX) 
+    # Inline the inverse transform rather than calling inv(), because U is
+    # already (n, N) from correlated_rvs, while inv() expects F as (1, N).
+    X = modeX * np.sqrt(-2.0 * np.log(U))                 # (n, N)
 
-    if N == 1:
-        X = X.flatten()
+    # Squeeze singleton axes from the (n, N) output
+    squeeze_axes = tuple(np.where(np.asarray([n, N]) == 1)[0])
 
-    return X
+    return np.squeeze(X, axis=squeeze_axes)

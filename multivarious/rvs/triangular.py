@@ -1,222 +1,224 @@
+#! /usr/bin/env -S python3 -i
+## triangular distribution
+# github.com/hpgavin/multivarious ... rvs/triangular
+
 import numpy as np
 
 from multivarious.utl.correlated_rvs import correlated_rvs
 
 
-def _ppp_(x, a, b, c):
-    '''
-    Validate and preprocess input parameters for consistency and correctness.
+def _validate_(a, b, c):
+    """
+    Validate and preprocess triangular distribution parameters.
 
-    INPUTS:
-        x : array_like
-            Evaluation points
-        a : float
-            Lower bound
-        b : float
-            Upper bound (must be > a)
-        c : float
-            Mode (must satisfy a < c < b)
-    '''
+    Converts a, b, c to (n, 1) column arrays for broadcasting against
+    a (1, N) row array of evaluation points, producing (n, N) output.
 
-    # Convert inputs to arrays
-    # Python does not implicitly handle scalars as arrays. 
-    x = np.atleast_1d(x).astype(float)
-    a = np.atleast_1d(a).astype(float)
-    b = np.atleast_1d(b).astype(float)
-    c = np.atleast_1d(c).astype(float)
-    n = len(a)   
-    N = len(x)
+    INPUTS
+        a : float or array_like   lower bound(s)
+        b : float or array_like   upper bound(s), must be >= a element-wise
+        c : float or array_like   mode(s), must satisfy a <= c <= b
 
-    # Validate parameter dimensions 
-    if not ( len(a) == n and len(b) == n and len(c) == n ):
-        raise ValueError(f"a, b, ,c arrays must have the same length. "
-                         f"Got a:{len(a)}, b:{len(b)}, c:{len(c)}")
+    OUTPUTS
+        a : ndarray, shape (n, 1)
+        b : ndarray, shape (n, 1)
+        c : ndarray, shape (n, 1)
+    """
+    a = np.asarray(a, dtype=float).reshape(-1, 1)  # (n, 1)
+    b = np.asarray(b, dtype=float).reshape(-1, 1)  # (n, 1)
+    c = np.asarray(c, dtype=float).reshape(-1, 1)  # (n, 1)
 
-    # Validate parameter values
-    if not np.all(a <= b):
-        raise ValueError("triangular: all a values must be less than or equal to b")
-    if not np.all(a <= c):
-        raise ValueError("triangular: all a values must be less than or equal to c")
-    if not np.all(c <= b):
-        raise ValueError("triangular: all c values must be less than or equal to b") 
+    if not (a.shape == b.shape == c.shape):
+        raise ValueError(f"triangular: a, b, c must have the same length. "
+                         f"Got a:{a.size}, b:{b.size}, c:{c.size}")
+    if np.any(a > b):
+        raise ValueError("triangular: all a values must be <= b")
+    if np.any(a > c):
+        raise ValueError("triangular: all a values must be <= c")
+    if np.any(c > b):
+        raise ValueError("triangular: all c values must be <= b")
 
-    return x, a, b, c, n, N
+    return a, b, c
 
 
 def pdf(x, a, b, c):
-    '''
+    """
     triangular.pdf
 
     Computes the PDF of the triangular distribution on [a, b] with mode c.
 
-    INPUTS:
-        x : array_like
-            Evaluation points
-        a : float
-            Lower bound
-        b : float
-            Upper bound (must be > a)
-        c : float
-            Mode (must satisfy a < c < b)
+    INPUTS
+        x : float or array_like, shape (N,)   evaluation points
+        a : float or array_like, shape (n,)   lower bound(s)
+        b : float or array_like, shape (n,)   upper bound(s), must be >= a
+        c : float or array_like, shape (n,)   mode(s), must satisfy a <= c <= b
 
-    Output:
-        f : ndarray
-            PDF values at each point in x
-            
-    Reference:   http://en.wikipedia.org/wiki/Triangular_distribution
-    '''
+    OUTPUTS
+        f : ndarray, shape (n, N)   PDF values; singleton axes are squeezed
 
-    x, a, b, c, n, N = _ppp_(x, a, b, c)
+    Notes
+    -----
+    np.where evaluates both branches everywhere before applying the mask,
+    so c == a or c == b may raise a runtime divide-by-zero warning,
+    though the masked-out values are not used in the result.
 
-    f = np.zeros((n,N))
+    Reference
+    ---------
+    http://en.wikipedia.org/wiki/Triangular_distribution
+    """
+    a, b, c = _validate_(a, b, c)                   # (n, 1)
+    x = np.asarray(x, dtype=float).reshape( 1, -1)  # (1, N)
 
-    for i in range(n):
-        # Left side of peak (pdf piecewise formula)
-        left = (a[i] <= x) & (x < c[i])
-        f[i,left] = 2 * (x[left] - a[i]) / ((b[i] - a[i]) * (c[i] - a[i]))
+    left  = (a <= x) & (x <  c)                     # (n, N) boolean mask
+    right = (c <= x) & (x <= b)                     # (n, N) boolean mask
 
-        # Right side of peak (pdf piecewise formula)
-        right = (c[i] <= x) & (x <= b[i])
-        f[i,right] = 2 * (b[i] - x[right]) / ((b[i] - a[i]) * (b[i] - c[i]))
+    f_left  = 2 * (x - a) / ((b - a) * (c - a))     # (n, N) left-branch values
+    f_right = 2 * (b - x) / ((b - a) * (b - c))     # (n, N) right-branch values
 
-    if n == 1 and f.shape[0] == 1:
-        f = f.flatten()
+    f = np.where(left, f_left, np.where(right, f_right, 0.0))  # (n, N)
 
-    return f  # Outside [a, b] => already zero
+    # Find singleton axes corresponding to scalar or length-1 inputs.
+    # enumerate() creates pairs of (index, value)
+    # for each element in the list [a, x].
+    # The index i is included in squeeze_axes if v.size == 1 for that element.
+    squeeze_axes = tuple(i for i, v in enumerate([a, x]) if v.size == 1)
+
+    return np.squeeze(f, axis=squeeze_axes)
 
 
 def cdf(x, params):
-    '''
+    """
     triangular.cdf
 
     Computes the CDF of the triangular distribution on [a, b] with mode c.
 
-    INPUTS:
-        x : array_like
-            Evaluation points
-        params : array_like [ a, b, c ]
-        a : float
-            Lower bound
-        b : float
-            Upper bound (must be > a)
-        c : float
-            Mode (must satisfy a < c < b)
+    INPUTS
+        x      : float or array_like, shape (N,)   evaluation points
+        params : tuple (a, b, c)
+            a : float or array_like, shape (n,)   lower bound(s)
+            b : float or array_like, shape (n,)   upper bound(s), must be >= a
+            c : float or array_like, shape (n,)   mode(s), a <= c <= b
 
-    Output:
-        F : ndarray
-            CDF values at each point in x
+    OUTPUTS
+        F : ndarray, shape (n, N)   CDF values; singleton axes are squeezed
+
+    Notes
+    -----
+    np.where evaluates both branches everywhere before applying the mask,
+    so c == a or c == b may raise a runtime divide-by-zero warning,
+    though the masked-out values are not used in the result.
 
     Reference
-    ----------
+    ---------
     http://en.wikipedia.org/wiki/Triangular_distribution
-    '''
-
+    """
     a, b, c = params
+    a, b, c = _validate_(a, b, c)                   # (n, 1)
+    x = np.asarray(x, dtype=float).reshape( 1, -1)  # (1, N)
 
-    x, a, b, c, n, N = _ppp_(x, a, b, c)
+    mid1  = (a <  x) & (x <  c)                     # (n, N) boolean masks
+    mid2  = (c <= x) & (x <  b)
+    right = (x >= b)
 
-    F = np.zeros((n,N))
+    F_mid1 =     (x - a)**2 / ((b - a) * (c - a))   # (n, N) branch values
+    F_mid2 = 1 - (b - x)**2 / ((b - a) * (b - c))
 
-    for i in range(n): 
-        left = (x <= a[i])
-        mid1 = (a[i] < x) & (x < c[i])
-        mid2 = (c[i] <= x) & (x < b[i])
-        right = (x >= b[i])
+    F = np.where(right, 1.0,
+        np.where(mid2,  F_mid2,
+        np.where(mid1,  F_mid1, 0.0)))              # (n, N)
 
-        F[i,mid1] = ((x[mid1] - a[i]) ** 2) / ((b[i] - a[i]) * (c[i] - a[i]))
-        F[i,mid2] = 1 - ((b[i] - x[mid2]) ** 2) / ((b[i] - a[i]) * (b[i] - c[i]))
-        F[i,right] = 1.0
+    # Find singleton axes corresponding to scalar or length-1 inputs.
+    # enumerate() creates pairs of (index, value)
+    # for each element in the list [a, x].
+    # The index i is included in squeeze_axes if v.size == 1 for that element.
+    squeeze_axes = tuple(i for i, v in enumerate([a, x]) if v.size == 1)
 
-    if n == 1 and F.shape[0] == 1:
-        F = F.flatten()
-
-    return F
+    return np.squeeze(F, axis=squeeze_axes)
 
 
 def inv(F, a, b, c):
-    '''
+    """
     triangular.inv
 
     Computes the inverse CDF (quantile function) of the triangular distribution
     on [a, b] with mode c.
 
-    INPUTS:
-        F : array_like
-            Probability values (must be in [0, 1])
-        a : float
-            Lower bound
-        b : float
-            Upper bound (must be > a)
-        c : float
-            Mode (must satisfy a < c < b)
+    INPUTS
+        F : float or array_like, shape (N,)   probability values in [0, 1]
+        a : float or array_like, shape (n,)   lower bound(s)
+        b : float or array_like, shape (n,)   upper bound(s), must be >= a
+        c : float or array_like, shape (n,)   mode(s), must satisfy a <= c <= b
 
-    Output:
-        x : ndarray
-            Quantile values corresponding to probabilities F
+    OUTPUTS
+        x : ndarray, shape (n, N)   quantile values; singleton axes are squeezed
 
-    Reference:
+    Reference
+    ---------
     http://en.wikipedia.org/wiki/Triangular_distribution
-    '''
+    """
+    a, b, c = _validate_(a, b, c)                    # (n, 1)
+    F = np.asarray(F, dtype=float).reshape( 1, -1)  # (1, N)
+    F = np.clip(F, np.finfo(float).eps, 1.0 - np.finfo(float).eps)
 
-    _, a, b, c, n, _ = _ppp_(F, a, b, c)
+    Fc = (c - a) / (b - a)                           # (n, 1) CDF value at the mode
 
-    F = np.atleast_2d(F).astype(float)
-    F = np.clip(F, np.finfo(float).eps, 1 - np.finfo(float).eps)
-    N = F.shape[1]    
-    
-    Fc = (c - a) / (b - a)
+    x_below = a + np.sqrt( F      * (b - a) * (c - a))  # (n, N) branch values
+    x_above = b - np.sqrt((1 - F) * (b - a) * (b - c))
 
-    x = np.zeros((n,N))
+    x = np.where(F < Fc, x_below, x_above)          # (n, N)
 
-    for i in range(n):
-        # Piecewise conditions
-        below = F[i,:] < Fc[i]
-        above = ~below
+    # Find singleton axes corresponding to scalar or length-1 inputs.
+    # enumerate() creates pairs of (index, value)
+    # for each element in the list [a, F].
+    # The index i is included in squeeze_axes if v.size == 1 for that element.
+    squeeze_axes = tuple(i for i, v in enumerate([a, F]) if v.size == 1)
 
-        # Inverse CDF piecewise formula
-        x[i,below] = a[i] + np.sqrt(F[i,below] * (b[i] - a[i]) * (c[i] - a[i]))
-        x[i,above] = b[i] - np.sqrt((1 - F[i,above]) * (b[i] - a[i]) * (b[i] - c[i]))
-
-    if n == 1 and x.shape[0] == 1:
-        x = x.flatten()
-
-    return x
+    return np.squeeze(x, axis=squeeze_axes)
 
 
-def rnd(a, b, c, N, R=None, seed=None ):
-    '''
+def rnd(a, b, c, N, R=None, seed=None):
+    """
     triangular.rnd
 
     Generate random samples from the triangular distribution on [a, b] with mode c.
 
-    INPUTS:
-        a : float
-            Lower bound
-        b : float
-            Upper bound (must be > a)
-        c : float
-            Mode of X (must satisfy a < c < b)
-     size : tuple, optional
-            Output shape (e.g., (r, c)); default is (1,)
-     seed : int or np.random.Generator, optional
-            Random seed or existing Generator for reproducibility
+    INPUTS
+        a    : float or array_like, shape (n,)   lower bound(s)
+        b    : float or array_like, shape (n,)   upper bound(s), must be >= a
+        c    : float or array_like, shape (n,)   mode(s), must satisfy a <= c <= b
+        N    : int                                number of samples per variable
+        R    : ndarray, shape (n, n), optional    correlation matrix;
+               if None, generates uncorrelated samples
+        seed : int or None                        random seed for reproducibility
 
-    Output:
-        X : ndarray
-            Array of shape `size` containing triangular random samples
+    OUTPUTS
+        X : ndarray, shape (n, N)   triangular random samples;
+            each row is one random variable, each column one sample;
+            singleton axes are squeezed
 
-    Reference:
+    Reference
+    ---------
     http://en.wikipedia.org/wiki/Triangular_distribution
-    '''
+    """
+    if N is None or N < 1:
+        raise ValueError("triangular.rnd: N must be greater than zero")
 
-    _, a, b, c, n, _ = _ppp_(0, a, b, c)
+    a, b, c = _validate_(a, b, c)                 # (n, 1)
+    n = a.size
 
-    _, _, U = correlated_rvs( R, n, N, seed )
+    # Generate n correlated uniform [0, 1] variates, shape (n, N)
+    _, _, U = correlated_rvs(R, n, N, seed)
 
-    # Transform each variable to its triangular distribution via inverse CDF
-    X = inv( U, a, b, c )
+    # Inline the inverse transform rather than calling inv(), because U is
+    # already (n, N) from correlated_rvs, while inv() expects F as (1, N).
+    Fc = (c - a) / (b - a)                        # (n, 1) CDF value at the mode
 
-    if N == 1:
-        X = X.flatten()
+    X_below = a + np.sqrt( U      * (b - a) * (c - a))  # (n, N) branch values
+    X_above = b - np.sqrt((1 - U) * (b - a) * (b - c))
 
-    return X
+    X = np.where(U < Fc, X_below, X_above)        # (n, N)
+
+    # Squeeze singleton axes from the (n, N) output
+    squeeze_axes = tuple(np.where(np.asarray([n, N]) == 1)[0])
+
+    return np.squeeze(X, axis=squeeze_axes)

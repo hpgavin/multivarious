@@ -1,46 +1,42 @@
-# beta distribution
+#! /usr/bin/env -S python3 -i
+## beta distribution
 # github.com/hpgavin/multivarious ... rvs/beta
 
 import numpy as np
-from scipy.special import beta as beta_func
+from scipy.special import beta     as beta_func
 from scipy.special import betainc
 from scipy.special import betaincinv
 
 from multivarious.utl.correlated_rvs import correlated_rvs
 
-def _ppp_(x, a, b, q, p ):
-    '''
-    Validate and preprocess input parameters for consistency and correctness.
 
-    INPUTS:
-        x : array_like
-            Evaluation points
-        a : float
-            Minimum of the distribution
-        b : float
-            Maximum of the distribution (must be > a)
-        q : float
-            First shape parameter
-        p : float
-            Second shape parameter
-    '''
+def _validate_(a, b, q, p):
+    """
+    Validate and preprocess beta distribution parameters.
 
-    # Convert inputs to arrays
-    # Python does not implicitly handle scalars as arrays. 
-    x = np.atleast_1d(x).astype(float)
-    a = np.atleast_1d(a).astype(float) 
-    b = np.atleast_1d(b).astype(float)
-    q = np.atleast_1d(q).astype(float)
-    p = np.atleast_1d(p).astype(float)
-    n = len(a)   
-    N = len(x)
+    Converts a, b, q, p to (n, 1) column arrays for broadcasting against
+    a (1, N) row array of evaluation points, producing (n, N) output.
 
-    # Validate parameter dimensions 
-    if not (len(b) == n and len(q) == n and len(p) == n):
-        raise ValueError(f"All parameter arrays must have the same length. "
-                        f"Got a:{len(a)}, b:{len(b)}, q:{len(q)}, p:{len(p)}")
-    
-    # Validate parameter values 
+    INPUTS
+        a : float or array_like   lower bound(s)
+        b : float or array_like   upper bound(s), must be > a element-wise
+        q : float or array_like   first shape parameter(s),  must be > 0
+        p : float or array_like   second shape parameter(s), must be > 0
+
+    OUTPUTS
+        a : ndarray, shape (n, 1)
+        b : ndarray, shape (n, 1)
+        q : ndarray, shape (n, 1)
+        p : ndarray, shape (n, 1)
+    """
+    a = np.asarray(a, dtype=float).reshape(-1, 1)  # (n, 1)
+    b = np.asarray(b, dtype=float).reshape(-1, 1)  # (n, 1)
+    q = np.asarray(q, dtype=float).reshape(-1, 1)  # (n, 1)
+    p = np.asarray(p, dtype=float).reshape(-1, 1)  # (n, 1)
+
+    if not (a.shape == b.shape == q.shape == p.shape):
+        raise ValueError(f"beta: a, b, q, p must have the same length. "
+                         f"Got a:{a.size}, b:{b.size}, q:{q.size}, p:{p.size}")
     if np.any(b <= a):
         raise ValueError("beta: all b values must be greater than corresponding a values")
     if np.any(q <= 0):
@@ -48,198 +44,199 @@ def _ppp_(x, a, b, q, p ):
     if np.any(p <= 0):
         raise ValueError("beta: p must be positive")
 
-    return x, a, b, q, p, n, N
+    return a, b, q, p
 
 
 def pdf(x, a, b, q, p):
-    '''
+    """
     beta.pdf
 
-    Computes the Probability Density Function (PDF) of the Beta distribution
-    with lower bound a, upper bound b, and shape parameters q and p.
+    Computes the PDF of the beta distribution on [a, b] with shape parameters q, p.
 
-    INPUTS:
-        x : array_like
-            Evaluation points
-        a : float
-            Minimum of the distribution
-        b : float
-            Maximum of the distribution (must be > a)
-        q : float
-            First shape parameter
-        p : float
-            Second shape parameter
- 
-    OUTPUT:
-        f : ndarray
-            PDF evaluated at x
-    '''
+    INPUTS
+        x : float or array_like, shape (N,)   evaluation points
+        a : float or array_like, shape (n,)   lower bound(s)
+        b : float or array_like, shape (n,)   upper bound(s), must be > a
+        q : float or array_like, shape (n,)   first shape parameter(s),  > 0
+        p : float or array_like, shape (n,)   second shape parameter(s), > 0
 
-    x, a, b, q, p, n, N = _ppp_(x, a, b, q, p)
+    OUTPUTS
+        f : ndarray, shape (n, N)   PDF values; singleton axes are squeezed
 
-    # Initialize PDF output as zeros
-    f = np.zeros((n,N))
+    Notes
+    -----
+    f(x) = (x-a)^(q-1) * (b-x)^(p-1) / (B(q,p) * (b-a)^(q+p-1))
+    for x in [a, b], where B(q, p) is the beta function.
 
-    # Only compute for values within [a, b]
-    
-    # Beta PDF formula (with change of variable from [0,1] to [a,b])
+    x is clipped to (a, b) before evaluating the formula to avoid NaN from
+    raising negative numbers to fractional powers outside [a, b]; the mask
+    then zeros out those regions in the result.
 
-    for i in range(n): 
-        mask = (x >= a[i]) & (x <= b[i])
-        numerator = (x[mask] - a[i])**(q[i] - 1) * (b[i] - x[mask])**(p[i]-1)
-        denominator = beta_func(q[i], p[i]) * (b[i] - a[i])**(q[i] + p[i] - 1)
-        f[i,mask] = numerator / denominator
+    Reference
+    ---------
+    https://en.wikipedia.org/wiki/Beta_distribution
+    """
+    a, b, q, p = _validate_(a, b, q, p)                      # (n, 1)
+    x = np.asarray(x, dtype=float).reshape( 1, -1)          # (1, N)
 
-    if n == 1 and x.shape[0] == 1:
-        f = f.flatten()
+    inside = (a <= x) & (x <= b)                             # (n, N) boolean mask
 
-    return f
+    # Clip x to (a, b) before computing the formula to suppress NaN/inf
+    # warnings outside [a, b]; the mask zeros out those values in the result.
+    xc = np.clip(x, a + np.finfo(float).eps, b - np.finfo(float).eps)
+
+    numerator   = (xc - a)**(q - 1) * (b - xc)**(p - 1)    # (n, N)
+    denominator = beta_func(q, p) * (b - a)**(q + p - 1)    # (n, 1)
+
+    f = np.where(inside, numerator / denominator, 0.0)       # (n, N)
+
+    # Find singleton axes corresponding to scalar or length-1 inputs.
+    # enumerate() creates pairs of (index, value)
+    # for each element in the list [a, x].
+    # The index i is included in squeeze_axes if v.size == 1 for that element.
+    squeeze_axes = tuple(i for i, v in enumerate([a, x]) if v.size == 1)
+
+    return np.squeeze(f, axis=squeeze_axes)
 
 
-def cdf(x, params ):
-    '''
+def cdf(x, params):
+    """
     beta.cdf
 
-    Computes the Cumulative Distribution Function (CDF) of the beta distribution
-    with lower bound a, upper bound b, and shape parameters q and p.
+    Computes the CDF of the beta distribution on [a, b] with shape parameters q, p.
 
-    INPUTS:
-        x = array_like 
-            Evaluation points
-        params = array_like [ a , b , q, p  ]
-        a = params[0] float 
-            Minimum of the distribution
-        b = params[1] float
-            Maximum of the distribution (must be > a)
-        q = params[2] float
-            First shape parameter
-        p = params[3] float 
-            Second shape parameter
+    INPUTS
+        x      : float or array_like, shape (N,)   evaluation points
+        params : tuple (a, b, q, p)
+            a : float or array_like, shape (n,)   lower bound(s)
+            b : float or array_like, shape (n,)   upper bound(s), must be > a
+            q : float or array_like, shape (n,)   first shape parameter(s),  > 0
+            p : float or array_like, shape (n,)   second shape parameter(s), > 0
 
-    OUTPUT:
-        F = ndarray (CDF evaluated at x)
-        
-    Formula: 
-        F(x) = I_{(x - a) / (b - a)} (q, p)
-    where I is the regularized incomplete beta function.
-    '''
+    OUTPUTS
+        F : ndarray, shape (n, N)   CDF values; singleton axes are squeezed
 
+    Notes
+    -----
+    F(x) = I_{(x-a)/(b-a)}(q, p)
+    where I is the regularized incomplete beta function (scipy.special.betainc).
+    betainc supports NumPy broadcasting, so no loop over n is needed.
+
+    Reference
+    ---------
+    https://en.wikipedia.org/wiki/Beta_distribution
+    """
     a, b, q, p = params
+    a, b, q, p = _validate_(a, b, q, p)                      # (n, 1)
+    x = np.asarray(x, dtype=float).reshape( 1, -1)          # (1, N)
 
-    x, a, b, q, p, n, N = _ppp_(x, a, b, q, p)
+    # Normalize x to [0, 1]; clip handles x < a (→ 0) and x > b (→ 1)
+    z = np.clip((x - a) / (b - a), 0.0, 1.0)               # (n, N)
 
-    # Compute z = (x - a) / (b - a), clipped to [0, 1]
-    z = (x - a) / (b - a)
-    z = np.clip(z, 0, 1)
+    # betainc broadcasts (n,1) q,p against (n,N) z → (n,N)
+    F = betainc(q, p, z)                                     # (n, N)
 
-    # Evaluate the regularized incomplete beta function
-    F = np.zeros((n,N))
-    for i in range(n):
-       F[i,:] = betainc(q[i], p[i], z[i,:])
+    # Find singleton axes corresponding to scalar or length-1 inputs.
+    # enumerate() creates pairs of (index, value)
+    # for each element in the list [a, x].
+    # The index i is included in squeeze_axes if v.size == 1 for that element.
+    squeeze_axes = tuple(i for i, v in enumerate([a, x]) if v.size == 1)
 
-    if n == 1 and x.shape[0] == 1:
-        F = F.flatten()
-
-    return F
+    return np.squeeze(F, axis=squeeze_axes)
 
 
 def inv(F, a, b, q, p):
-    '''
+    """
     beta.inv
 
-    Compute the inverse CDF (quantile function) of the beta distribution.
+    Computes the inverse CDF (quantile function) of the beta distribution.
 
-    INPUTS:
-        F : array_like
-            Non-exceedance probability values (between 0 and 1)
-        a : float
-            Lower bound of the distribution
-        b : float
-            Upper bound of the distribution (must be > a)
-        q : float
-            First shape parameter
-        p : float
-            Second shape parameter
+    INPUTS
+        F : float or array_like, shape (N,)   probability values in [0, 1]
+        a : float or array_like, shape (n,)   lower bound(s)
+        b : float or array_like, shape (n,)   upper bound(s), must be > a
+        q : float or array_like, shape (n,)   first shape parameter(s),  > 0
+        p : float or array_like, shape (n,)   second shape parameter(s), > 0
 
-    OUTPUT:
-    x : ndarray
-        Quantile values corresponding to input probabilities F
-    '''
+    OUTPUTS
+        x : ndarray, shape (n, N)   quantile values; singleton axes are squeezed
 
-    _, a, b, q, p, n, _ = _ppp_(0, a, b, q, p)
+    Notes
+    -----
+    x = a + betaincinv(q, p, F) * (b - a)
+    betaincinv supports NumPy broadcasting, so no loop over n is needed.
 
-    F = np.atleast_2d(F).astype(float)
-    F = np.clip(F, np.finfo(float).eps, 1 - np.finfo(float).eps)
-    N = F.shape[1]    
+    Reference
+    ---------
+    https://en.wikipedia.org/wiki/Beta_distribution
+    """
+    a, b, q, p = _validate_(a, b, q, p)                      # (n, 1)
+    F = np.asarray(F, dtype=float).reshape( 1, -1)          # (1, N)
+    F = np.clip(F, np.finfo(float).eps, 1.0 - np.finfo(float).eps)
 
-    x = np.zeros((n,N)) 
+    # betaincinv broadcasts (n,1) q,p against (1,N) F → (n,N)
+    z = betaincinv(q, p, F)                                  # (n, N)
+    x = a + z * (b - a)                                      # (n, N)
 
-    for i in range(n): 
-        # Compute inverse of regularized incomplete beta function
-        z = betaincinv(q[i], p[i], F[i,:])
+    # Find singleton axes corresponding to scalar or length-1 inputs.
+    # enumerate() creates pairs of (index, value)
+    # for each element in the list [a, F].
+    # The index i is included in squeeze_axes if v.size == 1 for that element.
+    squeeze_axes = tuple(i for i, v in enumerate([a, F]) if v.size == 1)
 
-        # Rescale from [0, 1] to [a, b]
-        x[i,:] = a[i] + z * (b[i] - a[i])
-
-    if n == 1 and F.shape[0] == 1:
-        x = x.flatten()
-
-    return x
+    return np.squeeze(x, axis=squeeze_axes)
 
 
 def rnd(a, b, q, p, N, R=None, seed=None):
-    '''
+    """
     beta.rnd
-    Generate N observations of n correlated (or uncorrelated) beta random var's
 
-    INPUT:
-        a : float or array_like (n,)
-            Lower bound(s) of the distribution. shape (n,) for n random variables
-        b : float or array_like (n,)
-            Upper bound(s) of the distribution. shape (n,) for n random variables
-        q : float or array_like
-            First shape parameter(s). shape (n,) for n random variables
-        p : float or array_like
-            Second shape parameter(s). shape (n,) for n random variables
-        N : int
-            Number of observations (samples) to generate.
-        R : ndarray, optional
-            n×n correlation matrix of standard normal deviates.
-            If None, defaults to identity matrix (uncorrelated samples).
+    Generate random samples from the beta distribution on [a, b].
 
-    OUTPUT:
-        X : ndarray
-            Shape (n, N) array of correlated beta random samples.
-            Each row corresponds to one random variable.
-            Each column corresponds to one observation.
+    INPUTS
+        a    : float or array_like, shape (n,)   lower bound(s)
+        b    : float or array_like, shape (n,)   upper bound(s), must be > a
+        q    : float or array_like, shape (n,)   first shape parameter(s),  > 0
+        p    : float or array_like, shape (n,)   second shape parameter(s), > 0
+        N    : int                                number of samples per variable
+        R    : ndarray, shape (n, n), optional    correlation matrix;
+               if None, generates uncorrelated samples
+        seed : int or None                        random seed for reproducibility
 
-    Method:
-        1. Perform eigenvalue decomposition of correlation matrix R
-        2. Generate uncorrelated standard normal samples
-        3. Apply correlation structure: Y = eVec @ sqrt(eVal) @ Z
-        4. Transform to uniform via standard normal CDF
-        5. Transform to beta via inverse CDF for each variable
+    OUTPUTS
+        X : ndarray, shape (n, N)   beta random samples;
+            each row is one random variable, each column one sample;
+            singleton axes are squeezed
 
-    Example (Usage):
-        # Single variable, uncorrelated samples
-            x = rnd(0, 1, 2, 5, N=1000)
-        
-        # Multiple correlated variables
-            a = np.array([0, 1])
-            b = np.array([1, 3])
-            q = np.array([2, 3])
-            p = np.array([5, 4])
-            R = np.array([[1.0, 0.7], [0.7, 1.0]])
-            x = rnd(a, b, q, p, N=1000, R=R)
-    '''
+    Notes
+    -----
+    Uses the Gaussian copula method via inverse transform:
+        X = a + betaincinv(q, p, U) * (b - a)
+    where U ~ Uniform(0,1) with correlation structure from correlated_rvs.
 
-    _, a, b, q, p, n, _ = _ppp_(0, a, b, q, p)
-   
-    _, _, U = correlated_rvs(R,n,N,seed)
+    The inverse transform is inlined rather than calling inv(), because U is
+    already (n, N) from correlated_rvs, while inv() expects F as (1, N).
 
-    X = inv( U, a, b, q, p )
-       
-    if N == 1:
-        X = X.flatten()
+    Reference
+    ---------
+    https://en.wikipedia.org/wiki/Beta_distribution
+    """
+    if N is None or N < 1:
+        raise ValueError("beta.rnd: N must be greater than zero")
 
-    return X
+    a, b, q, p = _validate_(a, b, q, p)                      # (n, 1)
+    n = a.size
+
+    # Generate n correlated uniform [0, 1] variates, shape (n, N)
+    _, _, U = correlated_rvs(R, n, N, seed)
+
+    # Inline the inverse transform rather than calling inv(), because U is
+    # already (n, N) from correlated_rvs, while inv() expects F as (1, N).
+    # betaincinv broadcasts (n,1) q,p against (n,N) U → (n,N)
+    z = betaincinv(q, p, U)                                   # (n, N)
+    X = a + z * (b - a)                                       # (n, N)
+
+    # Squeeze singleton axes from the (n, N) output
+    squeeze_axes = tuple(np.where(np.asarray([n, N]) == 1)[0])
+
+    return np.squeeze(X, axis=squeeze_axes)

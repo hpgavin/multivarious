@@ -1,9 +1,7 @@
 import numpy as np
-from scipy.special import factorial
-
-from multivarious.utl.correlated_rvs import correlated_rvs
 from scipy.special import comb  # For binomial coefficient
 
+from multivarious.utl.correlated_rvs import correlated_rvs
 
 def _ppp_(n, m, p):
     '''
@@ -22,16 +20,14 @@ def _ppp_(n, m, p):
     p = np.atleast_1d(p).reshape(-1,1).astype(float)
     n = np.atleast_1d(np.round(n)).reshape(-1,1).astype(int)  # n is int
     m = np.atleast_1d(np.round(m)).reshape(-1,1).astype(int)  # m is int
-    nb = len(p)   
-    Nb = len(n)
+    nv = len(p)  # number of random variables 
+    Nn = len(n)  # number of successes for each random variable 
     
-    n = np.where(n < 0, 0, n)  # clip negative values to 0
-
     # Check parameter validity
     if np.any(p <= 0) or np.any(np.isinf(p)) or np.any( p >= 1):
         raise ValueError(" binomial: p must be between zero and one") 
 
-    if not ( len(m) == nb ):
+    if not ( len(m) == nv ):
         raise ValueError(f" m array must have the same length as p. "
                          f"Got m:{len(m)}, p:{len(p)}")
 
@@ -40,8 +36,7 @@ def _ppp_(n, m, p):
     m[ m < 0 ] = 0
     p[ p < 0 ] = 0.0
 
-    return n, m, p, nb, Nb
-
+    return n, m, p, nv, Nn
 
 
 def pmf(n, m, p):
@@ -72,16 +67,24 @@ def pmf(n, m, p):
     The Binomial distribution models the number of successes in `m` independent
     trials, each with success probability `p`.
     """
-    # Convert inputs to numpy arrays for vectorized operations
-    n = np.asarray(n)
-    m = np.asarray(m)
-    p = np.asarray(p)
+
 
     # Validate inputs
+    assert all(np.asarray(a).ndim <= 1 for a in [p, n, m]), \
+        "n, m, p must be scalars or 1D arrays"
+
     if np.any(p < 0) or np.any(p > 1):
         raise ValueError("Probability `p` must be in the range [0, 1].")
     if np.any(m < n):
         raise ValueError("Number of attempts `m` must be >= number of successes `n`.")
+
+    # Convert inputs to numpy arrays for vectorized operations
+    p = np.asarray(p, dtype=float).reshape(-1, 1, 1)  # (P, 1, 1)
+    n = np.asarray(n, dtype=int  ).reshape( 1,-1, 1)  # (1, N, 1)
+    m = np.asarray(m, dtype=int  ).reshape( 1, 1,-1)  # (M, 1, 1)
+
+    # After reshaping, each of p, n, m occupies one axis of the computed 
+    # array of Binomial probabilites - as a (P, N, M) 3-dimensional output
 
     # Compute the binomial coefficient: C(m, n) = m! / (n! * (m-n)!)
     binomial_coeff = np.vectorize(comb)(m, n, exact=True)
@@ -89,7 +92,14 @@ def pmf(n, m, p):
     # Compute the PMF: P(n; m, p) = C(m, n) * p^n * (1-p)^(m-n)
     P = binomial_coeff * (p ** n) * ((1 - p) ** (m - n))
 
-    return P
+    # Find singleton axes 
+    # for each element in the list [ p, n, m ]  
+    # enumerate() creates pairs of (index, value)
+    # The index idx is included in the tuple if val.size == 1 for that index
+
+    squeeze_axes = tuple(idx for idx,val in enumerate([p, n, m]) if val.size==1)
+
+    return np.squeeze(P, axis=squeeze_axes)
 
 
 def cdf(n, params):
@@ -99,13 +109,13 @@ def cdf(n, params):
     Computes the Cumulative Distribution Function (CDF) of the Binomial distribution.
 
     INPUTS:
-        n : number of successful outcomes (Nb,)
-        m : int scalar or array_like (nb,)
+        n : number of successful outcomes (Nn,)
+        m : int scalar or array_like (nv,)
             number of attempts 
-        p : float scalar or array_like (nb,)
+        p : float scalar or array_like (nv,)
             event probabilities of a single attempt for each variable
     Output:
-        F : ndarray or float (nb,Nb)
+        F : ndarray or float (nv,Nn)
             Cumulative probability P(N ≤ n)
 
     Reference:
@@ -113,18 +123,27 @@ def cdf(n, params):
     '''
     m, p = params 
 
-    n, m, p, nb, Nb =  _ppp_( n, m, p )
-
-    F = np.zeros((nb,Nb))
+    m = np.asarray(m, dtype=int)
+    n = np.asarray(n, dtype=int)
+    p = np.asarray(p, dtype=float)
 
     P = pmf( n, m, p )
 
-    for i in range(nb): 
-        F[i,:] = np.cumsum( P[i,:] )
+    # Find singleton axes ...
+    # for each element in the list [ p, n, m ]  
+    # enumerate() creates pairs of (index, value)
+    # The index idx is included in the tuple if val.size == 1 for that index
 
-#   if F.size > 1 else F[0]        # Return scalar if input was scalar
-    if nb == 1 and F.shape[0] == 1:
-         F = F.flatten();
+    squeeze_axes = tuple(idx for idx,val in enumerate([p, n, m]) if val.size==1)
+
+    # After squeezing, n's axis index shifts left by the number of
+    # axes before it (i.e. with index < 1) that were squeezed away.
+    # n occupies axis 1 in the unsqueezed (P, N, M) array, so:
+    #   n_axis = 1 - (number of squeeze_axes that are < 1)
+
+    n_axis = 1 - sum(s < 1 for s in squeeze_axes)
+
+    F = np.cumsum(P, axis=n_axis)  # cumulative sum of the PMF 
 
     return F 
 
@@ -155,31 +174,30 @@ def rnd(m, p, N, R=None, seed=None):
     https://en.wikipedia.org/wiki/Binomial_distribution#Generating_Binomial-distributed_random_variables
      '''
 
-    _, m, p, nb, _ =  _ppp_( 0, m, p )
-
     if N == None or N < 1:
         raise ValueError(" binomial.rnd(p,N): N must be greater than zero")
     
     rng = np.random.default_rng(seed)
 
-    X = np.zeros((nb, N), dtype=int)
-    
+    m = np.asarray(m, dtype=int ).reshape(-1, 1)  # (nv, 1) broadcasts over N
+    p = np.asarray(p, dtype=float).reshape(-1, 1) # (nv, 1) broadcasts over N
+
+    X = np.zeros((nv, N), dtype=int)
+
     # Accumulate successes over attempts
     for attempt in range(np.max(m)):
 
-        _, _, U = correlated_rvs(R, nb, N, seed)
+        _, _, U = correlated_rvs(R, nv, N, seed)
 
-        successes = (U < p) # Bernoulli success if U < p, shape (nb, N)
-    
-        # add up successes for the i-th r.v. only up to m[i] attempts 
-        for i in range(nb):
-            if attempt <= m[i]:
-                X[i,:] += successes[i,:].astype(int)
+        successes = (U < p)  # (nv, N) - Bernoulli success if U < p
 
-    if n == 1 and X.shape[0] == 1:
-        X = X.flatten()
+        mask = (attempt < m) # (nv, 1) - True if this r.v. still has attempts remaining
 
-    if N == 1:
-        X = X.flatten()
+        # add up successes for all r.v's 
+        X += (successes * mask).astype(int)
+
+    # Squeeze singleton axes from the (nv, N) output
+    squeeze_axes = tuple(np.where(np.asarray([nv, N]) == 1)[0])
+    X = np.squeeze(X, axis=squeeze_axes)
 
     return X

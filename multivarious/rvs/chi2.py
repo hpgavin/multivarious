@@ -1,3 +1,4 @@
+#! /usr/bin/env -S python3 -i
 ## chi-squared distribution
 # github.com/hpgavin/multivarious ... rvs/chi2
 
@@ -7,90 +8,79 @@ from scipy.stats import norm as scipy_normal
 from multivarious.utl.correlated_rvs import correlated_rvs
 
 
-def _ppp_(x, k):
+def _validate_(k):
     """
-    Validate and preprocess input parameters for consistency and correctness.
+    Validate and preprocess chi-squared distribution parameters.
 
-    INPUTS:
-        x : array_like
-            Evaluation points
-        k : float or array_like
-            Degrees of freedom (must be > 0)
+    Converts k to an (n, 1) column array for broadcasting against
+    a (1, N) row array of evaluation points, producing (n, N) output.
+    Derives the Wilson-Hilferty transformation parameters m and s from k.
 
-    OUTPUTS:
-        x : ndarray
-            Evaluation points as array
-        k : ndarray
-            Degrees of freedom as column array
-        n : int
-            Number of random variables
-        m : ndarray
-            Wilson-Hilferty transformation mean
-        s : ndarray
-            Wilson-Hilferty transformation standard deviation
+    INPUTS
+        k : float or array_like   degrees of freedom, must be > 0
+
+    OUTPUTS
+        k : ndarray, shape (n, 1)
+        m : ndarray, shape (n, 1)   WH mean:   1 - 2/(9k)
+        s : ndarray, shape (n, 1)   WH std dev: sqrt(2/(9k))
 
     Reference
     ---------
     https://en.wikipedia.org/wiki/Chi-squared_distribution#Asymptotic_properties
-    """ 
+    """
+    k = np.asarray(k, dtype=float).reshape(-1, 1)  # (n, 1)
 
-    # Convert inputs to arrays
-    # Python does not implicitly handle scalars as arrays. 
-    x = np.atleast_1d(x).astype(float)
-    k = np.atleast_1d(k).reshape(-1,1).astype(float)
-    n = len(k)   
-    N = len(x)
-        
-    # Validate parameter values 
     if np.any(k <= 0):
-        raise ValueError("chi2: all k values must be greater than zero")
+        raise ValueError("chi2: all k values must be > 0")
 
     # Wilson-Hilferty approximation parameters
-    m = 1 - 2 / (9 * k)         # mean of cube-root-transformed variable
-    s = np.sqrt(2 / (9 * k))    # std dev of cube-root-transformed variable
+    m = 1.0 - 2.0 / (9.0 * k)          # (n, 1) mean of cube-root-transformed variable
+    s = np.sqrt(2.0 / (9.0 * k))       # (n, 1) std dev of cube-root-transformed variable
 
-    return x, k, n, m, s, N
+    return k, m, s
 
 
 def pdf(x, k):
     """
     chi2.pdf
 
-    Computes the PDF of the Chi-squared distribution using the 
-    Wilson-Hilferty transformation.
+    Approximates the PDF of the chi-squared distribution using the
+    Wilson-Hilferty (WH) transformation.
 
-    INPUTS:
-        x : array_like
-            Evaluation points
-        k : float or array_like, shape (n,)
-            Degrees of freedom (must be > 0)
+    INPUTS
+        x : float or array_like, shape (N,)   evaluation points (x > 0)
+        k : float or array_like, shape (n,)   degrees of freedom, must be > 0
 
-    OUTPUTS:
-        f : ndarray, shape (n, N)
-            Approximate PDF values at each point in x for each of n random variables
+    OUTPUTS
+        f : ndarray, shape (n, N)   approximate PDF values; singleton axes are squeezed
 
     Notes
     -----
-    Uses Wilson-Hilferty transformation to approximate chi-squared distribution
-    via normal distribution: Z = (X/k)^(1/3) ~ N(m, s²)
+    The WH transformation maps (X/k)^(1/3) ~ N(m, s^2), so:
+        z = ((x/k)^(1/3) - m) / s
+        f(x) ≈ phi(z, 0, 1) * sqrt(2) * s
+    where phi is the standard normal PDF.
 
     Reference
     ---------
     https://en.wikipedia.org/wiki/Chi-squared_distribution#Asymptotic_properties
     """
-    
-    x, k, n, m, s, N = _ppp_(x, k)
-    
-    # Transform x into z-space: Z = (X / k)^{1/3}
-    z = ( (x / k) ** (1/3) - m ) / s
+    k, m, s = _validate_(                               # (n, 1)
+    x = np.asarray(x, dtype=float).reshape( 1, -1)      # (1, N)
+    x = np.where(x <= 0, np.finfo(float).eps, x)        # guard against x <= 0
 
-    # Approximate PDF using normal distribution
-    f = scipy_normal.pdf(z, 0, 1) * (np.sqrt(2)*s)
+    z = ((x / k) ** (1.0 / 3.0) - m) / s                # (n, N) standardized
 
-    if n == 1 and f.shape[0] == 1:
-        f = f.flatten()
+    # scipy_normal.pdf broadcasts (n,N) z with scalar loc=0, scale=1
+    f = scipy_normal.pdf(z, 0, 1) * np.sqrt(2.0) * s    # (n, N)
 
-    return f
+    # Find singleton axes corresponding to scalar or length-1 inputs.
+    # enumerate() creates pairs of (index, value)
+    # for each element in the list [k, x].
+    # The index i is included in squeeze_axes if v.size == 1 for that element.
+    squeeze_axes = tuple(i for i, v in enumerate([k, x]) if v.size == 1)
+
+    return np.squeeze(f, axis=squeeze_axes)
 
 
 def cdf(x, k):
@@ -98,131 +88,137 @@ def cdf(x, k):
     chi2.cdf
 
     Approximates the CDF of the chi-squared distribution using the
-    Wilson-Hilferty transformation, which maps chi2(k) into a normal distribution.
+    Wilson-Hilferty (WH) transformation.
 
-    INPUTS:
-        x : array_like
-            Evaluation points
-        k : float or array_like, shape (n,)
-            Degrees of freedom (must be > 0)
- 
-    OUTPUTS:
-        F : ndarray, shape (n, N)
-            Approximate cumulative probability evaluated at x for each of n random variables
+    INPUTS
+        x : float or array_like, shape (N,)   evaluation points (x > 0)
+        k : float or array_like, shape (n,)   degrees of freedom, must be > 0
+
+    OUTPUTS
+        F : ndarray, shape (n, N)   approximate CDF values; singleton axes are squeezed
 
     Notes
     -----
-    Uses Wilson-Hilferty transformation: Z = (X/k)^(1/3) ~ N(m, s²)
+    The WH transformation maps (X/k)^(1/3) ~ N(m, s^2), so:
+        z = ((x/k)^(1/3) - m) / s
+        F(x) ≈ Phi(z)
+    where Phi is the standard normal CDF.
 
     Reference
     ---------
     https://en.wikipedia.org/wiki/Chi-squared_distribution#Asymptotic_properties
     """
+    k, m, s = _validate_(k)                            # (n, 1)
+    x = np.asarray(x, dtype=float).reshape( 1, -1)     # (1, N)
+    x = np.where(x <= 0, np.finfo(float).eps, x)       # guard against x <= 0
 
-    x, k, n, m, s, N = _ppp_(x, k)
+    z = ((x / k) ** (1.0 / 3.0) - m) / s               # (n, N) standardized
 
-    # Apply transformation: (X/k)^(1/3)
-    z = ( (x / k) ** (1/3) - m ) / s
+    # scipy_normal.cdf broadcasts (n,N) z with scalar loc=0, scale=1
+    F = scipy_normal.cdf(z, 0, 1)                      # (n, N)
 
-    # Apply normal CDF using transformed variable
-    F = scipy_normal.cdf(z, 0, 1)
+    # Find singleton axes corresponding to scalar or length-1 inputs.
+    # enumerate() creates pairs of (index, value)
+    # for each element in the list [k, x].
+    # The index i is included in squeeze_axes if v.size == 1 for that element.
+    squeeze_axes = tuple(i for i, v in enumerate([k, x]) if v.size == 1)
 
-    if n == 1 and F.shape[0] == 1:
-        F = F.flatten()
-
-    return F
+    return np.squeeze(F, axis=squeeze_axes)
 
 
 def inv(F, k):
     """
     chi2.inv
- 
-    Approximates the inverse CDF (quantile function) of the chi-squared distribution
-    using the Wilson-Hilferty transformation.
- 
-    INPUTS:
-        F : array_like
-            Non-exceedance probabilities (values between 0 and 1)
-        k : float or array_like, shape (n,)
-            Degrees of freedom (must be > 0)
- 
-    OUTPUTS:
-        x : ndarray
-            Quantile values such that Prob[X ≤ x] = F
+
+    Approximates the inverse CDF (quantile function) of the chi-squared
+    distribution using the Wilson-Hilferty (WH) transformation.
+
+    INPUTS
+        F : float or array_like, shape (N,)   probability values in [0, 1]
+        k : float or array_like, shape (n,)   degrees of freedom, must be > 0
+
+    OUTPUTS
+        x : ndarray, shape (n, N)   quantile values; singleton axes are squeezed
 
     Notes
     -----
-    Uses Wilson-Hilferty transformation: x = k * z³ where z ~ N(m, s²)
+    Inverts the WH transformation:
+        z = scipy_normal.ppf(F, m, s)   →   x = k * z^3
+
+    scipy_normal.ppf broadcasts (n,1) m, s against (1,N) F → (n,N),
+    so no loop over n is needed.
 
     Reference
     ---------
     https://en.wikipedia.org/wiki/Chi-squared_distribution#Asymptotic_properties
     """
+    k, m, s = _validate_(k)                           # (n, 1)
+    F = np.asarray(F, dtype=float).reshape( 1, -1)    # (1, N)
+    F = np.clip(F, np.finfo(float).eps, 1.0 - np.finfo(float).eps)
 
-    _, k, n, m, s, _ = _ppp_(0, k)
+    # scipy_normal.ppf broadcasts (n,1) m, s against (1,N) F → (n,N)
+    z = scipy_normal.ppf(F, m, s)                     # (n, N)
+    x = k * z**3                                      # (n, N)
+    x = np.where(x <= 0, 1e-12, x)                    # guard against x <= 0
 
-    F = np.atleast_2d(F).astype(float)
-    F = np.clip(F, np.finfo(float).eps, 1 - np.finfo(float).eps)
-    N = F.shape[1]    
+    # Find singleton axes corresponding to scalar or length-1 inputs.
+    # enumerate() creates pairs of (index, value)
+    # for each element in the list [k, F].
+    # The index i is included in squeeze_axes if v.size == 1 for that element.
+    squeeze_axes = tuple(i for i, v in enumerate([k, F]) if v.size == 1)
 
-    x = np.zeros((n,N)) 
-
-    # Inverse normal CDF
-    z = scipy_normal.ppf(F, m, s)
-
-    # Inverse transformation
-    for i in range(n):
-        x[i, :] = k[i] * z[i, :] ** 3
-
-    x [ x <= 0 ] = 1e-12
-
-    if n == 1 and x.shape[0] == 1:
-        x = x.flatten()
-
-    return x
+    return np.squeeze(x, axis=squeeze_axes)
 
 
 def rnd(k, N, R=None, seed=None):
     """
     chi2.rnd
-    
-    Generate N observations of n correlated (or uncorrelated) chi2 random variables
-    via the Wilson-Hilferty transformation (a good approximation).
 
-    INPUTS:
-        k : float or array_like, shape (n,)
-            Degrees of freedom (must be > 0)
-        N : int
-            Number of observations per random variable
-        R : ndarray, shape (n, n), optional
-            Correlation matrix for generating correlated samples.
-            If None, generates uncorrelated samples.
-        seed : int, optional
-            Random seed for reproducibility
- 
-    OUTPUTS:
-        X : ndarray, shape (n, N) or shape (N,) if n=1
-            Random samples from Chi-squared(k) distribution.
-            Each row corresponds to one random variable.
-            Each column corresponds to one sample.
+    Generate random samples from the chi-squared distribution via the
+    Wilson-Hilferty (WH) transformation.
+
+    INPUTS
+        k    : float or array_like, shape (n,)   degrees of freedom, must be > 0
+        N    : int                                number of samples per variable
+        R    : ndarray, shape (n, n), optional    correlation matrix;
+               if None, generates uncorrelated samples
+        seed : int or None                        random seed for reproducibility
+
+    OUTPUTS
+        X : ndarray, shape (n, N)   chi-squared random samples;
+            each row is one random variable, each column one sample;
+            singleton axes are squeezed
 
     Notes
     -----
-    Uses Wilson-Hilferty transformation via correlated normal variates.
+    Uses the inverse transform method with correlated uniform variates.
+    The inverse transform is inlined rather than calling inv(), because U is
+    already (n, N) from correlated_rvs, while inv() expects F as (1, N).
+
+    scipy_normal.ppf broadcasts (n,1) m, s against (n,N) U → (n,N),
+    so no loop over n is needed.
 
     Reference
     ---------
     https://en.wikipedia.org/wiki/Chi-squared_distribution#Asymptotic_properties
     """
+    if N is None or N < 1:
+        raise ValueError("chi2.rnd: N must be greater than zero")
 
-    _, k, n, m, s, _ = _ppp_(0, k)
+    k, m, s = _validate_(k)                            # (n, 1)
+    n = k.size
 
+    # Generate n correlated uniform [0, 1] variates, shape (n, N)
     _, _, U = correlated_rvs(R, n, N, seed)
-   
-    # Apply transformation
-    X = inv(U, k)  
 
-    if N == 1:
-        X = X.flatten()
+    # Inline the inverse transform rather than calling inv(), because U is
+    # already (n, N) from correlated_rvs, while inv() expects F as (1, N).
+    # scipy_normal.ppf broadcasts (n,1) m, s against (n,N) U → (n,N)
+    z = scipy_normal.ppf(U, m, s)                      # (n, N)
+    X = k * z**3                                       # (n, N)
+    X = np.where(X <= 0, 1e-12, X)                     # guard against X <= 0
 
-    return X
+    # Squeeze singleton axes from the (n, N) output
+    squeeze_axes = tuple(np.where(np.asarray([n, N]) == 1)[0])
+
+    return np.squeeze(X, axis=squeeze_axes)

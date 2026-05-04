@@ -1,3 +1,4 @@
+#! /usr/bin/env -S python3 -i
 ## exponential distribution
 # github.com/hpgavin/multivarious ... rvs/exponential
 
@@ -6,109 +7,101 @@ import numpy as np
 from multivarious.utl.correlated_rvs import correlated_rvs
 
 
-def _ppp_(x, meanX):
+def _validate_(meanX):
     """
-    Validate and preprocess input parameters for consistency and correctness.
+    Validate and preprocess exponential distribution parameters.
 
-    INPUTS:
-        x : array_like
-            Evaluation points
-        meanX : float or array_like 
-            Mean(s) of the distribution (must be > 0)
+    Converts meanX to an (n, 1) column array for broadcasting against
+    a (1, N) row array of evaluation points, producing (n, N) output.
 
-    OUTPUTS:
-        x : ndarray
-            Evaluation points as array
-        meanX : ndarray
-            Means as column array
-        n : int
-            Number of random variables
-    """ 
+    INPUTS
+        meanX : float or array_like   mean(s) of the distribution, must be > 0
 
-    # Convert inputs to arrays
-    # Python does not implicitly handle scalars as arrays. 
-    x = np.atleast_1d(x).astype(float)
-    meanX = np.atleast_1d(meanX).reshape(-1,1).astype(float)
-    n = len(meanX)   
-        
-    # Validate parameter values 
+    OUTPUTS
+        meanX : ndarray, shape (n, 1)
+    """
+    meanX = np.asarray(meanX, dtype=float).reshape(-1, 1)  # (n, 1)
+
     if np.any(meanX <= 0):
         raise ValueError("exponential: all meanX values must be positive")
 
-    # Prevent negative or zero values (log not defined)
-    x = np.where(x < 0, 0.01, x)
-
-    return x, meanX, n
+    return meanX
 
 
 def pdf(x, meanX):
     """
     exponential.pdf
 
-    Computes the Probability Density Function (PDF) of the exponential distribution.
+    Computes the PDF of the exponential distribution.
 
-    INPUTS:
-        x : array_like
-            Evaluation points (must be x >= 0)
-        meanX : float or array_like, shape (n,)
-            Mean(s) of the exponential distribution (must be > 0)
- 
-    OUTPUTS:
-        f : ndarray, shape (n, N)
-            PDF values at each point in x for each of n random variables
- 
+    INPUTS
+        x     : float or array_like, shape (N,)   evaluation points (x >= 0)
+        meanX : float or array_like, shape (n,)   mean(s), must be > 0
+
+    OUTPUTS
+        f : ndarray, shape (n, N)   PDF values; singleton axes are squeezed
+
     Notes
     -----
-    f(x) = (1/meanX) * exp(-x / meanX) for x >= 0
+    f(x) = (1 / meanX) * exp(-x / meanX)   for x >= 0
+
+    Values x < 0 are replaced by 0.01 to avoid undefined results.
 
     Reference
     ---------
     https://en.wikipedia.org/wiki/Exponential_distribution
     """
+    meanX = _validate_(meanX)                              # (n, 1)
+    x = np.asarray(x, dtype=float).reshape( 1, -1)         # (1, N)
+    x = np.where(x < 0, 0.01, x)                           # guard against x < 0
 
-    x, meanX, n = _ppp_(x, meanX)
+    f = np.exp(-x / meanX) / meanX                         # (n, N)
 
-    f = np.exp(-x / meanX) / meanX
+    # Find singleton axes corresponding to scalar or length-1 inputs.
+    # enumerate() creates pairs of (index, value)
+    # for each element in the list [meanX, x].
+    # The index i is included in squeeze_axes if v.size == 1 for that element.
+    squeeze_axes = tuple(i for i, v in enumerate([meanX, x]) if v.size == 1)
 
-    if n == 1 and f.shape[0] == 1:
-        f = f.flatten()
-    
-    return f
+    return np.squeeze(f, axis=squeeze_axes)
 
 
 def cdf(x, meanX):
     """
     exponential.cdf
 
-    Computes the Cumulative Distribution Function (CDF) of the exponential distribution.
+    Computes the CDF of the exponential distribution.
 
-    INPUTS:
-        x : array_like
-            Evaluation points (x >= 0)
-        meanX : float or array_like, shape (n,)
-            Mean(s) of the exponential distribution (must be > 0)
- 
-    OUTPUTS:
-        F : ndarray, shape (n, N)
-            CDF values at each point in x for each of n random variables
- 
+    INPUTS
+        x     : float or array_like, shape (N,)   evaluation points (x >= 0)
+        meanX : float or array_like, shape (n,)   mean(s), must be > 0
+
+    OUTPUTS
+        F : ndarray, shape (n, N)   CDF values; singleton axes are squeezed
+
     Notes
     -----
-    F(x) = 1 - exp(-x / meanX) for x >= 0
+    F(x) = 1 - exp(-x / meanX)   for x >= 0
+
+    Values x < 0 are replaced by 0.01 to avoid undefined results.
 
     Reference
     ---------
     https://en.wikipedia.org/wiki/Exponential_distribution
     """
+    meanX = _validate_(meanX)                              # (n, 1)
+    x = np.asarray(x, dtype=float).reshape( 1, -1)         # (1, N)
+    x = np.where(x < 0, 0.01, x)                           # guard against x < 0
 
-    x, meanX, n = _ppp_(x, meanX)
+    F = 1.0 - np.exp(-x / meanX)                           # (n, N)
 
-    F = 1.0 - np.exp(-x / meanX)
+    # Find singleton axes corresponding to scalar or length-1 inputs.
+    # enumerate() creates pairs of (index, value)
+    # for each element in the list [meanX, x].
+    # The index i is included in squeeze_axes if v.size == 1 for that element.
+    squeeze_axes = tuple(i for i, v in enumerate([meanX, x]) if v.size == 1)
 
-    if n == 1 and F.shape[0] == 1:
-        F = F.flatten()
-    
-    return F
+    return np.squeeze(F, axis=squeeze_axes)
 
 
 def inv(P, meanX):
@@ -117,79 +110,77 @@ def inv(P, meanX):
 
     Computes the inverse CDF (quantile function) of the exponential distribution.
 
-    INPUTS:
-        P : array_like
-            Probability values (0 <= P <= 1)
-        meanX : float or array_like, shape (n,)
-            Mean(s) of the exponential distribution (must be > 0)
+    INPUTS
+        P     : float or array_like, shape (N,)   probability values in [0, 1]
+        meanX : float or array_like, shape (n,)   mean(s), must be > 0
 
-    OUTPUTS:
-        X : ndarray
-            Quantiles corresponding to probabilities P
+    OUTPUTS
+        x : ndarray, shape (n, N)   quantile values; singleton axes are squeezed
 
     Notes
     -----
-    X = -meanX * log(1 - P)
+    x = -meanX * log(1 - P)
 
     Reference
     ---------
     https://en.wikipedia.org/wiki/Exponential_distribution
     """
-    
-    _, meanX, n = _ppp_(0, meanX)
+    meanX = _validate_(meanX)                             # (n, 1)
+    P = np.asarray(P, dtype=float).reshape( 1, -1)        # (1, N)
+    P = np.clip(P, 0.0, 1.0 - np.finfo(float).eps)        # guard against log(0)
 
-    # Clip invalid P values 
-    P = np.where(P < 0, 0.0, P)
-    P = np.where(P > 1, 1.0, P)
+    x = -meanX * np.log(1.0 - P)                          # (n, N)
 
-    x = -meanX * np.log(1 - P)
-    
-    if n == 1 and x.shape[0] == 1:
-        x = x.flatten()
-    
-    return x
+    # Find singleton axes corresponding to scalar or length-1 inputs.
+    # enumerate() creates pairs of (index, value)
+    # for each element in the list [meanX, P].
+    # The index i is included in squeeze_axes if v.size == 1 for that element.
+    squeeze_axes = tuple(i for i, v in enumerate([meanX, P]) if v.size == 1)
+
+    return np.squeeze(x, axis=squeeze_axes)
 
 
 def rnd(meanX, N, R=None, seed=None):
     """
     exponential.rnd
 
-    Generate random samples from an exponential distribution with mean meanX.
+    Generate random samples from the exponential distribution.
 
-    INPUTS:
-        meanX : float or array_like, shape (n,)
-            Mean(s) of the distribution (must be > 0)
-        N : int
-            Number of observations per random variable
-        R : ndarray, shape (n, n), optional
-            Correlation matrix for generating correlated samples.
-            If None, generates uncorrelated samples.
-        seed : int, optional
-            Random seed for reproducibility
- 
-    OUTPUTS:
-        X : ndarray, shape (n, N) or shape (N,) if n=1
-            Random samples from the exponential distribution.
-            Each row corresponds to one random variable.
-            Each column corresponds to one sample.
+    INPUTS
+        meanX : float or array_like, shape (n,)   mean(s), must be > 0
+        N     : int                                number of samples per variable
+        R     : ndarray, shape (n, n), optional    correlation matrix;
+                if None, generates uncorrelated samples
+        seed  : int or None                        random seed for reproducibility
+
+    OUTPUTS
+        X : ndarray, shape (n, N)   exponential random samples;
+            each row is one random variable, each column one sample;
+            singleton axes are squeezed
 
     Notes
     -----
-    Uses inverse CDF method: x = -meanX * log(U) where U ~ Uniform(0,1)
+    Uses the inverse transform method: X = -meanX * log(U), U ~ Uniform(0, 1).
+    Since 1 - U ~ Uniform(0, 1) as well, log(U) and log(1-U) are equivalent
+    in distribution, so the simpler form log(U) is used directly.
 
     Reference
     ---------
     https://en.wikipedia.org/wiki/Exponential_distribution
     """
+    if N is None or N < 1:
+        raise ValueError("exponential.rnd: N must be greater than zero")
 
-    _, meanX, n = _ppp_(0, meanX)
+    meanX = _validate_(meanX)                             # (n, 1)
+    n = meanX.size
 
+    # Generate n correlated uniform [0, 1] variates, shape (n, N)
     _, _, U = correlated_rvs(R, n, N, seed)
 
-    # Inverse transform: x = -meanX * log(U)
-    X = -meanX * np.log(U)
+    # Inverse transform: X = -meanX * log(U); broadcasts (n,1) over (n,N)
+    X = -meanX * np.log(U)                                # (n, N)
 
-    if n == 1 or N == 1:
-        X = X.flatten()
+    # Squeeze singleton axes from the (n, N) output
+    squeeze_axes = tuple(np.where(np.asarray([n, N]) == 1)[0])
 
-    return X
+    return np.squeeze(X, axis=squeeze_axes)

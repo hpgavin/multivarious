@@ -1,252 +1,222 @@
+#! /usr/bin/env -S python3 -i
 ## lognormal distribution
 # github.com/hpgavin/multivarious ... rvs/lognormal
 
 import numpy as np
-from scipy.special import erf as scipy_erf
+from scipy.special import erf    as scipy_erf
 from scipy.special import erfinv as scipy_erfinv
 
 from multivarious.utl.correlated_rvs import correlated_rvs
 
 
-def _ppp_(x, mednX, covnX):
+def _validate_(mednX, covnX):
     """
-    Validate and preprocess input parameters for consistency and correctness.
+    Validate and preprocess lognormal distribution parameters.
 
-    INPUTS:
-        x : array_like
-            Evaluation points
-        mednX : float or array_like
-            Median(s) of the lognormal distribution (must be > 0)
-        covnX : float or array_like
-            Coefficient(s) of variation (must be > 0)
+    Converts mednX and covnX to (n, 1) column arrays for broadcasting
+    against a (1, N) row array of evaluation points, producing (n, N) output.
 
-    OUTPUTS:
-        x : ndarray
-            Evaluation points as array (with x<=0 replaced by 0.01)
-        mednX : ndarray
-            Medians as column array
-        covnX : ndarray
-            Coefficients of variation as column array
-        n : int
-            Number of random variables
-    """ 
+    INPUTS
+        mednX : float or array_like   median(s) of the distribution, must be > 0
+        covnX : float or array_like   coefficient(s) of variation, must be > 0
 
-    # Convert inputs to arrays
-    # Python does not implicitly handle scalars as arrays. 
-    x = np.atleast_1d(x).astype(float)
+    OUTPUTS
+        mednX : ndarray, shape (n, 1)
+        covnX : ndarray, shape (n, 1)
+    """
+    mednX = np.asarray(mednX, dtype=float).reshape(-1, 1)  # (n, 1)
+    covnX = np.asarray(covnX, dtype=float).reshape(-1, 1)  # (n, 1)
 
-    mednX = np.atleast_1d(mednX).reshape(-1,1).astype(float)
-    covnX = np.atleast_1d(covnX).reshape(-1,1).astype(float)
-    n = len(mednX)   
-        
-    # Validate parameter dimensions 
-    if not (len(mednX) == n and len(covnX) == n):
-        raise ValueError(f"All parameter arrays must have the same length. "
-                        f"Got mednX:{len(mednX)}, covnX:{len(covnX)}")
-
-    # Validate parameter values 
+    if mednX.shape != covnX.shape:
+        raise ValueError(f"lognormal: mednX and covnX must have the same length. "
+                         f"Got mednX:{mednX.size}, covnX:{covnX.size}")
     if np.any(mednX <= 0):
         raise ValueError("lognormal: mednX must be > 0")
     if np.any(covnX <= 0):
         raise ValueError("lognormal: covnX must be > 0")
 
-    # Replace invalid x <= 0 with 0.01 to avoid log(0)
-    x = np.where(x <= 0, 0.01, x)
-    
-    return x, mednX, covnX, n
+    return mednX, covnX
 
 
 def pdf(x, mednX, covnX):
     """
     lognormal.pdf
- 
-    Computes the Probability Density Function (PDF) of the lognormal distribution.
- 
-    INPUTS:
-        x : array_like
-            Evaluation points. Must be > 0 since lognormal is defined for x > 0.
-        mednX : float or array_like, shape (n,)
-            Median(s) of the lognormal distribution
-        covnX : float or array_like, shape (n,)
-            Coefficient(s) of variation: covnX = std(X) / mean(X)
- 
-    OUTPUTS:
-        f : ndarray, shape (n, N)
-            PDF values at each point in x for each of n random variables
- 
+
+    Computes the PDF of the lognormal distribution.
+
+    INPUTS
+        x     : float or array_like, shape (N,)   evaluation points (x > 0)
+        mednX : float or array_like, shape (n,)   median(s), must be > 0
+        covnX : float or array_like, shape (n,)   coefficient(s) of variation, > 0
+
+    OUTPUTS
+        f : ndarray, shape (n, N)   PDF values; singleton axes are squeezed
+
     Notes
     -----
-    If X ~ Lognormal(mednX, covnX), then log(X) ~ Normal with:
-        mean = log(mednX)
-        variance = log(1 + covnX²)
-    
-    f(x) = (1/(x·√(2πV))) exp(-(log(x/mednX))²/(2V))
-    where V = log(1 + covnX²)
+    If X ~ Lognormal(mednX, covnX), then log(X) ~ Normal with
+        mean     = log(mednX)
+        variance = V = log(1 + covnX^2)
+
+    f(x) = (1 / (x * sqrt(2 pi V))) * exp(-(log(x/mednX))^2 / (2V))
+
+    Values x <= 0 are replaced by 0.01 to avoid log(0).
 
     Reference
     ---------
     https://en.wikipedia.org/wiki/Log-normal_distribution
     """
+    mednX, covnX = _validate_(mednX, covnX)          # (n, 1)
+    x = np.asarray(x, dtype=float).reshape( 1, -1)   # (1, N)
+    x = np.where(x <= 0, 0.01, x)                    # guard against log(0)
 
-    x, mednX, covnX, n = _ppp_(x, mednX, covnX) 
+    VlnX = np.log(1.0 + covnX**2)                    # (n, 1) variance of log(X)
 
-    # Compute variance of log(X)
-    VlnX = np.log(1 + covnX**2)
-    
-    # Compute using Lognormal PDF formula
-    f = (1.0 / (x * np.sqrt(2.0 * np.pi * VlnX))) * np.exp(-0.5 * (np.log(x / mednX))**2.0 / VlnX)
- 
-    if n == 1 and f.shape[0] == 1:
-        f = f.flatten()
-    if n == 1 and x.shape[0] == 1:
-        f = f[0]
-    
-    return f
+    f = np.exp(-0.5 * (np.log(x / mednX))**2 / VlnX) \
+        / (x * np.sqrt(2.0 * np.pi * VlnX))                # (n, N)
+
+    # Find singleton axes corresponding to scalar or length-1 inputs.
+    # enumerate() creates pairs of (index, value)
+    # for each element in the list [mednX, x].
+    # The index i is included in squeeze_axes if v.size == 1 for that element.
+    squeeze_axes = tuple(i for i, v in enumerate([mednX, x]) if v.size == 1)
+
+    return np.squeeze(f, axis=squeeze_axes)
 
 
 def cdf(x, params):
-    """ 
+    """
     lognormal.cdf
- 
-    Computes the CDF of a lognormal distribution.
- 
-    INPUTS:
-        x : array_like
-            Evaluation points
-        params : array_like [mednX, covnX]
-            mednX : float or array_like
-                Median(s) of X
-            covnX : float or array_like
-                Coefficient(s) of variation of X
-    
-    OUTPUTS: 
-        F : ndarray, shape (n, N)
-            CDF values at each point in x for each of n random variables
+
+    Computes the CDF of the lognormal distribution.
+
+    INPUTS
+        x      : float or array_like, shape (N,)   evaluation points (x > 0)
+        params : tuple (mednX, covnX)
+            mednX : float or array_like, shape (n,)   median(s), must be > 0
+            covnX : float or array_like, shape (n,)   coefficient(s) of variation, > 0
+
+    OUTPUTS
+        F : ndarray, shape (n, N)   CDF values; singleton axes are squeezed
 
     Notes
     -----
-    F(x) = (1 + erf((log(x) - log(mednX)) / √(2V))) / 2
-    where V = log(1 + covnX²)
+    F(x) = (1 + erf((log(x) - log(mednX)) / sqrt(2V))) / 2
+    where V = log(1 + covnX^2)
+
+    Values x <= 0 are replaced by 0.01 to avoid log(0).
 
     Reference
     ---------
     https://en.wikipedia.org/wiki/Log-normal_distribution
-    """ 
-    
+    """
     mednX, covnX = params
+    mednX, covnX = _validate_(mednX, covnX)          # (n, 1)
+    x = np.asarray(x, dtype=float).reshape( 1, -1)   # (1, N)
+    x = np.where(x <= 0, 0.01, x)                    # guard against log(0)
 
-    x, mednX, covnX, n = _ppp_(x, mednX, covnX) 
+    VlnX = np.log(1.0 + covnX**2)                    # (n, 1) variance of log(X)
 
-    # Compute variance of log(X)
-    VlnX = np.log(1 + covnX**2)
-    
-    # Lognormal CDF formula
-    F = 0.5 * (1 + scipy_erf((np.log(x) - np.log(mednX)) / np.sqrt(2 * VlnX)))
-    
-    if n == 1 and F.shape[0] == 1:
-        F = F.flatten()
-    if n == 1 and x.shape[0] == 1:
-        F = F[0]
-    
-    return F
+    F = 0.5 * (1.0 + scipy_erf(
+            (np.log(x) - np.log(mednX)) / np.sqrt(2.0 * VlnX)))  # (n, N)
+
+    # Find singleton axes corresponding to scalar or length-1 inputs.
+    # enumerate() creates pairs of (index, value)
+    # for each element in the list [mednX, x].
+    # The index i is included in squeeze_axes if v.size == 1 for that element.
+    squeeze_axes = tuple(i for i, v in enumerate([mednX, x]) if v.size == 1)
+
+    return np.squeeze(F, axis=squeeze_axes)
 
 
 def inv(F, mednX, covnX):
     """
     lognormal.inv
- 
-    Computes the inverse CDF (quantile function) for lognormal distribution.
- 
-    INPUTS:
-        F : array_like
-            Probability values (must be in (0,1))
-        mednX : float or array_like, shape (n,)
-            Median(s) of the lognormal distribution
-        covnX : float or array_like, shape (n,)
-            Coefficient(s) of variation
- 
-    OUTPUTS:
-        x : ndarray
-            Quantile values such that P(X <= x) = F
-   
+
+    Computes the inverse CDF (quantile function) of the lognormal distribution.
+
+    INPUTS
+        F     : float or array_like, shape (N,)   probability values in (0, 1)
+        mednX : float or array_like, shape (n,)   median(s), must be > 0
+        covnX : float or array_like, shape (n,)   coefficient(s) of variation, > 0
+
+    OUTPUTS
+        x : ndarray, shape (n, N)   quantile values; singleton axes are squeezed
+
     Notes
     -----
-    x = exp(log(mednX) + √(2V) · erfinv(2F - 1))
-    where V = log(1 + covnX²)
+    x = exp(log(mednX) + sqrt(2V) * erfinv(2F - 1))
+    where V = log(1 + covnX^2)
 
     Reference
     ---------
     https://en.wikipedia.org/wiki/Log-normal_distribution
     """
+    mednX, covnX = _validate_(mednX, covnX)          # (n, 1)
+    F = np.asarray(F, dtype=float).reshape( 1, -1)   # (1, N)
+    F = np.clip(F, np.finfo(float).eps, 1.0 - np.finfo(float).eps)
 
-    _, mednX, covnX, n = _ppp_(0, mednX, covnX) 
+    VlnX = np.log(1.0 + covnX**2)                    # (n, 1) variance of log(X)
 
-    F = np.atleast_2d(F).astype(float)
-    F = np.clip(F, np.finfo(float).eps, 1 - np.finfo(float).eps)
-    N = F.shape[1]    
+    x = np.exp(np.log(mednX) + np.sqrt(2.0 * VlnX) \
+        * scipy_erfinv(2.0 * F - 1.0))               # (n, N)
 
-    # Compute lognormal quantile using inverse CDF formula
-    VlnX = np.log(1 + covnX**2)  # Variance of log(X)
+    # Find singleton axes corresponding to scalar or length-1 inputs.
+    # enumerate() creates pairs of (index, value)
+    # for each element in the list [mednX, F].
+    # The index i is included in squeeze_axes if v.size == 1 for that element.
+    squeeze_axes = tuple(i for i, v in enumerate([mednX, F]) if v.size == 1)
 
-    x = np.exp(np.log(mednX) + np.sqrt(2 * VlnX) * scipy_erfinv(2 * F - 1)) 
-
-    if n == 1 and x.shape[0] == 1:
-        x = x.flatten()
-    if n == 1 and F.shape[1] == 1:
-        x = x[0]
-    
-    return x
+    return np.squeeze(x, axis=squeeze_axes)
 
 
 def rnd(mednX, covnX, N, R=None, seed=None):
     """
     lognormal.rnd
- 
-    Generate N observations of correlated (or uncorrelated) lognormal random variables.
- 
-    INPUTS:
-        mednX : float or array_like, shape (n,)
-            Median(s) of the lognormal distribution
-        covnX : float or array_like, shape (n,)
-            Coefficient(s) of variation
-        N : int
-            Number of observations per random variable
-        R : ndarray, shape (n, n), optional
-            Correlation matrix for generating correlated samples.
-            If None, generates uncorrelated samples.
-        seed : int, optional
-            Random seed for reproducibility
- 
-    OUTPUTS:
-        X : ndarray, shape (n, N) or shape (N,) if n=1
-            Correlated lognormal random samples.
-            Each row corresponds to one random variable.
-            Each column corresponds to one observation.
-  
+
+    Generate correlated random samples from the lognormal distribution.
+
+    INPUTS
+        mednX : float or array_like, shape (n,)   median(s), must be > 0
+        covnX : float or array_like, shape (n,)   coefficient(s) of variation, > 0
+        N     : int                                number of samples per variable
+        R     : ndarray, shape (n, n), optional    correlation matrix;
+                if None, generates uncorrelated samples
+        seed  : int or None                        random seed for reproducibility
+
+    OUTPUTS
+        X : ndarray, shape (n, N)   lognormal random samples;
+            each row is one random variable, each column one sample;
+            singleton axes are squeezed
+
     Notes
     -----
-    Method (Gaussian Copula):
-        1. Generate correlated standard normal samples Y ~ N(0, R)
-        2. Transform to lognormal: X = exp(log(mednX) + Y * √V)
-        where V = log(1 + covnX²)
-    
-    If X is a lognormal random variable, then log(X) is normally 
-    distributed with mean log(mednX) and variance log(1+covnX²)
+    Uses the Gaussian copula method:
+        1. Generate correlated uniform variates U via correlated_rvs
+        2. Apply the lognormal inverse transform:
+           X = exp(log(mednX) + sqrt(2V) * erfinv(2U - 1))
+           where V = log(1 + covnX^2)
 
     Reference
     ---------
     https://en.wikipedia.org/wiki/Log-normal_distribution
     """
-    
-    _, mednX, covnX, n = _ppp_(0, mednX, covnX) 
+    if N is None or N < 1:
+        raise ValueError("lognormal.rnd: N must be greater than zero")
 
+    mednX, covnX = _validate_(mednX, covnX)                 # (n, 1)
+    n = mednX.size
+
+    # Generate n correlated uniform [0, 1] variates, shape (n, N)
     _, _, U = correlated_rvs(R, n, N, seed)
 
-    
-    # Transform to lognormal: x = exp(log(mednX) + Y * sqrt(VlnX))
-    X = inv( U, mednX, covnX )
+    # Inline the inverse transform rather than calling inv(), because U is
+    # already (n, N) from correlated_rvs, while inv() expects F as (1, N).
+    VlnX = np.log(1.0 + covnX**2)                          # (n, 1) variance of log(X)
+    X = np.exp(np.log(mednX) + np.sqrt(2.0 * VlnX) \
+        * scipy_erfinv(2.0 * U - 1.0))                     # (n, N)
 
-    if N == 1:
-        X = X.flatten()
+    # Squeeze singleton axes from the (n, N) output
+    squeeze_axes = tuple(np.where(np.asarray([n, N]) == 1)[0])
 
-    return X
+    return np.squeeze(X, axis=squeeze_axes)
