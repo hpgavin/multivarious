@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Set the new version here:
-NEW_VERSION="1.1.0"
+NEW_VERSION="1.1.1"
 
 # Update version in pyproject.toml (under [project] section)
 sed -i -E "s/^(version *= *\").*(\" *)$/\1${NEW_VERSION}\2/" pyproject.toml
