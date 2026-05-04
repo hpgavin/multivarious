@@ -1,3 +1,4 @@
+#! /usr/bin/env -S python3 -i
 ## extreme_value_I distribution (Gumbel)
 # github.com/hpgavin/multivarious ... rvs/extreme_value_I
 
@@ -10,230 +11,201 @@ from multivarious.utl.correlated_rvs import correlated_rvs
 GAMMA = 0.57721566490153286060651209008240243104215933593992
 
 
-def _ppp_(x, meanX, covnX):
+def _validate_(meanX, covnX):
     """
-    Validate and preprocess input parameters for consistency and correctness.
+    Validate and preprocess Gumbel distribution parameters.
 
-    INPUTS:
-        x : array_like
-            Evaluation points
-        meanX : float or array_like
-            Mean(s) of the distribution (must be > 0)
-        covnX : float or array_like
-            Coefficient(s) of variation (must be > 0)
+    Converts meanX and covnX to (n, 1) column arrays for broadcasting against
+    a (1, N) row array of evaluation points, producing (n, N) output.
+    Derives the location parameter loctn and scale parameter scale.
 
-    OUTPUTS:
-        x : ndarray
-            Evaluation points as array
-        meanX : ndarray
-            Means as column array
-        covnX : ndarray
-            Coefficients of variation as column array
-        loctn : ndarray
-            Location parameters (μ) as column array
-        scale : ndarray
-            Scale parameters (σ) as column array
-        n : int
-            Number of random variables
-    """ 
+    INPUTS
+        meanX : float or array_like   mean(s),                  must be > 0
+        covnX : float or array_like   coefficient(s) of variation, must be > 0
 
-    # Convert inputs to arrays
-    # Python does not implicitly handle scalars as arrays. 
-    x = np.atleast_1d(x).astype(float)
+    OUTPUTS
+        meanX : ndarray, shape (n, 1)
+        covnX : ndarray, shape (n, 1)
+        loctn : ndarray, shape (n, 1)   location mu  = meanX - scale * GAMMA
+        scale : ndarray, shape (n, 1)   scale    sigma = sqrt(6) * meanX*covnX / pi
+    """
+    meanX = np.asarray(meanX, dtype=float).reshape(-1, 1)  # (n, 1)
+    covnX = np.asarray(covnX, dtype=float).reshape(-1, 1)  # (n, 1)
 
-    meanX = np.atleast_1d(meanX).reshape(-1,1).astype(float)
-    covnX = np.atleast_1d(covnX).reshape(-1,1).astype(float)
-    n = len(meanX)   
-        
-    # Validate parameter dimensions 
-    if not (len(meanX) == n and len(covnX) == n):
-        raise ValueError(f"All parameter arrays must have the same length. "
-                        f"Got meanX:{len(meanX)}, covnX:{len(covnX)}")
-
-    # Validate parameter values 
+    if meanX.shape != covnX.shape:
+        raise ValueError(f"extreme_value_I: meanX and covnX must have the same length. "
+                         f"Got meanX:{meanX.size}, covnX:{covnX.size}")
     if np.any(meanX <= 0):
         raise ValueError("extreme_value_I: meanX must be > 0")
     if np.any(covnX <= 0):
         raise ValueError("extreme_value_I: covnX must be > 0")
 
-    sigma = meanX * covnX
-    scale = np.sqrt(6.0) * sigma / np.pi
-    loctn = meanX - scale * GAMMA
+    scale = np.sqrt(6.0) * meanX * covnX / np.pi   # (n, 1) sigma
+    loctn = meanX - scale * GAMMA                   # (n, 1) mu
 
-    return x, meanX, covnX, loctn, scale, n
+    return meanX, covnX, loctn, scale
 
 
 def pdf(x, meanX, covnX):
     """
     extreme_value_I.pdf
-    
-    Computes the PDF of Extreme Value Type I (Gumbel) distribution, 
+
+    Computes the PDF of the Extreme Value Type I (Gumbel) distribution,
     parameterized by mean and coefficient of variation.
 
-    INPUTS:
-        x : array_like
-            Evaluation points
-        meanX : float or array_like, shape (n,)
-            Mean(s) of the distribution (must be > 0)
-        covnX : float or array_like, shape (n,)
-            Coefficient(s) of variation (must be > 0)
+    INPUTS
+        x     : float or array_like, shape (N,)   evaluation points
+        meanX : float or array_like, shape (n,)   mean(s),                  > 0
+        covnX : float or array_like, shape (n,)   coefficient(s) of variation, > 0
 
-    OUTPUTS:
-        f : ndarray, shape (n, N)
-            PDF values at each point in x for each of n random variables
+    OUTPUTS
+        f : ndarray, shape (n, N)   PDF values; singleton axes are squeezed
 
     Notes
     -----
-    The Gumbel distribution has PDF:
-    f(x) = (1/σ) exp(-z - exp(-z)) where z = (x-μ)/σ
-    with μ = mean - σ·γ and σ = √6·stddev/π
-    where γ is the Euler-Mascheroni constant ≈ 0.5772
+    f(x) = (1/sigma) * exp(-z - exp(-z))   where z = (x - mu) / sigma
+    mu    = meanX - sigma * GAMMA
+    sigma = sqrt(6) * meanX * covnX / pi
 
     Reference
     ---------
     https://en.wikipedia.org/wiki/Gumbel_distribution
     """
+    meanX, covnX, loctn, scale = _validate_(meanX, covnX)    # (n, 1)
+    x = np.asarray(x, dtype=float).reshape( 1, -1)          # (1, N)
 
-    x, _, _, loctn, scale, n = _ppp_(x, meanX, covnX)
+    z = (x - loctn) / scale                                   # (n, N) standardized
+    f = np.exp(-z - np.exp(-z)) / scale                      # (n, N)
 
-    z = (x - loctn) / scale
-    exp_z = np.exp(-z)
-    f = exp_z * np.exp(-exp_z) / scale
+    # Find singleton axes corresponding to scalar or length-1 inputs.
+    # enumerate() creates pairs of (index, value)
+    # for each element in the list [meanX, x].
+    # The index i is included in squeeze_axes if v.size == 1 for that element.
+    squeeze_axes = tuple(i for i, v in enumerate([meanX, x]) if v.size == 1)
 
-    if n == 1 and f.shape[0] == 1:
-        f = f.flatten()
-
-    return f
+    return np.squeeze(f, axis=squeeze_axes)
 
 
 def cdf(x, params):
     """
     extreme_value_I.cdf
-    
-    Computes the CDF of Extreme Value Type I (Gumbel) distribution, 
-    parameterized by array [meanX, covnX].
 
-    INPUTS:
-        x : array_like
-            Evaluation points
-        params : array_like [meanX, covnX]
-            meanX : float or array_like
-                Mean(s) of the distribution (must be > 0)
-            covnX : float or array_like
-                Coefficient(s) of variation (must be > 0)
+    Computes the CDF of the Extreme Value Type I (Gumbel) distribution.
 
-    OUTPUTS:
-        F : ndarray, shape (n, N)
-            CDF values at each point in x for each of n random variables
+    INPUTS
+        x      : float or array_like, shape (N,)   evaluation points
+        params : tuple (meanX, covnX)
+            meanX : float or array_like, shape (n,)   mean(s),                  > 0
+            covnX : float or array_like, shape (n,)   coefficient(s) of variation, > 0
+
+    OUTPUTS
+        F : ndarray, shape (n, N)   CDF values; singleton axes are squeezed
 
     Notes
     -----
-    F(x) = exp(-exp(-z)) where z = (x-μ)/σ
+    F(x) = exp(-exp(-z))   where z = (x - mu) / sigma
 
     Reference
     ---------
     https://en.wikipedia.org/wiki/Gumbel_distribution
     """
-    
     meanX, covnX = params
-    
-    x, _, _, loctn, scale, n = _ppp_(x, meanX, covnX)
+    meanX, covnX, loctn, scale = _validate_(meanX, covnX)    # (n, 1)
+    x = np.asarray(x, dtype=float).reshape( 1, -1)          # (1, N)
 
-    z = (x - loctn) / scale
+    z = (x - loctn) / scale                                   # (n, N) standardized
+    F = np.exp(-np.exp(-z))                                   # (n, N)
 
-    F = np.exp(-np.exp(-z))
+    # Find singleton axes corresponding to scalar or length-1 inputs.
+    # enumerate() creates pairs of (index, value)
+    # for each element in the list [meanX, x].
+    # The index i is included in squeeze_axes if v.size == 1 for that element.
+    squeeze_axes = tuple(i for i, v in enumerate([meanX, x]) if v.size == 1)
 
-    if n == 1 and F.shape[0] == 1:
-        F = F.flatten()
-
-    return F
+    return np.squeeze(F, axis=squeeze_axes)
 
 
 def inv(F, meanX, covnX):
     """
     extreme_value_I.inv
-    
-    Computes the inverse CDF (quantile function) of Extreme Value Type I 
+
+    Computes the inverse CDF (quantile function) of the Extreme Value Type I
     (Gumbel) distribution.
 
-    INPUTS:
-        F : array_like
-            Probability values (must be in (0, 1))
-        meanX : float or array_like, shape (n,)
-            Mean(s) of the distribution (must be > 0)
-        covnX : float or array_like, shape (n,)
-            Coefficient(s) of variation (must be > 0)
+    INPUTS
+        F     : float or array_like, shape (N,)   probability values in (0, 1)
+        meanX : float or array_like, shape (n,)   mean(s),                  > 0
+        covnX : float or array_like, shape (n,)   coefficient(s) of variation, > 0
 
-    OUTPUTS:
-        x : ndarray
-            Quantile values corresponding to probabilities F
+    OUTPUTS
+        x : ndarray, shape (n, N)   quantile values; singleton axes are squeezed
 
     Notes
     -----
-    x = μ - σ ln(-ln(F))
+    x = mu - sigma * log(-log(F))
 
     Reference
     ---------
     https://en.wikipedia.org/wiki/Gumbel_distribution
     """
+    meanX, covnX, loctn, scale = _validate_(meanX, covnX)    # (n, 1)
+    F = np.asarray(F, dtype=float).reshape( 1, -1)          # (1, N)
+    F = np.clip(F, np.finfo(float).eps, 1.0 - np.finfo(float).eps)
 
-    _, _, _, loctn, scale, _ = _ppp_(0, meanX, covnX)
+    x = loctn - scale * np.log(-np.log(F))                   # (n, N)
 
-    x = loctn - scale * np.log(-np.log(F))
+    # Find singleton axes corresponding to scalar or length-1 inputs.
+    # enumerate() creates pairs of (index, value)
+    # for each element in the list [meanX, F].
+    # The index i is included in squeeze_axes if v.size == 1 for that element.
+    squeeze_axes = tuple(i for i, v in enumerate([meanX, F]) if v.size == 1)
 
-    if n == 1 and x.shape[0] == 1:
-        x = x.flatten()
-
-    return x
+    return np.squeeze(x, axis=squeeze_axes)
 
 
 def rnd(meanX, covnX, N, R=None, seed=None):
     """
     extreme_value_I.rnd
-    
-    Generate samples from the Extreme Value Type I (Gumbel) distribution.
 
-    INPUTS:
-        meanX : float or array_like, shape (n,)
-            Mean(s) of the distribution (must be > 0)
-        covnX : float or array_like, shape (n,)
-            Coefficient(s) of variation (must be > 0)
-        N : int
-            Number of observations per random variable
-        R : ndarray, shape (n, n), optional
-            Correlation matrix for generating correlated samples.
-            If None, generates uncorrelated samples.
-        seed : int, optional
-            Random seed for reproducibility
+    Generate random samples from the Extreme Value Type I (Gumbel) distribution.
 
-    OUTPUTS:
-        X : ndarray, shape (n, N) or shape (N,) if n=1
-            Random samples from the Gumbel distribution.
-            Each row corresponds to one random variable.
-            Each column corresponds to one sample.
+    INPUTS
+        meanX : float or array_like, shape (n,)   mean(s),                  > 0
+        covnX : float or array_like, shape (n,)   coefficient(s) of variation, > 0
+        N     : int                                number of samples per variable
+        R     : ndarray, shape (n, n), optional    correlation matrix;
+                if None, generates uncorrelated samples
+        seed  : int or None                        random seed for reproducibility
+
+    OUTPUTS
+        X : ndarray, shape (n, N)   Gumbel random samples;
+            each row is one random variable, each column one sample;
+            singleton axes are squeezed
 
     Notes
     -----
-    Uses inverse transform method: x = μ - σ ln(-ln(u)) where u ~ Uniform(0,1)
+    Uses the inverse transform method: X = mu - sigma * log(-log(U))
+    Inlined rather than calling inv() because U is already (n, N)
+    from correlated_rvs, while inv() expects F as (1, N).
 
     Reference
     ---------
     https://en.wikipedia.org/wiki/Gumbel_distribution
     """
-    
-    _, _, _, loctn, scale, n = _ppp_(0, meanX, covnX)
+    if N is None or N < 1:
+        raise ValueError("extreme_value_I.rnd: N must be greater than zero")
 
-    # Correlated standard uniform values (n,N)
+    meanX, covnX, loctn, scale = _validate_(meanX, covnX)    # (n, 1)
+    n = meanX.size
+
+    # Generate n correlated uniform [0, 1] variates, shape (n, N)
     _, _, U = correlated_rvs(R, n, N, seed)
 
-    # Apply transformation
-    X = loctn - scale * np.log(-np.log(U))
+    # Inline the inverse transform rather than calling inv(), because U is
+    # already (n, N) from correlated_rvs, while inv() expects F as (1, N).
+    X = loctn - scale * np.log(-np.log(U))                   # (n, N)
 
-    if n == 1 and X.shape[0] == 1:
-        X = X.flatten()
+    # Squeeze singleton axes from the (n, N) output
+    squeeze_axes = tuple(np.where(np.asarray([n, N]) == 1)[0])
 
-    if N == 1:
-        X = X.flatten()
-
-
-    return X
+    return np.squeeze(X, axis=squeeze_axes)

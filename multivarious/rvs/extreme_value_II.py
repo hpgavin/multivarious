@@ -1,4 +1,5 @@
-# extreme_value_II distribution (Fréchet)
+#! /usr/bin/env -S python3 -i
+## extreme_value_II distribution (Fréchet)
 # github.com/hpgavin/multivarious ... rvs/extreme_value_II
 
 import numpy as np
@@ -6,41 +7,30 @@ import numpy as np
 from multivarious.utl.correlated_rvs import correlated_rvs
 
 
-# generic pre processing of parameters (ppp) 
+def _validate_(m, s, k):
+    """
+    Validate and preprocess Fréchet distribution parameters.
 
-def _ppp_(x, m, s, k):
-    '''
-    Validate and preprocess input parameters for consistency and correctness.
+    Converts m, s, k to (n, 1) column arrays for broadcasting against
+    a (1, N) row array of evaluation points, producing (n, N) output.
 
-    INPUTS:
-        x : array_like
-            Evaluation points
-        a : float
-            Minimum of the distribution
-        b : float
-            Maximum of the distribution (must be > a)
-        q : float
-            First shape parameter
-        p : float
-            Second shape parameter
-    ''' 
+    INPUTS
+        m : float or array_like   location parameter(s),  must be > 0
+        s : float or array_like   scale parameter(s),     must be > 0
+        k : float or array_like   shape parameter(s),     must be > 0
 
-    # Convert inputs to arrays
-    # Python does not implicitly handle scalars as arrays. 
-    x = np.atleast_1d(x).astype(float)
+    OUTPUTS
+        m : ndarray, shape (n, 1)
+        s : ndarray, shape (n, 1)
+        k : ndarray, shape (n, 1)
+    """
+    m = np.asarray(m, dtype=float).reshape(-1, 1)  # (n, 1)
+    s = np.asarray(s, dtype=float).reshape(-1, 1)  # (n, 1)
+    k = np.asarray(k, dtype=float).reshape(-1, 1)  # (n, 1)
 
-    m = np.atleast_1d(m).reshape(-1,1).astype(float)
-    s = np.atleast_1d(s).reshape(-1,1).astype(float)
-    k = np.atleast_1d(k).astype(float)
-    n = len(m)   
-    N = len(x)   
-        
-    # Validate parameter dimensions 
-    if not (len(m) == n and len(s) == n and len(k) == n):
-        raise ValueError(f"All parameter arrays must have the same length. "
-                        f"Got m:{len(m)}, s:{len(s)}, k:{len(k)}")
-
-   # Validate parameter values 
+    if not (m.shape == s.shape == k.shape):
+        raise ValueError(f"extreme_value_II: m, s, k must have the same length. "
+                         f"Got m:{m.size}, s:{s.size}, k:{k.size}")
     if np.any(m <= 0):
         raise ValueError("extreme_value_II: m must be > 0")
     if np.any(s <= 0):
@@ -48,154 +38,177 @@ def _ppp_(x, m, s, k):
     if np.any(k <= 0):
         raise ValueError("extreme_value_II: k must be > 0")
 
-    return x, m, s, k, n, N
+    return m, s, k
 
 
 def pdf(x, m, s, k):
-    '''
+    """
     extreme_value_II.pdf
-    
+
     Computes the PDF of the Extreme Value Type II (Fréchet) distribution.
-    
-    INPUTS:
-        x : array_like
-            Evaluation points
-        m : float
-            Location parameter (lower bound)
-        s : float
-            Scale parameter (must be > 0)
-        k : float
-            Shape parameter
-    
-    OUTPUTS:
-        f : ndarray
-            PDF values at each point in x
-    '''
 
-    x, m, s, k, n, N = _ppp_(x, m, s, k)
-    
-    f = np.zeros((n,N))  # Initialize PDF as zeros
-    
-    for i in range(n): 
-        mask = x > m[i]  # Compute only for x > m
-        z = (x[mask] - m[i]) / s[i]
-        f[i,mask] = (k[i] / s[i]) * z**(-1 - k[i]) * np.exp(-z**(-k[i]))
-    
-    if n == 1 and f.shape[0] == 1:
-         f = f.flatten()
-    
-    return f
+    INPUTS
+        x : float or array_like, shape (N,)   evaluation points
+        m : float or array_like, shape (n,)   location parameter(s), > 0
+        s : float or array_like, shape (n,)   scale parameter(s),    > 0
+        k : float or array_like, shape (n,)   shape parameter(s),    > 0
+
+    OUTPUTS
+        f : ndarray, shape (n, N)   PDF values; singleton axes are squeezed
+
+    Notes
+    -----
+    f(x) = (k/s) * z^(-1-k) * exp(-z^(-k))   for x > m,   0 otherwise
+    where z = (x - m) / s
+
+    Reference
+    ---------
+    https://en.wikipedia.org/wiki/Fr%C3%A9chet_distribution
+    """
+    m, s, k = _validate_(m, s, k)                            # (n, 1)
+    x = np.asarray(x, dtype=float).reshape( 1, -1)          # (1, N)
+
+    inside = x > m                                            # (n, N) boolean mask
+    z  = np.where(inside, (x - m) / s, 1.0)                 # (n, N) clip to avoid /0
+
+    f_in = (k / s) * z**(-1.0 - k) * np.exp(-z**(-k))      # (n, N) formula values
+    f = np.where(inside, f_in, 0.0)                          # (n, N)
+
+    # Find singleton axes corresponding to scalar or length-1 inputs.
+    # enumerate() creates pairs of (index, value)
+    # for each element in the list [m, x].
+    # The index i is included in squeeze_axes if v.size == 1 for that element.
+    squeeze_axes = tuple(i for i, v in enumerate([m, x]) if v.size == 1)
+
+    return np.squeeze(f, axis=squeeze_axes)
 
 
-def cdf(x, params ):
-    '''
+def cdf(x, params):
+    """
     extreme_value_II.cdf
-    
+
     Computes the CDF of the Extreme Value Type II (Fréchet) distribution.
-    
-    INPUTS:
-        x : array_like
-            Evaluation points
-        params : array_like  [ m , s , k ] 
-        m : float
-            Location parameter (lower bound)
-        s : float
-            Scale parameter (must be > 0)
-        k : float
-            Shape parameter
-    
-    OUTPUTS:
-        F : ndarray
-            CDF values at each point in x
-    '''
+
+    INPUTS
+        x      : float or array_like, shape (N,)   evaluation points
+        params : tuple (m, s, k)
+            m : float or array_like, shape (n,)   location parameter(s), > 0
+            s : float or array_like, shape (n,)   scale parameter(s),    > 0
+            k : float or array_like, shape (n,)   shape parameter(s),    > 0
+
+    OUTPUTS
+        F : ndarray, shape (n, N)   CDF values; singleton axes are squeezed
+
+    Notes
+    -----
+    F(x) = exp(-z^(-k))   for x > m,   0 otherwise
+    where z = (x - m) / s
+
+    Reference
+    ---------
+    https://en.wikipedia.org/wiki/Fr%C3%A9chet_distribution
+    """
     m, s, k = params
+    m, s, k = _validate_(m, s, k)                            # (n, 1)
+    x = np.asarray(x, dtype=float).reshape( 1, -1)          # (1, N)
 
-    x, m, s, k, n, N = _ppp_(x, m, s, k)
+    inside = x > m                                            # (n, N) boolean mask
+    z  = np.where(inside, (x - m) / s, 1.0)                 # clip to avoid /0
 
-    F = np.zeros((n,N))  # Initialize PDF as zeros
-    
-    # Only compute for x > m
-    for i in range(n): 
-        mask = x > m[i]  # Compute only for x > m
-        z = (x[mask] - m[i]) / s[i]
-        F[i,mask] = np.exp(-z**(-k[i]))
-    
-    if n == 1 and F.shape[0] == 1:
-         F = F.flatten()
-    
-    return F
+    F = np.where(inside, np.exp(-z**(-k)), 0.0)              # (n, N)
+
+    # Find singleton axes corresponding to scalar or length-1 inputs.
+    # enumerate() creates pairs of (index, value)
+    # for each element in the list [m, x].
+    # The index i is included in squeeze_axes if v.size == 1 for that element.
+    squeeze_axes = tuple(i for i, v in enumerate([m, x]) if v.size == 1)
+
+    return np.squeeze(F, axis=squeeze_axes)
 
 
 def inv(F, m, s, k):
-    '''
+    """
     extreme_value_II.inv
-    
-    Computes the inverse CDF (quantile function) of the Extreme Value Type II distribution.
-    
-    INFUTS:
-        F : array_like
-            Probability values (must be in (0, 1))
-        m : float
-            Location parameter
-        s : float
-            Scale parameter (must be > 0)
-        k : float
-            Shape parameter
-    
-    OUTPUTS:
-        x : ndarray
-            Quantile values corresponding to probabilities F
-    '''
 
-    _, m, s, k, n, _ = _ppp_(0, m, s, k)
+    Computes the inverse CDF (quantile function) of the Extreme Value Type II
+    (Fréchet) distribution.
 
+    INPUTS
+        F : float or array_like, shape (N,)   probability values in (0, 1)
+        m : float or array_like, shape (n,)   location parameter(s), > 0
+        s : float or array_like, shape (n,)   scale parameter(s),    > 0
+        k : float or array_like, shape (n,)   shape parameter(s),    > 0
 
-    F = np.atleast_2d(F).astype(float)
-    F = np.clip(F, np.finfo(float).eps, 1 - np.finfo(float).eps)
-    N = F.shape[1]    
+    OUTPUTS
+        x : ndarray, shape (n, N)   quantile values; singleton axes are squeezed
 
-    x = np.zeros((n,N))
+    Notes
+    -----
+    x = m + s * (-log(F))^(-1/k)
 
-    # Inverse transform: x = m + s * (-log(u))^(-1/k)
-    # Transform each variable to its extreme type II  distribution value
-    for i in range(n):
-        x[i,:] = m[i] + s[i] * (-np.log(F[i,:]))**(-1 / k[i])
-    
-    if n == 1 and x.shape[0] == 1:
-         x = x.flatten()
-    
-    return x
+    Reference
+    ---------
+    https://en.wikipedia.org/wiki/Fr%C3%A9chet_distribution
+    """
+    m, s, k = _validate_(m, s, k)                            # (n, 1)
+    F = np.asarray(F, dtype=float).reshape( 1, -1)          # (1, N)
+    F = np.clip(F, np.finfo(float).eps, 1.0 - np.finfo(float).eps)
+
+    x = m + s * (-np.log(F))**(-1.0 / k)                    # (n, N)
+
+    # Find singleton axes corresponding to scalar or length-1 inputs.
+    # enumerate() creates pairs of (index, value)
+    # for each element in the list [m, F].
+    # The index i is included in squeeze_axes if v.size == 1 for that element.
+    squeeze_axes = tuple(i for i, v in enumerate([m, F]) if v.size == 1)
+
+    return np.squeeze(x, axis=squeeze_axes)
 
 
 def rnd(m, s, k, N, R=None, seed=None):
-    '''
+    """
     extreme_value_II.rnd
-    
-    Generate random samples from Extreme Value Type II (Fréchet) distribution.
-    
-    INPUTS:
-        m : float (n,)
-            Location parameter
-        s : float (n,)
-            Scale parameter (must be > 0)
-        k : float (n,)
-            Shape parameter
-        N : int
-            Number of observations of each variable
-        R  : float (n,n) optional
-             correlation matrix
-    
-    OUTPUTS:
-        X : ndarray
-            Shape (n, N) array of random samples
-    '''
-    _, m, s, k, n, _ = _ppp_(0, m, s, k)
 
+    Generate random samples from the Extreme Value Type II (Fréchet) distribution.
+
+    INPUTS
+        m    : float or array_like, shape (n,)   location parameter(s), > 0
+        s    : float or array_like, shape (n,)   scale parameter(s),    > 0
+        k    : float or array_like, shape (n,)   shape parameter(s),    > 0
+        N    : int                                number of samples per variable
+        R    : ndarray, shape (n, n), optional    correlation matrix;
+               if None, generates uncorrelated samples
+        seed : int or None                        random seed for reproducibility
+
+    OUTPUTS
+        X : ndarray, shape (n, N)   Fréchet random samples;
+            each row is one random variable, each column one sample;
+            singleton axes are squeezed
+
+    Notes
+    -----
+    Uses the inverse transform method: X = m + s * (-log(U))^(-1/k)
+    Inlined rather than calling inv() because U is already (n, N)
+    from correlated_rvs, while inv() expects F as (1, N).
+
+    Reference
+    ---------
+    https://en.wikipedia.org/wiki/Fr%C3%A9chet_distribution
+    """
+    if N is None or N < 1:
+        raise ValueError("extreme_value_II.rnd: N must be greater than zero")
+
+    m, s, k = _validate_(m, s, k)                            # (n, 1)
+    n = m.size
+
+    # Generate n correlated uniform [0, 1] variates, shape (n, N)
     _, _, U = correlated_rvs(R, n, N, seed)
 
-    X = inv(U, m, s, k)
+    # Inline the inverse transform rather than calling inv(), because U is
+    # already (n, N) from correlated_rvs, while inv() expects F as (1, N).
+    X = m + s * (-np.log(U))**(-1.0 / k)                    # (n, N)
 
-    if N == 1:
-        X = X.flatten()
+    # Squeeze singleton axes from the (n, N) output
+    squeeze_axes = tuple(np.where(np.asarray([n, N]) == 1)[0])
 
-    return X
+    return np.squeeze(X, axis=squeeze_axes)

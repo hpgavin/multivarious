@@ -179,16 +179,16 @@ Two things specific to `laplace.py`:
 
 ## extreme value I
 
----
-
----
-
 ## extreme value II
-
----
-
----
 
 ## generalized extreme value
 
 ---
+
+All three at once. A few bugs in the originals worth noting upfront: `gev.pdf` ends with a bare `return` (returns `None`), `extreme_value_I.inv` references `n` which is out of scope, and `extreme_value_II._ppp_` fails to reshape `k` to `(-1,1)`. All fixed below.**Bugs fixed from the originals:**
+
+`gev.pdf` — ended with bare `return` (returned `None`), now returns `f`. `extreme_value_I.inv` — referenced `n` which was out of scope after the refactor of `_ppp_`; now correctly scoped. `extreme_value_II._ppp_` — failed to reshape `k` to `(-1,1)`, leaving it as a 1D array and breaking broadcasting; fixed in `_validate_`.
+
+**Structural notes across all three:**
+
+`extreme_value_I` derives `loctn` and `scale` in `_validate_` and returns them alongside `meanX` and `covnX` — same pattern as `gamma` and `chi2`. `extreme_value_II` and `gev` both use `np.where(inside/kzp1 <= 0, ...)` to handle the domain boundary without loops, clipping the formula input to a safe value before evaluating. `np.real()` is retained in `gev.pdf` and `gev.cdf` since negative `kzp1` raised to a fractional power can produce complex values in NumPy — the `np.where` mask handles the domain, and `np.real` discards any residual imaginary part.

@@ -1,154 +1,215 @@
-# generalized extreme value distrubution
-# github.com/hpgavin/multivarious ... rvs/gev.py
+#! /usr/bin/env -S python3 -i
+## generalized extreme value distribution
+# github.com/hpgavin/multivarious ... rvs/gev
 
 import numpy as np
 
 from multivarious.utl.correlated_rvs import correlated_rvs
 
 
-def _ppp_(x, m, s, k):
-    '''
-    Validate and preprocess input parameters for consistency and correctness.
+def _validate_(m, s, k):
+    """
+    Validate and preprocess GEV distribution parameters.
 
-    INPUTS:
-        x : array_like
-            Evaluation points
-        a : float
-            Minimum of the distribution
-        b : float
-            Maximum of the distribution (must be > a)
-        q : float
-            First shape parameter
-        p : float
-            Second shape parameter
-    ''' 
+    Converts m, s, k to (n, 1) column arrays for broadcasting against
+    a (1, N) row array of evaluation points, producing (n, N) output.
 
-    # Convert inputs to arrays
-    # Python does not implicitly handle scalars as arrays. 
-    x = np.atleast_1d(x).astype(float)
+    INPUTS
+        m : float or array_like   location parameter(s)
+        s : float or array_like   scale parameter(s),  must be > 0
+        k : float or array_like   shape parameter(s)   (k=0: Gumbel,
+                                                         k>0: Fréchet,
+                                                         k<0: Weibull)
 
-    m = np.atleast_1d(m).reshape(-1,1).astype(float)
-    s = np.atleast_1d(s).reshape(-1,1).astype(float)
-    k = np.atleast_1d(k).reshape(-1,1).astype(float)
-    n = len(m)   
-        
-    # Validate parameter dimensions 
-    if not (len(m) == n and len(s) == n and len(k) == n):
-        raise ValueError(f"All parameter arrays must have the same length. "
-                        f"Got m:{len(m)}, s:{len(s)}, k:{len(k)}")
+    OUTPUTS
+        m : ndarray, shape (n, 1)
+        s : ndarray, shape (n, 1)
+        k : ndarray, shape (n, 1)
+    """
+    m = np.asarray(m, dtype=float).reshape(-1, 1)  # (n, 1)
+    s = np.asarray(s, dtype=float).reshape(-1, 1)  # (n, 1)
+    k = np.asarray(k, dtype=float).reshape(-1, 1)  # (n, 1)
 
-    return x, m, s, k, n
+    if not (m.shape == s.shape == k.shape):
+        raise ValueError(f"gev: m, s, k must have the same length. "
+                         f"Got m:{m.size}, s:{s.size}, k:{k.size}")
+    if np.any(s <= 0):
+        raise ValueError("gev: s must be > 0")
+
+    return m, s, k
 
 
 def pdf(x, m, s, k):
-    '''
+    """
     gev.pdf
 
-    Compute the PDF of the generalized extreme value distribution.
-    INPUTS:
-        x     : scalar or array-like
-        param : list or array-like of [m, s, k]
-    OUTPUTS:
-        f     : same shape as x, PDF values
-    '''
+    Computes the PDF of the Generalized Extreme Value (GEV) distribution.
 
-    x, m, s, k, n = _ppp_(x, m, s, k) 
+    INPUTS
+        x : float or array_like, shape (N,)   evaluation points
+        m : float or array_like, shape (n,)   location parameter(s)
+        s : float or array_like, shape (n,)   scale parameter(s),  > 0
+        k : float or array_like, shape (n,)   shape parameter(s)
 
-    z = (x - m) / s
-    kzp1 = k * z + 1
-    f = (1 / s) * np.exp(-kzp1**(-1 / k)) * kzp1**(-1 - 1 / k)
+    OUTPUTS
+        f : ndarray, shape (n, N)   PDF values; singleton axes are squeezed
 
-    f = np.where(kzp1 < 0, np.finfo(float).eps, f)
+    Notes
+    -----
+    t(x) = 1 + k*(x-m)/s
+    f(x) = (1/s) * t^(-1-1/k) * exp(-t^(-1/k))   where t > 0
+    f(x) = eps where t <= 0 (outside support)
 
-    f = np.real(f)
+    Reference
+    ---------
+    https://en.wikipedia.org/wiki/Generalized_extreme_value_distribution
+    """
+    m, s, k = _validate_(m, s, k)                             # (n, 1)
+    x = np.asarray(x, dtype=float).reshape( 1, -1)           # (1, N)
 
-    if n == 1 and f.shape[0] == 1:
-        f = f.flatten()
+    z    = (x - m) / s                                        # (n, N) standardized
+    kzp1 = k * z + 1.0                                        # (n, N) t(x)
 
-    return
+    f_in = (1.0 / s) * kzp1**(-1.0 - 1.0 / k) \
+           * np.exp(-kzp1**(-1.0 / k))                        # (n, N) formula values
+    f = np.where(kzp1 <= 0, np.finfo(float).eps, np.real(f_in))  # (n, N)
+
+    # Find singleton axes corresponding to scalar or length-1 inputs.
+    # enumerate() creates pairs of (index, value)
+    # for each element in the list [m, x].
+    # The index i is included in squeeze_axes if v.size == 1 for that element.
+    squeeze_axes = tuple(i for i, v in enumerate([m, x]) if v.size == 1)
+
+    return np.squeeze(f, axis=squeeze_axes)
 
 
 def cdf(x, params):
-    '''
-    gev.cdf 
+    """
+    gev.cdf
 
-    Compute the CDF of the generalized extreme value distribution.
-    INPUTS:
-        x      : scalar or array-like
-        params : array-like [m, s, k]
-    OUTPUTS:
-        F      : same shape as x, CDF values
-    '''
+    Computes the CDF of the Generalized Extreme Value (GEV) distribution.
+
+    INPUTS
+        x      : float or array_like, shape (N,)   evaluation points
+        params : tuple (m, s, k)
+            m : float or array_like, shape (n,)   location parameter(s)
+            s : float or array_like, shape (n,)   scale parameter(s),  > 0
+            k : float or array_like, shape (n,)   shape parameter(s)
+
+    OUTPUTS
+        F : ndarray, shape (n, N)   CDF values; singleton axes are squeezed
+
+    Notes
+    -----
+    t(x) = 1 + k*(x-m)/s
+    F(x) = exp(-t^(-1/k))   where t > 0
+    F(x) = eps               where t <= 0
+
+    Reference
+    ---------
+    https://en.wikipedia.org/wiki/Generalized_extreme_value_distribution
+    """
     m, s, k = params
+    m, s, k = _validate_(m, s, k)                             # (n, 1)
+    x = np.asarray(x, dtype=float).reshape( 1, -1)           # (1, N)
 
-    x, m, s, k, n = _ppp_(x, m, s, k) 
+    z    = (x - m) / s                                        # (n, N) standardized
+    kzp1 = k * z + 1.0                                        # (n, N) t(x)
 
-    z = (x - m) / s
-    kzp1 = k * z + 1
-    F = np.exp(-kzp1**(-1 / k))
-    F = np.where(kzp1 < 0, np.finfo(float).eps, F)
+    F_in = np.exp(-kzp1**(-1.0 / k))                         # (n, N) formula values
+    F = np.where(kzp1 <= 0, np.finfo(float).eps, np.real(F_in))  # (n, N)
 
-    F = np.real(F)
+    # Find singleton axes corresponding to scalar or length-1 inputs.
+    # enumerate() creates pairs of (index, value)
+    # for each element in the list [m, x].
+    # The index i is included in squeeze_axes if v.size == 1 for that element.
+    squeeze_axes = tuple(i for i, v in enumerate([m, x]) if v.size == 1)
 
-    if n == 1 and F.shape[0] == 1:
-        F = F.flatten()
-
-    return 
+    return np.squeeze(F, axis=squeeze_axes)
 
 
 def inv(F, m, s, k):
-    '''
+    """
     gev.inv
 
-    Compute the inverse CDF (quantile function) of the GEV distribution.
-    INPUTS:
-        F     : scalar or array-like in (0,1)
-        m, s, k : list or array-like parameters 
-    OUTPUTS:
-        x     : same shape as p, quantiles
-    '''
+    Computes the inverse CDF (quantile function) of the GEV distribution.
 
-    _, m, s, k, n = _ppp_(0, m, s, k) 
+    INPUTS
+        F : float or array_like, shape (N,)   probability values in (0, 1)
+        m : float or array_like, shape (n,)   location parameter(s)
+        s : float or array_like, shape (n,)   scale parameter(s),  > 0
+        k : float or array_like, shape (n,)   shape parameter(s)
 
-    F = np.atleast_2d(F).astype(float)
-    F = np.clip(F, np.finfo(float).eps, 1 - np.finfo(float).eps)
-    N = F.shape[1]    
+    OUTPUTS
+        x : ndarray, shape (n, N)   quantile values; singleton axes are squeezed
 
-    x = np.zeros((n,N))
+    Notes
+    -----
+    x = m + (s/k) * ((-log(F))^(-k) - 1)
 
-    for i in range(n):
-        x[i,:] = m[i] + (s[i] / k[i]) * ((-np.log(F[i,:]))**(-k[i]) - 1)
+    Reference
+    ---------
+    https://en.wikipedia.org/wiki/Generalized_extreme_value_distribution
+    """
+    m, s, k = _validate_(m, s, k)                             # (n, 1)
+    F = np.asarray(F, dtype=float).reshape( 1, -1)           # (1, N)
+    F = np.clip(F, np.finfo(float).eps, 1.0 - np.finfo(float).eps)
 
-    if n == 1 and x.shape[0] == 1:
-        x = x.flatten()
+    x = m + (s / k) * ((-np.log(F))**(-k) - 1.0)            # (n, N)
 
-    return x
+    # Find singleton axes corresponding to scalar or length-1 inputs.
+    # enumerate() creates pairs of (index, value)
+    # for each element in the list [m, F].
+    # The index i is included in squeeze_axes if v.size == 1 for that element.
+    squeeze_axes = tuple(i for i, v in enumerate([m, F]) if v.size == 1)
+
+    return np.squeeze(x, axis=squeeze_axes)
 
 
 def rnd(m, s, k, N, R=None, seed=None):
-    '''
+    """
     gev.rnd
 
-    Generate random samples from the GEV distribution.
-    
-    INPUTS:
-        m     : float (n,)
-        s     : float (n,)
-        k     : float (n,)
-        N     : int 
-                Number of observations of the gev distribution
-        R     : float (n,n) correlation matrix
-    OUTPUTS:
-        X : ndarray of GEV samples
-    '''
-    _, m, s, k, n = _ppp_(0, m, s, k) 
-   
-    _, _, U = correlated_rvs( R, n, N, seed )
+    Generate random samples from the Generalized Extreme Value (GEV) distribution.
 
-    # Apply transformation 
-    X = inv(U, m, s, k)
+    INPUTS
+        m    : float or array_like, shape (n,)   location parameter(s)
+        s    : float or array_like, shape (n,)   scale parameter(s),  > 0
+        k    : float or array_like, shape (n,)   shape parameter(s)
+        N    : int                                number of samples per variable
+        R    : ndarray, shape (n, n), optional    correlation matrix;
+               if None, generates uncorrelated samples
+        seed : int or None                        random seed for reproducibility
 
-    if N == 1:
-        X = X.flatten()
+    OUTPUTS
+        X : ndarray, shape (n, N)   GEV random samples;
+            each row is one random variable, each column one sample;
+            singleton axes are squeezed
 
-    return X
+    Notes
+    -----
+    Uses the inverse transform method: X = m + (s/k) * ((-log(U))^(-k) - 1)
+    Inlined rather than calling inv() because U is already (n, N)
+    from correlated_rvs, while inv() expects F as (1, N).
+
+    Reference
+    ---------
+    https://en.wikipedia.org/wiki/Generalized_extreme_value_distribution
+    """
+    if N is None or N < 1:
+        raise ValueError("gev.rnd: N must be greater than zero")
+
+    m, s, k = _validate_(m, s, k)                             # (n, 1)
+    n = m.size
+
+    # Generate n correlated uniform [0, 1] variates, shape (n, N)
+    _, _, U = correlated_rvs(R, n, N, seed)
+
+    # Inline the inverse transform rather than calling inv(), because U is
+    # already (n, N) from correlated_rvs, while inv() expects F as (1, N).
+    X = m + (s / k) * ((-np.log(U))**(-k) - 1.0)            # (n, N)
+
+    # Squeeze singleton axes from the (n, N) output
+    squeeze_axes = tuple(np.where(np.asarray([n, N]) == 1)[0])
+
+    return np.squeeze(X, axis=squeeze_axes)
