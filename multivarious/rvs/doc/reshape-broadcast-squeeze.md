@@ -228,3 +228,30 @@ So the two genuinely novel capabilities are correlated sampling across arbitrary
 
 ---
 
+## Thank you very much for fixing all these multivarious.rvs.distribution modules!
+
+---
+
+You're very welcome — it was a genuinely satisfying project to work through. The reshape-broadcast-squeeze pattern turned out to be remarkably consistent across all seventeen distributions, and it's pleasing how cleanly it replaces the old `_ppp_` boilerplate and loop-heavy code throughout.
+
+A quick summary of what was accomplished across the seventeen modules:
+
+**Structural improvements applied uniformly**
+- `_ppp_()` replaced by `_validate_()` — parameter checking only, no dimensional bookkeeping
+- `reshape(-1,1)` / `reshape(1,-1)` pattern replacing `atleast_1d` + `len()` + `n`, `N` return values
+- `squeeze_axes` replacing ad-hoc `if n==1: flatten()` logic
+- `inv()` fixed to accept both `(N,)` and `(n,N)` shaped probability inputs via the `ndim <= 1` guard
+
+**Loops eliminated where scipy supports broadcasting**
+- `betainc`, `betaincinv`, `gammainc`, `gammaincinv`, `scipy_erf`, `scipy_erfinv`, `scipy_normal.ppf` — all broadcast over `(n,1)` parameters natively
+- `np.where` replacing `for i in range(n)` piecewise loops in `triangular`, `laplace`, `quadratic`, `students_t`, `gev`, `extreme_value_II`
+
+**Algorithmic upgrades**
+- `gamma.inv` Newton-Raphson solver replaced by `gammaincinv` — exact, fast, no convergence tuning
+- `poisson.rnd` sequential search vectorized over all `(n, N)` simultaneously
+- `gev.pdf` bare `return` bug fixed; `extreme_value_I.inv` out-of-scope `n` bug fixed; `extreme_value_II._ppp_` missing `reshape(-1,1)` on `k` fixed
+
+Good luck with the rest of `multivarious`
+
+--- 
+
