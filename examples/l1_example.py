@@ -1,23 +1,25 @@
-#! /usr/bin/env -S python3 -i
-"""
-L1_fit_example.py - Test script for L1 regularization
+#! /usr/bin/env -S /usr/bin/python3 -i 
 
-Demonstrates L1_fit on synthetic polynomial data with various true functions.
+"""
+l1_example.py - Test script for l1 regularization
+
+Demonstrates l1 on synthetic polynomial data with various true functions.
 """
 
 import numpy as np
 import matplotlib.pyplot as plt
-from multivarious.fit import L1_fit
-from multivarious.utl import L1_plots, format_plot
+from rich.traceback import install; install()
+from multivarious.fit import l1
+from multivarious.utl import plot_l1, format_plot
 
 
-def test_L1_basic():
+def test_l1_basic():
     """
-    Basic test of L1_fit with polynomial basis and nonlinear data.
+    Basic test of l1 with polynomial basis and nonlinear data.
     """
     
     print("\n" + "="*70)
-    print("L1_fit Test - Basic Example")
+    print("l1 Test - Basic Example")
     print("="*70)
     
     # Independent variables
@@ -51,17 +53,17 @@ def test_L1_basic():
     # Option 3: Linear + Gaussian
     # y = 1 - x + np.exp(-(2*x)**2) + noise
     
-    # L1 regularization parameters
+    # l1 regularization parameters
     w = 1.0      # 0: without weighting, >0: with weighting
-    alpha = 0.1  # L1 regularization parameter
+    alpha = 0.1  # l1 regularization parameter
     
-    print(f"\nL1 parameters:")
+    print(f"\nl1 parameters:")
     print(f"  Initial α: {alpha}")
     print(f"  Weighting w: {w}")
     
-    # Fit model using L1 regularization
-    print("\nFitting model with L1 regularization...")
-    c, mu, nu, cvg_hst = L1_fit(B, y, alpha, w)
+    # Fit model using l1 regularization
+    print("\nFitting model with l1 regularization...")
+    c, mu, nu, cvg_hst = l1(B, y, alpha, w)
     
     # Extract final values
     n_iter = cvg_hst.shape[1]
@@ -76,18 +78,18 @@ def test_L1_basic():
     
     # Create plots
     format_plot(font_size=15, line_width=3, marker_size=9)
-    L1_plots(B, c, y, cvg_hst, alpha_final, w, fig_no=1, save_plots=False)
+    plot_l1(B, c, y, cvg_hst, alpha_final, w, fig_num=1, save_plots=False)
     
     return c, cvg_hst
 
 
-def test_L1_comparison():
+def test_l1_comparison():
     """
-    Compare L1 results with different regularization strengths.
+    Compare l1 results with different regularization strengths.
     """
     
     print("\n" + "="*70)
-    print("L1_fit Test - Parameter Comparison")
+    print("l1 Test - Parameter Comparison")
     print("="*70)
     
     # Generate data
@@ -102,13 +104,14 @@ def test_L1_comparison():
     alphas = [0.01, 0.05, 0.1, 0.5]
     w = 1.0
     
+    plt.ion()  # plot interactive mode on
     plt.figure(figsize=(14, 10))
     
     for idx, alpha in enumerate(alphas):
         print(f"\nTesting α = {alpha}")
         
         # Fit model
-        c, mu, nu, cvg_hst = L1_fit(B, y, alpha, w)
+        c, mu, nu, cvg_hst = l1(B, y, alpha, w)
         alpha_final = cvg_hst[-2, -1]
         
         n_nonzero = np.sum(np.abs(c) > 1e-6)
@@ -126,17 +129,17 @@ def test_L1_comparison():
         plt.grid(True, alpha=0.3)
     
     plt.tight_layout()
-    plt.savefig('L1_alpha_comparison.png', dpi=150)
-    print("\nPlot saved: L1_alpha_comparison.png")
+    plt.savefig('l1_alpha_comparison.png', dpi=150)
+    print("\nPlot saved: l1_alpha_comparison.png")
 
 
-def test_L1_weighting():
+def test_l1_weighting():
     """
-    Compare weighted vs unweighted L1.
+    Compare weighted vs unweighted l1.
     """
     
     print("\n" + "="*70)
-    print("L1_fit Test - Weighting Comparison")
+    print("l1 Test - Weighting Comparison")
     print("="*70)
     
     # Generate data
@@ -157,7 +160,7 @@ def test_L1_weighting():
     for idx, w in enumerate(weights):
         print(f"\nTesting w = {w}")
         
-        c, mu, nu, cvg_hst = L1_fit(B, y, alpha, w)
+        c, mu, nu, cvg_hst = l1(B, y, alpha, w)
         
         n_nonzero = np.sum(np.abs(c) > 1e-6)
         print(f"  Non-zero coefficients: {n_nonzero}/{len(c)}")
@@ -174,34 +177,35 @@ def test_L1_weighting():
         plt.grid(True, alpha=0.3)
     
     plt.tight_layout()
-    plt.savefig('L1_weighting_comparison.png', dpi=150)
-    print("\nPlot saved: L1_weighting_comparison.png")
+    plt.savefig('l1_weighting_comparison.png', dpi=150)
+    print("\nPlot saved: l1_weighting_comparison.png")
 
 
 def main():
     """
-    Run all L1_fit tests.
+    Run all l1 tests.
     """
     
     print("\n" + "#"*70)
-    print("# L1_fit Testing Suite")
+    print("# l1 Testing Suite")
     print("#"*70)
     
     # Test 1: Basic functionality
-    c, cvg_hst = test_L1_basic()
+    c, cvg_hst = test_l1_basic()
     
     # Test 2: Compare different alphas
-    test_L1_comparison()
+    test_l1_comparison()
     
     # Test 3: Compare weighting options
-    test_L1_weighting()
+    test_l1_weighting()
     
     print("\n" + "#"*70)
     print("# All tests completed successfully!")
     print("#"*70)
     
     # Show all plots
-    plt.show()
+    plt.draw()
+    plt.pause(0.01)
 
 if __name__ == '__main__':
     main()

@@ -1,9 +1,9 @@
 #! /usr/bin/env -S /usr/bin/python3 -i 
 
 import numpy as np
+from rich.traceback import install; install()
 from multivarious.opt import ors, nms, sqp
 from multivarious.utl import StableNamespace, plot_cvg_hst, format_plot 
-from rich.traceback import install; install()
 
 # Define the optimization problem. =========================================
 def opt_example_analysis( v, cts ):

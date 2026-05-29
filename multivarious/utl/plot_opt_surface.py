@@ -69,10 +69,7 @@ def plot_opt_surface(func, v, v_lb, v_ub, options, consts=None, fig_num=1):
 
     #plt.rcParams['text.usetex'] = True # Set to True if LaTeX is installed
     
-    interactive = True # Enable interactive mode for matplotlib
-        
-    if interactive:
-        plt.ion() # plot interactive mode: on
+    plt.ion() # plot interactive mode: on
 
     # Convert inputs to numpy arrays
     v = np.asarray(v).flatten()
@@ -181,7 +178,7 @@ def plot_opt_surface(func, v, v_lb, v_ub, options, consts=None, fig_num=1):
             z_avg = (fs[ii] + fs[ii+1]) / 2
             ax.plot(vis[ii:ii+2], vjs[ii:ii+2], fs[ii:ii+2], color=cmap(norm(z_avg)))
 
-    plt.show()
+    plt.draw()
     """
 
     # Set labels with LaTeX-style formatting

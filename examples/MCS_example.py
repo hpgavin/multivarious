@@ -118,4 +118,5 @@ plt.xlabel(r'$Y = g(X_1,X_2,X_3)$')
 plt.tight_layout()
 
 plt.savefig('MCS-example-2.pdf', bbox_inches='tight')
-plt.show()
+plt.draw()
+plt.pause(0.01)

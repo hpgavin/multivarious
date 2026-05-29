@@ -25,11 +25,11 @@ from .opt_report import opt_report
 from .plot_ECDF_ci import plot_ECDF_ci
 from .plot_cvg_hst import plot_cvg_hst
 from .plot_ensemble import plot_ensemble
+from .plot_l1 import plot_l1
 from .plot_lm import plot_lm
 from .plot_opt_surface import plot_opt_surface
 from .plot_scatter_dist import plot_scatter_dist
 from .plot_spectra import plot_spectra 
-from .L1_plots import L1_plots
 from .StableNamespace import StableNamespace
 
 __all__ = [ "avg_cov_func", 
@@ -43,11 +43,11 @@ __all__ = [ "avg_cov_func",
             "plot_ECDF_ci", 
             "plot_cvg_hst", 
             "plot_ensemble", 
+            "plot_l1", 
             "plot_lm", 
             "plot_opt_surface", 
             "plot_spectra", 
             "plot_scatter_dist", 
-            "L1_plots", 
             "StableNamespace", 
           ]
 

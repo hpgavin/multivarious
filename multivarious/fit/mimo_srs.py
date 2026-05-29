@@ -1,6 +1,8 @@
 import numpy as np
 import matplotlib.pyplot as plt
 from multivarious.utl import plot_scatter_dist
+from multivarious.fit.l1 import l1
+from multivarious.utl.plot_l1 import plot_l1
 
 def mimo_srs(dataX, dataY, max_order=2, pTrain=70, scaling=1, L1_pnlty=1.0, basis_fctn='H', var_names=None ):
     '''
@@ -685,23 +687,17 @@ def fit_model(Zx, Zy, ordr, nTerm, mData, L1_pnlty, basis_fctn):
 
 
     if L1_pnlty > 0:
-        # Use L1_fit for regularization
-        try:
-            from multivarious.fit.L1_fit import L1_fit
-            from multivarious.utl.L1_plots import L1_plots
+        # Use l1 for regularization
 
-            for io in range(nZy):
-                Zy_col = Zy[io,:].T # Zy needs to be column vector for L1_fit
+        for io in range(nZy):
+            Zy_col = Zy[io,:].T # Zy needs to be column vector for l1
 
-                #print(f'Zy_col_dim = {Zy_col.shape}')
-                coeff[:,io], mu, nu, cvg_hst = L1_fit(B, Zy_col, L1_pnlty, w=0)
+            #print(f'Zy_col_dim = {Zy_col.shape}')
+            coeff[:,io], mu, nu, cvg_hst = l1(B, Zy_col, L1_pnlty, w=0)
 
-                # Optional: plot L1 convergence
-                L1_plots(B, coeff[:,io], Zy_col, cvg_hst, L1_pnlty, 0, fig_num=700+10*io)
+            # Optional: plot L1 convergence
+            plot_l1(B, coeff[:,io], Zy_col, cvg_hst, L1_pnlty, 0, fig_num=700+10*io)
 
-        except ImportError:
-            print('WARNING: L1_fit not found, using OLS instead')
-            coeff = np.linalg.lstsq(B, Zy, rcond=None)[0]
     else:
         # Use ordinary least squares / SVD
         coeff = np.linalg.lstsq(B, Zy, rcond=None)[0]
@@ -870,6 +866,9 @@ def visualize_model_performance(dataY, modelY,  txt):
         ax.set_aspect('equal', adjustable='box')
     
     plt.tight_layout()
+    plt.draw()
+    plt.pause(0.01)
+
     plt.savefig(f'{txt}_performance.png', dpi=150, bbox_inches='tight')
     print(f"Performance plot saved to '{txt}_performance.png'")
     

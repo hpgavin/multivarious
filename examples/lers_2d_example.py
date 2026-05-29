@@ -32,11 +32,11 @@ t  = np.arange(n) * dt
 
 # Create simple example ground motion (replace with actual data)
 
-ax, _, _, _, _, _, _ = eqgm_1d(PGA=3.5, fg=1.5, zg=0.9, aa=4.0, ta=2.0, t=None, fig_no=1, seed=None)
-ay, _, _, _, _, _, _ = eqgm_1d(PGA=3.5, fg=1.5, zg=0.9, aa=4.0, ta=2.0, t=None, fig_no=1, seed=None)
+ax, _, _, _, _, _, _ = eqgm_1d(PGA=3.5, fg=1.5, zg=0.9, aa=4.0, ta=2.0, t=None, fig_num=1, seed=None)
+ay, _, _, _, _, _, _ = eqgm_1d(PGA=3.5, fg=1.5, zg=0.9, aa=4.0, ta=2.0, t=None, fig_num=1, seed=None)
 
 # Compute response spectrum using square root of the sum of the squares (SRSS) method
-PSA_srss, SD_srss = lers_2d(ax, ay, t, g, Tn, zz, method='SRSS', fig_no=10, save_plot=False)
+PSA_srss, SD_srss = lers_2d(ax, ay, t, g, Tn, zz, method='SRSS', fig_num=10, save_plot=False)
 
 print("Response Spectrum Results (SRSS method):")
 print(f"{'Period (s)':<12} {'PSA (g)':<12} {'SD (m)':<12}")
@@ -45,7 +45,7 @@ for i, Tn_val in enumerate(Tn):
     print(f"{Tn_val:<12.2f} {PSA_srss[i]:<12.4f} {SD_srss[i]:<12.4f}")
 
 # Compute response spectrum using geometric mean (GM) method
-PSA_gm, SD_gm = lers_2d(ax, ay, t, g, Tn, zz, method='GM', fig_no=20, save_plot=False)
+PSA_gm, SD_gm = lers_2d(ax, ay, t, g, Tn, zz, method='GM', fig_num=20, save_plot=False)
 
 print("\nResponse Spectrum Results (GM method):")
 print(f"{'Period (s)':<12} {'PSA (g)':<12} {'SD (m)':<12}")
@@ -76,5 +76,6 @@ plt.legend()
 plt.grid(True, alpha=0.3)
 
 plt.tight_layout()
-plt.show()
+plt.draw()
+plt.pause(0.01)
 

@@ -275,7 +275,8 @@ if __name__ == "__main__":
 
     # Display plots
     if not interactive:
-        plt.show()
+        plt.draw()
+        plt.pause(0.10)
 
     # Save plots to .pdf
     if pdf_plots:
@@ -297,7 +298,7 @@ if __name__ == "__main__":
 
     # Display plots
     if not interactive:
-        plt.show()
+        plt.draw()
 
     # Save plots to .pdf
     if pdf_plots:
@@ -326,7 +327,7 @@ if __name__ == "__main__":
     
     # Display plots
     if not interactive:
-        plt.show()
+        plt.draw()
 
     # Save plots to .pdf
     if pdf_plots:

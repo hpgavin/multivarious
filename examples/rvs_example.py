@@ -417,3 +417,6 @@ if xi is not None and distribution not in ['binomial', 'poisson']:
     plt.title(rf'{distribution}   round-trip error')
     plt.legend()
     plt.tight_layout()
+
+plt.draw()
+plt.pause(0.01)

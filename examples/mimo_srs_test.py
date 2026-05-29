@@ -2,6 +2,7 @@
 
 import numpy as np
 import matplotlib.pyplot as plt
+from rich.traceback import install; install()
 from multivarious.fit import mimo_srs
 from multivarious.rvs import lognormal 
 

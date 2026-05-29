@@ -218,7 +218,9 @@ def plot_cvg_hst(cvg_hst, v_opt, opts=[1,np.nan,np.nan,np.nan], fig_num=1000, cl
         plt.tight_layout()
 
     # Display plots
-    plt.show()
+    plt.draw()
+    plt.pause(0.10)
+
     
     # Save plots 
     if save_plots:

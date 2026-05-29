@@ -1,5 +1,5 @@
 """
-L1_fit.py - L1 Regularization with Adaptive Penalty and Optional Weighting
+l1.py - L1 Regularization with Adaptive Penalty and Optional Weighting
 
 Fit model coefficients c in the model ŷ = B*c to data y with L1 regularization
 of the coefficients using a split variable formulation and active set method.
@@ -11,7 +11,7 @@ Original by H.P. Gavin, 2013-10-04
 import numpy as np
 
 
-def L1_fit(B, y, alfa, w):
+def l1(B, y, alfa, w):
     """
     Fit model coefficients with L1 regularization using split variables.
     
@@ -225,11 +225,11 @@ def L1_fit(B, y, alfa, w):
 # Test function
 if __name__ == '__main__':
     """
-    Simple test of L1_fit
+    Simple test of l1
     """
     import matplotlib.pyplot as plt
     
-    print("Testing L1_fit.py")
+    print("Testing l1.py")
     print("=" * 70)
     
     # Generate test data
@@ -250,7 +250,7 @@ if __name__ == '__main__':
     
     # Fit model
     print(f"\nFitting model with alfa={alfa}, w={w}")
-    c, mu, nu, cvg_hst = L1_fit(B, y, alfa, w)
+    c, mu, nu, cvg_hst = l1(B, y, alfa, w)
     
     # Display results
     print("\nModel coefficients:")
@@ -298,9 +298,9 @@ if __name__ == '__main__':
     plt.grid(True, alpha=0.3)
     
     plt.tight_layout()
-    plt.savefig('L1_fit_test_python.png', dpi=150)
-    print("\nPlot saved to: L1_fit_test_python.png")
+    plt.savefig('l1_test_python.png', dpi=150)
+    print("\nPlot saved to: l1_test_python.png")
     
     print("\n" + "=" * 70)
-    print("L1_fit test completed successfully!")
+    print("l1 test completed successfully!")
     print("=" * 70)

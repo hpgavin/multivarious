@@ -1,5 +1,5 @@
 """
-poly_fit.py - General Purpose Polynomial Curve Fitting with Error Analysis
+polynomial.py - General Purpose Polynomial Curve Fitting with Error Analysis
 
 Fit a power-polynomial y_fit(x;a) to data pairs (x,y) where:
     y_fit(x;a) = SUM_i a_i * x^p_i
@@ -20,7 +20,7 @@ from scipy.stats import norm as scipy_normal
 from multivarious.utl.plot_ECDF_ci import plot_ECDF_ci
 
 
-def poly_fit(x, y, p, fig_num=0, Sy=None, rof=None, b=0.0):
+def polynomial(x, y, p, fig_num=0, Sy=None, rof=None, b=0.0):
     """
     Fit a power-polynomial to data with comprehensive error analysis.
     
@@ -189,7 +189,7 @@ def _plot_results(x, y, x_fit, y_fit, B, c, Sy_fit, Vr,
     """
     Create visualization of polynomial fit results.
     
-    Internal function called by poly_fit when fig_num > 0.
+    Internal function called by polynomial when fig_num > 0.
     """
     
     # Confidence intervals
@@ -270,7 +270,7 @@ def _plot_results(x, y, x_fit, y_fit, B, c, Sy_fit, Vr,
     ax2.grid(True, alpha=0.3)
     ax2.set_title(r'Data $y$ vs Model $\hat y(x; c^*)$ (Correlation)', fontsize=14)
 
-    filename = f'poly_fit-{fig_num:04d}.pdf'
+    filename = f'polynomial-{fig_num:04d}.pdf'
     fig_1.savefig(filename, bbox_inches='tight', dpi=300)
     print(f"    Saved: {filename}")
     
@@ -302,7 +302,7 @@ def _plot_results(x, y, x_fit, y_fit, B, c, Sy_fit, Vr,
     
     plt.tight_layout()
     
-    filename = f'poly_fit-{fig_num+1:04d}.pdf'
+    filename = f'polynomial-{fig_num+1:04d}.pdf'
     fig_2.savefig(filename, bbox_inches='tight', dpi=300)
     print(f"    Saved: {filename}")
     

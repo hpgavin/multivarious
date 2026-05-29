@@ -1,5 +1,5 @@
 """
-prony_fit.py - Prony Series Fitting with L1 Regularization
+prony.py - Prony Series Fitting with L1 Regularization
 ============================================================
 
 Fit a Prony series to frequency domain complex modulus data using
@@ -16,7 +16,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 
-def prony_fit(G_dat, f_dat, tau, alpha):
+def prony(G_dat, f_dat, tau, alpha):
     """
     Fit a Prony series to frequency domain complex modulus data.
     

@@ -16,9 +16,9 @@ x = np.array([2 + 0.4*np.random.randn(N),
               5 + 1.0*np.random.randn(N), 
              10 + 2.0*np.random.randn(N)])
 
-fig_no = 100  # figure number 
+fig_num = 100  # figure number 
 # an empirical CDF and PDF (Histogram) from the sample x
 plot_ECDF_ci( x , confidence_level =  95 , # confidence level  (times 100)
-                 fig_no = fig_no ,         # figure number 
+                 fig_num = fig_num ,         # figure number 
                  x_label = 'samples from a Gaussian mixture' , 
                  save_plots = True )

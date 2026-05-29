@@ -127,7 +127,9 @@ def plot_ECDF_ci(data, confidence_level, fig_num, x_label='sorted sample values'
     #plt.legend(loc='lower right')
     plt.grid(True, alpha=0.3)
 
-    plt.show()
+    plt.draw()
+    plt.pause(0.10)
+
 
     # Save plots 
     if save_plots:

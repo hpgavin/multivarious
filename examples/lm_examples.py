@@ -1,4 +1,5 @@
-#! /usr/bin/env -S python3 -i
+#! /usr/bin/env -S /usr/bin/python3 -i 
+
 """
 Example Functions and Demonstrations for Levenberg-Marquardt
 
@@ -15,8 +16,7 @@ Example Functions:
 import numpy as np
 import matplotlib.pyplot as plt
 from rich.traceback import install; install()
-from mpl_toolkits.mplot3d import Axes3D  # For 3D plotting in Example 4
-from typing import Tuple, List
+#from mpl_toolkits.mplot3d import Axes3D  # For 3D plotting in Example 4
 from multivarious.fit.lm import levenberg_marquardt, lm
 from multivarious.utl.plot_lm import plot_lm
 
@@ -283,6 +283,7 @@ def sensitivity_to_initial_guess(example_number: int = 3, n_trials: int = 100) -
     # ========================================================================
     # Plot results
     # ========================================================================
+    plt.ion()
     fig, axes = plt.subplots(4, 4, figsize=(12, 12))
     fig.suptitle(f'Sensitivity to Initial Guess - Example {example_number}', 
                 fontsize=16, fontweight='bold')
@@ -328,7 +329,8 @@ def sensitivity_to_initial_guess(example_number: int = 3, n_trials: int = 100) -
                 ax.set_ylabel(f'$a_{{FIT}}[{ii}]$', fontsize=10)
     
     plt.tight_layout()
-    plt.show()
+    plt.draw()
+    plt.pause(0.01)
     
     print("\nLegend:")
     print("  Black circles: All trials")

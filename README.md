@@ -32,12 +32,12 @@ To generate and transform multivariate discrete time sequences
 To fit linear and nonlinear multi-variate mathematical models to multi-dimensional data sets
 
 | module        | description                                                            |
-| ------------- | ---------------------------------------------------------------------- |
-| **L1_fit**    | linear least-squares curve fitting with l_1 regularization             |
-| **lm**        | Levenberg-Marquardt for nonlinear least squares curve-fitting problems |
-| **mimo_srs**  | multi-input multi-output stochastic response surface                              |
-| **poly_fit**  | power polynomial curve fitting with arbitrary exponents                |
-| **prony_fit** | Prony function curve fitting with L1 regularization                    |
+| -------------- | ---------------------------------------------------------------------- |
+| **l1**         | linear least-squares curve fitting with l_1 regularization             |
+| **lm**         | Levenberg-Marquardt for nonlinear least squares curve-fitting problems |
+| **mimo_srs**   | multi-input multi-output stochastic response surface with l_1 regularization  |
+| **polynomial** | power polynomial curve fitting with arbitrary exponents                |
+| **prony**      | Prony function curve fitting with l_1 regularization                   |
 
 ## lti . linear time invariant systems
 
@@ -137,10 +137,10 @@ To set hyperparameters and plot results of multivarious computations.
 | **plot_scatter_dist** | multivariate scatter plots with distributions and correlation confidence intervals |
 | **plot_ensemble**     | three sets of corresponding ensemble time series                           |
 | **plot_cvg_hist**     | convergence history from ors, nms and sqp                              |
+| **plot_l1**          | results from l1                                                       |
 | **plot_lm**           | converence history and fit statistics from an lm |
 | **plot_opt_surface**  | objective function landscape in any selected 2D slice                  |
 | **plot_spectra**      | three sets of corresponding ensemble spectra or transfer functions         |
-| **L1_plots**          | results from L1_fit                                                       |
 | **StableNamespace**   | a namespace object with a fixed set of mutable attributes  |
 
 

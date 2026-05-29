@@ -49,10 +49,7 @@ def plot_lm(t: np.ndarray,
     #plt.rcParams['text.usetex'] = True # Set to True if LaTeX is installed
     
     pdf_plots = True  # Set to True to save PDF files
-    interactive = True # Enable interactive mode for matplotlib
-    
-    if interactive:
-        plt.ion() # plot interactive mode: on
+    plt.ion()  # plot interactive mode: on
 
     max_iter, n_cols = cvg_history.shape
     n_coeffs = n_cols - 3
@@ -201,10 +198,9 @@ def plot_lm(t: np.ndarray,
     fig.suptitle(f'{title_prefix}') 
 
     # Display plots
-    if not interactive:
-        plt.show()
-   
-    if interactive:
-        input("Press Enter to close all figures...")
-        plt.close('all')
+    plt.draw()
+    plt.pause(0.10)
+
+    input("Press Enter to close all figures...")
+    plt.close('all')
 

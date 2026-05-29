@@ -1,19 +1,19 @@
 #! /usr/bin/env -S python3 -i
 """
-poly_fit_example.py - example for the use of poly_fit.py
+polynomial_example.py - example for the use of multivarious.fit.polynomial.py
 2025-12-02
 """
 import numpy as np
 import matplotlib.pyplot as plt
 from rich.traceback import install; install()
-from multivarious.fit import poly_fit
+from multivarious.fit import polynomial
 import time
 
 """
-Test poly_fit with example data
+Test polynomial with example data
 """
 print("\n" + "="*70)
-print("Testing poly_fit.py")
+print("Testing polynomial.py")
 print("="*70)
     
 # Generate test data
@@ -39,9 +39,9 @@ print("Test 1: Powers [0, 1, 2, 3, 4]")
 print("-"*70)
     
 p1 = [ 0, 1, 2, 3, 4 ]  # the powers of the polynomial terms 
-# ... run poly_fit() to do the fit! ...
+# ... run polynomial() to do the fit! ...
 c1, x_fit1, y_fit1, Sc1, Sy_fit1, Rc1, R2_1, Vr1, AIC1, BIC1, cond1 = \
-        poly_fit(x, y, p1, fig_no=10)
+        polynomial(x, y, p1, fig_num=10)
     
 # Test 2: Reduced polynomial basis (no linear term)
 print("\n" + "-"*70)
@@ -50,7 +50,7 @@ print("-"*70)
     
 p2 = [ 0, 2, 3, 4 ]  # the powers of the polynomial terms without an "x" term
 c2, x_fit2, y_fit2, Sc2, Sy_fit2, Rc2, R2_2, Vr2, AIC2, BIC2, cond2 = \
-        poly_fit(x, y, p2, fig_no=20)
+        polynomial(x, y, p2, fig_num=20)
     
 # Comparison
 print("\n" + "="*70)
