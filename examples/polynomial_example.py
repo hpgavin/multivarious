@@ -41,7 +41,7 @@ print("-"*70)
 p1 = [ 0, 1, 2, 3, 4 ]  # the powers of the polynomial terms 
 # ... run polynomial() to do the fit! ...
 c1, x_fit1, y_fit1, Sc1, Sy_fit1, Rc1, R2_1, Vr1, AIC1, BIC1, cond1 = \
-        polynomial(x, y, p1, fig_num=10)
+        polynomial(x, y, p1, fig_num=10, x_label = rf'distance $x$', y_label = rf'elevation $y$')
     
 # Test 2: Reduced polynomial basis (no linear term)
 print("\n" + "-"*70)
@@ -50,7 +50,7 @@ print("-"*70)
     
 p2 = [ 0, 2, 3, 4 ]  # the powers of the polynomial terms without an "x" term
 c2, x_fit2, y_fit2, Sc2, Sy_fit2, Rc2, R2_2, Vr2, AIC2, BIC2, cond2 = \
-        polynomial(x, y, p2, fig_num=20)
+        polynomial(x, y, p2, fig_num=20, x_label = rf'distance $x$', y_label = rf'elevation $y$')
     
 # Comparison
 print("\n" + "="*70)

@@ -20,7 +20,7 @@ from scipy.stats import norm as scipy_normal
 from multivarious.utl.plot_ECDF_ci import plot_ECDF_ci
 
 
-def polynomial(x, y, p, fig_num=0, Sy=None, rof=None, b=0.0):
+def polynomial(x, y, p, Sy=None, rof=None, b=0.0, fig_num=0, x_label= r'$x$', y_label= r'$y$' ):
     """
     Fit a power-polynomial to data with comprehensive error analysis.
     
@@ -37,8 +37,6 @@ def polynomial(x, y, p, fig_num=0, Sy=None, rof=None, b=0.0):
         Measured vector of dependent variables
     p : array_like, shape (n,)
         Vector of real powers (x^p) for each polynomial term
-    fig_num : int, optional
-        Figure number for plotting. Use 0 to suppress plotting (default: 0)
     Sy : float or array_like, optional
         Measurement errors for each value of y. 
         Scalar or shape (N,) (default: 1.0)
@@ -46,6 +44,10 @@ def polynomial(x, y, p, fig_num=0, Sy=None, rof=None, b=0.0):
         Range of fit [x_min, x_max] (default: [min(x), max(x)])
     b : float, optional
         Regularization constant (default: 0.0)
+    fig_num : int, optional
+        Figure number for plotting. Use 0 to suppress plotting (default: 0)
+    x_label : label for x axis (default: r'$x$')
+    y_label : label for y axis (default: r'$y$')
     
     Returns
     -------
@@ -179,13 +181,13 @@ def polynomial(x, y, p, fig_num=0, Sy=None, rof=None, b=0.0):
     # Plotting
     if fig_num > 0:
         _plot_results(x, y, x_fit, y_fit, B, c, Sy_fit, Vr, 
-                     condNo, R2, AIC, BIC, Nd, Np, fig_num)
+                     condNo, R2, AIC, BIC, Nd, Np, fig_num, x_label, y_label)
     
     return c, x_fit, y_fit, Sc, Sy_fit, Rc, R2, Vr, AIC, BIC, condNo
 
 
 def _plot_results(x, y, x_fit, y_fit, B, c, Sy_fit, Vr, 
-                  condNo, R2, AIC, BIC, Nd, Np, fig_num):
+                  condNo, R2, AIC, BIC, Nd, Np, fig_num, x_label, y_label):
     """
     Create visualization of polynomial fit results.
     
@@ -228,10 +230,10 @@ def _plot_results(x, y, x_fit, y_fit, B, c, Sy_fit, Vr,
              alpha=0.3, label=f'{int(CI[1]*100)}% c.i.')
     ax1.fill(xp, yp95, color=patchColor95, edgecolor=patchColor95, 
              alpha=0.5, label=f'{int(CI[0]*100)}% c.i.')
-    ax1.plot(x, y, 'ob', linewidth=3, markersize=6, label=r'data $y$')
-    ax1.plot(x_fit, y_fit, '-k', linewidth=2, label=r'model $\hat y(x)$')
-    ax1.set_xlabel(r'$x$', fontsize=15)
-    ax1.set_ylabel(r'data $y$   and   model $\hat y(x; c^*)$', fontsize=15)
+    ax1.plot(x, y, 'ob', linewidth=3, markersize=6, label=r'data')
+    ax1.plot(x_fit, y_fit, '-k', linewidth=2, label=r'model')
+    ax1.set_xlabel(x_label, fontsize=15)
+    ax1.set_ylabel(rf'{y_label} (data and model)', fontsize=15)
     ax1.legend(loc='best', fontsize=11)
     ax1.set_xlim([min(xp), max(xp)])
     y_range = max(y) - min(y)
@@ -242,7 +244,7 @@ def _plot_results(x, y, x_fit, y_fit, B, c, Sy_fit, Vr,
     # Right subplot: Data vs model (correlation plot)
     ax2 = plt.subplot(1, 2, 2)
     ax2.plot(y, y, '-k', linewidth=0.5, alpha=0.5)  # 1-to-1 line
-    ax2.plot(B @ c, y, 'ob', linewidth=3, markersize=6)
+    ax2.plot(y, B @ c, 'ob', linewidth=3, markersize=6)
     
     # Add statistics text
     tx = min(y)
@@ -264,11 +266,11 @@ def _plot_results(x, y, x_fit, y_fit, B, c, Sy_fit, Vr,
     ax2.text(tx, min(y) + positions[6]*ty_range, 
              f'BIC = {BIC:.2f}', fontsize=12)
     
-    ax2.set_xlabel(r'model   $\hat y(x; c^*)$', fontsize=15)
-    ax2.set_ylabel(r'data   $y$', fontsize=15)
+    ax2.set_xlabel(r'data   $y$', fontsize=15)
+    ax2.set_ylabel(r'model   $\hat y(x; c^*)$', fontsize=15)
     ax2.axis('tight')
     ax2.grid(True, alpha=0.3)
-    ax2.set_title(r'Data $y$ vs Model $\hat y(x; c^*)$ (Correlation)', fontsize=14)
+    ax2.set_title(r'Model $\hat y(x; c^*)$ vs Data $y$ (Correlation)', fontsize=14)
 
     filename = f'polynomial-{fig_num:04d}.pdf'
     fig_1.savefig(filename, bbox_inches='tight', dpi=300)
