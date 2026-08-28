@@ -74,7 +74,8 @@ if __name__ == '__main__':
     cts = StableNamespace(
         a = [ -0.4,  0.2,  0.5,  1.4,  1.4 ], # open constraints
         b = [  1.0, -0.5,  0.5, -1.4, -1.4 ],
-        c = [  0.0,  0.8,  0.2 ])
+        c = [  0.0,  0.8,  0.2 ]
+    )
 
     fctn = analysis
 
