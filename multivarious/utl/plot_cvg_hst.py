@@ -91,7 +91,7 @@ def plot_cvg_hst(cvg_hst, v_opt, opts=[1,np.nan,np.nan,np.nan], fig_num=1000, cl
         # ====================================================================
         # FIGURE fig_num+1: Convergence Criteria
         # ====================================================================
-        fig1 = plt.figure(fig_num+1, figsize=(10, 8))
+        fig1 = plt.figure(fig_num+1, figsize=(8, 6))
         fig1.clf()
         
         # Subplot 1: F convergence criterion
@@ -116,6 +116,8 @@ def plot_cvg_hst(cvg_hst, v_opt, opts=[1,np.nan,np.nan,np.nan], fig_num=1000, cl
         
         plt.ylabel(r'objective convergence')
         plt.grid(True, alpha=0.3)
+        ax = plt.gca()  # Get current axes
+        ax.set_xticklabels([])  # Remove x-axis tick numbers
         
         # Subplot 2: V convergence criterion
         plt.subplot(2, 1, 2)
@@ -146,7 +148,7 @@ def plot_cvg_hst(cvg_hst, v_opt, opts=[1,np.nan,np.nan,np.nan], fig_num=1000, cl
         # ====================================================================
         # FIGURE fig_num: Objective, Variables, and Constraints
         # ====================================================================
-        fig2 = plt.figure(fig_num+2, figsize=(10, 10))
+        fig2 = plt.figure(fig_num+2, figsize=(8, 6))
         fig2.clf()
         
         # Subplot 1: Objective function convergence
@@ -171,6 +173,8 @@ def plot_cvg_hst(cvg_hst, v_opt, opts=[1,np.nan,np.nan,np.nan], fig_num=1000, cl
         
         plt.ylabel(r'objective   $f_A$')
         plt.grid(True, alpha=0.3)
+        ax = plt.gca()  # Get current axes
+        ax.set_xticklabels([])  # Remove x-axis tick numbers
         
         # Title with final values
         f_opt = obj_vals[-1]
@@ -195,7 +199,9 @@ def plot_cvg_hst(cvg_hst, v_opt, opts=[1,np.nan,np.nan,np.nan], fig_num=1000, cl
         
         plt.ylabel('variables')
         plt.grid(True, alpha=0.3)
-        
+        ax = plt.gca()  # Get current axes
+        ax.set_xticklabels([])  # Remove x-axis tick numbers
+                
         # Subplot 3: Max constraint convergence
         plt.subplot(3, 1, 3)
         constr_vals = cvg_hst[n+1, :]

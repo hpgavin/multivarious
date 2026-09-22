@@ -462,7 +462,7 @@ def sqp(func, v_init, v_lb=None, v_ub=None, hyp_in=None, consts=1.0):
                    find_feas, feasible, converged, stalled, hasty )
 
     if msg > 2:
-        plt.figure(1003)
+        plt.figure(1003, figsize=(8,7))
         ii = int(hyp[10])
         jj = int(hyp[11])
         plt.plot( v_opt[ii], v_opt[jj], f_opt, '-or', markersize=14 )

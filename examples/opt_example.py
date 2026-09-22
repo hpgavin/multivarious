@@ -117,7 +117,7 @@ if __name__ == '__main__':
 
     # Solve the optimization problem using one of ... ors, nms, sqp 
     # in opt_example_analysis select the "open constraint" or "gauntlet constraint"
-    v_opt, f_opt, g_opt, cvg_hst, _,_ = ors(fctn, v_init, v_lb, v_ub, hyp, cts)
+    v_opt, f_opt, g_opt, cvg_hst, _,_ = sqp(fctn, v_init, v_lb, v_ub, hyp, cts)
 
     # plot the convergence history
     format_plot(font_size=15, line_width=3, marker_size=7)

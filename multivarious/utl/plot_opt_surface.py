@@ -140,7 +140,7 @@ def plot_opt_surface(func, v, v_lb, v_ub, options, consts=None, fig_num=1):
         jj_min = jj_min[0]
 
     # Create the plot
-    fig = plt.figure(fig_num, figsize=(12, 9))
+    fig = plt.figure(fig_num, figsize=(8,8))
     fig.clf()
     ax = fig.add_subplot(111, projection='3d')
 

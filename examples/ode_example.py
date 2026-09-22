@@ -6,7 +6,7 @@ from rich.traceback import install; install()
 from multivarious.ode import ode4u, ode45u
 from multivarious.dsp import taper
 
-def ode_example_fctn(t, x, u, constant):
+def ode_example_fctn(t, x, u, c):
     """
     Test ODEs from Cash and Karp paper
     
@@ -21,45 +21,45 @@ def ode_example_fctn(t, x, u, constant):
         y    : output (last element of dxdt)
     """
     
-    c = constant[0]
-    example = constant[1]
+    constant = c.constant
+    example = c.example 
     
     if example == 1:  # .........................................
         dxdt = np.array([
             x[1],
-            x[1]**2 - 0.1 / (c + x[0]**2)
+            x[1]**2 - 0.1 / (c.constant + x[0]**2)
         ])
     
     elif example == 2:  # .........................................
         dxdt = np.array([
             x[1],
-            ((-1 + np.pi**2 * c) * np.cos(np.pi * t) - 
+            ((-1 + np.pi**2 * c.constant) * np.cos(np.pi * t) - 
              np.pi * t * np.sin(np.pi * t) - 
-             t * x[1] + x[0]) / c
+             t * x[1] + x[0]) / c.constant
         ])
     
     elif example == 3:  # .........................................
         if t < 0:
             dxdt = np.array([0.0])
         else:
-            dxdt = np.array([t**c])
+            dxdt = np.array([t**c.constant])
     
     elif example == 4:  # .........................................
         t_floor = np.floor(t)
         if np.mod(t_floor, 2) < 1:
-            dxdt = np.array([50 + c * t_floor])
+            dxdt = np.array([50 + c.constant * t_floor])
         else:
-            dxdt = np.array([50 - c * t_floor])
+            dxdt = np.array([50 - c.constant * t_floor])
     
     elif example == 5:  # .........................................
         dxdt = np.array([ -1 / ( x[0] - c )])
     
     elif example == 6:  # .........................................
-        nr = constant[2]  # number of rows in the state "matrix"
-        nc = constant[3]  # number of cols in the state "matrix"
+        nr = c.n  # number of rows in the state "matrix"
+        nc = c.m  # number of cols in the state "matrix"
         
-        A = constant[4]   # A is nr by nr
-        B = constant[5]   # B is nr by nc
+        A = c.A   # A is nr by nr
+        B = c.B   # B is nr by nc
         
         x = x.reshape(nr, nc)  # reshape column vector x to nr x nc matrix
         
@@ -68,20 +68,19 @@ def ode_example_fctn(t, x, u, constant):
         dxdt = dxdt.flatten()  # reshape matrix dxdt to a column vector
     
     elif example > 6:  # .........................................
-        A = constant[4]
-        B = constant[5]
+        A = c.A
+        B = c.B
         
         dxdt = A @ x + B @ u
     
     else:
         dxdt = np.zeros_like(x)
-    
     y = dxdt.flatten()[-1]  # last element of dxdt
     
     return dxdt, y
 
 
-def ode_example(number, tolerance, constant):
+def ode_example(c):
     """
     Tests ODE solvers with a number of examples, some from:
     J. R. CASH and ALAN H. KARP,
@@ -90,14 +89,15 @@ def ode_example(number, tolerance, constant):
     ACM Transactions on Mathematical Software, 16(3) 1990: 201-222.
     
     Parameters:
-        number    : example problem number (1-9)
+        tolerance : desired fractional tolerance
+        c         : constants used in example problems 1 and 2
+
+        c.example : example problem number (1-9)
                     1-5: problems from Cash & Karp article
                     6: matrix-valued states
                     7: structural dynamics - free response
                     8: structural dynamics - step function input
                     9: structural dynamics - random input
-        tolerance : desired fractional tolerance
-        constant  : constants used in example problems 1 and 2
     """
     
     # Set up plotting style (adjust as needed for your preferences)
@@ -105,17 +105,16 @@ def ode_example(number, tolerance, constant):
     plt.rcParams['font.size'] = 12
     plt.ion() # plot interactive mode: on
     
-    if number == 1:  # .....................................
+    if c.example == 1:  # .....................................
         
         t = np.arange(0, 10.2, 0.2)
         x0 = np.array([1.0, 0.0])
         u = np.zeros((1, len(t)))
-        params = [constant, number]
+
+        _, x4, _, _ = ode4u(ode_example_fctn, t, x0, u, c )
+        _, x5, _, _ = ode45u(ode_example_fctn, t, x0, u, c , c.tolerance, 2)
         
-        _, x4, _, _ = ode4u(ode_example_fctn, t, x0, u, params)
-        _, x5, _, _ = ode45u(ode_example_fctn, t, x0, u, params, tolerance, 2)
-        
-        plt.figure(number)
+        plt.figure(c.example, figsize=(7, 4))
         plt.clf()
         
         plt.subplot(211)
@@ -134,17 +133,16 @@ def ode_example(number, tolerance, constant):
         
         plt.tight_layout()
     
-    elif number == 2:  # .....................................
+    elif c.example == 2:  # .....................................
         
         t = np.arange(-1, 1.1, 0.1)
         x0 = np.array([-1.0, -0.01])
         u = np.zeros((1, len(t)))
-        params = [constant, number]
         
-        _, x4, _, _ = ode4u(ode_example_fctn, t, x0, u, params)
-        _, x5, _, _ = ode45u(ode_example_fctn, t, x0, u, params, tolerance, 2)
+        _, x4, _, _ = ode4u(ode_example_fctn, t, x0, u, c )
+        _, x5, _, _ = ode45u(ode_example_fctn, t, x0, u, c, c.tolerance, 2)
         
-        plt.figure(number)
+        plt.figure(c.example, figsize=(7, 4))
         plt.clf()
         plt.plot(t, x4.T, label='ode4u')
         plt.plot(t, x5.T, '--', label='ode45u')
@@ -152,17 +150,16 @@ def ode_example(number, tolerance, constant):
         plt.legend()
         plt.grid(True)
     
-    elif number == 3:  # .....................................
+    elif c.example == 3:  # .....................................
         
         t = np.arange(-1, 1.1, 0.1)
         x0 = np.array([-1.0])
         u = np.zeros((1, len(t)))
-        params = [constant, number]
         
-        _, x4, _, _ = ode4u(ode_example_fctn, t, x0, u, params)
-        _, x5, _, _ = ode45u(ode_example_fctn, t, x0, u, params, tolerance, 2)
+        _, x4, _, _ = ode4u(ode_example_fctn, t, x0, u, c )
+        _, x5, _, _ = ode45u(ode_example_fctn, t, x0, u, c, c.tolerance, 2)
         
-        plt.figure(number)
+        plt.figure(c.example, figsize=(7, 4))
         plt.clf()
         plt.plot(t, x4.T, label='ode4u')
         plt.plot(t, x5.T, '--', label='ode45u')
@@ -170,15 +167,14 @@ def ode_example(number, tolerance, constant):
         plt.legend()
         plt.grid(True)
     
-    elif number == 4:  # .....................................
+    elif c.example == 4:  # .....................................
         
         t  = np.arange(0, 10.1, 0.1)
         x0 = np.array([0.0])
         u  = np.zeros((1, len(t)))
-        params = [constant, number]
         
-        _, x4, _, _ = ode4u(ode_example_fctn, t, x0, u, params)
-        _, x5, _, _ = ode45u(ode_example_fctn, t, x0, u, params, tolerance, 2)
+        _, x4, _, _ = ode4u(ode_example_fctn, t, x0, u, c )
+        _, x5, _, _ = ode45u(ode_example_fctn, t, x0, u, c, c.tolerance, 2)
 
         tt = np.array([t]) # for plotting dimension matching ... 
 
@@ -190,31 +186,30 @@ def ode_example(number, tolerance, constant):
         x5t = (x5 - 50*t).T
         print(f' x4t_shape = {x4t.shape}')
         
-        plt.figure(number)
+        plt.figure(c.example, figsize=(7, 4))
         plt.clf()
         plt.plot(t, x4t , label='ode4u')
         plt.plot(t, x5t , '--', label='ode45u')
         plt.legend()
         plt.grid(True)
     
-    elif number == 5:  # .....................................
+    elif c.example == 5:  # .....................................
         
         t = np.arange(0, 10.1, 0.1)
         x0 = np.array([2.0])
         u = np.zeros((1, len(t)))
-        params = [constant, number]
         
-        _, x4, _, _ = ode4u(ode_example_fctn, t, x0, u, params)
-        _, x5, _, _ = ode45u(ode_example_fctn, t, x0, u, params, tolerance, 2)
+        _, x4, _, _ = ode4u(ode_example_fctn, t, x0, u, c )
+        _, x5, _, _ = ode45u(ode_example_fctn, t, x0, u, c, c.tolerance, 2)
         
-        plt.figure(number)
+        plt.figure(c.example, figsize=(7, 4))
         plt.clf()
         plt.plot(t, x4.T, '-' , label='ode4u')
         plt.plot(t, x5.T, '-o', label='ode45u')
         plt.legend(loc='center right')
         plt.grid(True)
     
-    elif number == 6:  # .....................................
+    elif c.example == 6:  # .....................................
         
         T = 2
         dt = 0.01
@@ -229,26 +224,27 @@ def ode_example(number, tolerance, constant):
         
         eVec =  10 * np.random.randn(n, n)
         eVal = -10 * np.diag(np.arange(1, n+1))
-        A = eVal @ eVec @ np.linalg.inv(eVec)
-        B = 100 * np.random.randn(n, n-1)
+        c.A = eVal @ eVec @ np.linalg.inv(eVec)
+        c.B = 100 * np.random.randn(n, n-1)
         
         # Generate input signal (simplified - you may need lsym function)
         u = taper ( np.random.randn(1, N) / np.sqrt(dt), Nt , Nt )
         
-        params = [constant, number, x0.shape[0], x0.shape[1], A, B]
-        
         x0_vec = x0.flatten()  # make the state a column vector
         
-        _, x4, _, _ = ode4u(ode_example_fctn, t, x0_vec, u, params)
-        _, x5, _, _ = ode45u(ode_example_fctn, t, x0_vec, u, params, tolerance, 2)
+        c.n = x0.shape[0]
+        c.m = x0.shape[1]
+
+        _, x4, _, _ = ode4u(ode_example_fctn, t, x0_vec, u, c )
+        _, x5, _, _ = ode45u(ode_example_fctn, t, x0_vec, u, c, c.tolerance, 2)
         
-        plt.figure(number + 1)
+        plt.figure(c.example + 1, figsize=(7, 4))
         plt.clf()
         plt.plot(t, u.T)
         plt.title('Input signal')
         plt.grid(True)
         
-        plt.figure(number)
+        plt.figure(c.example, figsize=(7, 4))
         plt.clf()
         plt.plot(t, x5.T, 'ok', markersize=4, linewidth=0.01, label='ode45u')
         plt.plot(t, x4.T, label='ode4u')
@@ -260,9 +256,7 @@ def ode_example(number, tolerance, constant):
         print(f'Size of reshaped state matrix sequence (x4): {x4_reshaped.shape}')
         print(f'Size of reshaped state matrix sequence (x5): {x5_reshaped.shape}')
     
-        params = [constant, number, x0.shape[0], x0.shape[1], A, B]
-
-    elif number > 6:  # -------------- numbers 7, 8, 9
+    elif c.example > 6:  # -------------- examples 7, 8, 9
         
         # Mass and stiffness matrices correspond to a series of springs
         dof = 7 
@@ -302,23 +296,26 @@ def ode_example(number, tolerance, constant):
         u = np.zeros((1, N))
         x0 = np.zeros(2*dof)
         
-        params = [constant, number, 2*dof, 1, A, B]
+        c.A = A
+        c.B = B
+        c.n = 2*dof
+        c.m = 1
 
-        if number == 7:  # .....................................
+        if c.example == 7:  # .....................................
             x0 = np.arange( 1 , 2*dof+1 )  
         
-        if number == 8:  # .....................................
+        if c.example == 8:  # .....................................
             u = np.concatenate([
                 np.zeros((1, N//10)),
                 np.ones((1, N//10))
             ], axis=1)
         
-        if number == 9:  # .....................................
+        if c.example == 9:  # .....................................
             Nt = N/7
             u = taper( np.random.randn(1, N//2) / np.sqrt(dt), Nt, Nt )
         
-        _, x4, xdot4, _ = ode4u(ode_example_fctn, t, x0, u,  params )
-        _, x5, xdot5, _ = ode45u(ode_example_fctn, t, x0, u, params , tolerance, 2)
+        _, x4, xdot4, _ = ode4u(ode_example_fctn, t, x0, u,  c )
+        _, x5, xdot5, _ = ode45u(ode_example_fctn, t, x0, u, c, c.tolerance, 2)
         
         # Rows and columns of output data to plot
         r1 = dof+1 
@@ -326,7 +323,7 @@ def ode_example(number, tolerance, constant):
         c1 = 10
         c2 = 995
         
-        plt.figure(number)
+        plt.figure(c.example, figsize=(7,4))
         plt.clf()
         plt.plot(t[c1:c2], x4[r1:r2, c1:c2].T, label='ode4u')
         plt.plot(t[c1:c2], x5[r1:r2, c1:c2].T, '--', label='ode45u')
@@ -342,4 +339,11 @@ def ode_example(number, tolerance, constant):
 # Example usage:
 if __name__ == "__main__":
     # Test problem 1 with tolerance 1e-3 and constant 0.1
-    ode_example( number = 9 , tolerance = 1e-3 , constant = 0.1 )
+ 
+    # constants
+    class c:
+        example = 9
+        constant = 0.1
+        tolerance = 1e-3
+
+    ode_example( c )

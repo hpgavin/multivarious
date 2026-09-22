@@ -391,7 +391,7 @@ def ors(func, v_init, v_lb=None, v_ub=None, hyp=None, consts=None):
         
             # plot on surface for this iteration
             if msg > 2:
-                plt.figure(1003)
+                plt.figure(1003, figsize=(9,8))
                 ii = int(hyp[10])
                 jj = int(hyp[11])
             
