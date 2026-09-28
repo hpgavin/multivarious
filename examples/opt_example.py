@@ -82,7 +82,7 @@ if __name__ == '__main__':
     v_lb = np.array([ 0.0, 0.0 ])    # lower bound on the design variables 
     v_ub = np.array([ 1.0, 1.0 ])    # upper bound on the design variables 
 
-    v_init = np.array([ 0.8, 0.8 ])  # a specific initial guess 
+    v_init = np.array([ 0.2, 0.2 ])  # a specific initial guess 
 
     if example == 'B': # gauntlet constraints
         fctn = analysis
@@ -117,7 +117,7 @@ if __name__ == '__main__':
 
     # Solve the optimization problem using one of ... ors, nms, sqp 
     # in opt_example_analysis select the "open constraint" or "gauntlet constraint"
-    v_opt, f_opt, g_opt, cvg_hst, _,_ = sqp(fctn, v_init, v_lb, v_ub, hyp, cts)
+    v_opt, f_opt, g_opt, cvg_hst, _,_ = nms(fctn, v_init, v_lb, v_ub, hyp, cts)
 
     # plot the convergence history
     format_plot(font_size=15, line_width=3, marker_size=7)

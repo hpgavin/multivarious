@@ -145,7 +145,7 @@ def ors(func, v_init, v_lb=None, v_ub=None, hyp=None, consts=None):
     f = np.zeros(4)
 
     """
-    # ref. Hazen (2006)
+    # ref. Hansen (2006)
     zn = np.zeros(n)
     cov_r = 0.04*np.eye(n) # initial perturbation covariance matrix (identity)
     path_r = np.zeros(n)   # evolution path for covariance matrix adaptation
@@ -210,7 +210,7 @@ def ors(func, v_init, v_lb=None, v_ub=None, hyp=None, consts=None):
     # ========== main optimization loop ==========
     while function_evals < max_evals:
         
-        # ref. Hazen (2006)
+        # ref. Hansen (2006)
         # step_stdev = np.sqrt(np.diag(cov_r))
         # R = np.diag(1/step_stdev) * cov_r * np.diag(1/step_stdev)# correlation
         # r = normal.rnd(zn, step_stdev, 1, R )
@@ -228,7 +228,7 @@ def ors(func, v_init, v_lb=None, v_ub=None, hyp=None, consts=None):
         function_evals += nAvg
         
         # is f[1] downhill from f[0]?
-        downhill = np.sign(f[0] - f[1]) # +1: yes, -1: no
+        downhill = np.sign(f[0] - f[1]) # +1: downhill, -1: uphill
         
         # 2nd perturbation: 2*downhill*r : "downhill double-step"
         aa, bb = box_constraint(u0, 2*d1*r1) # keep u2 within bounds
@@ -321,7 +321,7 @@ def ors(func, v_init, v_lb=None, v_ub=None, hyp=None, consts=None):
             quad_update = True
 
         """
-        # ref. Hazen (2006)
+        # ref. Hansen (2006)
         # Update the covariance matrix (rank-1 update)
         if norm(delta_u) > 0:
             path_r = (1 - cov_lr) * path_r + np.sqrt(cov_lr * (2 - cov_lr)) * (delta_u / step_stdev)
