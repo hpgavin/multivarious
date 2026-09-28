@@ -1,7 +1,6 @@
 # avg_cov_func.py
 # -----------------------------------------------------------------------------
-# Translated from MATLAB's avg_cov_func.m
-# Computes the risk-adjusted (penalized) average cost and coefficient of variation.
+# Computes the penalized and risk-adjusted cost and coefficient of variation.
 # -----------------------------------------------------------------------------
 
 import numpy as np
@@ -46,9 +45,9 @@ def avg_cov_func(func, u, s0, s1, options, consts=None, BOX=1):
     err_F   = options[8]
     Za2     = 1.645  # 90% confidence level
 
-    avg_F = 0.0    # mean of F
+    avg_F = 0.0  # mean of F
     ssq_F = 0.0  # sum square values for F 
-    cov_F = 0.0    # coefficient of variation for F
+    cov_F = 0.0  # coefficient of variation for F
     max_F = 0.0  # maximum value of F
     avg_g = 0.0
     m = 0
@@ -58,29 +57,31 @@ def avg_cov_func(func, u, s0, s1, options, consts=None, BOX=1):
         u = np.clip(u, -1.0, 1.0)
 
     for m in range(1, m_max + 1):
-        f, g = func(s0+s1*u, consts)             # objective, constraints
+        f, g = func(s0+s1*u, consts)                   # objective, constraints
         g = np.asarray(g, dtype=float).flatten()       # constraints as a vector
         F_A = f + penalty * np.sum(g * (g > tol_g))**q # augmented objective
 
-        # Welford's recursive update of a mean and a standard deviation 
+        # Welford's 1962 recursive update of a mean and a standard deviation 
         dF = F_A - avg_F
         avg_F += dF / m                 # update the mean of F
         ssq_F += dF * (F_A - avg_F)     # update the sum of squares of F
         max_F = max(max_F, F_A)
-        avg_g = avg_g + (g - avg_g) / m if m>1 else g      # update average constraint
+        # update average constraint
+        avg_g = avg_g + (g - avg_g) / m if m>1 else g
 
         if m > 1:
-            cov_F = np.sqrt(ssq_F / (m - 1)) / np.abs(avg_F)  # update the c.o.v. of F
+            # update the c.o.v. of F
+            cov_F = np.sqrt(ssq_F / (m - 1)) / np.abs(avg_F)
             if m > 2 and m > (Za2 * cov_F / err_F)**2:
                 break
 
     F_risk = avg_F
     if m > 1:
 #       CHOOSE ONE OF THE FOLLOWING RISK-BASED PERFORMANCE MEASURES ...
-#       F_risk = avg_F                          # average-of-N values
-#       F_risk = avg_F * ( 1 + cov_F/np.sqrt(m) ) # 84th percentile of the avg. of F
+#       F_risk = avg_F                            # average-of-N values
         F_risk = avg_F * ( 1 + cov_F )            # 84th percentile of F
-#       F_risk = max_F;                       # largest-of-N values
+#       F_risk = avg_F * ( 1 + cov_F/np.sqrt(m) ) # 84th percentile of avg_F
+#       F_risk = max_F;                           # largest-of-N values
 
     return F_risk, avg_g, u, cov_F, m
 
