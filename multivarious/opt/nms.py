@@ -109,7 +109,7 @@ def nms(func, v_init, v_lb=None, v_ub=None, hyp_in=None, consts=1.0):
     a_shrink   = 1.0 - 1.0 / n      # Standard: 0.5
     a_expand   = 1.3
 
-    BOX = 1 # enforce bounds inside avg_cov_func
+    BOX = True  # enforce bounds inside avg_cov_func
 
     # ----- hyp & inputs -----
 
@@ -128,12 +128,12 @@ def nms(func, v_init, v_lb=None, v_ub=None, hyp_in=None, consts=1.0):
         raise ValueError("v_ub must be greater than v_lb for all parameters")
 
     hyp   = opt_hyp(hyp_in)
-    msg       = int(hyp[0])   # display level
-    tol_v     = float(hyp[1]) # design var convergence tol
-    tol_f     = float(hyp[2]) # objective convergence tol
-    tol_g     = float(hyp[3]) # constraint tol
-    max_evals = int(hyp[4])   # budget
-    find_feas = bool(hyp[9])  # stop once feasible
+    msg       = int(hyp[0])    # display level
+    tol_v     = float(hyp[1])  # design var convergence tol
+    tol_f     = float(hyp[2])  # objective convergence tol
+    tol_g     = float(hyp[3])  # constraint tol
+    max_evals = int(hyp[4])    # computational budget
+    find_feas = bool(hyp[9])   # stop once feasible
 
     optimize_contraction = False  # Option to optimize contraction step
 

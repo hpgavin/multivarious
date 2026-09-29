@@ -70,26 +70,25 @@ if __name__ == '__main__':
 
     example = 'A' 
 
-    # example A is the default example 
+    #if example == 'A': # open constraints - default option
+    fctn = analysis
     cts = StableNamespace(
         a = [ -0.4,  0.2,  0.5,  1.4,  1.4 ], # open constraints
         b = [  1.0, -0.5,  0.5, -1.4, -1.4 ],
-        c = [  0.0,  0.8,  0.2 ]
+        c = [  0.0,  0.8,  0.2 ]     # c[0] : stdev of noise in f(v)
     )
-
-    fctn = analysis
 
     v_lb = np.array([ 0.0, 0.0 ])    # lower bound on the design variables 
     v_ub = np.array([ 1.0, 1.0 ])    # upper bound on the design variables 
 
-    v_init = np.array([ 0.2, 0.2 ])  # a specific initial guess 
+    v_init = np.array([ 0.8, 0.8 ])  # a specific initial guess 
 
     if example == 'B': # gauntlet constraints
         fctn = analysis
         cts = StableNamespace(
             a = [  0.7,  1.25,  0.5, -1.0, -1.0 ], # gauntlet constraints
             b = [  1.0, -0.5,   0.5, -1.4, -1.4 ],
-            c = [  0.0,  0.8,   0.2 ])
+            c = [  0.0,  0.8,   0.2 ])   # c[0] : stdev of noise in f(v)
 
         v_lb = np.array([ 0.0,  0.0])    # lower bound on the design variables 
         v_ub = np.array([ 1.0,  1.0])    # upper bound on the design variables 
@@ -100,20 +99,20 @@ if __name__ == '__main__':
         fctn = analysis_HW01P10
         cts = StableNamespace(
             c = [ 40, 30, 20 ])
-        v_lb = np.array([ -10.0, -10.0]) # lower bound on the design variables HW 1, P10
-        v_ub = np.array([  10.0,  10.0]) # upper bound on the design variables HW 1, P10
+        v_lb = np.array([ -10.0, -10.0]) # lower bound on the design variables 
+        v_ub = np.array([  10.0,  10.0]) # upper bound on the design variables 
 
-        v_init = np.array([ 0.8, 0.4 ]) # a specific initial guess 
+        v_init = np.array([ 0.8, 0.4 ])  # a specific initial guess 
 
-    n = len(v_lb) # the number of design variables 
 
+    n = len(v_lb)                       # the number of design variables 
     #v_init = v_lb + np.random.rand(n)*(v_ub - v_lb) # a random initial guess
-    v_init = v_init + 0.10*np.random.rand(n)*(v_ub - v_lb) # a random initial guess
+    #v_init = v_init + 0.10*np.random.rand(n)*(v_ub - v_lb) # a random initial guess
 
     # optimization hyperparameters ...
     #       0     1       2      3       4         5      6     7      8
     #      msg   tol_v   tol_f  tol_g  max_evals  pnlty  expn  m_max  cov_F
-    hyp = [ 3,   2e-2,   2e-2,  1e-3,   50*n**3,  0.7,   0.5,   1,    0.05 ]
+    hyp = [ 3,   2e-2,   2e-2,  1e-3,   50*n**3,  0.7,   0.5,   10,   0.1 ]
 
     # Solve the optimization problem using one of ... ors, nms, sqp 
     # in opt_example_analysis select the "open constraint" or "gauntlet constraint"

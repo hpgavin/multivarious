@@ -40,10 +40,10 @@ from scipy.optimize import minimize
 from scipy.linalg import qr
 
 from multivarious.opt.qp_solve import qp_solve
+from multivarious.utl.avg_cov_func import avg_cov_func
 from multivarious.utl.plot_opt_surface import plot_opt_surface
 from multivarious.utl.opt_hyp import opt_hyp
 from multivarious.utl.opt_report import opt_report
-
 
 
 def sqp(func, v_init, v_lb=None, v_ub=None, hyp_in=None, consts=1.0):
@@ -66,11 +66,12 @@ def sqp(func, v_init, v_lb=None, v_ub=None, hyp_in=None, consts=1.0):
         Lower/upper bounds (default: ±100*|v_init|)
     hyp_in : array-like, optional
         Optimization settings (see opt_hyp)
-        hyp[1] = 1  means display intermediate results
-        hyp[2] = tol_p  tolerance on convergence of variables 
-        hyp[3] = tol_f  tolerance on convergence of objective
-        hyp[4] = tol_g  tolerance on constraint functions
-        hyp[5]  = max_evals limit on number of function evaluations
+        hyp[0] = 1  means display intermediate results
+        hyp[1] = tol_p  tolerance on convergence of variables 
+        hyp[2] = tol_f  tolerance on convergence of objective
+        hyp[3] = tol_g  tolerance on constraint functions
+        hyp[4] = max_evals limit on number of function evaluations
+        hyp[5] = pnlty . internally set to zero for SQP
 
     consts : any
         Constants passed to 'func`.
@@ -115,17 +116,18 @@ def sqp(func, v_init, v_lb=None, v_ub=None, hyp_in=None, consts=1.0):
     v0 = np.clip(v_init, 0.9*v_lb, 0.9*v_ub)
     
     # Options
-    hyp = opt_hyp(hyp_in)
-    hyp    = opt_hyp(hyp_in)
-    msg        = int(hyp[0])    # display level
-    tol_v      = float(hyp[1])  # design var convergence tol
-    tol_f      = float(hyp[2])  # objective convergence tol
-    tol_g      = float(hyp[3])  # constraint tol
-    max_evals  = int(hyp[4])    # budget
-    hyp[5] = -1                 # no penalty factor involved in SQP
-    find_feas  = int(hyp[9])    # stop once a feasible solution is found
-    del_min    = float(hyp[16]) # min parameter change for finite diff
-    del_max    = float(hyp[17]) # max parameter change for finite diff
+    hyp        = opt_hyp(hyp_in)  # validate hyperparameters
+    msg        = int(hyp[0])      # display level
+    tol_v      = float(hyp[1])    # design var convergence tol
+    tol_f      = float(hyp[2])    # objective convergence tol
+    tol_g      = float(hyp[3])    # constraint tol
+    max_evals  = int(hyp[4])      # computational budget
+    hyp[5]     = 0.0              # no penalty factor involved in SQP
+    find_feas  = int(hyp[9])      # stop once a feasible solution is found
+    del_min    = float(hyp[16])   # min parameter change for finite diff
+    del_max    = float(hyp[17])   # max parameter change for finite diff
+    BOX        = True             # enforce bounds inside avg_cov_func
+
 
     # Scale design variables from v_lb < v < v_ub to -1 < u < +1
     s0 = (v_lb + v_ub) / 2.0
@@ -139,8 +141,11 @@ def sqp(func, v_init, v_lb=None, v_ub=None, hyp_in=None, consts=1.0):
     start_time = time.time()
     
     # First function evaluation
-    f0, g0 = func(v0, consts)
-    function_evals += 1
+    #f0, g0 = func(v0, consts)
+    #function_evals += 1
+    f0, g0, u0, c0, nAvg = avg_cov_func(func, u0, s0, s1, hyp, consts, BOX)
+    function_evals += nAvg
+    last_update = function_evals
 
     if not np.isscalar(f0):
         raise ValueError("Objective returned by func(v,consts) must be a scalar.")
@@ -213,9 +218,14 @@ def sqp(func, v_init, v_lb=None, v_ub=None, hyp_in=None, consts=1.0):
         for gidx in range(n):
             temp = u[gidx]
             u[gidx] = temp + CHG[gidx]
-            f_fd, g_fd = func(s0+s1*u, consts)
+            #f_fd, g_fd = func(s0+s1*u, consts)
+            #function_evals += 1
+
+            f_fd, g_fd, u, c1, nAvg = avg_cov_func(func, u, s0,s1, hyp, consts, BOX)
+            function_evals += nAvg
+
+
             g_fd = np.atleast_1d(g_fd).astype(float).flatten()  # Ensure proper shape
-            function_evals += 1
             
             # Update best solution if improved
             if np.max(g_fd) < tol_g and f_fd < f_opt:
@@ -224,6 +234,7 @@ def sqp(func, v_init, v_lb=None, v_ub=None, hyp_in=None, consts=1.0):
                 f_opt = f_fd 
                 g_opt = g_fd.copy()
                 u_opt = u.copy()
+                last_update = function_evals
             
             gradf[gidx] = (f_fd - oldf) / CHG[gidx]
             gradg[:, gidx] = (g_fd - oldg) / CHG[gidx]
@@ -335,9 +346,13 @@ def sqp(func, v_init, v_lb=None, v_ub=None, hyp_in=None, consts=1.0):
                 StepLength = -StepLength  # change direction
             
             u = OLDU + StepLength * SD
-            f, g = func(s0+s1*u, consts)
+
+            #f, g = func(s0+s1*u, consts)
+            #function_evals += 1
+            f, g, u, c, nAvg = avg_cov_func(func, u, s0,s1, hyp, consts, BOX)
+            function_evals += nAvg
+
             g = np.atleast_1d(g).astype(float).flatten()  # Ensure proper shape
-            function_evals += 1
             
             # Update best solution
             if np.max(g) < tol_g and f < f_opt:
@@ -393,23 +408,30 @@ def sqp(func, v_init, v_lb=None, v_ub=None, hyp_in=None, consts=1.0):
             plt.draw()
             plt.pause(0.10)
 
-        # Check convergence
+        # ----- Termination checks -----
         cvg_f = abs(absSL * np.dot(gradf, SD) / (f + 1e-9))
         cvg_v = np.max(np.abs(absSL * SD / ( s0+s1+u + 1e-9 )))
 
         feasible = converged = stalled = hasty = False # convergence criteria
 
-        if (g_max < tol_g and howqp != 'infeasible'):   # :)
+        if (g_max < tol_g and howqp != 'infeasible'):    # :)
             feasible = True
 
-        if feasible and find_feas:                      # :)
+        if feasible and find_feas:                       # :)
             converged = True
     
-        if (cvg_v < tol_v and cvg_f < tol_f):           # :)
+        if (cvg_v < tol_v and cvg_f < tol_f):            # :)
             converged = True
 
-        if iteration < 5:                               # :(
+        if iteration < 5:                                # :(
             hasty = True
+
+        if function_evals - last_update > 0.2*max_evals: # :(
+            stalled = True   
+            print('iteration', iteration) 
+
+        if function_evals > max_evals:                   # :(
+            converged = True   
 
         if converged:
             end_iterations = True

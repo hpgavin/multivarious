@@ -46,6 +46,7 @@ from multivarious.utl.opt_hyp import opt_hyp
 from multivarious.utl.opt_report import opt_report 
 from multivarious.rvs import normal
 
+
 def ors(func, v_init, v_lb=None, v_ub=None, hyp=None, consts=None):
     """
     Optimized Random Search with inequality constraints.
@@ -94,7 +95,7 @@ def ors(func, v_init, v_lb=None, v_ub=None, hyp=None, consts=None):
     """
     
     # algorithm hyper-parameters
-    BOX = 1             # use box constraints
+    BOX = True          # enforce bounds inside avg_cov_func
     step_stdev = 0.200  # standard deviation of random step
     sc = 0.10           # factor for curvature-based step size
     rf = 0.80           # forgetting factor for r (search direction) > 0.5
@@ -449,6 +450,7 @@ def ors(func, v_init, v_lb=None, v_ub=None, hyp=None, consts=None):
                    find_feas, feasible, converged, stalled, hasty )
 
     return v_opt, f_opt, g_opt, cvg_hst, iteration, function_evals
+
 
 def cvg_metrics(cvg_hst, v, f, g, iteration ):
     '''
