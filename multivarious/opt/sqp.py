@@ -72,6 +72,7 @@ def sqp(func, v_init, v_lb=None, v_ub=None, hyp_in=None, consts=1.0):
         hyp[3] = tol_g  tolerance on constraint functions
         hyp[4] = max_evals limit on number of function evaluations
         hyp[5] = pnlty . internally set to zero for SQP
+        hyp[7] = m_max . internally set to one  for SQP
 
     consts : any
         Constants passed to 'func`.
@@ -123,6 +124,7 @@ def sqp(func, v_init, v_lb=None, v_ub=None, hyp_in=None, consts=1.0):
     tol_g      = float(hyp[3])    # constraint tol
     max_evals  = int(hyp[4])      # computational budget
     hyp[5]     = 0.0              # no penalty factor involved in SQP
+    hyp[7]     = 1                # one evaluation per design  in SQP
     find_feas  = int(hyp[9])      # stop once a feasible solution is found
     del_min    = float(hyp[16])   # min parameter change for finite diff
     del_max    = float(hyp[17])   # max parameter change for finite diff
