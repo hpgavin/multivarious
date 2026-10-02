@@ -416,7 +416,7 @@ def ors(func, v_init, v_lb=None, v_ub=None, hyp=None, consts=None):
         if np.max(g_opt) < tol_g and find_feas:                   # :)
             feasible = True
         # check for convergence in variables and objective 
-        if iteration > n*n and (cvg_v < tol_v and cvg_f < tol_f): # :)
+        if (cvg_v < tol_v and cvg_f < tol_f):                     # :)
             converged = True 
         # check for stalled computations
         if function_evals - last_update > 0.20*max_evals:         # :(
