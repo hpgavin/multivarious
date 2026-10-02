@@ -85,6 +85,8 @@ def plot_cvg_hst(cvg_hst, v_opt, opts=[1,np.nan,np.nan,np.nan], fig_num=1000, cl
     # Extract key data
     fc = cvg_hst[n+2, :]  # Function count
     
+    not_ok = cvg_hst[n+1, :] > tol_g  # infeasible iterations 
+
     if fig_num:  # Make plots
         plt.ion() # interactive plot mode: on
         
@@ -165,11 +167,13 @@ def plot_cvg_hst(cvg_hst, v_opt, opts=[1,np.nan,np.nan,np.nan], fig_num=1000, cl
                 plt.semilogy(fc, obj_vals, pltstr)
             else:
                 plt.semilogy(fc, obj_vals)
+            plt.semilogy(fc[not_ok], obj_vals[not_ok], 'or', markersize=3)
         else:
             if marker:
                 plt.plot(fc, obj_vals, pltstr)
             else:
                 plt.plot(fc, obj_vals)
+            plt.plot(fc[not_ok], obj_vals[not_ok], 'or', markersize=3)
         
         plt.ylabel(r'objective   $f_A$')
         plt.grid(True, alpha=0.3)
@@ -193,9 +197,11 @@ def plot_cvg_hst(cvg_hst, v_opt, opts=[1,np.nan,np.nan,np.nan], fig_num=1000, cl
         if marker:
             for i in range(n):
                 plt.plot(fc, var_vals[i, :], pltstr, color=clr[i])
+                plt.plot(fc[not_ok], var_vals[i, not_ok], 'or', markersize=3)
         else:
             for i in range(n):
                 plt.plot(fc, var_vals[i, :], color=clr[i])
+                plt.plot(fc[not_ok], var_vals[i, not_ok], 'or', markersize=2)
         
         plt.ylabel('variables')
         plt.grid(True, alpha=0.3)
@@ -213,9 +219,11 @@ def plot_cvg_hst(cvg_hst, v_opt, opts=[1,np.nan,np.nan,np.nan], fig_num=1000, cl
         if marker:
             plt.plot([fc[0],fc[-1]], tol_g*np.array([1,1]), '--g', linewidth=1)
             plt.plot(fc, constr_vals, pltstr)
+            plt.plot(fc[not_ok], constr_vals[not_ok], 'or', markersize=3)
         else:
             plt.plot([fc[0],fc[-1]], tol_g*np.array([1,1]), '--g', linewidth=1)
             plt.plot(fc, constr_vals)
+            plt.plot(fc[not_ok], constr_vals[not_ok], 'or', markersize=2)
         
         plt.ylabel('max(constraints)')
         plt.xlabel('function evaluations')
