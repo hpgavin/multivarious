@@ -33,6 +33,7 @@ To fit linear and nonlinear multi-variate mathematical models to multi-dimension
 
 | module        | description                                                            |
 | -------------- | ---------------------------------------------------------------------- |
+| **distributions** | unbiased estimates of distribution parameters from a data sample |
 | **l1**         | linear least-squares curve fitting with l_1 regularization             |
 | **lm**         | Levenberg-Marquardt for nonlinear least squares curve-fitting problems |
 | **mimo_srs**   | multi-input multi-output stochastic response surface with l_1 regularization  |

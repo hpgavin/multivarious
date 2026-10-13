@@ -20,6 +20,7 @@ from .lm import levenberg_marquardt
 from .mimo_srs import mimo_srs
 from .polynomial import polynomial
 from .prony import prony
+from .distributions import distributions
 
 __all__ = [
     "l1",
@@ -28,4 +29,5 @@ __all__ = [
     "mimo_srs", 
     "polynomial",
     "prony", 
+    "distributions", 
 ]
