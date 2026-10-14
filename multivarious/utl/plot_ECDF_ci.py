@@ -121,7 +121,7 @@ def plot_ECDF_ci(data, confidence_level, fig_num, x_label='sorted sample values'
 
     plt.title(f'Empirical CDF with {confidence_level}% confidence Intervals')
     plt.xlabel(x_label, fontsize=15)
-    plt.ylabel(r'Cumulative Distribution, $F_X(x)$', fontsize=15)
+    plt.ylabel(r'Cumulative Probability, $F_X(x)$', fontsize=15)
     plt.tight_layout()
     #plt.legend()
     #plt.legend(loc='lower right')

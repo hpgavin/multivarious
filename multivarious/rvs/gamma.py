@@ -38,7 +38,7 @@ def _validate_(meanX, covnX):
         raise ValueError("gamma: covnX must be > 0")
 
     k     = 1.0 / covnX**2       # (n, 1) shape parameter alpha
-    theta = covnX**2 * meanX     # (n, 1) scale parameter beta
+    theta = meanX / k            # (n, 1) scale parameter beta
 
     return meanX, covnX, k, theta
 
@@ -70,14 +70,14 @@ def pdf(x, meanX, covnX):
     ---------
     https://en.wikipedia.org/wiki/Gamma_distribution
     """
-    meanX, covnX, k, theta = _validate_(meanX, covnX)       # (n, 1)
-    x = np.asarray(x, dtype=float).reshape( 1, -1)         # (1, N)
-    x = np.where(x <= 0, np.finfo(float).eps, x)           # guard against x <= 0
+    meanX, covnX, k, theta = _validate_(meanX, covnX)     # (n, 1)
+    x = np.asarray(x, dtype=float).reshape( 1, -1)        # (1, N)
+    x = np.where(x <= 0, np.finfo(float).eps, x)          # guard against x <= 0
 
     # Log-space computation for numerical stability, then exponentiate
     log_f = (k - 1) * np.log(x) - x / theta \
-            - k * np.log(theta) - gammaln(k)                # (n, N)
-    f = np.exp(log_f)                                        # (n, N)
+            - k * np.log(theta) - gammaln(k)              # (n, N)
+    f = np.exp(log_f)                                     # (n, N)
 
     # Find singleton axes corresponding to scalar or length-1 inputs.
     # enumerate() creates pairs of (index, value)
