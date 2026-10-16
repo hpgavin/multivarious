@@ -65,10 +65,10 @@ def distributions(data):
         raise ValueError("Input 'data' has negative values.  Some distributions are not appropriate.") 
 
     n = len(data)
-    x_avg = np.mean(data)
-    x_var = np.var(data, ddof=1)
-    x_sdv = np.std(data, ddof=1)
-    x_cov = x_sdv / x_avg
+    x_avg = np.mean(data)                     # universally unbiased 
+    x_var = np.var(data, ddof=1)              # universally unbiased
+    x_sdv = np.sqrt(x_var) * ( 1 + 1/(4*n) )  # unbiased for normal populations
+    x_cov = x_sdv / x_avg                     # unbiased for normal populations
 
 
     # Uniform distribution unbiased estimates -----------------------------
@@ -127,22 +127,22 @@ def distributions(data):
     # Laplace distribution ----------------------------------------- 
     # (scipy does not agree with wikipedia definition of laplace pdf)
     laplace_mean_ube = np.median(data)
-    laplace_stdv_ube = np.sqrt(2)*np.mean(np.abs(data - laplace_mean_ube)) * (1 + 5 / (8 * n))
+    laplace_sdvn_ube = np.sqrt(2)*np.mean(np.abs(data - laplace_mean_ube)) * (1 + 5 / (8 * n))
 
     # assessment metrics
     n_param = 2
-    laplace_ll = np.sum(np.log(laplace.pdf(data, laplace_mean_ube, laplace_stdv_ube))) 
+    laplace_ll = np.sum(np.log(laplace.pdf(data, laplace_mean_ube, laplace_sdvn_ube))) 
     laplace_aic = 2 * n_param - 2 * laplace_ll
     laplace_bic = n_param * np.log(len(data)) - 2 * laplace_ll
 
 
     # Normal distribution ------------------------------------
     normal_mean_ube = x_avg
-    normal_stdv_ube = x_sdv * (1 + 1 / (4 * (n - 1)))
+    normal_sdvn_ube = x_sdv 
 
     # assessment metrics
     n_param = 2
-    normal_ll = np.sum(np.log(normal.pdf(data, normal_mean_ube, normal_stdv_ube))) 
+    normal_ll = np.sum(np.log(normal.pdf(data, normal_mean_ube, normal_sdvn_ube))) 
     normal_aic = 2 * n_param - 2 * normal_ll
     normal_bic = n_param * np.log(len(data)) - 2 * normal_ll
 
@@ -157,13 +157,13 @@ def distributions(data):
     m_ube  = m - s2 / (2 * n)    # corrected mean of log(x)
     s2_ube = s2 * (n / (n - 1))  # corrected variance of log(x)
 
-    # bias-corrected estimator for mean and coefficient of variation
-    lognormal_mean_ube = np.exp( m_ube + 0.5*s2_ube) 
+    # bias-corrected estimator for median and coefficient of variation
+    lognormal_medn_ube = np.exp( m_ube )
     lognormal_covn_ube = np.sqrt( np.exp(s2_ube) - 1.0 )
 
     # assessment metrics
     n_param = 2
-    lognormal_ll = np.sum(np.log(lognormal.pdf(data, lognormal_mean_ube, lognormal_covn_ube))) 
+    lognormal_ll = np.sum(np.log(lognormal.pdf(data, lognormal_medn_ube, lognormal_covn_ube))) 
     lognormal_aic = 2 * n_param - 2 * lognormal_ll
     lognormal_bic = n_param * np.log(len(data)) - 2 * lognormal_ll
 
@@ -227,13 +227,12 @@ def distributions(data):
 
     # convert to distribution mean and standard deviation 
     extI_mean_ube = extI_mm_ube + np.euler_gamma * extI_ss_ube 
-    extI_stdv_ube = extI_ss_ube * np.pi / np.sqrt(6.0)
-    extI_covn_ube = extI_stdv_ube / extI_mean_ube * ( 1 + 1/(4*n) )
-
+    extI_sdvn_ube = extI_ss_ube * np.pi / np.sqrt(6.0)
+    extI_covn_ube = extI_sdvn_ube / extI_mean_ube 
 
     # assessment metrics
     n_param = 2
-    extI_ll = np.sum(np.log(extreme_value_I.pdf(data, extI_mean_ube, extI_stdv_ube/extI_mean_ube))) 
+    extI_ll = np.sum(np.log(extreme_value_I.pdf(data, extI_mean_ube, extI_sdvn_ube/extI_mean_ube))) 
     extI_aic = 2 * n_param - 2 * extI_ll
     extI_bic = n_param * np.log(len(data)) - 2 * extI_ll
 
@@ -255,12 +254,12 @@ def distributions(data):
     tabular_output += f"Uniform      | a = {uniform_a_ube:7.3f}, b = {uniform_b_ube:7.3f},        {uniform_ll:7.3f} {uniform_aic:7.3f} {uniform_bic:7.3f}\n"
     tabular_output += f"Beta         | a = {beta_a_ube:7.3f}, b = {beta_b_ube:7.3f}, p = {beta_q_ube:7.3f}, q = {beta_p_ube:7.3f}, {beta_ll:7.3f} {beta_aic:7.3f} {beta_bic:7.3f} \n"
     tabular_output += f"Exponential  | mean = {exponential_mean_ube:7.3f}                   {exponential_ll:7.3f} {exponential_aic:7.3f} {exponential_bic:7.3f}\n"
-    tabular_output += f"Laplace      | mean = {laplace_mean_ube:7.3f}, covn = {laplace_stdv_ube/laplace_mean_ube:7.3f}   {laplace_ll:7.3f} {laplace_aic:7.3f} {laplace_bic:7.3f}\n"
-    tabular_output += f"Normal       | mean = {normal_mean_ube:7.3f}, covn = {normal_stdv_ube/normal_mean_ube:7.3f}   {normal_ll:7.3f} {normal_aic:7.3f} {normal_bic:7.3f}\n"
-    tabular_output += f"Lognormal    | mean = {lognormal_mean_ube:7.3f}, covn = {lognormal_covn_ube:7.3f}   {lognormal_ll:7.3f} {lognormal_aic:7.3f} {lognormal_bic:7.3f}\n"
+    tabular_output += f"Laplace      | mean = {laplace_mean_ube:7.3f}, covn = {laplace_sdvn_ube/laplace_mean_ube:7.3f}   {laplace_ll:7.3f} {laplace_aic:7.3f} {laplace_bic:7.3f}\n"
+    tabular_output += f"Normal       | mean = {normal_mean_ube:7.3f}, covn = {normal_sdvn_ube/normal_mean_ube:7.3f}   {normal_ll:7.3f} {normal_aic:7.3f} {normal_bic:7.3f}\n"
+    tabular_output += f"Lognormal    | medn = {lognormal_medn_ube:7.3f}, covn = {lognormal_covn_ube:7.3f}   {lognormal_ll:7.3f} {lognormal_aic:7.3f} {lognormal_bic:7.3f}\n"
     tabular_output += f"Rayleigh     | mean = {rayleigh_mean_ube:7.3f}                   {rayleigh_ll:7.3f} {rayleigh_aic:7.3f} {rayleigh_bic:7.3f}\n"
     tabular_output += f"Gamma        | mean = {gamma_mean_ube:7.3f}, covn = {gamma_covn_ube:7.3f}   {gamma_ll:7.3f} {gamma_aic:7.3f} {gamma_bic:7.3f}\n"
-    tabular_output += f"Extreme I    | mean = {extI_mean_ube:7.3f}, covn = {extI_stdv_ube/extI_mean_ube:7.3f}   {extI_ll:7.3f} {extI_aic:7.3f} {extI_bic:7.3f}\n"
+    tabular_output += f"Extreme I    | mean = {extI_mean_ube:7.3f}, covn = {extI_sdvn_ube/extI_mean_ube:7.3f}   {extI_ll:7.3f} {extI_aic:7.3f} {extI_bic:7.3f}\n"
     tabular_output += f"Chi Squared  | mean = {chi2_df_ube:7.3f}                   {chi2_ll:7.3f} {chi2_aic:7.3f} {chi2_bic:7.3f}\n"
 
 
@@ -273,9 +272,9 @@ def distributions(data):
         uniform=(uniform_a_ube, uniform_b_ube), 
         beta=(beta_a_ube, beta_b_ube, beta_q_ube, beta_p_ube), 
         exponential=(exponential_mean_ube), 
-        laplace=(laplace_mean_ube, laplace_stdv_ube), 
-        normal=(normal_mean_ube, normal_stdv_ube), 
-        lognormal=(lognormal_mean_ube, lognormal_covn_ube), 
+        laplace=(laplace_mean_ube, laplace_sdvn_ube), 
+        normal=(normal_mean_ube, normal_sdvn_ube), 
+        lognormal=(lognormal_medn_ube, lognormal_covn_ube), 
         rayleigh=(rayleigh_mean_ube), 
         gamma=(gamma_mean_ube, gamma_covn_ube), 
         extI=(extI_mean_ube, extI_covn_ube), 

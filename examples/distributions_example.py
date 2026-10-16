@@ -13,8 +13,8 @@ n = 100  # Sample size
 mean = 10
 stdv = mean / 3
 
-normal_data   = normal.rnd(mean, stdv, n)
-rayleigh_data = rayleigh.rnd(mean, n)
+normal_data   = normal.rnd(mean, stdv, n, 1, seed=50)
+rayleigh_data = rayleigh.rnd(mean, n, 1, seed=30)
 weight = 0.1
 combined_data = weight * normal_data + (1-weight ) *rayleigh_data
 
