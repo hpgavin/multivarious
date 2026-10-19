@@ -46,6 +46,9 @@ def distributions(data):
     >>> print(tabular_output)
     """
 
+
+    # data check ----------------------------------------------------
+
     # Convert data to a NumPy array
     data = np.asarray(data)
 
@@ -64,11 +67,15 @@ def distributions(data):
     if np.any(data <= 0):
         raise ValueError("Input 'data' has negative values.  Some distributions are not appropriate.") 
 
+
+    # unbiased average, variance, standard deviation and coefficint of variation
     n = len(data)
-    x_avg = np.mean(data)                     # universally unbiased 
-    x_var = np.var(data, ddof=1)              # universally unbiased
-    x_sdv = np.sqrt(x_var) * ( 1 + 1/(4*n) )  # unbiased for normal populations
-    x_cov = x_sdv / x_avg                     # unbiased for normal populations
+    x_avg = np.mean(data)                         # universally unbiased 
+    x_var = np.var(data, ddof=1)                  # universally unbiased
+    sdv   = np.sqrt(x_var)                        # biased standard deviation
+    cov   = sdv / x_avg                           # biased coeff of variation 
+    x_sdv = np.sqrt(x_var) / ( 1 - 1/(4*(n-1)) )  # unbiased for normal dist's
+    x_cov =  (x_sdv/x_avg) / ( 1 + cov**2.0 / n ) # unbiased for normal dist's
 
 
     # Uniform distribution unbiased estimates -----------------------------

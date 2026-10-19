@@ -9,7 +9,7 @@ from multivarious.fit import distributions
 
 # Generate sample data
 #np.random.seed(42)  # Set a seed for reproducibility
-n = 50          # Sample size
+n = 50            # Sample size
 mean = 10         # population mean
 stdv = mean / 3   # population standard deviation
 
