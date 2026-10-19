@@ -37,12 +37,16 @@ def plot_ECDF_ci(data, confidence_level, fig_num, x_label='sorted sample values'
     x = np.asarray(data).flatten()
 
     # ----- Sample statistics -------------------------------------------------
-    N = len(x)                                 # number of values in the sample
-    x = np.sort(x)                             # sort the sample
-    x_avg = np.sum(x) / N                      # average of the sample
-    x_med = x[int(round(N / 2))]               # median of the sample
-    x_sdv = np.sqrt((x-x_avg)@(x-x_avg)/(N-1)) # stndrd dev of the sample
-    x_cov = abs(x_sdv / x_avg)                 # coefficient of variation
+    N = len(x)                                    # no. of values in the sample
+    x = np.sort(x)                                # sort the sample
+    x_avg = np.mean(data)                         # universally unbiased 
+    x_var = np.var(data, ddof=1)                  # universally unbiased
+    x_med = x[int(round(N / 2))]                  # median of the sample
+    sdv   = np.sqrt(x_var)                        # biased standard deviation
+    cov   = sdv / x_avg                           # biased coeff of variation 
+    x_sdv = np.sqrt(x_var) / ( 1 - 1/(4*(n-1)) )  # unbiased for normal dist's
+    x_cov =  (x_sdv/x_avg) / ( 1 + cov**2.0 / n ) # unbiased for normal dist's
+
 
     # ----- Empirical CDF - Gumbel p.47 "contrary to what one might expect"
     Fx = np.arange(1, N + 1) / ( N + 1 )    # ECDF Gumbel (1958)

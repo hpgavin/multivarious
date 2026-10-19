@@ -1,6 +1,15 @@
 # distributions.py
 # compute unbiased parameter estimates for various probability distributions
 # to fit the distributions to a sample of data
+
+# Voinov and Nikulin, Unbiased Estimators and Their Applications
+# (Vol. 1: Univariate, 1993; Vol. 2: Multivariate, 1996)
+# https://archive.org/details/unbiasedestimato0002voin
+#
+# D.R. Cox and E.J. Snell, A General Description of Residuals,
+# Proc Royal Statistical Society , Series B (Methodological)
+# Vol. 30, No 2 (1968) pp 248 - 275
+# https://www.jstor.org/stable/2984505
 import numpy as np
 import matplotlib.pyplot as plt
 
