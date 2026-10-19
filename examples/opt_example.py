@@ -75,13 +75,13 @@ if __name__ == '__main__':
     cts = StableNamespace(
         a = [ -0.4,  0.2,  0.5,  1.4,  1.4 ], # open constraints
         b = [  1.0, -0.5,  0.5, -1.4, -1.4 ],
-        c = [  0.01,  0.8,  0.2 ]     # c[0] : stdev of noise in f(v)
+        c = [  0.01,  0.8,  0.2 ]   # c[0] : standard deviation of noise in f(v)
     )
 
-    v_lb = np.array([ 0.0, 0.0 ])    # lower bound on the design variables 
-    v_ub = np.array([ 1.0, 1.0 ])    # upper bound on the design variables 
+    v_lb = np.array([ 0.0, 0.0 ])   # lower bound on the design variables 
+    v_ub = np.array([ 1.0, 1.0 ])   # upper bound on the design variables 
 
-    v_init = np.array([ 0.8, 0.8 ])  # a specific initial guess 
+    v_init = np.array([ 0.8, 0.8 ]) # a specific initial guess 
 
     if example == 'B': # gauntlet constraints
         fctn = analysis

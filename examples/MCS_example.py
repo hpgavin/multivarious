@@ -20,7 +20,7 @@ from multivarious.utl import format_plot
 # Distribution parameters
 #  X1 normal
 mean1 = 6       # mean of normal
-sdvn1 = 2       # std dev of normal
+sdvn1 = 2       # standard deviation of normal
 #  X2 lognormal  
 medn2 = 2        # median of lognormal
 covn2 = 0.3      # coefficient of variation of lognormal

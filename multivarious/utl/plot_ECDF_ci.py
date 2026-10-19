@@ -44,8 +44,8 @@ def plot_ECDF_ci(data, confidence_level, fig_num, x_label='sorted sample values'
     x_med = x[int(round(N / 2))]                  # median of the sample
     sdv   = np.sqrt(x_var)                        # biased standard deviation
     cov   = sdv / x_avg                           # biased coeff of variation 
-    x_sdv = np.sqrt(x_var) / ( 1 - 1/(4*(n-1)) )  # unbiased for normal dist's
-    x_cov =  (x_sdv/x_avg) / ( 1 + cov**2.0 / n ) # unbiased for normal dist's
+    x_sdv = np.sqrt(x_var) / ( 1 - 1/(4*(N-1)) )  # unbiased for normal dist's
+    x_cov =  (x_sdv/x_avg) / ( 1 + cov**2.0 / N ) # unbiased for normal dist's
 
 
     # ----- Empirical CDF - Gumbel p.47 "contrary to what one might expect"
@@ -96,9 +96,9 @@ def plot_ECDF_ci(data, confidence_level, fig_num, x_label='sorted sample values'
     upper_ci = upper_ci_B
 
     # a normal CDF for testing 
-    #mu, std = np.mean(data), np.std(data)
+    #mean, sdvn = np.mean(data), np.std(data)
     #x_theory = np.linspace(min(x), max(x), 200)
-    #z_theory = (x_theory - mu) / std
+    #z_theory = (x_theory - mean) / sdvn
     #cdf_theory = normal.cdf(z_theory)  
     
     # ----- Plotting ----------------------------------------------------------
@@ -153,7 +153,7 @@ def plot_ECDF_ci(data, confidence_level, fig_num, x_label='sorted sample values'
     # plot another CDF
     '''
     plt.plot(x_theory, cdf_theory, '-', color='darkblue',linewidth=2, 
-             label=f'Normal CDF (μ={mu:.3f}, σ={std:.3f})')
+             label=f'Normal CDF (μ={mean:.3f}, σ={sdvn:.3f})')
     plt.plot(x, x * 0 + 0.5, '--k', alpha=0.3, linewidth=1)
     '''
     

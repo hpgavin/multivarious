@@ -183,12 +183,12 @@ def plot_lm(t: np.ndarray,
     
     # Add statistics to plot
     mean_res = np.mean(residuals)
-    std_res = np.std(residuals)
+    sdvn_res = np.std(residuals)
     ax3.axvline(mean_res, color='r', linestyle='--', linewidth=2, 
               label=f'Mean = {mean_res:.3f}')
-    ax3.axvline(mean_res + std_res, color='orange', linestyle=':', linewidth=2)
-    ax3.axvline(mean_res - std_res, color='orange', linestyle=':', linewidth=2,
-              label=f'Std Dev = {std_res:.3f}')
+    ax3.axvline(mean_res + sdvn_res, color='orange', linestyle=':', linewidth=2)
+    ax3.axvline(mean_res - sdvn_res, color='orange', linestyle=':', linewidth=2,
+              label=f'Std Dev = {sdvn_res:.3f}')
     ax3.legend(loc='best', fontsize=10)
     
     #plt.tight_layout()
