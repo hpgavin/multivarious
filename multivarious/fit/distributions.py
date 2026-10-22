@@ -58,6 +58,8 @@ def distributions(data):
 
     # data check ----------------------------------------------------
 
+
+
     # Convert data to a NumPy array
     data = np.asarray(data)
 
@@ -69,12 +71,13 @@ def distributions(data):
             raise ValueError("Input 'data' must be a one-dimensional array.")
 
     # Check if data contains only finite values
+    data = data[np.isfinite(data)]
     if not np.isfinite(data).all():
         raise ValueError("Input 'data' must contain only finite values.")
 
     # Check if data contains negative values
-    if np.any(data <= 0):
-        raise ValueError("Input 'data' has negative values.  Some distributions are not appropriate.") 
+#   if np.any(data <= 0):
+#       raise ValueError("Input 'data' has negative values.  Some distributions are not appropriate.") 
 
 
     # unbiased average, variance, standard deviation and coefficint of variation
@@ -116,6 +119,9 @@ def distributions(data):
     beta_q_ube = beta_q_mle - (beta_q_mle - 1) / n + (2 * beta_q_mle - 1) / (n * (beta_q_mle + beta_q_mle - 2))
     beta_p_ube = beta_p_mle - (beta_p_mle - 1) / n + (2 * beta_p_mle - 1) / (n * (beta_p_mle + beta_p_mle - 2))
 
+    beta_q_ube = np.abs(beta_q_ube)
+    beta_p_ube = np.abs(beta_p_ube)
+
     # Unbiased estimates (ube) for a and b
     beta_a_ube = np.min(data) - beta_p_ube / beta_q_ube * x_var / (x_avg * (1 - x_avg)) / (n + 1)
     beta_b_ube = np.max(data) + beta_p_ube / beta_q_ube * x_var / (x_avg * (1 - x_avg)) / (n + 1)
@@ -131,11 +137,11 @@ def distributions(data):
 
 
     # Exponential distribution ------------------------------------
-    exponential_mean_ube = x_avg * n / (n - 1) 
+    exponential_mean_ube = np.abs ( x_avg ) * n / (n - 1)
 
     # assessment metrics
     n_param = 1
-    exponential_ll = np.sum(np.log(exponential.pdf(data, exponential_mean_ube))) 
+    exponential_ll = np.sum(np.log(exponential.pdf( np.abs(data)+1e-6, exponential_mean_ube))) 
     exponential_aic = 2 * n_param - 2 * exponential_ll
     exponential_bic = n_param * np.log(len(data)) - 2 * exponential_ll
 
@@ -165,7 +171,7 @@ def distributions(data):
 
     # Lognormal distribution -----------------------------------
     # The sample mean and variance of the logarithm of the data ...
-    log_data = np.log(data)        # log(x)
+    log_data = np.log( np.abs(data) + 1e-6 )    # log(x)
     m = np.mean(log_data)          # mean of log(x)
     s2 = np.var(log_data, ddof=1)  # variance of log(x), ddof=1 for the unbiased sample variance
 
@@ -185,11 +191,11 @@ def distributions(data):
 
 
     # Rayleigh distribution ----------------------------------------
-    rayleigh_mean_ube = x_avg * (1 + 1 / (4 * n))
+    rayleigh_mean_ube = np.abs ( x_avg ) * (1 + 1 / (4 * n))
 
     # assessment metrics
     n_param = 2
-    rayleigh_ll = np.sum(np.log(rayleigh.pdf(data, rayleigh_mean_ube))) 
+    rayleigh_ll = np.sum(np.log(rayleigh.pdf( np.abs(data) + 1e-6, rayleigh_mean_ube))) 
     rayleigh_aic = 2 * n_param - 2 * rayleigh_ll
     rayleigh_bic = n_param * np.log(len(data)) - 2 * rayleigh_ll
 
@@ -215,8 +221,8 @@ def distributions(data):
     gamma_k_ube   = gamma_k - (gamma_k - 1) / n 
     gamma_bta_ube = gamma_bta * (1 - 2 / (n - 1) - 4 / (gamma_k_ube * n))
 
-    gamma_mean_ube = gamma_k_ube / gamma_bta_ube
-    gamma_covn_ube = 1.0 / gamma_k_ube
+    gamma_mean_ube = np.abs ( gamma_k_ube / gamma_bta_ube )
+    gamma_covn_ube = np.abs ( 1.0 / gamma_k_ube )
 
     # assessment metrics
     n_param = 2
@@ -254,14 +260,14 @@ def distributions(data):
 
 
     # Chi-squared distribution -----------------------------------------
-    chi2_df = x_avg
+    chi2_df = np.abs( x_avg )
 
     # Wilson-Hilferty bias correction 
-    chi2_df_ube = chi2_df * (1 - 2 / (9 * chi2_df))**3
+    chi2_df_ube = np.abs ( chi2_df * (1 - 2 / (9 * chi2_df))**3 )
 
     # assessment metrics
     n_param = 1
-    chi2_ll = np.sum(np.log(chi2.pdf(data, chi2_df_ube))) # log likelihood
+    chi2_ll = np.sum(np.log(chi2.pdf( np.abs(data) + 1e-6, chi2_df_ube))) # log likelihood
     chi2_aic = 2 * n_param - 2 * chi2_ll
     chi2_bic = n_param * np.log(len(data)) - 2 * chi2_ll
 
@@ -320,7 +326,7 @@ def distributions(data):
     ax1.hist(data, bins=30, density=True, alpha=0.7, color='gray')
     ax1.set_xlabel('Data')
     ax1.set_ylabel('Probbility Density')
-    ax1.set_title('Histogram of Combined Data')
+    ax1.set_title('Histogram')
 
     # Plot the empirical CDF and fitted distribution CDFs
     x = np.linspace(np.min(data) + 1e-3, np.max(data) - 1e-3, 100)

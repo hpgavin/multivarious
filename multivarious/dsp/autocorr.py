@@ -5,6 +5,30 @@ from numpy.fft import ifft
 from scipy.signal import detrend
 
 def autocorr(x,Fs):
+    """
+    autocorr(x,Fs)
+
+    compute the auto-correlation of a time series from its FFT
+
+    Parameters:
+    -----------
+    x    : a time series, real-valued, array-like  (1,n) 
+    Fs   : sampling frequency, real-valued scalar
+
+    Returns:
+    --------
+    Rxx  : the autocorrelation at time lags tau, array-like (1,n)
+    tau  : the time lag values, positive and negative, (1,n)
+    X    : the FFT of x, complex-valued, (1,n)
+   
+    Example:
+    --------
+    >>> data = np.cos(2*np.pi * t) + 0.10*np.random.randn(len(t))*np.sqrt(Fs)
+    >>> lag_1_corr = np.corrcoef(data[1:N],data[0:N-1])[1,0] 
+    >>> Rxx, tau, X = autocorr(data,Fs)
+    >>> Rxx = Rxx / Rxx[(int(len(Rxx)/2))] # normalize to lag-1 correlation
+    """
+
     x = np.asarray(x)
     x = detrend(x, type='linear')
     n = len(x)
