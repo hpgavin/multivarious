@@ -27,8 +27,8 @@ def dliap(A, X):
     Note: For production use, consider scipy.linalg.solve_discrete_lyapunov
     """
     
-    A = np.asarray(A, dtype=complex)
-    X = np.asarray(X, dtype=complex)
+    A = np.array(A, dtype=complex, ndmin=2)
+    X = np.array(X, dtype=complex, ndmin=2)
     
     dim = A.shape[0]
     

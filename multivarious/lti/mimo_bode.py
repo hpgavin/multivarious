@@ -38,10 +38,10 @@ def mimo_bode(A, B, C, D, w=None, dt=None, figno=100, ax='n', leg=None, tol=1e-1
     """
     
     # Convert to numpy arrays
-    A = np.asarray(A)
-    B = np.asarray(B)
-    C = np.asarray(C)
-    D = np.asarray(D)
+    A = np.array(A, ndmin=2)
+    B = np.array(B, ndmin=2)
+    C = np.array(C, ndmin=2)
+    D = np.array(D, ndmin=2)
     
     # Check for compatible dimensions
     n, r, m = abcd_dim(A, B, C, D)
@@ -50,7 +50,7 @@ def mimo_bode(A, B, C, D, w=None, dt=None, figno=100, ax='n', leg=None, tol=1e-1
     if w is None:
         w = np.logspace(-2, 2, 200) * 2 * np.pi
     else:
-        w = np.asarray(w)
+        w = np.array(w, ndmin=1)
     
     nw = len(w)
     lw = 3  # line width

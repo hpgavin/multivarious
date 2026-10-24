@@ -25,11 +25,11 @@ def dlsym(A, B, C, D, u, t=None, x0=None):
     """
     
     # Convert to numpy arrays
-    A = np.asarray(A)
-    B = np.asarray(B)
-    C = np.asarray(C)
-    D = np.asarray(D)
-    u = np.asarray(u)
+    A = np.array(A, ndmin=2)
+    B = np.array(B, ndmin=2)
+    C = np.array(C, ndmin=2)
+    D = np.array(D, ndmin=2)
+    u = np.array(u, ndmin=1)
     
     # Check dimensions
     n, m, l = abcd_dim(A, B, C, D)

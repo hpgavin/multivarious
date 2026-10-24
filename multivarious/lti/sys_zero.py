@@ -33,10 +33,10 @@ def sys_zero(A, B, C, D, tol=1e-6):
     Modified by: H.P. Gavin, 2017-11-09, 2022-12-28
     """
     
-    A = np.asarray(A)
-    B = np.asarray(B)
-    C = np.asarray(C)
-    D = np.asarray(D)
+    A = np.array(A, ndim=2)
+    B = np.array(B, ndim=2)
+    C = np.array(C, ndim=2)
+    D = np.array(D, ndim=2)
     
     nn, rr, mm = abcd_dim(A, B, C, D)
     

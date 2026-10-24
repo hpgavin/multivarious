@@ -26,10 +26,12 @@ def abcd_dim(A, B, C, D):
     Author: A.S. Hodel <scotte@eng.auburn.edu>
     """
     
-    A = np.asarray(A)
-    B = np.asarray(B)
-    C = np.asarray(C)
-    D = np.asarray(D)
+
+
+    A = np.array(A, ndmin=2)
+    B = np.array(B, ndmin=2)
+    C = np.array(C, ndmin=2)
+    D = np.array(D, ndmin=2)
     
     # Ensure all inputs are 2D
     if A.ndim != 2:

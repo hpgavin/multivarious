@@ -24,7 +24,7 @@ def blk_hankel(y, r, k):
         Each block is m x r, and blocks shift by r columns down each row
     """
     
-    y = np.asarray(y)
+    y = np.array(y, ndmin=1)
     
     m, N_total = y.shape
     

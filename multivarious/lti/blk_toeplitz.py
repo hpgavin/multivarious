@@ -25,7 +25,7 @@ def blk_toeplitz(y, r, k):
         (in reverse order compared to Hankel)
     """
     
-    y = np.asarray(y)
+    y = np.array(y, ndmin=1)
     
     m, N_total = y.shape
     

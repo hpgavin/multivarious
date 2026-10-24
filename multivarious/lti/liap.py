@@ -29,10 +29,10 @@ def liap(A, B, C=None):
         X : solution matrix
     """
     
-    A = np.asarray(A)
-    B = np.asarray(B)
+    A = np.array(A, ndmin=2)
+    B = np.array(B, ndmin=2)
     if C is not None:
-        C = np.asarray(C)
+        C = np.array(C, ndmin=2)
     
     ma, na = A.shape
     if ma != na:

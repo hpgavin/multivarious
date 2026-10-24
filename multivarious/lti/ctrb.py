@@ -23,8 +23,8 @@ def ctrb(A, B, p=None):
         Q : controllability matrix (n x r*p)
     """
     
-    A = np.asarray(A)
-    B = np.asarray(B)
+    A = np.array(A, ndmin=2)
+    B = np.array(B, ndmin=2)
     
     n, r = B.shape  # number of states and inputs
     

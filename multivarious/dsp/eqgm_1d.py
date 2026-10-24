@@ -226,10 +226,12 @@ def eqgm_1d(PGA=3.5, fg=1.5, zg=0.9, aa=4.0, ta=2.0, t=None, fig_num=0, seed=Non
     Cg = np.array([[0.0, 2*wg*zg]])
     
 
+    """
     # Verify RMS acceleration using Lyapunov equation
     # A*Σ + Σ*A' + B*B' = 0
     Sigma = solve_continuous_lyapunov( Ag , -Bg @ Bg.T )
     RMSa_check = np.sqrt(Cg @ Sigma @ Cg.T)[0, 0]
+    """
     
     # ========== Generate White Noise ==========
     # Unit Gaussian white noise has PSD = 1.0 and variance = 1/dt
@@ -245,7 +247,7 @@ def eqgm_1d(PGA=3.5, fg=1.5, zg=0.9, aa=4.0, ta=2.0, t=None, fig_num=0, seed=Non
     
 
     # ========== Pass Through Ground Motion Model ==========
-    accel = lsym(Ag, Bg, Cg, np.array([[0.0]]), u[np.newaxis, :], t, ntrp='foh')
+    accel = lsym(Ag, Bg, Cg, 0.0, u[np.newaxis, :], t, ntrp='foh')
     
 
     # ========== Remove Bias and Drift ==========
@@ -257,17 +259,19 @@ def eqgm_1d(PGA=3.5, fg=1.5, zg=0.9, aa=4.0, ta=2.0, t=None, fig_num=0, seed=Non
     accel, veloc, displ  = accel2displ(accel, t, method='SRA', aa=0.3*dt) 
     #                              t0=t0_drift, tt=ta_drift)
     
+
+    # ========== Scale to specified PGA ==========
+    Amax_o = np.max(np.abs(accel))
+    scale = PGA / Amax_o  # scale to specified PGA
+    accel *= scale
+    veloc *= scale
+    displ *= scale
+    Bg    *= scale
+
     # Compute peak values
     Amax = np.max(np.abs(accel))
     Vmax = np.max(np.abs(veloc))
     Dmax = np.max(np.abs(displ))
-    
-    scale = PGA/Amax  # scale to specified PGA
-
-    accel *= scale
-    veloc *= scale
-    displ *= scale
-    
 
     # ========== Plotting ==========
 
@@ -348,16 +352,15 @@ def eqgm_1d(PGA=3.5, fg=1.5, zg=0.9, aa=4.0, ta=2.0, t=None, fig_num=0, seed=Non
         print('\n' + '='*60)
         print('Synthetic Earthquake Ground Motion Summary')
         print('='*60)
-        print(f'Peak Ground Acceleration:  {Amax:.4f} m/s²')
-        print(f'Peak Ground Velocity:      {Vmax:.4f} m/s')
-        print(f'Peak Ground Displacement:  {Dmax:.4f} m')
-        print(f'Ground frequency:          {fg:.2f} Hz')
-        print(f'Ground damping:            {zg:.3f}')
-        print(f'Envelope rise parameter:   {aa:.2f}')
-        print(f'Envelope decay time:       {ta:.2f} s')
-        print(f'Peak-to-RMS ratio:         {P2R:.3f}')
-        print(f'Target RMS accel:          {RMSa:.4f} m/s²')
-        print(f'Steady RMS accel:          {RMSa_check:.4f} m/s²')
+        print(f'Peak Ground Acceleration:     {Amax:.4f} m/s²')
+        print(f'Peak Ground Velocity:         {Vmax:.4f} m/s')
+        print(f'Peak Ground Displacement:     {Dmax:.4f} m')
+        print(f'Ground frequency:             {fg:.2f} Hz')
+        print(f'Ground damping:               {zg:.3f}')
+        print(f'Envelope rise parameter:      {aa:.2f}')
+        print(f'Envelope decay time:          {ta:.2f} s')
+        print(f'pre-scale Peak-to-RMS ratio:  {Amax_o/RMSa:.3f}')
+        print(f'scaled    Peak-to-RMS ratio:  {P2R:.3f}')
 
         print('='*60 + '\n')
     
@@ -383,7 +386,7 @@ if __name__ == '__main__':
     
     accel, veloc, displ, scale, Ag, Bg, Cg = eqgm_1d(
         PGA=3.5, fg=1.5, zg=0.9, aa=4.0, ta=2.0,
-        t=t_long, fig_num=10, seed=42
+        t=t_long, fig_num=10, seed=None
     )
     
     # Test 2: Near-field pulse (ATC-63-NFP)
@@ -392,7 +395,7 @@ if __name__ == '__main__':
     
     accel2, veloc2, displ2, _, _, _, _ = eqgm_1d(
         PGA=4.7, fg=0.5, zg=1.8, aa=1.0, ta=2.0,
-        t=t_long, fig_num=20, seed=123
+        t=t_long, fig_num=20, seed=None
     )
     
     plt.show()

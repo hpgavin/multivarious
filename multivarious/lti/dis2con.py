@@ -36,10 +36,10 @@ def dis2con(Ad, Bd, Cd, Dd, dt, ntrp='foh'):
     """
     
     # Convert to numpy arrays
-    Ad = np.asarray(Ad)
-    Bd = np.asarray(Bd)
-    Cd = np.asarray(Cd)
-    Dd = np.asarray(Dd)
+    Ad = np.array(Ad, ndim=2)
+    Bd = np.array(Bd, ndim=2)
+    Cd = np.array(Cd, ndim=2)
+    Dd = np.array(Dd, ndim=2)
     
     # Check dimensions
     n, r, m = abcd_dim(Ad, Bd, Cd, Dd)

@@ -24,8 +24,8 @@ def obsv(A, C, p=None):
         P : observability matrix (m*p x n)
     """
     
-    A = np.asarray(A)
-    C = np.asarray(C)
+    A = np.array(A, ndmin=2)
+    C = np.array(C, ndmin=2)
     
     m, n = C.shape  # number of outputs and states
     

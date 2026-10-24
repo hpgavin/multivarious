@@ -32,8 +32,8 @@ def wiener_filter(u, y, Hn):
             Updated: 2013-09-04, 2017-10-06
     """
     
-    u = np.asarray(u)
-    y = np.asarray(y)
+    u = np.array(u, ndmin=1)
+    y = np.array(y, ndmin=1)
     
     r, Nu = u.shape  # number of inputs, duration of inputs
     m, Ny = y.shape  # number of outputs, duration of outputs
@@ -48,7 +48,7 @@ def wiener_filter(u, y, Hn):
             raise ValueError('2iener_filter: not enough data to fit')
     else:
         # Simulate the model response with input data sequences
-        H = np.asarray(Hn)
+        H = np.array(Hn, ndmin=2)
         n = H.shape[1] // r
     
     # Assemble the Hankel matrix of the time sequence u

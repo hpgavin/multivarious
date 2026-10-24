@@ -34,8 +34,8 @@ def mimo_tfe(u, y, Fs, nfft, figNo=0):
     Author: H.P. Gavin 2017-12-03
     """
     
-    u = np.asarray(u)
-    y = np.asarray(y)
+    u = np.array(u, ndmin=1)
+    y = np.array(y, ndmin=1)
     
     r, nu = u.shape  # number of inputs and data points
     m, ny = y.shape  # number of outputs and data points

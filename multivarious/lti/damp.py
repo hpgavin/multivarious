@@ -28,7 +28,7 @@ def damp(a, delta_t=None):
     If no return values are requested, displays a table of results.
     """
     
-    a = np.asarray(a)
+    a = np.array(a, ndmin=2)
     
     # Handle empty input
     if a.size == 0:

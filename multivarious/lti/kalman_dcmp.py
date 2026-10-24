@@ -36,10 +36,10 @@ def kalman_dcmp(A, B, C, D, tol=1e-9):
     Author: H.P. Gavin, 2017-11-05
     """
     
-    A = np.asarray(A)
-    B = np.asarray(B)
-    C = np.asarray(C)
-    D = np.asarray(D)
+    A = np.array(A, ndmin=2)
+    B = np.array(B, ndmin=2)
+    C = np.array(C, ndmin=2)
+    D = np.array(D, ndmin=2)
     
     n, r, m = abcd_dim(A, B, C, D)
     

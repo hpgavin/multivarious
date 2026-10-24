@@ -31,12 +31,12 @@ def lsym(A, B, C, D, u, t, x0=None, ntrp='foh'):
     n, r, m = abcd_dim(A, B, C, D)
     
     # Convert to numpy arrays
-    A = np.asarray(A)
-    B = np.asarray(B)
-    C = np.asarray(C)
-    D = np.asarray(D)
-    u = np.asarray(u)
-    t = np.asarray(t)
+    A = np.array(A, ndmin=2)
+    B = np.array(B, ndmin=2)
+    C = np.array(C, ndmin=2)
+    D = np.array(D, ndmin=2)
+    u = np.array(u, ndmin=2)
+    t = np.array(t, ndmin=1)
     
     if u.ndim == 1:
         u = u[np.newaxis, :]

@@ -34,11 +34,11 @@ def con2dis(Ac, Bc, Cc, Dc, dt, method='foh'):
     Author: HP Gavin, 2020-11-01, 2021-07-19, 2024-01-23
     """
     
-    # Convert to numpy arrays
-    Ac = np.asarray(Ac)
-    Bc = np.asarray(Bc)
-    Cc = np.asarray(Cc)
-    Dc = np.asarray(Dc)
+    # Convert to numpy arrays 
+    Ac = np.array(Ac, ndmin=2)
+    Bc = np.array(Bc, ndmin=2)
+    Cc = np.array(Cc, ndmin=2)
+    Dc = np.array(Dc, ndmin=2)
     
     # Check dimensions
     n, r, m = abcd_dim(Ac, Bc, Cc, Dc)
