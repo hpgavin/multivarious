@@ -1,3 +1,5 @@
+#! /usr/bin/env -S python3 -i
+
 """
 cdiff.py - Central difference numerical differentiation
 

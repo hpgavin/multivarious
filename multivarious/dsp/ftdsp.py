@@ -1,3 +1,5 @@
+#! /usr/bin/env -S python3 -i
+
 """
 ftdsp.py - Frequency-domain digital signal processing
 

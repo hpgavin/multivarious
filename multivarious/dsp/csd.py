@@ -1,3 +1,5 @@
+#! /usr/bin/env -S python3 -i
+
 """
 Cross Spectral Density Estimation using Welch's Method
 

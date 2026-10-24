@@ -1,3 +1,5 @@
+#! /usr/bin/env -S python3 -i
+
 """
 Power Spectral Density Estimation using Welch's Method
 

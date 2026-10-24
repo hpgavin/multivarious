@@ -1,3 +1,5 @@
+#! /usr/bin/env -S python3 -i
+
 """
 taper.py - Taper the initial and final points of time series
 

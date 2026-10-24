@@ -1,3 +1,5 @@
+#! /usr/bin/env -S python3 -i
+
 """
 butter_synth_ss.py - Butterworth filter state-space synthesis
 

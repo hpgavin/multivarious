@@ -1,3 +1,5 @@
+#! /usr/bin/env -S python3 -i
+
 """
 eqgm_1d.py - Synthetic Earthquake Ground Motion Generator
 ==========================================================
@@ -14,9 +16,8 @@ import numpy as np
 import time
 import matplotlib.pyplot as plt
 from scipy.linalg import solve_continuous_lyapunov
-from multivarious.lti.lsym import lsym
-from multivarious.dsp.accel2displ import accel2displ
-from multivarious.dsp.taper import taper 
+from multivarious.lti import lsym
+from multivarious.dsp import accel2displ, taper
 
 
 def eqgm_1d(PGA=3.5, fg=1.5, zg=0.9, aa=4.0, ta=2.0, t=None, fig_num=0, seed=None):
@@ -135,6 +136,9 @@ def eqgm_1d(PGA=3.5, fg=1.5, zg=0.9, aa=4.0, ta=2.0, t=None, fig_num=0, seed=Non
         Applied Technology Council, 2008
     [2] H.P. Gavin, "Earthquake Ground Motion Simulation", Duke University
     """
+
+
+    # ========== Defaults ============
     
     # if a random seed is not provided, generate a random random seed
     if seed is None:
@@ -162,8 +166,9 @@ def eqgm_1d(PGA=3.5, fg=1.5, zg=0.9, aa=4.0, ta=2.0, t=None, fig_num=0, seed=Non
     Pz = int(np.floor(t0 / dt))  # Zero-motion points
     Pt = int(np.round(2 * Pz))   # Taper points
     
+
     # ========== Envelope Function ==========
-    # Exponential rise and decay with cosine tapers
+    # Exponential rise and decay with Planck tapers
     
     envlp = np.zeros(P)
     
@@ -177,6 +182,7 @@ def eqgm_1d(PGA=3.5, fg=1.5, zg=0.9, aa=4.0, ta=2.0, t=None, fig_num=0, seed=Non
     
     # Apply (infinitely smooth) Planck tapers at beginning and at end
     envlp = taper(envlp, Ni=Pt, Nf=Pt, window='planck')[0]
+
 
     # ========== Peak-to-RMS Model ==========
     # Empirical model for peak-to-RMS ratio based on fg, ta, zg, aa
@@ -199,15 +205,15 @@ def eqgm_1d(PGA=3.5, fg=1.5, zg=0.9, aa=4.0, ta=2.0, t=None, fig_num=0, seed=Non
         -2.8971e-01
     ])
     
-    # Design matrix for P2R prediction
-    B = np.array([1, tafg, aa, lzg, tafg*aa, tafg*lzg, aa*lzg, 
-                  tafg**2, aa**2, lzg**2])
+    # basis matrix for P2R model
+    B = np.array([1, tafg, aa, lzg, tafg*aa, tafg*lzg, aa*lzg, tafg**2, aa**2, lzg**2])
     
     P2R = B @ c  # Peak-to-RMS ratio
     
-    RMSa = PGA / P2R
+    RMSa  = PGA / P2R
     a_bar = PGA / P2R / np.sqrt(2 * np.pi * zg * fg)
     
+
     # ========== Linear State-Space Model ==========
     # Second-order system: ẍ + 2ζωₙẋ + ωₙ²x = a_bar·w
     
@@ -219,17 +225,12 @@ def eqgm_1d(PGA=3.5, fg=1.5, zg=0.9, aa=4.0, ta=2.0, t=None, fig_num=0, seed=Non
                    [a_bar]])
     Cg = np.array([[0.0, 2*wg*zg]])
     
-    """
+
     # Verify RMS acceleration using Lyapunov equation
     # A*Σ + Σ*A' + B*B' = 0
     Sigma = solve_continuous_lyapunov( Ag , -Bg @ Bg.T )
     RMSa_check = np.sqrt(Cg @ Sigma @ Cg.T)[0, 0]
     
-    if fig_num > 0:
-        print(f'Target RMS accel: {RMSa:.4f} m/s²')
-        print(f'Computed RMS accel: {RMSa_check:.4f} m/s²')
-    """
-
     # ========== Generate White Noise ==========
     # Unit Gaussian white noise has PSD = 1.0 and variance = 1/dt
     
@@ -238,19 +239,23 @@ def eqgm_1d(PGA=3.5, fg=1.5, zg=0.9, aa=4.0, ta=2.0, t=None, fig_num=0, seed=Non
     # Taper the start and end of the unit noise
     u = taper(u, Ni=Pt, Nf=Pt, window='planck')[0]
     
+
     # ========== Apply Envelope ==========
     u = envlp * u
     
+
     # ========== Pass Through Ground Motion Model ==========
     accel = lsym(Ag, Bg, Cg, np.array([[0.0]]), u[np.newaxis, :], t, ntrp='foh')
     
+
     # ========== Remove Bias and Drift ==========
     # Find time when acceleration drops below 98% of peak
-#   t0_drift = 1.2 * np.max(np.where(np.abs(accel) / np.max(np.abs(accel)) > 0.98)[1]) * dt
-#   ta_drift = 0.3
+
+    #t0_drift = 1.2 * np.max(np.where(np.abs(accel) / np.max(np.abs(accel)) > 0.98)[1]) * dt
+    #ta_drift = 0.3
     
     accel, veloc, displ  = accel2displ(accel, t, method='SRA', aa=0.3*dt) 
-#                              t0=t0_drift, tt=ta_drift)
+    #                              t0=t0_drift, tt=ta_drift)
     
     # Compute peak values
     Amax = np.max(np.abs(accel))
@@ -263,41 +268,16 @@ def eqgm_1d(PGA=3.5, fg=1.5, zg=0.9, aa=4.0, ta=2.0, t=None, fig_num=0, seed=Non
     veloc *= scale
     displ *= scale
     
+
     # ========== Plotting ==========
+
+    plt.ion()  # interactive plotting mode: on
     if fig_num > 0:
         T_plot = min(30, np.max(t))  # Maximum time to display
         idx_plot = t <= T_plot
-        
-        # Figure 1: Envelope visualization
-        plt.figure(fig_num + 1, figsize=(12, 6))
-        plt.clf()
-        
-        idx_max = np.argmax(np.abs(accel))
-        
-        plt.plot(t, accel.flatten(), 'b-', linewidth=1.5, label='Acceleration')
-        plt.plot(t, envlp * RMSa, 'r-', linewidth=2, alpha=0.7, label='RMS envelope')
-        plt.plot(t, -envlp * RMSa, 'r-', linewidth=2, alpha=0.7)
-        
-        plt.axhline(RMSa, color='k', linestyle='--', linewidth=1, label='RMS')
-        plt.axhline(-RMSa, color='k', linestyle='--', linewidth=1)
-        plt.axhline(PGA, color='g', linestyle='--', linewidth=1.5, label='PGA')
-        plt.axhline(-PGA, color='g', linestyle='--', linewidth=1.5)
-        
-        plt.plot(t[idx_max], accel.flatten()[idx_max], '*', 
-                markersize=15, color='green', markeredgecolor='darkgreen',
-                markeredgewidth=2)
-        
-        plt.xlabel('Time (s)', fontsize=12)
-        plt.ylabel('Acceleration (m/s²)', fontsize=12)
-        plt.title(f'Synthetic Earthquake Ground Motion (PGA={PGA:.2f} m/s²)', 
-                 fontsize=13, fontweight='bold')
-        plt.legend(loc='upper right', fontsize=10)
-        plt.grid(True, alpha=0.3)
-        plt.xlim([0, T_plot])
-        plt.tight_layout()
-        
-        # Figure 2: Three-panel plot
-        plt.figure(fig_num, figsize=(12, 10))
+
+        # Figure 1: Three-panel plot
+        plt.figure(fig_num, figsize=(10, 8))
         plt.clf()
         
         plt.subplot(311)
@@ -305,12 +285,16 @@ def eqgm_1d(PGA=3.5, fg=1.5, zg=0.9, aa=4.0, ta=2.0, t=None, fig_num=0, seed=Non
         plt.plot(t[idx_plot], -Amax * envlp[idx_plot], '-r', linewidth=1.5, alpha=0.7)
         plt.plot(t[idx_plot], accel.flatten()[idx_plot], '-b', linewidth=1)
         plt.ylabel('Accel (m/s²)', fontsize=11)
+        ticks = plt.xticks()[0]              # Get current x-axis ticks
+        plt.xticks(ticks, [""] * len(ticks)) # Set x-axis tick labels to empty strings
         plt.grid(True, alpha=0.3)
         plt.xlim([0, T_plot])
         
         plt.subplot(312)
         plt.plot(t[idx_plot], veloc.flatten()[idx_plot], '-b', linewidth=1)
         plt.ylabel('Veloc (m/s)', fontsize=11)
+        ticks = plt.xticks()[0]              # Get current x-axis ticks
+        plt.xticks(ticks, [""] * len(ticks)) # Set x-axis tick labels to empty strings
         plt.grid(True, alpha=0.3)
         plt.xlim([0, T_plot])
         
@@ -320,9 +304,46 @@ def eqgm_1d(PGA=3.5, fg=1.5, zg=0.9, aa=4.0, ta=2.0, t=None, fig_num=0, seed=Non
         plt.xlabel('Time (s)', fontsize=11)
         plt.grid(True, alpha=0.3)
         plt.xlim([0, T_plot])
-        
         plt.tight_layout()
+
+        # Figure 2: Envelope visualization
+        plt.figure(fig_num + 1, figsize=(12, 4))
+        plt.clf()
         
+        idx_max = np.argmax(np.abs(accel))
+        
+        plt.plot(t, accel.flatten(), 'b-', linewidth=1.5, label='Acceleration')
+        plt.plot(t,  envlp * RMSa, 'r-', linewidth=2, alpha=0.7, label='RMS envelope')
+        plt.plot(t, -envlp * RMSa, 'r-', linewidth=2, alpha=0.7)
+        
+        plt.axhline( RMSa, color='k', linestyle='--', linewidth=1, label='RMS')
+        plt.axhline(-RMSa, color='k', linestyle='--', linewidth=1)
+        plt.axhline( PGA,  color='g', linestyle='--', linewidth=1.5, label='PGA')
+        plt.axhline(-PGA,  color='g', linestyle='--', linewidth=1.5)
+        
+        plt.plot(t[idx_max], accel.flatten()[idx_max], '*', 
+                markersize=15, color='darkgreen', markeredgecolor='darkgreen',
+                markeredgewidth=2)
+        
+        plt.xlabel('Time (s)', fontsize=12)
+        plt.ylabel('Acceleration (m/s²)', fontsize=12)
+        plt.title(f'Synthetic Earthquake Ground Motion (PGA={PGA:.2f} m/s²)', 
+                 fontsize=13, fontweight='bold')
+        plt.grid(True, alpha=0.3)
+        plt.xlim([0, T_plot])
+
+        plt.text(0.85 * T_plot,  0.8 * RMSa, '+ RMS accel')
+        plt.text(0.85 * T_plot, -0.8 * RMSa, '- RMS accel')
+        plt.text(0.85 * T_plot,  0.9 * PGA,  '+ PGA', color='darkgreen')
+        plt.text(0.85 * T_plot, -0.9 * PGA,  '- PGA', color='darkgreen')
+        plt.text(0.85 * T_plot,  0.6 * RMSa, f'{RMSa:5.3f}')
+        plt.text(0.85 * T_plot,  0.8 * PGA,  f'{PGA:5.3f}', color='darkgreen')
+        plt.text(1.1 * t[idx_max], accel[idx_max], 'peak acceleration', color='darkgreen')
+
+        plt.xlabel('time, s')
+        plt.ylabel('ground acceleration')
+        plt.tight_layout()
+
         # Print summary
         print('\n' + '='*60)
         print('Synthetic Earthquake Ground Motion Summary')
@@ -335,6 +356,9 @@ def eqgm_1d(PGA=3.5, fg=1.5, zg=0.9, aa=4.0, ta=2.0, t=None, fig_num=0, seed=Non
         print(f'Envelope rise parameter:   {aa:.2f}')
         print(f'Envelope decay time:       {ta:.2f} s')
         print(f'Peak-to-RMS ratio:         {P2R:.3f}')
+        print(f'Target RMS accel:          {RMSa:.4f} m/s²')
+        print(f'Steady RMS accel:          {RMSa_check:.4f} m/s²')
+
         print('='*60 + '\n')
     
     return accel, veloc, displ, scale, Ag, Bg, Cg
@@ -351,24 +375,24 @@ if __name__ == '__main__':
     print("Testing eqgm_1d.py - Synthetic Earthquake Ground Motion")
     print("="*70)
     
+    t_long = np.arange(5000) * 0.01  # 50 seconds
+
     # Test 1: Far-field ground motion (ATC-63-FF)
     print("\nTest 1: Far-Field Ground Motion (ATC-63-FF)")
     print("-" * 70)
     
     accel, veloc, displ, scale, Ag, Bg, Cg = eqgm_1d(
         PGA=3.5, fg=1.5, zg=0.9, aa=4.0, ta=2.0,
-        fig_num=1, seed=42
+        t=t_long, fig_num=10, seed=42
     )
     
     # Test 2: Near-field pulse (ATC-63-NFP)
     print("\nTest 2: Near-Field Pulse Ground Motion (ATC-63-NFP)")
     print("-" * 70)
     
-    t_long = np.arange(5000) * 0.01  # 50 seconds
-    
     accel2, veloc2, displ2, _, _, _, _ = eqgm_1d(
         PGA=4.7, fg=0.5, zg=1.8, aa=1.0, ta=2.0,
-        t=t_long, fig_num=3, seed=123
+        t=t_long, fig_num=20, seed=123
     )
     
     plt.show()

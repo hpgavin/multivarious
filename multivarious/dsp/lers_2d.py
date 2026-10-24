@@ -1,4 +1,5 @@
 #! /usr/bin/env -S python3 -i
+
 """
 Linear Elastic Response Spectrum calculation for 2D ground motion.
 

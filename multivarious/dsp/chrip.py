@@ -1,3 +1,5 @@
+#! /usr/bin/env -S python3 -i
+
 """
 chrip.py - Generate frequency-swept signals for structural testing
 
