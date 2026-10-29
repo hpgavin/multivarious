@@ -2,6 +2,7 @@
 
 import numpy as np
 from collections import namedtuple
+from rich.traceback import install; install()
 
 from multivarious.rvs import exponential, normal, rayleigh 
 from multivarious.utl import plot_ECDF_ci
@@ -22,7 +23,7 @@ combined_data = weight * normal_data + (1-weight ) *rayleigh_data
 plot_ECDF_ci( combined_data, 99, 201, 'combined data', False )
 
 # Fit distributions to the combined data ====================================
-coeffs, criteria, tabular_output = distributions(combined_data)
+coeffs, criteria, tabular_output = distributions(combined_data, top_models=4)
 
 # Print the tabular output ==================================================
 print(tabular_output)
