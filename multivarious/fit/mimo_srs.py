@@ -6,7 +6,7 @@ from multivarious.utl.plot_l1 import plot_l1
 
 def mimo_srs(dataX, dataY, max_order=2, pTrain=70, scaling=1, L1_pnlty=1.0, basis_fctn='H', var_names=None ):
     '''
-    [ ordr, coeff, meanX, meanY, invTX, TY, testModelY, testX, testY ] = mimo_srs( dataX, dataY, max_order, pTrain, scaling, L1_pntly, basis_fctn, var_names=None )
+    [ ordr, coeff, meanX, meanY, invTX, TY, testModelY, testX, testY ] = mimo_srs( dataX, dataY, max_order, pTrain, scaling, L1_pnlty, basis_fctn, var_names=None )
     
     mimo_srs: multi-input multi-output response surface 
     

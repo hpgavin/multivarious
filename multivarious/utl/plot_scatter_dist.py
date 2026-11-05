@@ -231,7 +231,7 @@ def plot_scatter_dist(dataX, dataY=None, fig_num=100, var_names=None,
     return fig
 
 
-def main():
+if __name__ == '__main__':
     '''
     Test all three calling modes:
       1. Both dataX and dataY provided  (full XY layout)
@@ -267,5 +267,3 @@ def main():
     input("  Press Enter to Exit ...")
 
 
-if __name__ == '__main__':
-    main()

@@ -1,23 +1,41 @@
-"""Open an optimization analysis history file and write its headers."""
-
-# After each analysis, write one row of numerical values.
-#    row = np.concatenate((c._v, c._r, [f], g))
-#    np.savetxt(history_file, row.reshape(1, -1), delimiter=",", fmt="%.17g")
+""" Open an optimization analysis history .csv file and write its headers. """
 
 from datetime import datetime
 
 def opt_open_history(L, M, N):
-    """Return an open history file with timestamp and column headers.
+    """
+    Return an open history file with timestamp and column headers.
 
-    now is a datetime object; L, M, and n are the numbers of random
-    variables, design constraints, and design variables.
-    The caller appends numerical rows and closes the returned file.
-    The filename contains a colon and is intended for Linux or macOS.
-    Read the completed file with:
-        np.loadtxt(filename, delimiter=",", ndmin=2)
+    history_file, filename = opt_open_history(L, M, N):
+
+    Input
+    =====
+    L : the number of random variables, r
+    M : the number of design constraints, g
+    N : the number of design variables, f
+
+    Output
+    ======
+    history_file : the open file object 
+    filename : the file name as analysis_record-YYYYMMDD-HHMMSS.csv
+
+    Append numerical rows ...
+
+        vrfg = np.concatenate((c._v, c._r, [f], g))
+        np.savetxt(c._history_file, vrfg.reshape(1, -1), delimiter=",", fmt="%.17g")
+        c._history_file.flush() 
+
+    ... and close the returned file ...
+
+        if c._history_file is not None:
+            c._history_file.close()
+            c._history_file = None
+
+    ... read the completed file  ...
+        data = np.loadtxt(filename, delimiter=",", ndmin=2)
     """
     now = datetime.now()
-    filename = now.strftime("analysis_file_%Y%m%d-%H%M%S.csv")
+    filename = now.strftime("analysis_record_%Y%m%d-%H%M%S.csv")
     history_file = open(filename, "w", encoding="utf-8")
 
     try:
@@ -36,4 +54,4 @@ def opt_open_history(L, M, N):
         history_file.close()
         raise
 
-    return history_file
+    return history_file, filename
