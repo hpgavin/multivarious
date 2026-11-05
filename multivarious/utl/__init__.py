@@ -21,6 +21,7 @@ from .correlation_analysis import correlation_analysis
 from .format_bank import format_bank
 from .format_plot import format_plot
 from .opt_hyp import opt_hyp
+from .opt_open_history import opt_open_history 
 from .opt_report import opt_report
 from .plot_ECDF_ci import plot_ECDF_ci
 from .plot_cvg_hst import plot_cvg_hst
@@ -39,6 +40,7 @@ __all__ = [ "avg_cov_func",
             "format_bank", 
             "format_plot", 
             "opt_hyp", 
+            "opt_open_history", 
             "opt_report", 
             "plot_ECDF_ci", 
             "plot_cvg_hst", 
