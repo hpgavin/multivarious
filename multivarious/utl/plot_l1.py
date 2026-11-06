@@ -9,7 +9,7 @@ Translation from MATLAB by Claude, 2025-10-24
 import numpy as np
 import matplotlib.pyplot as plt
 
-def plot_l1(B, c, y, cvg_hst, alfa, w, fig_num=1, save_plots=False):
+def plot_l1(B, c, y, cvg_hst, alfa, w, fig_num=1, save_plots=False, var_name=None):
     """
     Plot results from L1 regularization fit.
     
@@ -18,8 +18,8 @@ def plot_l1(B, c, y, cvg_hst, alfa, w, fig_num=1, save_plots=False):
     2. Data fit comparison
     3. Convergence history
     
-    Parameters
-    ----------
+    Input
+    ======
     B : ndarray, shape (m, n)
         Basis matrix (design matrix)
     c : ndarray, shape (n,)
@@ -36,9 +36,10 @@ def plot_l1(B, c, y, cvg_hst, alfa, w, fig_num=1, save_plots=False):
         Starting figure number (default: 1)
     save_plots : boolean, optional (default: False)
         Save figures 
+    var_name : character string for the output variable
     
-    Returns
-    -------
+    Output
+    ======
     None
         Displays matplotlib figures
     """
@@ -75,6 +76,7 @@ def plot_l1(B, c, y, cvg_hst, alfa, w, fig_num=1, save_plots=False):
     print(c)
     print("="*70 + "\n")
     
+    vn = var_name or ''
     # Figure 1: Coefficient Comparison
     plt.figure(fig_num, figsize=(10, 6))
     plt.clf()
@@ -85,7 +87,7 @@ def plot_l1(B, c, y, cvg_hst, alfa, w, fig_num=1, save_plots=False):
     plt.axhline(0, color='k', linestyle='--', linewidth=1)
     plt.xlabel(r'Coefficient index, $i$')
     plt.ylabel(r'Coefficients, $c_i$')
-    plt.title(r'Coefficient Comparison: OLS vs $L_1$')
+    plt.title(rf'{vn}  Coefficient Comparison: OLS vs $L_1$')
     plt.legend()
     plt.grid(True, alpha=0.3)
     plt.tight_layout()
@@ -100,7 +102,7 @@ def plot_l1(B, c, y, cvg_hst, alfa, w, fig_num=1, save_plots=False):
     plt.plot(t, y1, 'o', color=[0, 0.8, 0], label=f'α = {alfa:.5f}, w = {w:.0f}')
     plt.xlabel(rf'Data index, $i$')
     plt.ylabel(rf'$y_i$')
-    plt.title('Model Fit Comparison')
+    plt.title(rf'{vn} $L_1$ Model Fit Comparison')
     plt.legend()
     plt.grid(True, alpha=0.3)
     plt.tight_layout()
@@ -120,7 +122,7 @@ def plot_l1(B, c, y, cvg_hst, alfa, w, fig_num=1, save_plots=False):
         plt.ylabel(y_labels[ii])
         plt.grid(True, alpha=0.3)
         if ii == 0:
-            plt.title('Convergence History')
+            plt.title(rf'{vn} $L_1$ Convergence History')
     
     # Last subplot: alfa and error
     plt.subplot(6, 1, 6)

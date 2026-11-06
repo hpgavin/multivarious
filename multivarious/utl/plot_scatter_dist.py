@@ -137,7 +137,7 @@ def plot_scatter_dist(dataX, dataY=None, fig_num=100, var_names=None,
     nTotal, m = data.shape
 
     # Variable names
-    vn     = var_names or {}
+    vn = var_names or {}  # set vn to var_names if it is not None, else {}
     if dataX is not None:
         xNames = vn.get('X', [rf"$x_{{{i+1}}}$" for i in range(nInp)])
     else:

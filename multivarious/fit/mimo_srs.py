@@ -41,7 +41,6 @@ def mimo_srs(dataX, dataY, max_order=2, pTrain=70, scaling=1, L1_pnlty=1.0, basi
     var_names   optional dictionary with keys 'X' and 'Y' containing
                 lists of variable names for labeling                       None
     
-    
     OUTPUT      DESCRIPTION
     --------    --------------------------------------------------------
      ordr       list of matrices of the orders of variables in each polynomial term 
@@ -63,6 +62,7 @@ def mimo_srs(dataX, dataY, max_order=2, pTrain=70, scaling=1, L1_pnlty=1.0, basi
     Duke University
     Siu Chung Yau, Henri P. Gavin, January 2006, 2023
     '''
+
 
     print('\n Multi-Input Multi-Output Response Surface (mimo_srs)\n')
 
@@ -103,7 +103,7 @@ def mimo_srs(dataX, dataY, max_order=2, pTrain=70, scaling=1, L1_pnlty=1.0, basi
     else:
         mData = min(mDataX,mDataY)
 
-    plot_scatter_dist(dataX, dataY, fig_num=100, var_names = var_names, ci=0.90 )
+    plot_scatter_dist(dataX, dataY, fig_num=100, var_names = var_names, ci=0.90)
 
     # scale data matrices for X (explanatory) and Y (dependent) variables
     # separately since using the covariance between X and Y in the model
@@ -177,20 +177,24 @@ def mimo_srs(dataX, dataY, max_order=2, pTrain=70, scaling=1, L1_pnlty=1.0, basi
     #start_time = time.time()
     
     # fit ("train") a separate model for each output (dependent) variable
-    coeff, condB = fit_model(trainZx, trainZy, ordr, nTerm, mTrain, L1_pnlty, basis_fctn)
+    coeff, condB = fit_model(trainZx, trainZy, ordr, 
+                                          nTerm, mTrain, L1_pnlty, basis_fctn)
         
     # compute the model for the training data and the testing data
-    trainModelY, B = compute_model(ordr, coeff, meanX, meanY, invTX, TY, trainX, scaling, basis_fctn)
-    testModelY, _  = compute_model(ordr, coeff, meanX, meanY, invTX, TY, testX,  scaling, basis_fctn)
+    trainModelY, B = compute_model(ordr, coeff, meanX, meanY, invTX, TY,
+                                                  trainX, scaling, basis_fctn)
+    testModelY, _  = compute_model(ordr, coeff, meanX, meanY, invTX, TY,
+                                                   testX, scaling, basis_fctn)
 
     # evaluate the model for the training data and the testing data
     trainMDcorr, coeffCOV, _, _ = evaluate_model(B, coeff, trainY, trainModelY)
     testMDcorr, _, R2adj, AIC   = evaluate_model(B, coeff,  testY,  testModelY) 
         
-    print_model_stats(coeff, ordr, coeffCOV, testMDcorr, R2adj, AIC, scaling, scaling_names)
+    print_model_stats(coeff, ordr, coeffCOV, testMDcorr, R2adj, AIC,
+                                            scaling, scaling_names, var_names)
         
-    visualize_model_performance(trainY, trainModelY, 'training')
-    visualize_model_performance( testY,  testModelY, 'testing')
+    visualize_model_performance(trainY, trainModelY, 'training', var_names)
+    visualize_model_performance( testY,  testModelY, 'testing', var_names)
     
     return ordr, coeff, meanX, meanY, invTX, TY, testX, testY, testModelY
 
@@ -221,6 +225,7 @@ def scale_data(Data, scaling):
     minZ        minimum value of each data sample                     1 x n
     '''
     
+
     n, m = Data.shape  # m observations of n variables
     
     T    = np.eye(n)
@@ -301,6 +306,8 @@ def descale_data(Z, meanD, T, scaling ):
     --------    ---------------------------------------------------   ---------
     Data        a matrix of data values                               n x m
     '''
+
+
     n, m = Z.shape  # m observations of n variables
 
     # print(f' descale shape  Z = {Z.shape}')
@@ -337,6 +344,7 @@ def clip_data(Data, low_limit, high_limit):
      Data       matrix of data without values exceeding given limits    n x m'
     '''
         
+
     mData = Data.shape[1]
 
     Chauvenet_criterion = 0.8 + 0.4*np.log(mData)  # an approximation
@@ -380,6 +388,7 @@ def split_data(dataX, dataY, pTrain):
      testY      matrix of output data for testing                     ny x mTest
      mTest      number of observations in the testing set              1 x 1
     '''
+
     
     nInp, mData = dataX.shape   # number of columns in dataX is mData
     
@@ -427,6 +436,7 @@ def mixed_term_orders( max_order, nZx ):
     Algorithm by Siu Chung Yau (2006)
     '''
     
+
     print(f'\nDetermine the Mixed Term Power Products ...')
     
     nTerm = int(np.prod(max_order * np.ones(nZx, dtype=int)+1))
@@ -483,6 +493,7 @@ def build_model_basis(Zx, ordr, basis_fctn='H'):
       B         matrix basis vectors for the polynomial model       mData x nTerm
     '''
 
+
     mData = Zx.shape[1]             # number of data points
     nTerm, nZx = ordr.shape       # number of terms, inputs, outputs 
     B = np.ones((mData, nTerm))     # the matrix of model basis vectors 
@@ -522,6 +533,7 @@ def polynomial_product(ordr, Zx, max_order, basis_fctn='H'):
     psyProduct  vector of product of hermite polynomials             mData x 1
     '''
     
+
     nZx  = len(ordr) # number of independent input (explanatory) variables
     psyProduct = np.ones(Zx.shape[0])  # initialize to vector of 1
 
@@ -557,6 +569,7 @@ def hermite(n, z, N):
     --------    ---------------------------------------------------   ---------
      psy        a hermite function of specified order at given values 1 x mData
     '''
+
     
     pi4 = np.pi**(0.25)
     ez2 = np.exp(-0.5 * z**2)
@@ -609,6 +622,7 @@ def legendre(n, z):
      psy        a legendre polynomial of given order at given values  1 x mData
     '''
 
+
     z = np.asarray(z)
 
     if n == 0:
@@ -654,13 +668,13 @@ def fit_model(Zx, Zy, ordr, nTerm, mData, L1_pnlty, basis_fctn):
      mData      number of data points (not used, kept for compatibility) 1 x 1
      L1_pnlty   L1 regularization coefficient                            1 x 1
      basis_fctn 'H': Hermite, 'L': Legendre, 'P': Power polynomial
-
     
     OUTPUT      DESCRIPTION                                           DIMENSION
     --------    ---------------------------------------------------   ---------
      coeff      vector of model coefficients                           nTerm x 1  
      condB      condition number of the model basis                     1 x 1
     '''
+
     
     #print(f'Zy dim = {Zy.shape}')
     nZy = Zy.shape[0]
@@ -685,7 +699,6 @@ def fit_model(Zx, Zy, ordr, nTerm, mData, L1_pnlty, basis_fctn):
     elif condB < 1e2:
         print(f'  ... looking good! \n\n')
 
-
     if L1_pnlty > 0:
         # Use l1 for regularization
 
@@ -696,7 +709,10 @@ def fit_model(Zx, Zy, ordr, nTerm, mData, L1_pnlty, basis_fctn):
             coeff[:,io], mu, nu, cvg_hst = l1(B, Zy_col, L1_pnlty, w=0)
 
             # Optional: plot L1 convergence
-            plot_l1(B, coeff[:,io], Zy_col, cvg_hst, L1_pnlty, 0, fig_num=700+10*io)
+ 
+            txt = f'$Z_y$ #{io}: '
+            plot_l1(B, coeff[:,io], Zy_col, cvg_hst, L1_pnlty, 0,
+                            fig_num=700+10*io, save_plots=False, var_name=txt)
 
     else:
         # Use ordinary least squares / SVD
@@ -727,6 +743,7 @@ def compute_model(ordr, coeff, meanX, meanY, invTX, TY, dataX, scaling, basis_fc
     modelY      computed model                                        nOut x mData
      B          list of basis vector matrices of the computed model  {mData x nTerm}
     '''
+
     
     nInp, mData = dataX.shape        # number of columns in dataX is mData
     nOut = len(meanY)                # number of output variables
@@ -781,6 +798,7 @@ def evaluate_model(B, coeff, dataY, modelY):
     R2adj       adjusted R-squared for each model                      1 x nOut
     AIC         Akaike information criterion for each model            1 x nOut
     '''
+
     
     nTerm = B.shape[1]
     nOut, mData = dataY.shape
@@ -826,16 +844,18 @@ def evaluate_model(B, coeff, dataY, modelY):
     return MDcorr, coeffCOV, R2adj, AIC
 
 
-def visualize_model_performance(dataY, modelY,  txt):
+def visualize_model_performance(dataY, modelY,  txt, var_names):
     '''
     Create visualization of model performance
 
-    INPUT       DESCRIPTION                                           DIMENSION
-    --------    ---------------------------------------------------   ---------
-     dataY      output (dependent) data                               nOut x mData
-     modelY     model predictions                                     nOut x mData
+    INPUT       DESCRIPTION                                      DIMENSION
+    --------    ----------------------------------------------   ---------
+     dataY      output (dependent) data                          nOut x mData
+     modelY     model predictions                                nOut x mData
        txt      annotation text
+     var_names  names for input var's (X) and output var's (Y)   dictionary
     '''
+
 
     nOut = dataY.shape[0]
     
@@ -844,6 +864,11 @@ def visualize_model_performance(dataY, modelY,  txt):
     if nOut == 1:
         axes = [axes]
     
+    # if var_names is None, set vn to {}, else var_names
+    vn = var_names or {} 
+    # if vn is {} generate "Output {io}" labels, otherwises use vn Y  dictionary
+    out_names = vn.get('Y', [f"Output {i+1}" for i in range(nOut)])
+
     for io in range(nOut):
         ax = axes[io]
         
@@ -861,7 +886,7 @@ def visualize_model_performance(dataY, modelY,  txt):
         
         ax.set_xlabel(f'{txt} output data', fontsize=12)
         ax.set_ylabel(f'{txt} model output', fontsize=12)
-        ax.set_title(f'Output {io+1}:  correlation: {corr:.3f}', fontsize=14)
+        ax.set_title(rf'{out_names[io]}: correlation: {corr:.3f}', fontsize=14)
         ax.grid(True, alpha=0.3)
         ax.set_aspect('equal', adjustable='box')
     
@@ -875,9 +900,9 @@ def visualize_model_performance(dataY, modelY,  txt):
     return
 
 
-def print_model_stats(coeff, order, coeffCOV, MDcorr, R2adj, AIC, scaling, scaling_names ):
+def print_model_stats(coeff, order, coeffCOV, MDcorr, R2adj, AIC, scaling, scaling_names, var_names):
     '''
-    print_model_stats( coeff, order, coeffCOV, MDcorr, R2adj, scaling )
+    print_model_stats(coeff, order, coeffCOV, MDcorr, R2adj, scaling, var_names)
     Print model statistics 
     
     INPUT       DESCRIPTION                                           DIMENSION
@@ -890,13 +915,18 @@ def print_model_stats(coeff, order, coeffCOV, MDcorr, R2adj, AIC, scaling, scali
     AIC                                                               1 x nOut
     scaling     scale the X data and the Y data before fitting        1 x 2
     scaling_names short description of each scaling type   
+    var_names   variable names for input var's and output var's       dictionary
     '''
+
     
     nTerm, nZx = order.shape
     nOut = coeff.shape[1]
     
+    vn = var_names or {}  # set vn to var_names if it is not None, else {}
+    out_names = vn.get('Y', [f"Output {i+1}" for i in range(nOut)])
+
     for io in range(nOut):
-        print(f'\n  Output {io + 1} ------------------------------------------')
+        print(f'\n  ', out_names[io], ' ------------------------------------ ')
         print('  Response Surface Coefficients')
         
         # Print header

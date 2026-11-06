@@ -127,22 +127,23 @@ To set hyperparameters and plot results of multivarious computations.
 
 | module                | description                                                                    |
 | --------------------- | ------------------------------------------------------------------------------ |
-| **avg_cov_func**      | estimate the value of an uncertain computation to desired precision            |
+| **avg_cov_func**      | estimate the value of an uncertain computation to desired precision   |
 | **box_constraint**    | find *a>0* and *b>0* s.t. max(*u* +/- *(a,b) r*) < 1 and min(*u* +/- *(a,b) r*) > -1 |
 | **correlation_analysis** | correlation analysis for the uncertainty quantification of a design optimization  |
-| **format_bank**       | format a numerical string                                                      |
-| **format_plot**       | set the font size, line width, and marker size                                 |
-| **opt_hyp**           | adjust optimization hyperparameters for ors, nms, and sqp                       |
-| **opt_report**        | provide a summary report for ors, nms, sqp                                     |
+| **format_bank**       | format a numerical string                                             |
+| **format_plot**       | set the font size, line width, and marker size                        |
+| **opt_hyp**           | adjust optimization hyperparameters for ors, nms, and sqp             |
+| **opt_open_history**  | open a .csv file to save each analysis result of f,g = analysis(v,c)  |
+| **opt_report**        | provide a summary report for ors, nms, sqp       |
 | **plot_ECDF_ci**      | cumulative distribution function from data and its confidence interval |
 | **plot_scatter_dist** | multivariate scatter plots with distributions and correlation confidence intervals |
-| **plot_ensemble**     | three sets of corresponding ensemble time series                           |
-| **plot_cvg_hist**     | convergence history from ors, nms and sqp                              |
-| **plot_l1**          | results from l1                                                       |
-| **plot_lm**           | converence history and fit statistics from an lm |
-| **plot_opt_surface**  | objective function landscape in any selected 2D slice                  |
-| **plot_spectra**      | three sets of corresponding ensemble spectra or transfer functions         |
-| **StableNamespace**   | a namespace object with a fixed set of mutable attributes  |
+| **plot_ensemble**     | three sets of corresponding ensemble time series  |
+| **plot_cvg_hist**     | convergence history from ors, nms and sqp         |
+| **plot_l1**           | results from l1                                   |
+| **plot_lm**           | converence history and fit statistics from an lm  |
+| **plot_opt_surface**  | objective function landscape in any selected 2D slice  |
+| **plot_spectra**      | three sets of corresponding ensemble spectra or transfer functions  |
+| **StableNamespace**   | a namespace object with a fixed set of mutable attributes |
 
 
 # installation
