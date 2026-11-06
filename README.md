@@ -132,6 +132,7 @@ To set hyperparameters and plot results of multivarious computations.
 | **correlation_analysis** | correlation analysis for the uncertainty quantification of a design optimization  |
 | **format_bank**       | format a numerical string                                             |
 | **format_plot**       | set the font size, line width, and marker size                        |
+| **log_terminal**      | log_open() opens a log file, ltw() writes to the log file and terminal |
 | **opt_hyp**           | adjust optimization hyperparameters for ors, nms, and sqp             |
 | **opt_open_history**  | open a .csv file to save each analysis result of f,g = analysis(v,c)  |
 | **opt_report**        | provide a summary report for ors, nms, sqp       |

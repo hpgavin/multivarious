@@ -6,7 +6,7 @@ def opt_open_history(L, M, N):
     """
     Return an open history file with timestamp and column headers.
 
-    history_file, filename = opt_open_history(L, M, N):
+    history_file, filename = opt_open_history(L, M, N)
 
     Input
     =====

@@ -20,6 +20,7 @@ from .correlated_rvs import correlated_rvs
 from .correlation_analysis import correlation_analysis
 from .format_bank import format_bank
 from .format_plot import format_plot
+from .log_terminal import log_open, ltw
 from .opt_hyp import opt_hyp
 from .opt_open_history import opt_open_history 
 from .opt_report import opt_report

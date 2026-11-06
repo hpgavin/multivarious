@@ -1,14 +1,22 @@
+"""
+mimo_srs - Multi-Input Multi-Output Surrogate Response Surface Model
+"""
+
 import numpy as np
 import matplotlib.pyplot as plt
+
+from datetime import datetime
+
 from multivarious.utl import plot_scatter_dist
 from multivarious.fit.l1 import l1
 from multivarious.utl.plot_l1 import plot_l1
+from multivarious.utl.log_terminal import log_open, ltw
 
 def mimo_srs(dataX, dataY, max_order=2, pTrain=70, scaling=1, L1_pnlty=1.0, basis_fctn='H', var_names=None ):
     '''
     [ ordr, coeff, meanX, meanY, invTX, TY, testModelY, testX, testY ] = mimo_srs( dataX, dataY, max_order, pTrain, scaling, L1_pnlty, basis_fctn, var_names=None )
     
-    mimo_srs: multi-input multi-output response surface 
+    mimo_srs: multi-input multi-output surrogate response surface model
     
     This program fits a polynomial to multidimensional data 
     by projecting the data onto a polynomial basis of oder up to 10 (or more)
@@ -29,9 +37,9 @@ def mimo_srs(dataX, dataY, max_order=2, pTrain=70, scaling=1, L1_pnlty=1.0, basi
     pTrain      percentage of data for training (remaining for testing)    50
     scaling     scale the X data and the Y data before fitting             [1,1] 
                 scaling = 0 : no scaling
-                scaling = 1 : subtract mean and divide by std.dev
+                scaling = 1 : subtract mean and divide by sdvn
                 scaling = 2 : subtract mean and decorrelate
-                scaling = 3 : log-transform, subtract mean and divide by std.dev
+                scaling = 3 : log-transform, subtract mean and divide by sdvn
                 scaling = 4 : log-transform, subtract mean and decorrelate
     L1_pnlty    penalty coefficient for L1 regularization                   1.0
     basis_fctn  basis function type                                         'H'
@@ -64,7 +72,9 @@ def mimo_srs(dataX, dataY, max_order=2, pTrain=70, scaling=1, L1_pnlty=1.0, basi
     '''
 
 
-    print('\n Multi-Input Multi-Output Response Surface (mimo_srs)\n')
+    lfo, log_filename = log_open('mimo_srs')
+
+    ltw(lfo,'\n Multi-Input Multi-Output Surrogate Response Surface Model (mimo_srs)\n')
 
     # Handle default arguments and convert to appropriate types
     max_order = int(round(abs(max_order)))
@@ -75,28 +85,28 @@ def mimo_srs(dataX, dataY, max_order=2, pTrain=70, scaling=1, L1_pnlty=1.0, basi
 
     scaling_names = {
          0: "no scaling",
-         1: "standardization (mean=0, std=1)",
+         1: "standardization (mean=0, sdvn=1)",
          2: "decorrelation", 
          3: "log transform and standardization", 
          4: "log transform and decorrelation" }
    
     if not np.isfinite(dataX).all():
-        print(' mimo_srs: dataX has infinite or NaN values\n\n')
+        ltw(lfo,' mimo_srs: dataX has infinite or NaN values\n\n')
         exit(100)
 
     if not np.isfinite(dataY).all():
-        print(' mimo_srs: dataY has infinite or NaN values\n\n')
+        ltw(lfo,' mimo_srs: dataY has infinite or NaN values\n\n')
         exit(100)
 
     nInp, mDataX = dataX.shape   # number of columns in dataX is mData
     nOut, mDataY = dataY.shape   # number of columns in dataY is mData
 
-    print(f'   {min(mDataX, mDataY):6d} data values\n') 
+    ltw(lfo,f'   {min(mDataX, mDataY):6d} data values\n') 
 
-    print(f' {np.min(dataX):11.6f} < X < {np.max(dataX):11.6f} ')
-    print(f' {np.min(dataY):11.6f} < Y < {np.max(dataY):11.6f} \n')
-    print(f'    X scaling option {scaling[0]}: {scaling_names[scaling[0]]} ')
-    print(f'    Y scaling option {scaling[1]}: {scaling_names[scaling[1]]} \n')
+    ltw(lfo,f' {np.min(dataX):11.6f} < X < {np.max(dataX):11.6f} ')
+    ltw(lfo,f' {np.min(dataY):11.6f} < Y < {np.max(dataY):11.6f} \n')
+    ltw(lfo,f'    X scaling option {scaling[0]}: {scaling_names[scaling[0]]} ')
+    ltw(lfo,f'    Y scaling option {scaling[1]}: {scaling_names[scaling[1]]} \n')
 
     if mDataX != mDataY:
         raise ValueError('the dataX and dataY matrices must have the same number of columns')
@@ -106,52 +116,52 @@ def mimo_srs(dataX, dataY, max_order=2, pTrain=70, scaling=1, L1_pnlty=1.0, basi
     fig = plot_scatter_dist(dataX, dataY, fig_num=100, var_names = var_names, ci=0.90)
 
     plt.savefig(f'mimo_srs-scatter-1.pdf', bbox_inches='tight')
-    print(f"Scatter plot saved to 'mimo_srs-scatter-1.pdf'")
+    ltw(lfo,f"Scatter plot saved to 'mimo_srs-scatter-1.pdf'")
 
     # scale data matrices for X (explanatory) and Y (dependent) variables
     # separately since using the covariance between X and Y in the model
     # is "cheating"
-    Zx, meanX, TX, invTX, RX, minZx, maxZx = scale_data(dataX, scaling[0])
-    Zy, meanY, TY, invTY, RY, minZy, maxZy = scale_data(dataY, scaling[1])
+    Zx, meanX, TX, invTX, RX, minZx, maxZx = scale_data(dataX, scaling[0], lfo)
+    Zy, meanY, TY, invTY, RY, minZy, maxZy = scale_data(dataY, scaling[1], lfo)
     
-    # print(f'  {minZx:.6f} < Zx < {maxZx:.6f}')
-    # print(f'  {minZy:.6f} < Zy < {maxZy:.6f}')
-    # print(f' shape Zx = {Zx.shape}')
-    # print(f' shape Zy = {Zy.shape}')
+    # ltw(lfo,f'  {minZx:.6f} < Zx < {maxZx:.6f}')
+    # ltw(lfo,f'  {minZy:.6f} < Zy < {maxZy:.6f}')
+    # ltw(lfo,f' shape Zx = {Zx.shape}')
+    # ltw(lfo,f' shape Zy = {Zy.shape}')
 
     nZx = TX.shape[1]
     nZy = TY.shape[1]
 
     XY = np.vstack([Zx , Zy])
-    # print(f' 1 shape XY = {XY.shape}')
+    # ltw(lfo,f' 1 shape XY = {XY.shape}')
 
     # remove columns of  Zx and Zy containing outliers
-    XY = clip_data( XY, -1e0 , 1e0 ) 
+    XY = clip_data( XY, -1e0, 1e0, lfo ) 
 
-    # print(f' 2 shape XY = {XY.shape}')
+    # ltw(lfo,f' 2 shape XY = {XY.shape}')
 
     mData = XY.shape[1]
     Zx = XY[:nZx, :]
     Zy = XY[nZx:nZx+nZy, :]
 
-    # print(f' shape Zx = {Zx.shape}')
-    # print(f' shape Zy = {Zy.shape}')
+    # ltw(lfo,f' shape Zx = {Zx.shape}')
+    # ltw(lfo,f' shape Zy = {Zy.shape}')
 
     # re-scale the data ??
     '''
-    dataX = descale_data(Zx, meanX, TX, scaling[0])
-    dataY = descale_data(Zy, meanY, TY, scaling[1])
-    Zx, meanX, TX, invTX, RX, minZx, maxZx = scale_data(dataX, scaling[0])
-    Zy, meanY, TY, invTY, RY, minZy, maxZy = scale_data(dataY, scaling[1])
+    dataX = descale_data(Zx, meanX, TX, scaling[0], lfo)
+    dataY = descale_data(Zy, meanY, TY, scaling[1], lfo)
+    Zx, meanX, TX, invTX, RX, minZx, maxZx = scale_data(dataX, scaling[0], lfo)
+    Zy, meanY, TY, invTY, RY, minZy, maxZy = scale_data(dataY, scaling[1], lfo)
     '''
 
-    print(f'   {Zy.shape[1]:6d} data values\n') 
-    print(f'  {minZx:.6f} < Zx < {maxZx:.6f}')
-    print(f'  {minZy:.6f} < Zy < {maxZy:.6f}')
-    print(f'\n  dataX correlation matrix  ')
-    print(np.round(RX,2))
-    print(f'\n  dataY correlation matrix  ')
-    print(np.round(RY,2))
+    ltw(lfo,f'   {Zy.shape[1]:6d} data values\n') 
+    ltw(lfo,f'  {minZx:.6f} < Zx < {maxZx:.6f}')
+    ltw(lfo,f'  {minZy:.6f} < Zy < {maxZy:.6f}')
+    ltw(lfo,f'\n  dataX correlation matrix  ')
+    ltw(lfo, np.array2string(np.round(RX,2), separator='  ', max_line_width=160))
+    ltw(lfo,f'\n  dataY correlation matrix  ')
+    ltw(lfo, np.array2string(np.round(RY,2), separator='  ', max_line_width=160))
 
     if np.any(scaling == 2) or np.any(scaling == 4):
 
@@ -166,12 +176,12 @@ def mimo_srs(dataX, dataY, max_order=2, pTrain=70, scaling=1, L1_pnlty=1.0, basi
 
     trainZx, trainZy, mTrain, testZx, testZy, mTest = split_data(Zx, Zy, pTrain)
 
-    trainX = descale_data(trainZx, meanX, TX, scaling[0])
-    trainY = descale_data(trainZy, meanY, TY, scaling[1])
-    testX  = descale_data( testZx, meanX, TX, scaling[0])
-    testY  = descale_data( testZy, meanY, TY, scaling[1])
+    trainX = descale_data(trainZx, meanX, TX, scaling[0], lfo)
+    trainY = descale_data(trainZy, meanY, TY, scaling[1], lfo)
+    testX  = descale_data( testZx, meanX, TX, scaling[0], lfo)
+    testY  = descale_data( testZy, meanY, TY, scaling[1], lfo)
     
-    ordr, nTerm = mixed_term_orders(max_order, nZx)
+    ordr, nTerm = mixed_term_orders(max_order, nZx, lfo)
 
     trainMDcorr = np.full((nOut, 1), np.nan)
     testMDcorr  = np.full((nOut, 1), np.nan)
@@ -181,7 +191,7 @@ def mimo_srs(dataX, dataY, max_order=2, pTrain=70, scaling=1, L1_pnlty=1.0, basi
     
     # fit ("train") a separate model for each output (dependent) variable
     coeff, condB = fit_model(trainZx, trainZy, ordr, 
-                                          nTerm, mTrain, L1_pnlty, basis_fctn)
+                                      nTerm, mTrain, L1_pnlty, basis_fctn, lfo)
         
     # compute the model for the training data and the testing data
     trainModelY, B = compute_model(ordr, coeff, meanX, meanY, invTX, TY,
@@ -194,17 +204,27 @@ def mimo_srs(dataX, dataY, max_order=2, pTrain=70, scaling=1, L1_pnlty=1.0, basi
     testMDcorr, _, R2adj, AIC   = evaluate_model(B, coeff,  testY,  testModelY) 
         
     print_model_stats(coeff, ordr, coeffCOV, testMDcorr, R2adj, AIC,
-                                            scaling, scaling_names, var_names)
+                                        scaling, scaling_names, var_names, lfo)
         
-    visualize_model_performance(trainY, trainModelY, 'training', var_names)
-    visualize_model_performance( testY,  testModelY, 'testing', var_names)
+    visualize_model_performance(trainY, trainModelY, 'training', var_names,lfo)
+    visualize_model_performance( testY,  testModelY, 'testing', var_names, lfo)
+
     
+    # save the model into a binary .npz file
+    model_npz_filename = \
+      save_model_npz(ordr, coeff, meanX, meanY, invTX, TY, scaling, basis_fctn, lfo)
+
+    ordr, coeff, meanX, meanY, invTX, TY, scaling, basis_fctn = \
+                                        load_model_npz(model_npz_filename)
+
+    lfo.close()  # close the log file object ... lfo
+
     return ordr, coeff, meanX, meanY, invTX, TY, testX, testY, testModelY
 
 
-def scale_data(Data, scaling):
+def scale_data(Data, scaling, lfo):
     '''
-    [ Z, meanD, T, maxZ, minZ ] = scale_data(Data, scaling)
+    [ Z, meanD, T, maxZ, minZ ] = scale_data(Data, scaling, lfo)
      scale data in one of four or five ways ..  Z = inv(T)*(Data - meanD); 
     
     INPUT       DESCRIPTION                                           DIMENSION
@@ -212,10 +232,11 @@ def scale_data(Data, scaling):
     Data        a matrix of data values                               n x m
     scaling     type of scaling ...                                   1 x 1
                  scaling = 0 : no scaling
-                 scaling = 1 : subtract mean and divide by std.dev
+                 scaling = 1 : subtract mean and divide by standard dev'n
                  scaling = 2 : subtract mean and decorrelate
-                 scaling = 3 : log-transform, subtract mean and divide by std.dev
+                 scaling = 3 : log-transform, subtract mean and divide by sdvn
                  scaling = 4 : log-transform, subtract mean and decorrelate
+    lfo          file object for logging text output                    object
     
     OUTPUT      DESCRIPTION                                           DIMENSION
     --------    ---------------------------------------------------   ---------
@@ -237,7 +258,7 @@ def scale_data(Data, scaling):
 
     if scaling in [ 3 , 4 ]:  # log-transform
         if np.any(Data <= 0):
-            print('  mimo_srs: Data has negative values, can not log-transform\n\n')
+            ltw(lfo,'  mimo_srs: Data has negative values, can not log-transform\n\n')
             exit(300)
         Data = np.log(Data);
 
@@ -245,13 +266,13 @@ def scale_data(Data, scaling):
     covData =  np.cov(Data, ddof=1) # data covariance
 
     if not np.isfinite(covData).all():
-        print('  mimo_srs: data covariance has infinite or NaN values \n\n')
+        ltw(lfo,'  mimo_srs: data covariance has infinite or NaN values \n\n')
         exit(200)
 
     if scaling <= 0: # no scaling
         meanD = np.zeros([n,1])
     
-    if scaling == 1 or scaling == 3: # subtract mean and divide by std.dev
+    if scaling == 1 or scaling == 3: # subtract mean and divide by sdvn
         if n > 1:
             T = np.diag(np.sqrt(np.diag(covData)))
             invT = np.diag(np.sqrt(1/np.diag(covData)))
@@ -264,11 +285,11 @@ def scale_data(Data, scaling):
             invT = np.diag(np.sqrt(1.0 / eVal[idx])) @ eVec[:,idx].T
             nCut = np.sum(eVal < 1e-6*max(eVal))
             if nCut > 0:
-                print(f'  eVal ratio = {np.max(eVal)/np.min(eVal)}')
-                print(f'  Basis reduced by {nCut} dimension(s)')
-                print(f'  eVal ratio = {np.max(eVal)/eVal[nCut]}\n')
-                #print(f'eVal = {eVal} , idx = {idx}')
-                #print(f'T = {T} , invT = {invT} ,  I2 = {invT @ T}')
+                ltw(lfo,f'  eVal ratio = {np.max(eVal)/np.min(eVal)}')
+                ltw(lfo,f'  Basis reduced by {nCut} dimension(s)')
+                ltw(lfo,f'  eVal ratio = {np.max(eVal)/eVal[nCut]}\n')
+                #ltw(lfo,f'eVal = {eVal} , idx = {idx}')
+                #ltw(lfo,f'T = {T} , invT = {invT} ,  I2 = {invT @ T}')
     
     # correlation matrix
     if n > 1:
@@ -276,11 +297,11 @@ def scale_data(Data, scaling):
     
     Z = invT @ ( Data - meanD )
 
-    #print(f' shapeZ = {Z.shape}')
-    #print('T')
-    #print(T)
-    #print('invT')
-    #print(invT)
+    #ltw(lfo,f' shapeZ = {Z.shape}')
+    #ltw(lfo,'T')
+    #ltw(lfo,T)
+    #ltw(lfo,'invT')
+    #ltw(lfo,invT)
 
     maxZ = np.max(Z)
     minZ = np.min(Z)
@@ -288,9 +309,9 @@ def scale_data(Data, scaling):
     return Z, meanD, T, invT, R, minZ, maxZ
 
 
-def descale_data(Z, meanD, T, scaling ):
+def descale_data(Z, meanD, T, scaling, lfo):
     '''
-     Data  = scale_data(Z, meanD,  scaling)
+     Data  = descale_data(Z, meanD,  scaling, lfo)
      descale data in one of four or five ways ..  Z = inv(T)*(Data - meanD); 
     
     INPUT       DESCRIPTION                                           DIMENSION
@@ -300,9 +321,9 @@ def descale_data(Z, meanD, T, scaling ):
     T           transformation matrix                                 n x n
     scaling     type of scaling ...                                   1 x 1
                  scaling = 0 : no scaling
-                 scaling = 1 : subtract mean and divide by std.dev
+                 scaling = 1 : subtract mean and divide by sdvn
                  scaling = 2 : subtract mean and decorrelate
-                 scaling = 3 : log-transform, subtract mean and divide by std.dev
+                 scaling = 3 : log-transform, subtract mean and divide by sdvn
                  scaling = 4 : log-transform, subtract mean and decorrelate
     
     OUTPUT      DESCRIPTION                                           DIMENSION
@@ -313,8 +334,8 @@ def descale_data(Z, meanD, T, scaling ):
 
     n, m = Z.shape  # m observations of n variables
 
-    # print(f' descale shape  Z = {Z.shape}')
-    # print(f' descale shape  T = {T.shape}')
+    # ltw(lfo,f' descale shape  Z = {Z.shape}')
+    # ltw(lfo,f' descale shape  T = {T.shape}')
 
     # apply the scaling: Data = T * Z + meanD
     
@@ -330,9 +351,9 @@ def descale_data(Z, meanD, T, scaling ):
     return Data
 
 
-def clip_data(Data, low_limit, high_limit):
+def clip_data(Data, low_limit, high_limit, lfo):
     '''
-     clip_data(Data, low_limit, high_limit)
+     clip_data(Data, low_limit, high_limit, lfo)
      remove outliers from standardized data (zero mean, unit variance)
      using Chauvenet's criterion
     
@@ -341,6 +362,7 @@ def clip_data(Data, low_limit, high_limit):
     Data        matrix of data                                          n x m  
     low_limit   remove values lower  than low_limit *Chauvenet crit     1 x 1
     high_limit  remove values higher than high_limit*Chauvenet crit     1 x 1
+    lfo         file object for logging text output                    object
     
     OUTPUT      DESCRIPTION                                           DIMENSION
     --------    ---------------------------------------------------   ---------
@@ -353,8 +375,8 @@ def clip_data(Data, low_limit, high_limit):
     Chauvenet_criterion = 0.8 + 0.4*np.log(mData)  # an approximation
     idxc = np.where(np.any( np.abs(Data) > Chauvenet_criterion, axis=0 ))[0]
     outliers = idxc.shape[0]
-    print(f'  Chauvenet outlier criterion = {Chauvenet_criterion:.2f}')  
-    print(f'  number of outliers = {outliers} = {100*outliers/mData:.2f} percent of the data')
+    ltw(lfo,f'  Chauvenet outlier criterion = {Chauvenet_criterion:.2f}')  
+    ltw(lfo,f'  number of outliers = {outliers} = {100*outliers/mData:.2f} percent of the data')
 
     if outliers > 0:
         low_limit  =  low_limit * Chauvenet_criterion
@@ -411,17 +433,18 @@ def split_data(dataX, dataY, pTrain):
     return trainX, trainY, mTrain, testX, testY, mTest
 
 
-def mixed_term_orders( max_order, nZx ):
+def mixed_term_orders( max_order, nZx, lfo):
     '''
-    [ ordr , nTerm ] = mixed_term_orders( max_order, nZx )
+    [ ordr , nTerm ] = mixed_term_orders( max_order, nZx, lfo)
     specify the exponents on each input variable for every term in the model,
     and the total number of terms, nTerm
     
     INPUT       DESCRIPTION                                           DIMENSION
     --------    ---------------------------------------------------   ---------
-    max_order    maximum polynomial order of the model                   1 x 1
+    max_order   maximum polynomial order of the model                   1 x 1
     nZx         number of indepenent input  (explanatory) variables     1 x 1
     nZy         number of indepenent output  (dependent)  variables     1 x 1
+    lfo         file object for logging text output                    object
     
     OUTPUT      DESCRIPTION                                           DIMENSION
     --------    ---------------------------------------------------   ---------
@@ -440,11 +463,11 @@ def mixed_term_orders( max_order, nZx ):
     '''
     
 
-    print(f'\nDetermine the Mixed Term Power Products ...')
+    ltw(lfo,f'\nDetermine the Mixed Term Power Products ...')
     
     nTerm = int(np.prod(max_order * np.ones(nZx, dtype=int)+1))
 
-    # print(f'nTerm = {nTerm}')
+    # ltw(lfo,f'nTerm = {nTerm}')
     
     ordr = np.zeros((nTerm, nZx), dtype=int) # allocate memory for the 'order' matrix
     term = np.zeros(nZx + 1, dtype=int)            # orders in a given term (extra element for carry)
@@ -464,17 +487,17 @@ def mixed_term_orders( max_order, nZx ):
     # Remove the terms in which the total order is larger than 
     # the highest order term.
     
-    # print(ordr)
+    # ltw(lfo,ordr)
 
     it = np.where(np.sum(ordr, axis=1) <= max_order)[0]
     ordr = ordr[it, :]
     nTerm = ordr.shape[0]
     
-    # print(f'nTerm = {nTerm}')
-    # print(ordr)
+    # ltw(lfo,f'nTerm = {nTerm}')
+    # ltw(lfo,ordr)
     
-    print(f'  Total Number of Terms: {nTerm:3d}')
-    print(f'  Number of Mixed Terms: {( nTerm - nZx*max_order - 1 ):3d}\n')
+    ltw(lfo,f'  Total Number of Terms: {nTerm:3d}')
+    ltw(lfo,f'  Number of Mixed Terms: {( nTerm - nZx*max_order - 1 ):3d}\n')
     
     return ordr, nTerm
 
@@ -497,9 +520,9 @@ def build_model_basis(Zx, ordr, basis_fctn='H'):
     '''
 
 
-    mData = Zx.shape[1]             # number of data points
+    mData = Zx.shape[1]           # number of data points
     nTerm, nZx = ordr.shape       # number of terms, inputs, outputs 
-    B = np.ones((mData, nTerm))     # the matrix of model basis vectors 
+    B = np.ones((mData, nTerm))   # the matrix of model basis vectors 
 
     max_order = int(np.max(ordr))
 
@@ -656,7 +679,7 @@ def legendre(n, z):
     return psy
 
 
-def fit_model(Zx, Zy, ordr, nTerm, mData, L1_pnlty, basis_fctn):
+def fit_model(Zx, Zy, ordr, nTerm, mData, L1_pnlty, basis_fctn, lfo):
     '''
     [ coeff , condB ] = fit_model( Zx, Zy, ordr, nTerm, mData, L1_pnlty, basis_fctn )
     via singular value decomposition without regularization, or
@@ -664,13 +687,14 @@ def fit_model(Zx, Zy, ordr, nTerm, mData, L1_pnlty, basis_fctn):
     
     INPUT       DESCRIPTION                                           DIMENSION
     --------    ---------------------------------------------------   ---------
-     Zx         scaled input (explanatory) data                      nx x mData
-     Zy         scaled output (dependent) data                        1 x mData
-     ordr       order of each explanatory variable in each term   nTerm x nx
-     nTerm      number of terms in the polynomial model                  1 x 1
-     mData      number of data points (not used, kept for compatibility) 1 x 1
-     L1_pnlty   L1 regularization coefficient                            1 x 1
-     basis_fctn 'H': Hermite, 'L': Legendre, 'P': Power polynomial
+    Zx          scaled input (explanatory) data                      nx x mData
+    Zy          scaled output (dependent) data                        1 x mData
+    ordr        order of each explanatory variable in each term      nTerm x nx
+    nTerm       number of terms in the polynomial model                  1 x 1
+    mData       number of data points (not used, kept for compatibility) 1 x 1
+    L1_pnlty    L1 regularization coefficient                            1 x 1
+    basis_fctn  'H': Hermite, 'L': Legendre, 'P': Power polynomial
+    lfo         file object for logging text output                    object
     
     OUTPUT      DESCRIPTION                                           DIMENSION
     --------    ---------------------------------------------------   ---------
@@ -679,28 +703,28 @@ def fit_model(Zx, Zy, ordr, nTerm, mData, L1_pnlty, basis_fctn):
     '''
 
     
-    #print(f'Zy dim = {Zy.shape}')
+    #ltw(lfo,f'Zy dim = {Zy.shape}')
     nZy = Zy.shape[0]
     coeff = np.zeros([nTerm,nZy])
 
-    print(f'Fit The Model ... with {basis_fctn} polynomials and L1_pnlty = {L1_pnlty}')
+    ltw(lfo,f'Fit The Model ... with {basis_fctn} polynomials and L1_pnlty = {L1_pnlty}')
 
     B = build_model_basis( Zx, ordr, basis_fctn )
 
     condB = np.linalg.cond(B)
 
-    print(f'  Basis matrix condition number = {condB:8.2e}')
+    ltw(lfo,f'  Basis matrix condition number = {condB:8.2e}')
     if condB > 1e20:
-        print(f'  ... is just too much - exiting \n\n')
+        ltw(lfo,f'  ... is just too much - exiting \n\n')
         exit(100)
     elif condB > 1e12:
-        print(f'  ... you are in serious trouble \n\n')
+        ltw(lfo,f'  ... you are in serious trouble \n\n')
     elif condB > 1e6:
-        print(f'  ... you are in trouble \n\n')
+        ltw(lfo,f'  ... you are in trouble \n\n')
     elif condB > 1e2:
-        print(f'  ... it could work \n\n')
+        ltw(lfo,f'  ... it could work \n\n')
     elif condB < 1e2:
-        print(f'  ... looking good! \n\n')
+        ltw(lfo,f'  ... looking good! \n\n')
 
     if L1_pnlty > 0:
         # Use l1 for regularization
@@ -708,7 +732,7 @@ def fit_model(Zx, Zy, ordr, nTerm, mData, L1_pnlty, basis_fctn):
         for io in range(nZy):
             Zy_col = Zy[io,:].T # Zy needs to be column vector for l1
 
-            #print(f'Zy_col_dim = {Zy_col.shape}')
+            #ltw(lfo,f'Zy_col_dim = {Zy_col.shape}')
             coeff[:,io], mu, nu, cvg_hst = l1(B, Zy_col, L1_pnlty, w=0)
 
             # Optional: plot L1 convergence
@@ -761,7 +785,7 @@ def compute_model(ordr, coeff, meanX, meanY, invTX, TY, dataX, scaling, basis_fc
     
     elif scaling[0] in [3, 4]:
         logX = np.log(dataX)
-        dataZx = invTX @ ( logX - meanX )  # standard normal variables
+        dataZx = invTX @ ( logX - meanX )  # Standard normal variables
     
     # Compute model for each output
     B = build_model_basis(dataZx, ordr, basis_fctn)
@@ -840,14 +864,14 @@ def evaluate_model(B, coeff, dataY, modelY):
         
         AIC[io] = np.log(2*np.pi*nc*Vr[io,io]) + nc*Vr[io,io] + 2*nc 
 
-    #print(f'nOut = {nOut}')
-    #print('coeffCOV')
-    #print(coeffCOV)
+    #ltw(lfo,f'nOut = {nOut}')
+    #ltw(lfo,'coeffCOV')
+    #ltw(lfo,coeffCOV)
     
     return MDcorr, coeffCOV, R2adj, AIC
 
 
-def visualize_model_performance(dataY, modelY,  txt, var_names):
+def visualize_model_performance(dataY, modelY,  txt, var_names, lfo):
     '''
     Create visualization of model performance
 
@@ -857,6 +881,7 @@ def visualize_model_performance(dataY, modelY,  txt, var_names):
      modelY     model predictions                                nOut x mData
        txt      annotation text
      var_names  names for input var's (X) and output var's (Y)   dictionary
+    lfo         file object for logging text output              object
     '''
 
 
@@ -898,14 +923,61 @@ def visualize_model_performance(dataY, modelY,  txt, var_names):
     plt.pause(0.01)
 
     plt.savefig(f'{txt}_performance.png', dpi=150, bbox_inches='tight')
-    print(f"Performance plot saved to '{txt}_performance.png'")
+    ltw(lfo,f"Performance plot saved to '{txt}_performance.png'")
     
     return
 
 
-def print_model_stats(coeff, order, coeffCOV, MDcorr, R2adj, AIC, scaling, scaling_names, var_names):
+def save_model_npz(ordr, coeff, meanX, meanY, invTX, TY, scaling, basis_fctn, lfo):  
     '''
-    print_model_stats(coeff, order, coeffCOV, MDcorr, R2adj, scaling, var_names)
+    model_npz_filename = save_model_npz(ordr, coeff, meanX, meanY, invTX, TY, scaling, basis_fctn):
+    lfo         file object for logging text output              object
+    Save model definition in a binary .npz array
+    '''
+
+
+    now = datetime.now()
+    calendar_clock = now.strftime("%Y%m%d-%H%M%S.npz")
+    model_npz_filename = f'mimo_srs_model-{calendar_clock}'
+
+    # Save all arrays into a single .npz file
+    np.savez(model_npz_filename, ordr=ordr, coeff=coeff,  
+               meanX=meanX, meanY=meanY, invTX=invTX, TY=TY,  
+               scaling=scaling, basis_fctn=np.array(basis_fctn))
+
+    ltw(lfo,f'\nmimo_srs model saved to {model_npz_filename} ')  
+
+    return model_npz_filename
+
+
+def load_model_npz(model_npz_filename):
+    '''
+    ordr, coeff, meanX, meanY, invTX, TY, scaling, basis_fctn = load_model_npz(model_npz_filename)
+    Load model definition from a binary .npz array into python
+    '''
+
+
+    # Load the .npz file
+    model = np.load(model_npz_filename)
+
+    # Extract each array using the same keys used when saving
+    ordr  = model['ordr']
+    coeff = model['coeff']
+    meanX = model['meanX']
+    meanY = model['meanY']
+    invTX = model['invTX']
+    TY    = model['TY']
+    scaling    = model['scaling']
+    basis_fctn = model['basis_fctn'].item()  # Convert back to Python object if it was a string or similar
+
+    model.close()   # Close the model file 
+
+    return ordr, coeff, meanX, meanY, invTX, TY, scaling, basis_fctn
+
+
+def print_model_stats(coeff, order, coeffCOV, MDcorr, R2adj, AIC, scaling, scaling_names, var_names, lfo):
+    '''
+    print_model_stats(coeff, order, coeffCOV, MDcorr, R2adj, scaling, var_names, lfo)
     Print model statistics 
     
     INPUT       DESCRIPTION                                           DIMENSION
@@ -926,11 +998,11 @@ def print_model_stats(coeff, order, coeffCOV, MDcorr, R2adj, AIC, scaling, scali
     nOut = coeff.shape[1]
     
     vn = var_names or {}  # set vn to var_names if it is not None, else {}
-    out_names = vn.get('Y', [f"Output {i+1}" for i in range(nOut)])
+    out_names = vn.get('Y', ' ')
 
     for io in range(nOut):
-        print(f'\n  ', out_names[io], ' ------------------------------------ ')
-        print('  Response Surface Coefficients')
+        ltw(lfo,f'\n  Ouput #{io+1}: {out_names[io]} ------------------------------------ ')
+        ltw(lfo,'  Surrogate Response Surface Model Coefficients')
         
         # Print header
         header = '    k  '
@@ -940,7 +1012,7 @@ def print_model_stats(coeff, order, coeffCOV, MDcorr, R2adj, AIC, scaling, scali
             else:
                 header += f' x{ii+1:02d} '
         header += '   coeff    C.O.V\'s'
-        print(header)
+        ltw(lfo,header)
         
         # Print each term
         retained_terms = 0
@@ -955,22 +1027,19 @@ def print_model_stats(coeff, order, coeffCOV, MDcorr, R2adj, AIC, scaling, scali
             if np.abs(coeff[it,io]) > 1e-4:
                 line += '  *'
                 retained_terms += 1
-            print(line)
+            ltw(lfo,line)
         
-        print()
-        print(f'  X scaling option                      = {scaling[0]:3d}: {scaling_names[scaling[0]]}')
-        print(f'  Y scaling option                      = {scaling[1]:3d}: {scaling_names[scaling[1]]}')
-        print(f'  Total Number of Terms                 = {retained_terms:4d} out of {nTerm:4d}')
-        print(f'  Akaike Information Criterion          = {AIC[io]:7.3f}')
-        print(f'  Adjusted R-square                     = {R2adj[io]:7.3f}')
-        print(f'  model-data correlation                = {MDcorr[io]:7.3f}')
+        ltw(lfo,'\n')
+        ltw(lfo,f'  X scaling option                      = {scaling[0]:3d}: {scaling_names[scaling[0]]}')
+        ltw(lfo,f'  Y scaling option                      = {scaling[1]:3d}: {scaling_names[scaling[1]]}')
+        ltw(lfo,f'  Total Number of Terms                 = {retained_terms:4d} out of {nTerm:4d}')
+        ltw(lfo,f'  Akaike Information Criterion          = {AIC[io]:7.3f}')
+        ltw(lfo,f'  Adjusted R-square                     = {R2adj[io]:7.3f}')
+        ltw(lfo,f'  model-data correlation                = {MDcorr[io]:7.3f}')
     
-    # Estimate time remaining
-    # import time
     
-    # Calculate estimated time remaining
-    # Note: In python, we'd need to track elapsed time separately
-    print('  ==================================')
+    # Estimate time remaining ... to be added 
+    ltw(lfo,'  ==============================================================')
 
 
-# updated 2006-01-29, 2007-02-21, 2007-03-06, 2009-10-14, 2022-11-19 2023-02-27, 2023-05-31 2025-11-17
+# updated 2006-01-29, 2007-02-21, 2007-03-06, 2009-10-14, 2022-11-19 2023-02-27, 2023-05-31 2025-11-17, 2026-11-06
