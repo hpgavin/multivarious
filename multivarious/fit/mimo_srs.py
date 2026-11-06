@@ -103,7 +103,10 @@ def mimo_srs(dataX, dataY, max_order=2, pTrain=70, scaling=1, L1_pnlty=1.0, basi
     else:
         mData = min(mDataX,mDataY)
 
-    plot_scatter_dist(dataX, dataY, fig_num=100, var_names = var_names, ci=0.90)
+    fig = plot_scatter_dist(dataX, dataY, fig_num=100, var_names = var_names, ci=0.90)
+
+    plt.savefig(f'mimo_srs-scatter-1.pdf', bbox_inches='tight')
+    print(f"Scatter plot saved to 'mimo_srs-scatter-1.pdf'")
 
     # scale data matrices for X (explanatory) and Y (dependent) variables
     # separately since using the covariance between X and Y in the model

@@ -112,6 +112,7 @@ def plot_scatter_dist(dataX, dataY=None, fig_num=100, var_names=None,
     fig         matplotlib Figure object
     '''
 
+
     # ------------------------------------------------------------------ #
     # Resolve None arguments: unify into a single stacked data array and  #
     # record nInp so _block_type() can assign XX / XY / YY correctly.     #
