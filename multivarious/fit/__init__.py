@@ -17,7 +17,7 @@ module filename (case-sensitive). Re-export all of them here so users may call:
 from .l1 import l1
 from .lm import lm
 from .lm import levenberg_marquardt
-from .mimo_srs import mimo_srs
+from .mimo_srs import mimo_srs, load_model_npz, compute_model
 from .polynomial import polynomial
 from .prony import prony
 from .distributions import distributions

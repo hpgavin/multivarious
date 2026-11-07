@@ -7,6 +7,8 @@ from multivarious.utl import format_plot
 def plot_ECDF_ci(data, confidence_level, fig_num, x_label='sorted sample values',save_plots=True ):
     """
     Plot empirical CDF of data with confidence intervals.
+
+    x, Fx, lower_ci, upper_ci = plot_ECDF_ci(data, confidence_level, fig_num, x_label, save_plots)
     
     Parameters
     ----------

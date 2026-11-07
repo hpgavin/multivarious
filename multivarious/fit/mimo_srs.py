@@ -101,12 +101,12 @@ def mimo_srs(dataX, dataY, max_order=2, pTrain=70, scaling=1, L1_pnlty=1.0, basi
     nInp, mDataX = dataX.shape   # number of columns in dataX is mData
     nOut, mDataY = dataY.shape   # number of columns in dataY is mData
 
-    ltw(lfo,f'   {min(mDataX, mDataY):6d} data values\n') 
+    ltw(lfo,f'   {nInp:2d} Inputs  {nOut:2d} Outputs  {min(mDataX, mDataY):6d} data values\n')
 
     ltw(lfo,f' {np.min(dataX):11.6f} < X < {np.max(dataX):11.6f} ')
     ltw(lfo,f' {np.min(dataY):11.6f} < Y < {np.max(dataY):11.6f} \n')
-    ltw(lfo,f'    X scaling option {scaling[0]}: {scaling_names[scaling[0]]} ')
-    ltw(lfo,f'    Y scaling option {scaling[1]}: {scaling_names[scaling[1]]} \n')
+    ltw(lfo,f'    Input X scaling option {scaling[0]}: {scaling_names[scaling[0]]} ')
+    ltw(lfo,f'   Output Y scaling option {scaling[1]}: {scaling_names[scaling[1]]} \n')
 
     if mDataX != mDataY:
         raise ValueError('the dataX and dataY matrices must have the same number of columns')
@@ -132,7 +132,7 @@ def mimo_srs(dataX, dataY, max_order=2, pTrain=70, scaling=1, L1_pnlty=1.0, basi
     nZx = TX.shape[1]
     nZy = TY.shape[1]
 
-    XY = np.vstack([Zx , Zy])
+    XY = np.vstack([Zx, Zy])
     # ltw(lfo,f' 1 shape XY = {XY.shape}')
 
     # remove columns of  Zx and Zy containing outliers
@@ -224,7 +224,7 @@ def mimo_srs(dataX, dataY, max_order=2, pTrain=70, scaling=1, L1_pnlty=1.0, basi
 
 def scale_data(Data, scaling, lfo):
     '''
-    [ Z, meanD, T, maxZ, minZ ] = scale_data(Data, scaling, lfo)
+    Z, meanD, T, maxZ, minZ = scale_data(Data, scaling, lfo)
      scale data in one of four or five ways ..  Z = inv(T)*(Data - meanD); 
     
     INPUT       DESCRIPTION                                           DIMENSION
@@ -256,7 +256,7 @@ def scale_data(Data, scaling, lfo):
     invT = np.eye(n) 
     R    = np.eye(n)
 
-    if scaling in [ 3 , 4 ]:  # log-transform
+    if scaling in [ 3, 4 ]:  # log-transform
         if np.any(Data <= 0):
             ltw(lfo,'  mimo_srs: Data has negative values, can not log-transform\n\n')
             exit(300)
@@ -311,7 +311,7 @@ def scale_data(Data, scaling, lfo):
 
 def descale_data(Z, meanD, T, scaling, lfo):
     '''
-     Data  = descale_data(Z, meanD,  scaling, lfo)
+     Data = descale_data(Z, meanD,  scaling, lfo)
      descale data in one of four or five ways ..  Z = inv(T)*(Data - meanD); 
     
     INPUT       DESCRIPTION                                           DIMENSION
@@ -353,7 +353,7 @@ def descale_data(Z, meanD, T, scaling, lfo):
 
 def clip_data(Data, low_limit, high_limit, lfo):
     '''
-     clip_data(Data, low_limit, high_limit, lfo)
+     Data = clip_data(Data, low_limit, high_limit, lfo)
      remove outliers from standardized data (zero mean, unit variance)
      using Chauvenet's criterion
     
@@ -395,7 +395,7 @@ def clip_data(Data, low_limit, high_limit, lfo):
 
 def split_data(dataX, dataY, pTrain):
     '''
-    [trainX,trainY,mTrain, testX,testY,mTest] = split_data(dataX,dataY,pTrain)
+    trainX, trainY, mTrain, testX, testY, mTest = split_data(dataX, dataY, pTrain)
     split data into a training set and a testing set
     
     INPUT       DESCRIPTION                                           DIMENSION
@@ -435,7 +435,7 @@ def split_data(dataX, dataY, pTrain):
 
 def mixed_term_orders( max_order, nZx, lfo):
     '''
-    [ ordr , nTerm ] = mixed_term_orders( max_order, nZx, lfo)
+    ordr, nTerm = mixed_term_orders( max_order, nZx, lfo )
     specify the exponents on each input variable for every term in the model,
     and the total number of terms, nTerm
     
@@ -634,6 +634,7 @@ def hermite(n, z, N):
 
 def legendre(n, z):
     '''
+    psy = legendre(n, z)
     Compute a Legendre polynomial of order n evaluated at points z
     Legendre polynomials are orthogonal on [-1, 1]:
     integral_{-1}^{1} P_m(z) P_n(z) dz = 2/(2n+1) * δ{mn}
@@ -681,7 +682,7 @@ def legendre(n, z):
 
 def fit_model(Zx, Zy, ordr, nTerm, mData, L1_pnlty, basis_fctn, lfo):
     '''
-    [ coeff , condB ] = fit_model( Zx, Zy, ordr, nTerm, mData, L1_pnlty, basis_fctn )
+    coeff, condB = fit_model( Zx, Zy, ordr, nTerm, mData, L1_pnlty, basis_fctn )
     via singular value decomposition without regularization, or
     via quadratic programming with L1 regularization
     
@@ -750,7 +751,7 @@ def fit_model(Zx, Zy, ordr, nTerm, mData, L1_pnlty, basis_fctn, lfo):
 
 def compute_model(ordr, coeff, meanX, meanY, invTX, TY, dataX, scaling, basis_fctn='H'):
     '''
-    [ modelY, B ] = compute_model(ordr, coeff, meanX, meanY, invTX, TY, dataX, scaling,basis_fctn)
+    modelY, B = compute_model(ordr, coeff, meanX, meanY, invTX, TY, dataX, scaling, basis_fctn)
     compute a multivariate polynomial model 
     
     INPUT       DESCRIPTION                                           DIMENSION
@@ -807,7 +808,7 @@ def compute_model(ordr, coeff, meanX, meanY, invTX, TY, dataX, scaling, basis_fc
 
 def evaluate_model(B, coeff, dataY, modelY):
     '''
-    [ MDcorr, coeffCOV , R2adj, AIC ] = evaluate_model( B, coeff, dataY, modelY)
+    MDcorr, coeffCOV, R2adj, AIC = evaluate_model( B, coeff, dataY, modelY)
     evaluate the model statistics 
     
     INPUT       DESCRIPTION                                           DIMENSION
@@ -860,7 +861,7 @@ def evaluate_model(B, coeff, dataY, modelY):
         
         # coefficient of variation of each coefficient for model "io"
         coeffCOV[:,io] = Std_Err_Coeff / ( np.abs(coeff[:,io].flatten()) + 1e-6 )
-        coeffCOV[ np.abs(coeff[:,io]) < 1e-6 , io ] = 1e-4
+        coeffCOV[ np.abs(coeff[:,io]) < 1e-6, io ] = 1e-4
         
         AIC[io] = np.log(2*np.pi*nc*Vr[io,io]) + nc*Vr[io,io] + 2*nc 
 
@@ -928,53 +929,6 @@ def visualize_model_performance(dataY, modelY,  txt, var_names, lfo):
     return
 
 
-def save_model_npz(ordr, coeff, meanX, meanY, invTX, TY, scaling, basis_fctn, lfo):  
-    '''
-    model_npz_filename = save_model_npz(ordr, coeff, meanX, meanY, invTX, TY, scaling, basis_fctn):
-    lfo         file object for logging text output              object
-    Save model definition in a binary .npz array
-    '''
-
-
-    now = datetime.now()
-    calendar_clock = now.strftime("%Y%m%d-%H%M%S.npz")
-    model_npz_filename = f'mimo_srs_model-{calendar_clock}'
-
-    # Save all arrays into a single .npz file
-    np.savez(model_npz_filename, ordr=ordr, coeff=coeff,  
-               meanX=meanX, meanY=meanY, invTX=invTX, TY=TY,  
-               scaling=scaling, basis_fctn=np.array(basis_fctn))
-
-    ltw(lfo,f'\nmimo_srs model saved to {model_npz_filename} ')  
-
-    return model_npz_filename
-
-
-def load_model_npz(model_npz_filename):
-    '''
-    ordr, coeff, meanX, meanY, invTX, TY, scaling, basis_fctn = load_model_npz(model_npz_filename)
-    Load model definition from a binary .npz array into python
-    '''
-
-
-    # Load the .npz file
-    model = np.load(model_npz_filename)
-
-    # Extract each array using the same keys used when saving
-    ordr  = model['ordr']
-    coeff = model['coeff']
-    meanX = model['meanX']
-    meanY = model['meanY']
-    invTX = model['invTX']
-    TY    = model['TY']
-    scaling    = model['scaling']
-    basis_fctn = model['basis_fctn'].item()  # Convert back to Python object if it was a string or similar
-
-    model.close()   # Close the model file 
-
-    return ordr, coeff, meanX, meanY, invTX, TY, scaling, basis_fctn
-
-
 def print_model_stats(coeff, order, coeffCOV, MDcorr, R2adj, AIC, scaling, scaling_names, var_names, lfo):
     '''
     print_model_stats(coeff, order, coeffCOV, MDcorr, R2adj, scaling, var_names, lfo)
@@ -1036,8 +990,54 @@ def print_model_stats(coeff, order, coeffCOV, MDcorr, R2adj, AIC, scaling, scali
         ltw(lfo,f'  Akaike Information Criterion          = {AIC[io]:7.3f}')
         ltw(lfo,f'  Adjusted R-square                     = {R2adj[io]:7.3f}')
         ltw(lfo,f'  model-data correlation                = {MDcorr[io]:7.3f}')
-    
-    
+
+def save_model_npz(ordr, coeff, meanX, meanY, invTX, TY, scaling, basis_fctn, lfo):  
+    '''
+    model_npz_filename = save_model_npz(ordr, coeff, meanX, meanY, invTX, TY, scaling, basis_fctn):
+    lfo         file object for logging text output              object
+    Save model definition in a binary .npz array
+    '''
+
+
+    now = datetime.now()
+    calendar_clock = now.strftime("%Y%m%d-%H%M%S.npz")
+    model_npz_filename = f'mimo_srs_model-{calendar_clock}'
+
+    # Save all arrays into a single .npz file
+    np.savez(model_npz_filename, ordr=ordr, coeff=coeff,  
+               meanX=meanX, meanY=meanY, invTX=invTX, TY=TY,  
+               scaling=scaling, basis_fctn=np.array(basis_fctn))
+
+    ltw(lfo,f'\nmimo_srs model saved to {model_npz_filename} ')  
+
+    return model_npz_filename
+
+
+def load_model_npz(model_npz_filename):
+    '''
+    ordr, coeff, meanX, meanY, invTX, TY, scaling, basis_fctn = load_model_npz(model_npz_filename)
+    Load model definition from a binary .npz array into python
+    '''
+
+
+    # Load the .npz file
+    model = np.load(model_npz_filename)
+
+    # Extract each array using the same keys used when saving
+    ordr  = model['ordr']
+    coeff = model['coeff']
+    meanX = model['meanX']
+    meanY = model['meanY']
+    invTX = model['invTX']
+    TY    = model['TY']
+    scaling    = model['scaling']
+    basis_fctn = model['basis_fctn'].item()  # Convert back to Python object if it was a string or similar
+
+    model.close()   # Close the model file 
+
+    return ordr, coeff, meanX, meanY, invTX, TY, scaling, basis_fctn
+
+   
     # Estimate time remaining ... to be added 
     ltw(lfo,'  ==============================================================')
 
