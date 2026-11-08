@@ -217,7 +217,7 @@ def l1(B, y, alfa, w):
             break
     
     # Trim convergence history to actual iterations
-    cvg_hst = cvg_hst[:, :iter_idx+1]
+    cvg_hst = cvg_hst[ : , :iter_idx ]
     
     return c, mu, nu, cvg_hst
 

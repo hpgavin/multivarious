@@ -1,3 +1,5 @@
+#! /usr/bin/env -S python3 -i
+
 """
 plot_l1.py - Visualization of L1 Regularization Results
 
@@ -78,87 +80,94 @@ def plot_l1(B, c, y, cvg_hst, alfa, w, fig_num=1, save_plots=False, var_name=Non
     
     vn = var_name or ''
     # Figure 1: Coefficient Comparison
-    plt.figure(fig_num, figsize=(10, 6))
-    plt.clf()
-    
-    indices = np.arange(1, n + 1)
-    plt.plot(indices, c0, '+r', markersize=20, label=f'α = 0 (OLS)')
-    plt.plot(indices, c, 'o', color=[0, 0.8, 0], label=f'α = {alfa:.5f}, w = {w:.1f}')
-    plt.axhline(0, color='k', linestyle='--', linewidth=1)
-    plt.xlabel(r'Coefficient index, $i$')
-    plt.ylabel(r'Coefficients, $c_i$')
-    plt.title(rf'{vn}  Coefficient Comparison: OLS vs $L_1$')
-    plt.legend()
-    plt.grid(True, alpha=0.3)
-    plt.tight_layout()
-    
-    # Figure 2: Data Fit Comparison
-    plt.figure(fig_num + 1, figsize=(10, 6))
-    plt.clf()
-    
-    t = np.arange(1, m + 1)
-    plt.plot(t, y, 'ok', label='Data', markerfacecolor='none')
-    plt.plot(t, y0, 'or', label='α = 0 (OLS)')
-    plt.plot(t, y1, 'o', color=[0, 0.8, 0], label=f'α = {alfa:.5f}, w = {w:.0f}')
-    plt.xlabel(rf'Data index, $i$')
-    plt.ylabel(rf'$y_i$')
-    plt.title(rf'{vn} $L_1$ Model Fit Comparison')
-    plt.legend()
-    plt.grid(True, alpha=0.3)
-    plt.tight_layout()
-    
-    # Figure 3: Convergence History
-    plt.figure(fig_num + 2, figsize=(12, 10))
-    plt.clf()
-    
-    y_labels = ['$c$', '$p$', '$q$', '$\\mu$', '$\\nu$', '$\\alpha$ and $L_2$ error']
-    iterations = np.arange(1, max_iter + 1)
-    
-    for ii in range(5):
-        plt.subplot(6, 1, ii + 1)
-        start_idx = n * ii
-        end_idx = n * (ii + 1)
-        plt.plot(iterations, cvg_hst[start_idx:end_idx, :].T)
-        plt.ylabel(y_labels[ii])
+    if fig_num > 9:
+        plt.figure(fig_num, figsize=(10, 6))
+        plt.clf()
+        
+        indices = np.arange(1, n + 1)
+        plt.plot(indices, c0, '+r', markersize=20, label=f'α = 0 (OLS)')
+        plt.plot(indices, c, 'o', color=[0, 0.8, 0], label=f'α = {alfa:.5f}, w = {w:.1f}')
+        plt.axhline(0, color='k', linestyle='--', linewidth=1)
+        plt.xlabel(r'Coefficient index, $i$')
+        plt.ylabel(r'Coefficients, $c_i$')
+        plt.title(rf'{vn}  Coefficient Comparison: OLS vs $L_1$')
+        plt.legend()
         plt.grid(True, alpha=0.3)
-        if ii == 0:
-            plt.title(rf'{vn} $L_1$ Convergence History')
-    
-    # Last subplot: alfa and error
-    plt.subplot(6, 1, 6)
-    plt.semilogy(iterations, cvg_hst[5*n, :], '-g', label='$\\alpha$')
-    plt.semilogy(iterations, cvg_hst[5*n+1, :], '-k', label='$L_2$ error')
-    plt.ylabel(y_labels[5])
-    plt.xlabel(r'$L_1$ iteration number')
-    plt.legend(fontsize=10)
-    plt.grid(True, alpha=0.3)
-    
-    plt.tight_layout()
+        plt.tight_layout()
+        
+    # Figure 2: Data Fit Comparison
+    if fig_num > 99:
+        plt.figure(fig_num + 1, figsize=(10, 6))
+        plt.clf()
+        
+        t = np.arange(1, m + 1)
+        plt.plot(t, y, 'ok', label='Data', markerfacecolor='none')
+        plt.plot(t, y0, 'or', label='α = 0 (OLS)')
+        plt.plot(t, y1, 'o', color=[0, 0.8, 0], label=f'α = {alfa:.5f}, w = {w:.0f}')
+        plt.xlabel(rf'Data index, $i$')
+        plt.ylabel(rf'$y_i$')
+        plt.title(rf'{vn} $L_1$ Model Fit Comparison')
+        plt.legend()
+        plt.grid(True, alpha=0.3)
+        plt.tight_layout()
+        
+    # Figure 3: Convergence History
+    if fig_num > 999:
+        plt.figure(fig_num + 2, figsize=(10, 6))
+        plt.clf()
+        
+        y_labels = ['$c$', '$p$', '$q$', '$\\mu$', '$\\nu$', '$\\alpha$ and $L_2$ error']
+        iterations = np.arange(1, max_iter + 1)
+        
+        for ii in range(5):
+            ax = plt.subplot(6, 1, ii + 1)
+            start_idx = n * ii
+            end_idx = n * (ii + 1)
+            plt.plot(iterations, cvg_hst[start_idx:end_idx, :].T)
+            plt.ylabel(y_labels[ii])
+            plt.grid(True, alpha=0.3)
+            ax.set_xticklabels([])
 
-    plt.show()
+            if ii == 0:
+                plt.title(rf'{vn} $L_1$ Convergence History')
+        
+        # Last subplot: alfa and error
+        plt.subplot(6, 1, 6)
+        plt.semilogy(iterations, cvg_hst[5*n, :], '-g', label='$\\alpha$')
+        plt.semilogy(iterations, cvg_hst[5*n+1, :], '-k', label='$L_2$ error')
+        plt.ylabel(y_labels[5])
+        plt.xlabel(r'$L_1$ iteration number')
+        plt.legend(fontsize=10)
+        plt.grid(True, alpha=0.3)
+        plt.tight_layout(pad=0.2, h_pad=0.2, w_pad=0.2 )
+
+    if fig_num > 9:
+        plt.show()
      
     # Save figures
-    if save_plots:
+    if save_plots and fig_num > 9:
         plt.figure(fig_num)
-        plt.savefig('L1_coefficients.png', dpi=150, bbox_inches='tight')
+        plt.savefig(f'L1_coefficients-{fig_num}.pdf', bbox_inches='tight')
+        print("    L1_coefficients-{fig_num}.pdf saved.")
     
+    if save_plots and fig_num > 99:
         plt.figure(fig_num+1)
-        plt.savefig('l1_comparison.png', dpi=150, bbox_inches='tight')
+        plt.savefig(f'l1_comparison-{fig_num+1}.pdf', bbox_inches='tight')
+        print("    L1_coefficients-{fig_num+1}.pdf saved.")
     
+    if save_plots and fig_num > 999:
         plt.figure(fig_num+2)
-        plt.savefig('L1_convergence.png', dpi=150, bbox_inches='tight')
+        plt.savefig(f'L1_convergence-{fig_num+2}.pdf', bbox_inches='tight')
+        print("    L1_coefficients-{fig_num+2}.pdf saved.")
     
-        print("\nPlots saved:")
-        print("  - L1_coefficients.png")
-        print("  - l1_comparison.png")
-        print("  - L1_convergence.png")
-    
+
 # Test function
 if __name__ == '__main__':
     """
     Test plot_l1 with sample data
     """
-    from l1 import l1
+    from multivarious.fit import l1
+    from multivarious.utl import format_plot
     
     print("\nTesting plot_l1.py")
     print("=" * 70)
@@ -184,8 +193,8 @@ if __name__ == '__main__':
     alfa_final = cvg_hst[-2, -1]
     
     # Create plots
-    format_plot(font_size=14, line_width=3)
-    plot_l1(B, c, y, cvg_hst, alfa_final, w, fig_num=10)
+    format_plot(font_size=14, line_width=3, marker_size=5)
+    plot_l1(B, c, y, cvg_hst, alfa_final, w, fig_num=7000)
    
     print("\n" + "=" * 70)
     print("plot_l1 test completed successfully!")
