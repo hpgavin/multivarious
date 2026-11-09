@@ -67,10 +67,10 @@ def polynomial(x, y, p, Sy=None, rof=None, b=0.0, fig_num=0, x_label= r'$x$', y_
         R-squared error criterion
     Sr : float
         Standard error of unweighted residuals
-    AIC : float
-        Akaike Information Criterion
-    BIC : float
-        Bayesian Information Criterion
+    AICc : float
+        Akaike Information Criterion, corrected for large (n/N)
+    BICc : float
+        Bayesian Information Criterion, corrected for large (n/N)
     condNo : float
         Condition number of regularized system matrix
     
@@ -91,12 +91,8 @@ def polynomial(x, y, p, Sy=None, rof=None, b=0.0, fig_num=0, x_label= r'$x$', y_
         raise ValueError('Length of x must equal length of y')
     
     Nd = len(x)  # Number of data points
-    Np = len(p)  # Number of parameters
-    Nf = 100     # Number of values in the fit
-    
-    # Default range of fit (with 5% extrapolation)
-    ee = 0.05
-    rfd = np.array([min(x), max(x)]) @ np.array([[1+ee, -ee], [-ee, 1+ee]])
+    Nc = len(p)  # Number of coefficients
+    Nf = 100     # Number of values in the fitted curve 
     
     # Handle optional arguments
     if Sy is None:
@@ -108,12 +104,14 @@ def polynomial(x, y, p, Sy=None, rof=None, b=0.0, fig_num=0, x_label= r'$x$', y_
         if np.any(Sy <= 0):
             Sy = np.where(Sy <= 0, 1.0, Sy)
     
-    if rof is None:
-        rof = rfd
-    
     # Ensure Sy is proper shape
     if np.isscalar(Sy):
         Sy = Sy * np.ones(Nd)
+    
+    # Range of fit
+    if rof is None:
+        ee = 0.05
+        rof = np.array([min(x), max(x)]) @ np.array([[1+ee, -ee], [-ee, 1+ee]])
     
     # x values for the fit
     x_fit = np.linspace(rof[0], rof[1], Nf)
@@ -121,24 +119,24 @@ def polynomial(x, y, p, Sy=None, rof=None, b=0.0, fig_num=0, x_label= r'$x$', y_
     ISy = np.diag(1.0 / (Sy**2))
     
     # Build basis matrices
-    B = np.zeros((Nd, Np))
-    B_fit = np.zeros((Nf, Np))
+    B = np.zeros((Nd, Nc))
+    B_fit = np.zeros((Nf, Nc))
     
-    for i in range(Np):
+    for i in range(Nc):
         B[:, i] = x ** p[i]          # Model basis vectors for data
         B_fit[:, i] = x_fit ** p[i]  # Model basis vectors for fit
     
     # Condition number
-    condNo = np.linalg.cond(B.T @ ISy @ B + b * np.eye(Np))
+    condNo = np.linalg.cond(B.T @ ISy @ B + b * np.eye(Nc))
     
     # Least squares parameters
-    c = np.linalg.solve(B.T @ ISy @ B + b * np.eye(Np), B.T @ ISy @ y)
+    c = np.linalg.solve(B.T @ ISy @ B + b * np.eye(Nc), B.T @ ISy @ y)
     
     # Least squares fit
     y_fit = B_fit @ c
     
     # Unbiased variance of unweighted residuals
-    Vr = np.sum((y - B @ c)**2) / (Nd-Np)
+    Vr = np.sum((y - B @ c)**2) / (Nd-Nc)
     
     # Measurement error covariance
     if compute_Vr:
@@ -146,7 +144,7 @@ def polynomial(x, y, p, Sy=None, rof=None, b=0.0, fig_num=0, x_label= r'$x$', y_
     else:
         invVy = ISy              # Provided by user
     # Parameter covariance matrix
-    Vc = np.linalg.inv(B.T @ invVy @ B + b * np.eye(Np))
+    Vc = np.linalg.inv(B.T @ invVy @ B + b * np.eye(Nc))
     # Regularized least squares adjustment
     if b != 0:
         Vy = np.linalg.inv(ISy)
@@ -160,8 +158,9 @@ def polynomial(x, y, p, Sy=None, rof=None, b=0.0, fig_num=0, x_label= r'$x$', y_
     # R-squared (coefficient of determination)
     R2 = 1 - np.sum((y - B @ c)**2) / np.sum((y - np.mean(y))**2)
     # Akaike and Bayesian Information Criteria
-    AIC = np.log(2 * np.pi * Nd * Vr) + (B @ c - y).T @ invVy @ (B @ c - y) + 2 * Np
-    BIC = np.log(2 * np.pi * Nd * Vr) + (B @ c - y).T @ invVy @ (B @ c - y) + Np* np.log(Nd)
+    IC =  np.log(2 * np.pi * Nd * Vr) + (B @ c - y).T @ invVy @ (B @ c - y) 
+    AICc = IC + 2 * Nc + (2*Nc*(Nc+1))/(Nd - Nc - 1)  # corrected AIC
+    BICc = IC + Nd/(Nd - Nc - 2) * Nc * np.log(Nd)    # corrected BIC
     
     # Print results
     print('\n' + '='*79)
@@ -169,7 +168,7 @@ def polynomial(x, y, p, Sy=None, rof=None, b=0.0, fig_num=0, x_label= r'$x$', y_
     print('='*79)
     print('     p         c            +/-   dc           (percent)    correlation')
     print('-'*79)
-    for i in range(Np):
+    for i in range(Nc):
         pct = 100 * Sc[i] / abs(c[i]) if c[i] != 0 else np.inf
         rr_str = ' '.join(f'{x:5.2f}' for x in Rc[i])
         if p[i] == int(p[i]):
@@ -181,13 +180,13 @@ def polynomial(x, y, p, Sy=None, rof=None, b=0.0, fig_num=0, x_label= r'$x$', y_
     # Plotting
     if fig_num > 0:
         _plot_results(x, y, x_fit, y_fit, B, c, Sy_fit, Vr, 
-                     condNo, R2, AIC, BIC, Nd, Np, fig_num, x_label, y_label)
+                     condNo, R2, AICc, BICc, Nd, Nc, fig_num, x_label, y_label)
     
-    return c, x_fit, y_fit, Sc, Sy_fit, Rc, R2, Vr, AIC, BIC, condNo
+    return c, x_fit, y_fit, Sc, Sy_fit, Rc, R2, Vr, AICc, BICc, condNo
 
 
 def _plot_results(x, y, x_fit, y_fit, B, c, Sy_fit, Vr, 
-                  condNo, R2, AIC, BIC, Nd, Np, fig_num, x_label, y_label):
+                  condNo, R2, AICc, BICc, Nd, Nc, fig_num, x_label, y_label):
     """
     Create visualization of polynomial fit results.
     
@@ -254,7 +253,7 @@ def _plot_results(x, y, x_fit, y_fit, B, c, Sy_fit, Vr,
     ax2.text(tx, min(y) + positions[0]*ty_range, 
              rf'$N$ = {Nd} data points', fontsize=12) 
     ax2.text(tx, min(y) + positions[1]*ty_range, 
-             rf'$n$ = {Np} coefficients', fontsize=12)
+             rf'$n$ = {Nc} coefficients', fontsize=12)
     ax2.text(tx, min(y) + positions[2]*ty_range, 
              f'cond # = {condNo:.1f}', fontsize=12)
     ax2.text(tx, min(y) + positions[3]*ty_range, 
@@ -262,9 +261,9 @@ def _plot_results(x, y, x_fit, y_fit, B, c, Sy_fit, Vr,
     ax2.text(tx, min(y) + positions[4]*ty_range, 
              rf'$R^2$ = {R2:.3f}', fontsize=12)
     ax2.text(tx, min(y) + positions[5]*ty_range, 
-             f'AIC = {AIC:.2f}', fontsize=12)
+             f'AICc = {AICc:.2f}', fontsize=12)
     ax2.text(tx, min(y) + positions[6]*ty_range, 
-             f'BIC = {BIC:.2f}', fontsize=12)
+             f'BICc = {BICc:.2f}', fontsize=12)
     
     ax2.set_xlabel(r'data   $y$', fontsize=15)
     ax2.set_ylabel(r'model   $\hat y(x; c^*)$', fontsize=15)
@@ -293,7 +292,7 @@ def _plot_results(x, y, x_fit, y_fit, B, c, Sy_fit, Vr,
     plt.grid(True, alpha=0.3, axis='y')
     
     # Add normal distribution overlay
-    meanR = np.sum(residuals)/Np
+    meanR = np.sum(residuals)/Nc
     xmin, xmax = plt.xlim()
     x_normal = np.linspace(xmin, xmax, 100)
     p_normal = scipy_normal.pdf(x_normal, meanR, np.sqrt(Vr))

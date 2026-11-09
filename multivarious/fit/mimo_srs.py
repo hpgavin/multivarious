@@ -291,12 +291,12 @@ def scale_data(Data, scaling, lfo):
                 #ltw(lfo,f'eVal = {eVal} , idx = {idx}')
                 #ltw(lfo,f'T = {T} , invT = {invT} ,  I2 = {invT @ T}')
     
+    Z = invT @ ( Data - meanD )
+
     # correlation matrix
     if n > 1:
         R = np.corrcoef(Data)
     
-    Z = invT @ ( Data - meanD )
-
     #ltw(lfo,f' shapeZ = {Z.shape}')
     #ltw(lfo,'T')
     #ltw(lfo,T)
@@ -734,7 +734,7 @@ def fit_model(Zx, Zy, ordr, nTerm, mData, L1_pnlty, basis_fctn, lfo):
             Zy_col = Zy[io,:].T # Zy needs to be column vector for l1
 
             #ltw(lfo,f'Zy_col_dim = {Zy_col.shape}')
-            coeff[:,io], mu, nu, cvg_hst = l1(B, Zy_col, L1_pnlty, w=0)
+            coeff[:,io], mu, nu, cvg_hst = l1(B, Zy_col, L1_pnlty, w=1)
 
             # Optional: plot L1 convergence
  
