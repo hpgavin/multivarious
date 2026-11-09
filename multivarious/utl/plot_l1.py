@@ -11,7 +11,7 @@ Translation from MATLAB by Claude, 2025-10-24
 import numpy as np
 import matplotlib.pyplot as plt
 
-def plot_l1(B, c, y, cvg_hst, alfa, w, fig_num=1, save_plots=False, var_name=None):
+def plot_l1(B, c, y, cvg_hst, alfa, w, fig_num=10, save_plots=False, var_name=None):
     """
     Plot results from L1 regularization fit.
     
@@ -59,8 +59,9 @@ def plot_l1(B, c, y, cvg_hst, alfa, w, fig_num=1, save_plots=False, var_name=Non
     
     # OLS model coefficients for comparison
     c0 = np.linalg.lstsq(B, y, rcond=None)[0]
-    y0 = B @ c0  # OLS model prediction
-    y1 = B @ c   # L1 model prediction
+    y0 = B @ c0              # OLS model prediction
+    y1 = B @ c               # L1  model prediction
+    num_coeff = sum(c != 0)  # number of non-zero coefficients
     
     # Compute normalized errors
     err_norm_0 = np.linalg.norm(y0 - y) / (m - n)
@@ -90,7 +91,7 @@ def plot_l1(B, c, y, cvg_hst, alfa, w, fig_num=1, save_plots=False, var_name=Non
         plt.axhline(0, color='k', linestyle='--', linewidth=1)
         plt.xlabel(r'Coefficient index, $i$')
         plt.ylabel(r'Coefficients, $c_i$')
-        plt.title(rf'{vn}  Coefficient Comparison: OLS vs $L_1$')
+        plt.title(rf'{vn}  Coefficient Comparison: OLS vs $L_1$   {num_coeff} of {n} coefficients')
         plt.legend()
         plt.grid(True, alpha=0.3)
         plt.tight_layout()
@@ -106,7 +107,7 @@ def plot_l1(B, c, y, cvg_hst, alfa, w, fig_num=1, save_plots=False, var_name=Non
         plt.plot(t, y1, 'o', color=[0, 0.8, 0], label=f'α = {alfa:.5f}, w = {w:.0f}')
         plt.xlabel(rf'Data index, $i$')
         plt.ylabel(rf'$y_i$')
-        plt.title(rf'{vn} $L_1$ Model Fit Comparison')
+        plt.title(rf'{vn} $L_1$ Model Fit Comparison   {num_coeff} of {n} coefficients')
         plt.legend()
         plt.grid(True, alpha=0.3)
         plt.tight_layout()
@@ -116,7 +117,7 @@ def plot_l1(B, c, y, cvg_hst, alfa, w, fig_num=1, save_plots=False, var_name=Non
         plt.figure(fig_num + 2, figsize=(10, 6))
         plt.clf()
         
-        y_labels = ['$c$', '$p$', '$q$', '$\\mu$', '$\\nu$', '$\\alpha$ and $L_2$ error']
+        y_labels = ['$c$', '$p$', '$q$', '$\\mu$', '$\\nu$',  '$L_2$ error'] # '$\\alpha$'
         iterations = np.arange(1, max_iter + 1)
         
         for ii in range(5):
@@ -131,13 +132,13 @@ def plot_l1(B, c, y, cvg_hst, alfa, w, fig_num=1, save_plots=False, var_name=Non
             if ii == 0:
                 plt.title(rf'{vn} $L_1$ Convergence History')
         
-        # Last subplot: alfa and error
+        # Last subplot: error (and alfa?) 
         plt.subplot(6, 1, 6)
-        plt.semilogy(iterations, cvg_hst[5*n, :], '-g', label='$\\alpha$')
-        plt.semilogy(iterations, cvg_hst[5*n+1, :], '-k', label='$L_2$ error')
+        plt.semilogy(iterations, cvg_hst[5*n, :], '-k', label='$L_2$ error')
+        #plt.semilogy(iterations, cvg_hst[5*n+1, :], '-g', label='$\\alpha$')
         plt.ylabel(y_labels[5])
         plt.xlabel(r'$L_1$ iteration number')
-        plt.legend(fontsize=10)
+        #plt.legend(fontsize=10)
         plt.grid(True, alpha=0.3)
         plt.tight_layout(pad=0.2, h_pad=0.2, w_pad=0.2 )
 

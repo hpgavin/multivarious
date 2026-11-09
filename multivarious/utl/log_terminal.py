@@ -35,7 +35,8 @@ def ltw(file, text):
     """
 
     print(text)
-    file.write(text)
-    file.write('\n')
-    file.flush()
+    if file:
+        file.write(text)
+        file.write('\n')
+        file.flush()
 

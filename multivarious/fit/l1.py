@@ -98,14 +98,26 @@ def l1(B, y, alfa, w=0.0, tol=1e-10, max_iter=None):
         Lagrange multipliers for q >= 0  (nu_i = -dJ/dq_i at an active bound; <= 0 at the solution)
     cvg_hst : ndarray, shape (5*n+2, n_iter)
         Convergence history: rows  0:n c,  n:2n p,  2n:3n q,  3n:4n mu,  4n:5n nu,
-        row 5n alfa,  row 5n+1  err_norm = ||B c - y|| / (m - n).
+        row 5n+1  err_norm = ||B c - y|| / (m - n), row 5n alfa .
         Column 0 is the starting point (p = q = 0); there is one column per active-set iteration.
     """
 
-    # ---- inputs ------------------------------------------------------------------------------
-    B = np.asarray(B, dtype=float)
-    y = np.asarray(y, dtype=float).reshape(-1)
-    m, n = B.shape
+    def _record_convergence_history():
+        """
+        record the history of the convergence process
+        [ coefficients, p/omega, q/omega, omega*mu, omega*nu, err, alfa ]
+        """
+        c_o = (p - q) / omega
+        err = np.linalg.norm(B @ c_o - y) / dof
+        hist.append(np.concatenate([c_o, p/omega, q/omega, mu*omega, nu*omega, [err, alfa]]))
+
+
+    # ---- inputs -----------------------------------------------------------
+    B = np.asarray(B, dtype=float)                  # matrix of basis vectors
+    y = np.asarray(y, dtype=float).reshape(-1)      # r.h.s. vector
+    m, n = B.shape                                  # no. data, no. var's, 
+
+    # ---- check dimensions and values --------------------------------------
     if y.size != m:
         raise ValueError("B and y must have the same number of rows")
     alfa = float(alfa)
@@ -116,15 +128,20 @@ def l1(B, y, alfa, w=0.0, tol=1e-10, max_iter=None):
 
     # ---- weights: solve the weighted problem as an unweighted one in scaled coefficients ------
     omega = _adaptive_weights(B, y, w)       # c~ = omega * c ,  B~ = B / omega
+
     Bs = B / omega
+
     G = 2.0 * Bs.T @ Bs                      # Hessian of ||y - Bs c~||^2 with respect to c~
     h = 2.0 * Bs.T @ y
-    sK = max(float(np.max(np.abs(np.diag(G)))) if n else 1.0, np.finfo(float).tiny)   # scaling of constraint rows
+
+    # scaling of constraint rows
+    sK = max(float(np.max(np.abs(np.diag(G)))) if n else 1.0, np.finfo(float).tiny)  
     scale = max(alfa, np.max(np.abs(h)) if n else 0.0, np.finfo(float).tiny)
+    # KKT solution tolerance 
     tol_kkt = tol * scale
     dof = max(m - n, 1)
 
-    # ---- start: p = q = 0, every bound active ------------------------------------------------
+    # ---- start: p = q = 0, every bound active ----------------------------
     p = np.zeros(n)
     q = np.zeros(n)
     Au = np.ones(n, dtype=bool)              # active bounds  p_i = 0
@@ -133,24 +150,21 @@ def l1(B, y, alfa, w=0.0, tol=1e-10, max_iter=None):
     nu = np.zeros(n)
     hist = []
 
-    def record():
-        c_o = (p - q) / omega
-        err = np.linalg.norm(B @ c_o - y) / dof
-        hist.append(np.concatenate([c_o, p / omega, q / omega, omega * mu, omega * nu, [alfa, err]]))
-
-    record()
+    _record_convergence_history()
     converged = False
     singular_warned = False
 
     for it in range(1, max_iter + 1):
 
-        # ---- KKT system on the current working face ------------------------------------------
+        # ---- KKT system on the current working face ---------------------
         #  [  G  -G  Ip'  0  ] [u ]   [ h - G p + G q - alfa ]
         #  [ -G   G  0   Iq' ] [v ] = [-h + G p - G q - alfa ]
         #  [  Ip  0  0   0   ] [mu]   [ -p(Au)               ]
         #  [  0  Iq  0   0   ] [nu]   [ -q(Av)               ]
-        #  (the constraint rows and columns are scaled by sK, and the multipliers by 1/sK,
-        #   so that the matrix is well scaled when G is large; this does not change u, v, mu, nu)
+        # ------------------------------------------------------------------
+        # The constraint rows and columns are scaled by sK, and the 
+        # multipliers by 1/sK, so that the matrix is well scaled when 
+        # G is large; this does not change u, v, mu, nu
         iu = np.flatnonzero(Au)
         iv = np.flatnonzero(Av)
         lp, lq = iu.size, iv.size
@@ -164,7 +178,7 @@ def l1(B, y, alfa, w=0.0, tol=1e-10, max_iter=None):
         K[2 * n + np.arange(lp), iu] = sK
         K[n + iv, 2 * n + lp + np.arange(lq)] = sK
         K[2 * n + lp + np.arange(lq), n + iv] = sK
-        rhs = np.concatenate([h - G @ p + G @ q - alfa,
+        rhs = np.concatenate([ h - G @ p + G @ q - alfa,
                               -h + G @ p - G @ q - alfa,
                               -sK * p[iu],
                               -sK * q[iv]])
@@ -183,7 +197,7 @@ def l1(B, y, alfa, w=0.0, tol=1e-10, max_iter=None):
         mu[iu] = sK * sol[2 * n:2 * n + lp]
         nu[iv] = sK * sol[2 * n + lp:]
 
-        # ---- ratio test: ONE common step length for u and v ------------------------------------
+        # ---- ratio test: ONE common step length for u and v --------------
         d = 1.0
         blocking = None
         cand = np.flatnonzero((~Au) & (u < 0.0))
@@ -202,16 +216,17 @@ def l1(B, y, alfa, w=0.0, tol=1e-10, max_iter=None):
         p = np.maximum(p + d * u, 0.0)
         q = np.maximum(q + d * v, 0.0)
 
-        if blocking is not None:             # blocked: the blocking bound becomes active
+        if blocking is not None: # blocked: the blocking bound becomes active
             kind, i = blocking
             if kind == 'p':
                 Au[i] = True
             else:
                 Av[i] = True
-        p[Au] = 0.0                          # a variable at an active bound is exactly zero
-        q[Av] = 0.0
+        # a variable at an active bound is exactly zero
+        p[Au] = 0.0 
+        q[Av] = 0.0 
         if blocking is not None:
-            record()
+            _record_convergence_history()
             continue
 
         # ---- full step taken: multiplier sign test (mu <= 0 and nu <= 0 at an optimum) ----------
@@ -220,7 +235,7 @@ def l1(B, y, alfa, w=0.0, tol=1e-10, max_iter=None):
         viol_p = np.where(Au & Av & (mu > tol_kkt), mu, 0.0)
         viol_q = np.where(Au & Av & (nu > tol_kkt), nu, 0.0)
         ip, iq = int(np.argmax(viol_p)), int(np.argmax(viol_q))
-        record()
+        _record_convergence_history()
         if viol_p[ip] <= 0.0 and viol_q[iq] <= 0.0:
             converged = True
             break
@@ -237,6 +252,7 @@ def l1(B, y, alfa, w=0.0, tol=1e-10, max_iter=None):
     nu_out = omega * nu
     c[np.abs(c) == 0.0] = 0.0                # no negative zeros
     cvg_hst = np.array(hist).T
+
     return c, mu_out, nu_out, cvg_hst
 
 

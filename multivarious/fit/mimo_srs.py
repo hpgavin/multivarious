@@ -12,7 +12,7 @@ from multivarious.fit.l1 import l1
 from multivarious.utl.plot_l1 import plot_l1
 from multivarious.utl.log_terminal import log_open, ltw
 
-def mimo_srs(dataX, dataY, max_order=2, pTrain=70, scaling=1, L1_pnlty=1.0, basis_fctn='H', var_names=None ):
+def mimo_srs(dataX, dataY, max_order=2, pTrain=70, scaling=1, L1_pnlty=1.0, basis_fctn='H', var_names=None, fig_num=10 ):
     '''
     [ ordr, coeff, meanX, meanY, invTX, TY, testModelY, testX, testY ] = mimo_srs( dataX, dataY, max_order, pTrain, scaling, L1_pnlty, basis_fctn, var_names=None )
     
@@ -113,7 +113,7 @@ def mimo_srs(dataX, dataY, max_order=2, pTrain=70, scaling=1, L1_pnlty=1.0, basi
     else:
         mData = min(mDataX,mDataY)
 
-    fig = plot_scatter_dist(dataX, dataY, fig_num=100, var_names = var_names, ci=0.90)
+    fig = plot_scatter_dist(dataX, dataY, fig_num=fig_num+100, var_names=var_names, ci=0.90)
 
     plt.savefig(f'mimo_srs-scatter-1.pdf', bbox_inches='tight')
     ltw(lfo,f"Scatter plot saved to 'mimo_srs-scatter-1.pdf'")
@@ -168,7 +168,7 @@ def mimo_srs(dataX, dataY, max_order=2, pTrain=70, scaling=1, L1_pnlty=1.0, basi
         xNames = [rf"$zX_{i+1}$" for i in range(nZx)]
         yNames = [rf"$zY_{i+1}$" for i in range(nZy)]
         z_names = { 'X': xNames  , 'Y': yNames }
-        plot_scatter_dist(Zx, Zy, fig_num=101, var_names = z_names, ci=0.90 )
+        plot_scatter_dist(Zx, Zy, fig_num=fig_num+101, var_names=z_names, ci=0.90)
 
     #import time as time
     #from datetime import datetime, timedelta
@@ -191,7 +191,7 @@ def mimo_srs(dataX, dataY, max_order=2, pTrain=70, scaling=1, L1_pnlty=1.0, basi
     
     # fit ("train") a separate model for each output (dependent) variable
     coeff, condB = fit_model(trainZx, trainZy, ordr, 
-                                      nTerm, mTrain, L1_pnlty, basis_fctn, lfo)
+                            nTerm, mTrain, L1_pnlty, basis_fctn, fig_num, lfo)
         
     # compute the model for the training data and the testing data
     trainModelY, B = compute_model(ordr, coeff, meanX, meanY, invTX, TY,
@@ -680,7 +680,7 @@ def legendre(n, z):
     return psy
 
 
-def fit_model(Zx, Zy, ordr, nTerm, mData, L1_pnlty, basis_fctn, lfo):
+def fit_model(Zx, Zy, ordr, nTerm, mData, L1_pnlty, basis_fctn, fig_num=10, lfo=None):
     '''
     coeff, condB = fit_model( Zx, Zy, ordr, nTerm, mData, L1_pnlty, basis_fctn )
     via singular value decomposition without regularization, or
@@ -694,7 +694,8 @@ def fit_model(Zx, Zy, ordr, nTerm, mData, L1_pnlty, basis_fctn, lfo):
     nTerm       number of terms in the polynomial model                  1 x 1
     mData       number of data points (not used, kept for compatibility) 1 x 1
     L1_pnlty    L1 regularization coefficient                            1 x 1
-    basis_fctn  'H': Hermite, 'L': Legendre, 'P': Power polynomial
+    basis_fctn  'H': Hermite, 'L': Legendre, 'P': Power polynomial    2D array
+    fig_num     figure number for the fitting process figures          scalar
     lfo         file object for logging text output                    object
     
     OUTPUT      DESCRIPTION                                           DIMENSION
@@ -740,7 +741,7 @@ def fit_model(Zx, Zy, ordr, nTerm, mData, L1_pnlty, basis_fctn, lfo):
  
             txt = f'$Z_y$ #{io}: '
             plot_l1(B, coeff[:,io], Zy_col, cvg_hst, L1_pnlty, 0,
-                            fig_num=700+10*io, save_plots=False, var_name=txt)
+                                fig_num+10*io, save_plots=False, var_name=txt)
 
     else:
         # Use ordinary least squares / SVD
