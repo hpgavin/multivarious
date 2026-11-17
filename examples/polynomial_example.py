@@ -40,7 +40,7 @@ print("-"*70)
     
 p1 = [ 0, 1, 2, 3, 4 ]  # the powers of the polynomial terms 
 # ... run polynomial() to do the fit! ...
-c1, x_fit1, y_fit1, Sc1, Sy_fit1, Rc1, R2_1, Vr1, AIC1, BIC1, cond1 = \
+c1, x_fit1, y_fit1, Sc1, Sy_fit1, Rc1, R2_1, Vr1, AICc1, BICc1, cond1 = \
         polynomial(x, y, p1, fig_num=10, x_label = rf'distance $x$', y_label = rf'elevation $y$')
     
 # Test 2: Reduced polynomial basis (no linear term)
@@ -49,7 +49,7 @@ print("Test 2: Powers [0, 2, 3, 4]")
 print("-"*70)
     
 p2 = [ 0, 2, 3, 4 ]  # the powers of the polynomial terms without an "x" term
-c2, x_fit2, y_fit2, Sc2, Sy_fit2, Rc2, R2_2, Vr2, AIC2, BIC2, cond2 = \
+c2, x_fit2, y_fit2, Sc2, Sy_fit2, Rc2, R2_2, Vr2, AICc2, BICc2, cond2 = \
         polynomial(x, y, p2, fig_num=20, x_label = rf'distance $x$', y_label = rf'elevation $y$')
     
 # Comparison
@@ -61,15 +61,14 @@ print("-"*70)
 print(f"{'Cond. Number':<28} {cond1:<20.1f} {cond2:<20.1f}")
 print(f"{'Residual Standard Deviation':<28} {np.sqrt(Vr1):<20.4f} {np.sqrt(Vr2):<20.4f}")
 print(f"{'R²':<28} {R2_1:<20.4f} {R2_2:<20.4f}")
-print(f"{'AIC':<28} {AIC1:<20.2f} {AIC2:<20.2f}")
-print(f"{'BIC':<28} {BIC1:<20.2f} {BIC2:<20.2f}")
+print(f"{'AICc':<28} {AICc1:<20.2f} {AICc2:<20.2f}")
+print(f"{'BICc':<28} {BICc1:<20.2f} {BICc2:<20.2f}")
 print("="*70)
 
-if AIC2 < AIC1:
-    print("\n✓ Model 2 is preferred (lower AIC)")
+if AICc2 < AICc1:
+    print("\n✓ Model 2 is preferred (lower AICc)")
 else:
-    print("\n✓ Model 1 is preferred (lower AIC)")
+    print("\n✓ Model 1 is preferred (lower AICc)")
     
-plt.show()
-    
+
 print("\n" + "="*70)

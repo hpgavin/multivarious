@@ -266,10 +266,10 @@ def _plot_results(x, y, x_fit, y_fit, B, c, Sy_fit, Vr,
              f'BICc = {BICc:.2f}', fontsize=12)
     
     ax2.set_xlabel(r'data   $y$', fontsize=15)
-    ax2.set_ylabel(r'model   $\hat y(x; c^*)$', fontsize=15)
+    ax2.set_ylabel(r'model   $\hat y(x; \hat c)$', fontsize=15)
     ax2.axis('tight')
     ax2.grid(True, alpha=0.3)
-    ax2.set_title(r'Model $\hat y(x; c^*)$ vs Data $y$ (Correlation)', fontsize=14)
+    ax2.set_title(r'Model $\hat y(x; \hat c)$ vs Data $y$ (Correlation)', fontsize=14)
 
     filename = f'polynomial-{fig_num:04d}.pdf'
     fig_1.savefig(filename, bbox_inches='tight', dpi=300)
@@ -286,7 +286,7 @@ def _plot_results(x, y, x_fit, y_fit, B, c, Sy_fit, Vr,
     
     counts, bins, _ = plt.hist(residuals, bins=nBars, 
             color='royalblue', edgecolor='black', alpha=0.7)
-    plt.xlabel(r'Residuals, $r = y - \hat y(x; c^*)$', fontsize=15)
+    plt.xlabel(r'Residuals, $r = y - \hat y(x; \hat c)$', fontsize=15)
     plt.ylabel(r'Empirical PDF, $f_R(r)$', fontsize=15)
     plt.title('Distribution of Residuals', fontsize=15)
     plt.grid(True, alpha=0.3, axis='y')
@@ -308,5 +308,5 @@ def _plot_results(x, y, x_fit, y_fit, B, c, Sy_fit, Vr,
     print(f"    Saved: {filename}")
     
     # Figure 3: ECDF of residuals with confidence intervals
-    plot_ECDF_ci(residuals, 95, fig_num + 2, x_label= r'Residuals, $r = y - \hat y(x; c^*)$')
+    plot_ECDF_ci(residuals, 95, fig_num + 2, x_label= r'Residuals, $r = y - \hat y(x; \hat c)$')
 
